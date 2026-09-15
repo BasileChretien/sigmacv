@@ -213,3 +213,91 @@ describe("worklist self-archiving strings (workspaceUi wlArchiving*, wlStatutory
     expect(s.wlArchivingDisclaimer).toMatch(/tu biblioteca/);
   });
 });
+
+const DEPOSIT_KEYS = Object.keys(workspaceUi("en-US")).filter((k) =>
+  k.startsWith("wlDeposit"),
+) as Array<keyof WorkspaceUiStrings>;
+
+/** Every placeholder a deposit string carries — no more, no fewer. */
+const DEPOSIT_PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> = {
+  wlDepositAccepted: ["{destination}"],
+  wlDepositPublished: ["{destination}"],
+  wlDepositSubmitted: ["{destination}"],
+  wlDepositUnrecorded: ["{destination}"],
+  wlDepositIfAgreement: ["{destination}"],
+  wlDepositIfRightOrAgreement: ["{destination}"],
+  wlDepositFormLicence: ["{licence}"],
+  wlDepositFormEmbargoDate: ["{date}"],
+  wlDepositFormEmbargoDuration: ["{duration}"],
+  wlDepositLine: ["{action}", "{reason}"],
+  wlDepositBecauseFunder: ["{funder}"],
+  wlDepositBecauseOwn: ["{repository}"],
+  wlDepositBecausePaperCountry: ["{country}"],
+  wlDepositBecauseCurrentCountry: ["{country}"],
+  wlDepositBecauseNoRepositoryPaper: ["{country}"],
+  wlDepositBecauseNoRepositoryCurrent: ["{country}"],
+  wlDepositBasisCurrent: ["{country}"],
+};
+
+/**
+ * The deposit action under a closed work (verb + destination + one-clause reason)
+ * and its other places. The compliance, mandate and percent bans above already
+ * cover them as `wl*` keys; these add what is specific to them: every placeholder
+ * kept (the line is split on `{action}`, so it occurs exactly once), no count or
+ * figure, and nothing that reads as a duty or a deadline.
+ */
+describe("worklist deposit strings (workspaceUi wlDeposit*)", () => {
+  it("exist, are translated and keep exactly their placeholders, in every locale", () => {
+    expect(DEPOSIT_KEYS).toHaveLength(27);
+    const en = workspaceUi("en-US");
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = workspaceUi(loc);
+      for (const key of DEPOSIT_KEYS) {
+        expect(s[key].trim().length, `${loc} ${key}`).toBeGreaterThan(0);
+        const found = (s[key].match(/\{[a-z]+\}/g) ?? []).sort();
+        expect(found, `${loc} ${key}`).toEqual([...(DEPOSIT_PLACEHOLDERS[key] ?? [])].sort());
+      }
+      expect(s.wlDepositLine.split("{action}"), loc).toHaveLength(2);
+      if (loc === "en-US") continue;
+      for (const key of [
+        "wlDepositAccepted",
+        "wlDepositUnrecorded",
+        "wlDepositIfAgreement",
+        "wlDepositBecauseOwn",
+        "wlDepositZenodoAny",
+        "wlDepositHelp",
+      ] as const) {
+        expect(s[key], `${loc} ${key}`).not.toBe(en[key]);
+      }
+    }
+  });
+
+  it("never carry a count or a figure, in any locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = workspaceUi(loc);
+      for (const key of DEPOSIT_KEYS) {
+        expect(s[key], `${loc} ${key}`).not.toMatch(/\{n\}|\{total\}|\d/);
+      }
+    }
+  });
+
+  it("say, in English, what to do and why — never that it is due", () => {
+    const s = workspaceUi("en-US");
+    for (const key of DEPOSIT_KEYS) {
+      expect(s[key], key).not.toMatch(/\byou must\b|\brequired?\b|\bdue\b|\blate\b|\bdeadline\b/i);
+    }
+    for (const key of DEPOSIT_KEYS.filter((k) => k.startsWith("wlDepositBecause"))) {
+      expect(s[key], key).toMatch(/^because /);
+    }
+  });
+
+  it("address the owner informally in Spanish, like the rest of the worklist", () => {
+    const s = workspaceUi("es-ES");
+    for (const key of DEPOSIT_KEYS) {
+      expect(s[key], key).not.toMatch(
+        /\busted\b|\bsu manuscrito\b|\bsus otros trabajos\b|\bsu afiliación\b/i,
+      );
+    }
+    expect(s.wlDepositBecauseOwn).toMatch(/\btus trabajos\b/);
+  });
+});

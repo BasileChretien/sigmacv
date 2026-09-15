@@ -160,6 +160,9 @@ export function projectCvForPublic(cv: CanonicalCv): CanonicalCv {
       // Owner-declared career context (breaks, part-time, caring…) is sensitive
       // personal data: it leaves the account only when the owner shows the block.
       careerContext: cv.display.showCareerContext ? cv.owner.careerContext : undefined,
+      // The places the owner's works sit (deposit routing) — owner worklist only.
+      depositRepositories: undefined,
+      depositRepositoriesCheckedAt: undefined,
     },
     // Saved editor presets (named layout intents + display snapshots, possibly a
     // custom CSL XML blob) are an internal editor concept — never publish them.
@@ -217,6 +220,9 @@ export function projectCvForPreview(cv: CanonicalCv): CanonicalCv {
       // Author-level figures and the per-year series: never for a non-owner.
       metrics: undefined,
       countsByYear: [],
+      // Deposit routing input: never for a non-owner.
+      depositRepositories: undefined,
+      depositRepositoriesCheckedAt: undefined,
     },
     // Keep every item + its review cues (reviewFlag/duplicateOf/misattribution),
     // but strip `meta.coauthorOrcids` — a raw list of THIRD-PARTY ORCID iDs used

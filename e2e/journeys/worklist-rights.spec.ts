@@ -73,7 +73,7 @@ test("a closed work shows the publisher's recorded policy, the statutory rule an
 
   const worklist = page.locator('details[data-owner-only="worklist"]');
   await expect(worklist).toBeVisible({ timeout: 15_000 });
-  await worklist.locator("summary").click();
+  await worklist.locator("summary.cv-worklist-title").click();
   const rights = worklist.locator('[data-worklist="rights"]');
   await expect(rights).toBeVisible();
 
@@ -96,4 +96,24 @@ test("a closed work shows the publisher's recorded policy, the statutory rule an
   await expect(rights).not.toContainText("%");
 
   await rights.screenshot({ path: test.info().outputPath("worklist-rights.png") });
+
+  // One deposit action under the same work: the national repository of the country
+  // on the paper, with its reason, and the other places behind a disclosure.
+  const closedRow = worklist
+    .locator("li")
+    .filter({ has: page.locator('[data-worklist="rights"]') });
+  const deposit = closedRow.locator('[data-worklist="deposit"]');
+  await expect(deposit).toBeVisible();
+  const primary = deposit.locator(".cv-worklist-deposit-primary");
+  await expect(primary.getByRole("link")).toHaveAttribute("href", "https://hal.science/submit");
+  await expect(primary).toContainText("HAL");
+  await expect(primary).toContainText("France");
+  await deposit.locator("summary").click();
+  await expect(deposit.getByRole("link", { name: "Zenodo" })).toHaveAttribute(
+    "href",
+    "https://zenodo.org/uploads/new",
+  );
+  await expect(deposit).not.toContainText("%");
+
+  await deposit.screenshot({ path: test.info().outputPath("worklist-deposit.png") });
 });

@@ -54,6 +54,9 @@ interface CvWorkspaceProps {
    *  reads them. Static for the page's life — a re-sync warms the table, the
    *  next open reads it. */
   funderCrosswalk?: readonly FunderRow[];
+  /** ISO-3166 code of the owner's current affiliation (the Institution table, loaded
+   *  server-side) for the worklist's deposit routes. */
+  currentAffiliationCountry?: string;
   /** The persisted "what changed" report of the last sync (null = none yet). */
   initialSyncReport?: SyncReport | null;
   /** True when the server's first auto-sync threw — show a retryable error
@@ -129,6 +132,7 @@ function isPublishState(data: unknown): data is PublishStateResponse {
 export default function CvWorkspace({
   initialCv,
   funderCrosswalk = NO_FUNDER_CROSSWALK,
+  currentAffiliationCountry,
   initialSyncReport = null,
   initialSyncFailed = false,
   autoSyncOnLoad = false,
@@ -698,6 +702,7 @@ export default function CvWorkspace({
                   (publishState.institutionPage ?? NO_INSTITUTION_PAGE).consentedRorIds
                 }
                 funderCrosswalk={funderCrosswalk}
+                currentAffiliationCountry={currentAffiliationCountry}
                 institutionListing={{
                   state: publishState,
                   onPublishStateChange: setPublishState,

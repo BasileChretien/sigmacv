@@ -163,6 +163,60 @@ export interface WorkspaceUiStrings {
   wlStatutorySourceLink: string;
   /** Link text: the guidance page quoting or explaining the text. */
   wlStatutoryGuidanceLink: string;
+  /** Action: deposit the accepted manuscript; {destination}. */
+  wlDepositAccepted: string;
+  /** Action: deposit the published version, which the recorded policy allows; {destination}. */
+  wlDepositPublished: string;
+  /** Action: deposit the submitted manuscript, the only version the recorded policy allows; {destination}. */
+  wlDepositSubmitted: string;
+  /** Action with no usable record: the accepted manuscript, not the publisher's PDF, if the journal's policy allows it; {destination}. */
+  wlDepositUnrecorded: string;
+  /** Action when the record allows no deposit there: only if the publishing agreement allows it; {destination}. */
+  wlDepositIfAgreement: string;
+  /** The same when a statutory rule is shown above the work; {destination}. */
+  wlDepositIfRightOrAgreement: string;
+  /** One action line: {action} (the link) and its {reason}. */
+  wlDepositLine: string;
+  /** Reason: the work names a funder with a confirmed repository; {funder}. */
+  wlDepositBecauseFunder: string;
+  /** Reason: OpenAlex lists some of the owner's works in that repository; {repository}. */
+  wlDepositBecauseOwn: string;
+  /** Reason: the national repository of the affiliation country on the paper; {country}. */
+  wlDepositBecausePaperCountry: string;
+  /** Reason: the national repository of the current affiliation's country; {country}. */
+  wlDepositBecauseCurrentCountry: string;
+  /** Zenodo's reason when no national repository is known for the paper's country; {country}. */
+  wlDepositBecauseNoRepositoryPaper: string;
+  /** Zenodo's reason when none is known for the current affiliation's country; {country}. */
+  wlDepositBecauseNoRepositoryCurrent: string;
+  /** Zenodo's reason when the paper records no affiliation country. */
+  wlDepositBecauseNoAffiliation: string;
+  /** Zenodo's reason among other places: open to anyone. */
+  wlDepositZenodoAny: string;
+  /** ShareYourPaper's description among other places. */
+  wlDepositShareYourPaper: string;
+  /** Form note: the licence the recorded policy asks for; {licence}. */
+  wlDepositFormLicence: string;
+  /** Form note: keep the file under embargo until the recorded end; {date}. */
+  wlDepositFormEmbargoDate: string;
+  /** Form note: the embargo as a duration after publication; {duration}. */
+  wlDepositFormEmbargoDuration: string;
+  /** Form note for Zenodo: the publisher's DOI goes under related works, not as the deposit's own (Zenodo's form labels are English). */
+  wlDepositZenodoDoi: string;
+  /** Disclosure summary listing the remaining places. */
+  wlDepositOtherPlaces: string;
+  /** Button: copy the work's DOI to paste into a deposit form. */
+  wlDepositCopyDoi: string;
+  /** Button state after copying. */
+  wlDepositDoiCopied: string;
+  /** Legend of the choice between the two affiliations. */
+  wlDepositBasisLabel: string;
+  /** Choice: route by the affiliation printed on each paper (default). */
+  wlDepositBasisPaper: string;
+  /** Choice: route by the owner's current affiliation; {country}. */
+  wlDepositBasisCurrent: string;
+  /** One line above the closed works: links open in a new tab, the DOI helps fill the form, the file is the author's choice. */
+  wlDepositHelp: string;
   /** Title on a row's jump button. */
   wlJump: string;
   // ── Owner worklist: your grants and their open-access policies ───────────
@@ -328,6 +382,42 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "Drafted and not yet confirmed against the legal text.",
     wlStatutorySourceLink: "legal text",
     wlStatutoryGuidanceLink: "guidance",
+    wlDepositAccepted: "Deposit the accepted manuscript in {destination}",
+    wlDepositPublished: "Deposit the published version in {destination}",
+    wlDepositSubmitted: "Deposit the submitted manuscript in {destination}",
+    wlDepositUnrecorded:
+      "Deposit your accepted manuscript, not the publisher's PDF, in {destination} if the journal's policy allows it",
+    wlDepositIfAgreement: "Deposit in {destination} only if your publishing agreement allows it",
+    wlDepositIfRightOrAgreement:
+      "Deposit in {destination} only if a right shown above or your publishing agreement allows it",
+    wlDepositLine: "{action} — {reason}",
+    wlDepositBecauseFunder:
+      "because this work names {funder} (a co-author may already have submitted it)",
+    wlDepositBecauseOwn: "because OpenAlex lists some of your works in {repository}",
+    wlDepositBecausePaperCountry: "because of your affiliation on this paper ({country})",
+    wlDepositBecauseCurrentCountry: "because of your current affiliation ({country})",
+    wlDepositBecauseNoRepositoryPaper:
+      "because SigmaCV doesn't know of a national repository for your affiliation on this paper ({country})",
+    wlDepositBecauseNoRepositoryCurrent:
+      "because SigmaCV doesn't know of a national repository for your current affiliation ({country})",
+    wlDepositBecauseNoAffiliation:
+      "because no affiliation country is recorded for you on this paper",
+    wlDepositZenodoAny: "open to any researcher",
+    wlDepositShareYourPaper:
+      "checks the publisher's permission and the file you upload, then deposits it in Zenodo",
+    wlDepositFormLicence: "In the form, set the licence to {licence}.",
+    wlDepositFormEmbargoDate: "Keep the file under embargo until {date}.",
+    wlDepositFormEmbargoDuration: "Keep the file under embargo for {duration} after publication.",
+    wlDepositZenodoDoi:
+      "In Zenodo, answer “No” to “Do you already have a DOI for this upload?” and add this DOI under “Related works”.",
+    wlDepositOtherPlaces: "Other places",
+    wlDepositCopyDoi: "Copy DOI",
+    wlDepositDoiCopied: "DOI copied",
+    wlDepositBasisLabel: "Suggest places by",
+    wlDepositBasisPaper: "the affiliation on each paper",
+    wlDepositBasisCurrent: "your current affiliation ({country})",
+    wlDepositHelp:
+      "Each link opens the repository in a new tab (its deposit form where SigmaCV knows it). Copy the DOI to fill in the paper's details. Which file you upload is your choice; the journal's policy says which versions it allows.",
     wlJump: "Jump to this entry",
     wlFundingHeading: "Your grants and their open-access policies",
     wlFundingHelp:
@@ -466,6 +556,37 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "已起草，尚未与法律文本核对。",
     wlStatutorySourceLink: "法律文本",
     wlStatutoryGuidanceLink: "指南",
+    wlDepositAccepted: "将最终审定稿存缴至 {destination}",
+    wlDepositPublished: "将出版版本存缴至 {destination}",
+    wlDepositSubmitted: "将投稿稿存缴至 {destination}",
+    wlDepositUnrecorded: "若期刊政策允许，将您的最终审定稿（而非出版方 PDF）存缴至 {destination}",
+    wlDepositIfAgreement: "仅在您的出版协议允许时存缴至 {destination}",
+    wlDepositIfRightOrAgreement: "仅在上方所示权利或您的出版协议允许时存缴至 {destination}",
+    wlDepositLine: "{action}——{reason}",
+    wlDepositBecauseFunder: "因为本文列出了资助方 {funder}（可能已有合著者提交）",
+    wlDepositBecauseOwn: "因为 OpenAlex 显示您的部分作品在 {repository} 中",
+    wlDepositBecausePaperCountry: "因为您在本文上的署名单位位于{country}",
+    wlDepositBecauseCurrentCountry: "因为您目前的单位位于{country}",
+    wlDepositBecauseNoRepositoryPaper:
+      "因为 SigmaCV 暂未收录您在本文上署名单位所在国（{country}）的国家知识库",
+    wlDepositBecauseNoRepositoryCurrent:
+      "因为 SigmaCV 暂未收录您目前单位所在国（{country}）的国家知识库",
+    wlDepositBecauseNoAffiliation: "因为本文未记录您的单位所在国家",
+    wlDepositZenodoAny: "面向所有研究人员开放",
+    wlDepositShareYourPaper: "核查出版方许可和您上传的文件，然后存缴至 Zenodo",
+    wlDepositFormLicence: "在表单中将许可协议设为 {licence}。",
+    wlDepositFormEmbargoDate: "将文件设为禁锢期，直至 {date}。",
+    wlDepositFormEmbargoDuration: "将文件设为出版后禁锢 {duration}。",
+    wlDepositZenodoDoi:
+      "在 Zenodo 中，对“Do you already have a DOI for this upload?”选择“No”，并在“Related works”中添加此 DOI。",
+    wlDepositOtherPlaces: "其他存缴去处",
+    wlDepositCopyDoi: "复制 DOI",
+    wlDepositDoiCopied: "已复制 DOI",
+    wlDepositBasisLabel: "推荐依据",
+    wlDepositBasisPaper: "各篇论文上的署名单位",
+    wlDepositBasisCurrent: "您目前的单位（{country}）",
+    wlDepositHelp:
+      "每个链接都会在新标签页中打开相应知识库（若 SigmaCV 已知其存缴表单，则直接打开）。复制 DOI 以填写论文信息。上传哪个文件由您决定；期刊政策会说明允许哪些版本。",
     wlJump: "跳转到此条目",
     wlFundingHeading: "您的资助项目及其开放获取政策",
     wlFundingHelp:
@@ -610,6 +731,43 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "Redactado y aún sin contrastar con el texto legal.",
     wlStatutorySourceLink: "texto legal",
     wlStatutoryGuidanceLink: "guía",
+    wlDepositAccepted: "Deposita el manuscrito aceptado en {destination}",
+    wlDepositPublished: "Deposita la versión publicada en {destination}",
+    wlDepositSubmitted: "Deposita el manuscrito enviado en {destination}",
+    wlDepositUnrecorded:
+      "Deposita en {destination} tu manuscrito aceptado (no el PDF de la editorial) si la política de la revista lo permite",
+    wlDepositIfAgreement: "Deposita en {destination} solo si tu contrato de publicación lo permite",
+    wlDepositIfRightOrAgreement:
+      "Deposita en {destination} solo si un derecho indicado arriba o tu contrato de publicación lo permite",
+    wlDepositLine: "{action}, {reason}",
+    wlDepositBecauseFunder:
+      "porque este trabajo menciona a {funder} (puede que un coautor ya lo haya enviado)",
+    wlDepositBecauseOwn: "porque OpenAlex registra algunos de tus trabajos en {repository}",
+    wlDepositBecausePaperCountry: "porque tu afiliación en este artículo está en {country}",
+    wlDepositBecauseCurrentCountry: "porque tu afiliación actual está en {country}",
+    wlDepositBecauseNoRepositoryPaper:
+      "porque SigmaCV no conoce ningún repositorio nacional para tu afiliación en este artículo ({country})",
+    wlDepositBecauseNoRepositoryCurrent:
+      "porque SigmaCV no conoce ningún repositorio nacional para tu afiliación actual ({country})",
+    wlDepositBecauseNoAffiliation:
+      "porque no consta ningún país de afiliación tuyo en este artículo",
+    wlDepositZenodoAny: "abierto a cualquier investigador",
+    wlDepositShareYourPaper:
+      "que comprueba el permiso de la editorial y el archivo que subes, y luego lo deposita en Zenodo",
+    wlDepositFormLicence: "En el formulario, elige la licencia {licence}.",
+    wlDepositFormEmbargoDate: "Mantén el archivo bajo embargo hasta el {date}.",
+    wlDepositFormEmbargoDuration:
+      "Mantén el archivo bajo embargo durante {duration} tras la publicación.",
+    wlDepositZenodoDoi:
+      "En Zenodo, responde «No» a «Do you already have a DOI for this upload?» y añade este DOI en «Related works».",
+    wlDepositOtherPlaces: "Otros lugares",
+    wlDepositCopyDoi: "Copiar DOI",
+    wlDepositDoiCopied: "DOI copiado",
+    wlDepositBasisLabel: "Sugerir lugares según",
+    wlDepositBasisPaper: "la afiliación de cada artículo",
+    wlDepositBasisCurrent: "tu afiliación actual ({country})",
+    wlDepositHelp:
+      "Cada enlace abre el repositorio en una pestaña nueva (su formulario de depósito cuando SigmaCV lo conoce). Copia el DOI para rellenar los datos del artículo. Qué archivo subir lo decides tú; la política de la revista indica qué versiones permite.",
     wlJump: "Ir a esta entrada",
     wlFundingHeading: "Tus ayudas y sus políticas de acceso abierto",
     wlFundingHelp:
@@ -759,6 +917,45 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "Rédigé, pas encore vérifié au regard du texte de loi.",
     wlStatutorySourceLink: "texte de loi",
     wlStatutoryGuidanceLink: "guide",
+    wlDepositAccepted: "Déposer le manuscrit accepté dans {destination}",
+    wlDepositPublished: "Déposer la version éditeur dans {destination}",
+    wlDepositSubmitted: "Déposer le manuscrit soumis dans {destination}",
+    wlDepositUnrecorded:
+      "Déposer votre manuscrit accepté, et non le PDF de l'éditeur, dans {destination} si la politique de la revue le permet",
+    wlDepositIfAgreement:
+      "Déposer dans {destination} seulement si votre contrat d'édition le permet",
+    wlDepositIfRightOrAgreement:
+      "Déposer dans {destination} seulement si un droit indiqué ci-dessus ou votre contrat d'édition le permet",
+    wlDepositLine: "{action} — {reason}",
+    wlDepositBecauseFunder:
+      "car ce travail mentionne {funder} (un coauteur l'a peut-être déjà déposé)",
+    wlDepositBecauseOwn: "car OpenAlex signale certains de vos travaux dans {repository}",
+    wlDepositBecausePaperCountry:
+      "en raison de votre affiliation indiquée dans cet article ({country})",
+    wlDepositBecauseCurrentCountry: "en raison de votre affiliation actuelle ({country})",
+    wlDepositBecauseNoRepositoryPaper:
+      "car SigmaCV ne connaît aucune archive ouverte nationale pour votre affiliation indiquée dans cet article ({country})",
+    wlDepositBecauseNoRepositoryCurrent:
+      "car SigmaCV ne connaît aucune archive ouverte nationale pour votre affiliation actuelle ({country})",
+    wlDepositBecauseNoAffiliation:
+      "car aucun pays d'affiliation n'est enregistré pour vous sur cet article",
+    wlDepositZenodoAny: "ouvert à tout chercheur",
+    wlDepositShareYourPaper:
+      "vérifie l'autorisation de l'éditeur et le fichier que vous envoyez, puis le dépose dans Zenodo",
+    wlDepositFormLicence: "Dans le formulaire, choisissez la licence {licence}.",
+    wlDepositFormEmbargoDate: "Gardez le fichier sous embargo jusqu'au {date}.",
+    wlDepositFormEmbargoDuration:
+      "Gardez le fichier sous embargo pendant {duration} après la publication.",
+    wlDepositZenodoDoi:
+      "Dans Zenodo, répondez « No » à « Do you already have a DOI for this upload? » et ajoutez ce DOI dans « Related works ».",
+    wlDepositOtherPlaces: "Autres lieux de dépôt",
+    wlDepositCopyDoi: "Copier le DOI",
+    wlDepositDoiCopied: "DOI copié",
+    wlDepositBasisLabel: "Proposer des lieux selon",
+    wlDepositBasisPaper: "l'affiliation de chaque article",
+    wlDepositBasisCurrent: "votre affiliation actuelle ({country})",
+    wlDepositHelp:
+      "Chaque lien ouvre l'archive dans un nouvel onglet (son formulaire de dépôt quand SigmaCV le connaît). Copiez le DOI pour renseigner les informations de l'article. Le choix du fichier vous revient ; la politique de la revue indique quelles versions elle autorise.",
     wlJump: "Aller à cette entrée",
     wlFundingHeading: "Vos financements et leurs politiques d'accès ouvert",
     wlFundingHelp:
@@ -911,6 +1108,44 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "Entwurf, noch nicht mit dem Gesetzestext abgeglichen.",
     wlStatutorySourceLink: "Gesetzestext",
     wlStatutoryGuidanceLink: "Erläuterungen",
+    wlDepositAccepted: "Akzeptierte Manuskriptversion in {destination} ablegen",
+    wlDepositPublished: "Verlagsversion in {destination} ablegen",
+    wlDepositSubmitted: "Eingereichte Manuskriptversion in {destination} ablegen",
+    wlDepositUnrecorded:
+      "Ihr akzeptiertes Manuskript, nicht das Verlags-PDF, in {destination} ablegen, sofern die Richtlinie der Zeitschrift es erlaubt",
+    wlDepositIfAgreement: "In {destination} nur ablegen, wenn Ihr Verlagsvertrag es erlaubt",
+    wlDepositIfRightOrAgreement:
+      "In {destination} nur ablegen, wenn ein oben genanntes Recht oder Ihr Verlagsvertrag es erlaubt",
+    wlDepositLine: "{action} – {reason}",
+    wlDepositBecauseFunder:
+      "weil diese Arbeit {funder} nennt (vielleicht hat eine Mitautorin oder ein Mitautor sie bereits eingereicht)",
+    wlDepositBecauseOwn: "weil OpenAlex einige Ihrer Arbeiten in {repository} führt",
+    wlDepositBecausePaperCountry:
+      "wegen Ihrer in diesem Artikel angegebenen Affiliation ({country})",
+    wlDepositBecauseCurrentCountry: "wegen Ihrer aktuellen Affiliation ({country})",
+    wlDepositBecauseNoRepositoryPaper:
+      "weil SigmaCV kein nationales Repositorium für Ihre in diesem Artikel angegebene Affiliation ({country}) kennt",
+    wlDepositBecauseNoRepositoryCurrent:
+      "weil SigmaCV kein nationales Repositorium für Ihre aktuelle Affiliation ({country}) kennt",
+    wlDepositBecauseNoAffiliation:
+      "weil auf diesem Artikel kein Land Ihrer Affiliation verzeichnet ist",
+    wlDepositZenodoAny: "offen für alle Forschenden",
+    wlDepositShareYourPaper:
+      "prüft die Erlaubnis des Verlags und die hochgeladene Datei und legt den Artikel dann in Zenodo ab",
+    wlDepositFormLicence: "Wählen Sie im Formular die Lizenz {licence}.",
+    wlDepositFormEmbargoDate: "Setzen Sie für die Datei ein Embargo bis {date}.",
+    wlDepositFormEmbargoDuration:
+      "Setzen Sie das Embargo für die Datei auf {duration} nach der Veröffentlichung.",
+    wlDepositZenodoDoi:
+      "Antworten Sie in Zenodo auf „Do you already have a DOI for this upload?“ mit „No“ und fügen Sie diese DOI unter „Related works“ hinzu.",
+    wlDepositOtherPlaces: "Weitere Ablageorte",
+    wlDepositCopyDoi: "DOI kopieren",
+    wlDepositDoiCopied: "DOI kopiert",
+    wlDepositBasisLabel: "Ablageorte vorschlagen nach",
+    wlDepositBasisPaper: "der Affiliation auf dem jeweiligen Artikel",
+    wlDepositBasisCurrent: "Ihrer aktuellen Affiliation ({country})",
+    wlDepositHelp:
+      "Jeder Link öffnet das Repositorium in einem neuen Tab (sein Ablageformular, wo SigmaCV es kennt). Kopieren Sie die DOI, um dort die Angaben zum Artikel einzutragen. Welche Datei Sie hochladen, entscheiden Sie; die Richtlinie der Zeitschrift sagt, welche Versionen sie erlaubt.",
     wlJump: "Zu diesem Eintrag springen",
     wlFundingHeading: "Ihre Förderungen und deren Open-Access-Richtlinien",
     wlFundingHelp:
@@ -1056,6 +1291,43 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "草案段階で、法令本文との照合はまだ済んでいません。",
     wlStatutorySourceLink: "法令本文",
     wlStatutoryGuidanceLink: "解説",
+    wlDepositAccepted: "著者最終稿を {destination} に登録する",
+    wlDepositPublished: "出版社版を {destination} に登録する",
+    wlDepositSubmitted: "投稿原稿を {destination} に登録する",
+    wlDepositUnrecorded:
+      "雑誌のポリシーが認める場合に、出版社の PDF ではなく著者最終稿を {destination} に登録する",
+    wlDepositIfAgreement: "出版契約が認める場合に限り {destination} に登録する",
+    wlDepositIfRightOrAgreement:
+      "上記の権利または出版契約が認める場合に限り {destination} に登録する",
+    wlDepositLine: "{action}（{reason}）",
+    wlDepositBecauseFunder:
+      "この論文に {funder} が記載されているため。共著者がすでに登録している場合があります",
+    wlDepositBecauseOwn:
+      "OpenAlex によると、あなたの論文の一部が {repository} に登録されているため",
+    wlDepositBecausePaperCountry: "この論文でのご所属機関が{country}にあるため",
+    wlDepositBecauseCurrentCountry: "現在のご所属機関が{country}にあるため",
+    wlDepositBecauseNoRepositoryPaper:
+      "この論文でのご所属の国が{country}で、SigmaCV がその国のリポジトリを把握していないため",
+    wlDepositBecauseNoRepositoryCurrent:
+      "現在のご所属の国が{country}で、SigmaCV がその国のリポジトリを把握していないため",
+    wlDepositBecauseNoAffiliation: "この論文にあなたの所属国が記録されていないため",
+    wlDepositZenodoAny: "どの研究者も利用可能",
+    wlDepositShareYourPaper:
+      "出版社の許諾とアップロードするファイルを確認し、Zenodo に登録するサービス",
+    wlDepositFormLicence: "登録フォームでライセンスを {licence} に設定してください。",
+    wlDepositFormEmbargoDate: "ファイルは {date} まで非公開（エンバーゴ）にしてください。",
+    wlDepositFormEmbargoDuration:
+      "ファイルは出版後 {duration}間、非公開（エンバーゴ）にしてください。",
+    wlDepositZenodoDoi:
+      "Zenodo では「Do you already have a DOI for this upload?」に「No」と答え、この DOI を「Related works」に追加してください。",
+    wlDepositOtherPlaces: "その他の登録先",
+    wlDepositCopyDoi: "DOI をコピー",
+    wlDepositDoiCopied: "DOI をコピーしました",
+    wlDepositBasisLabel: "登録先の提案基準",
+    wlDepositBasisPaper: "各論文での所属",
+    wlDepositBasisCurrent: "現在の所属（{country}）",
+    wlDepositHelp:
+      "各リンクは新しいタブでリポジトリを開きます（SigmaCV が把握している場合は登録フォーム）。DOI をコピーして論文情報を入力してください。アップロードするファイルはご自身でお選びください（どの版が認められるかは雑誌のポリシーに記載されています）。",
     wlJump: "この項目へ移動",
     wlFundingHeading: "あなたの助成金とそのオープンアクセス方針",
     wlFundingHelp:
@@ -1206,6 +1478,43 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "Redigido e ainda não conferido com o texto legal.",
     wlStatutorySourceLink: "texto legal",
     wlStatutoryGuidanceLink: "guia",
+    wlDepositAccepted: "Deposite o manuscrito aceito em {destination}",
+    wlDepositPublished: "Deposite a versão publicada em {destination}",
+    wlDepositSubmitted: "Deposite o manuscrito submetido em {destination}",
+    wlDepositUnrecorded:
+      "Deposite seu manuscrito aceito, não o PDF da editora, em {destination} se a política da revista permitir",
+    wlDepositIfAgreement:
+      "Deposite em {destination} somente se seu contrato de publicação permitir",
+    wlDepositIfRightOrAgreement:
+      "Deposite em {destination} somente se um direito indicado acima ou seu contrato de publicação permitir",
+    wlDepositLine: "{action} — {reason}",
+    wlDepositBecauseFunder: "porque este trabalho cita {funder} (um coautor pode já tê-lo enviado)",
+    wlDepositBecauseOwn: "porque o OpenAlex lista alguns dos seus trabalhos em {repository}",
+    wlDepositBecausePaperCountry: "por causa da sua afiliação neste artigo ({country})",
+    wlDepositBecauseCurrentCountry: "por causa da sua afiliação atual ({country})",
+    wlDepositBecauseNoRepositoryPaper:
+      "porque o SigmaCV não conhece nenhum repositório nacional para sua afiliação neste artigo ({country})",
+    wlDepositBecauseNoRepositoryCurrent:
+      "porque o SigmaCV não conhece nenhum repositório nacional para sua afiliação atual ({country})",
+    wlDepositBecauseNoAffiliation:
+      "porque nenhum país de afiliação está registrado para você neste artigo",
+    wlDepositZenodoAny: "aberto a qualquer pesquisador",
+    wlDepositShareYourPaper:
+      "verifica a permissão da editora e o arquivo que você envia e depois o deposita no Zenodo",
+    wlDepositFormLicence: "No formulário, escolha a licença {licence}.",
+    wlDepositFormEmbargoDate: "Mantenha o arquivo sob embargo até {date}.",
+    wlDepositFormEmbargoDuration:
+      "Mantenha o arquivo sob embargo por {duration} após a publicação.",
+    wlDepositZenodoDoi:
+      "No Zenodo, responda “No” à pergunta “Do you already have a DOI for this upload?” e adicione este DOI em “Related works”.",
+    wlDepositOtherPlaces: "Outros lugares",
+    wlDepositCopyDoi: "Copiar DOI",
+    wlDepositDoiCopied: "DOI copiado",
+    wlDepositBasisLabel: "Sugerir lugares com base em",
+    wlDepositBasisPaper: "a afiliação de cada artigo",
+    wlDepositBasisCurrent: "sua afiliação atual ({country})",
+    wlDepositHelp:
+      "Cada link abre o repositório em uma nova aba (ou direto o formulário de depósito, quando o SigmaCV o conhece). Copie o DOI para preencher os dados do artigo. Qual arquivo enviar é escolha sua; a política da revista indica quais versões permite.",
     wlJump: "Ir para esta entrada",
     wlFundingHeading: "Seus financiamentos e suas políticas de acesso aberto",
     wlFundingHelp:
@@ -1357,6 +1666,44 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "Bozza, non ancora confrontata con il testo di legge.",
     wlStatutorySourceLink: "testo di legge",
     wlStatutoryGuidanceLink: "guida",
+    wlDepositAccepted: "Deposita il manoscritto accettato in {destination}",
+    wlDepositPublished: "Deposita la versione editoriale in {destination}",
+    wlDepositSubmitted: "Deposita il manoscritto inviato in {destination}",
+    wlDepositUnrecorded:
+      "Deposita il tuo manoscritto accettato, non il PDF dell'editore, in {destination} se la politica della rivista lo consente",
+    wlDepositIfAgreement:
+      "Deposita in {destination} solo se il tuo contratto di pubblicazione lo consente",
+    wlDepositIfRightOrAgreement:
+      "Deposita in {destination} solo se un diritto indicato sopra o il tuo contratto di pubblicazione lo consente",
+    wlDepositLine: "{action} — {reason}",
+    wlDepositBecauseFunder:
+      "perché questo lavoro cita {funder} (un coautore potrebbe averlo già inviato)",
+    wlDepositBecauseOwn: "perché OpenAlex elenca alcuni tuoi lavori in {repository}",
+    wlDepositBecausePaperCountry: "per la tua affiliazione indicata in questo articolo ({country})",
+    wlDepositBecauseCurrentCountry: "per la tua affiliazione attuale ({country})",
+    wlDepositBecauseNoRepositoryPaper:
+      "perché SigmaCV non conosce alcun archivio aperto nazionale per la tua affiliazione indicata in questo articolo ({country})",
+    wlDepositBecauseNoRepositoryCurrent:
+      "perché SigmaCV non conosce alcun archivio aperto nazionale per la tua affiliazione attuale ({country})",
+    wlDepositBecauseNoAffiliation:
+      "perché su questo articolo non è registrato alcun paese della tua affiliazione",
+    wlDepositZenodoAny: "aperto a qualsiasi ricercatore",
+    wlDepositShareYourPaper:
+      "verifica il permesso dell'editore e il file che carichi, poi lo deposita su Zenodo",
+    wlDepositFormLicence: "Nel modulo, scegli la licenza {licence}.",
+    wlDepositFormEmbargoDate: "Tieni il file sotto embargo fino al {date}.",
+    wlDepositFormEmbargoDuration:
+      "Tieni il file sotto embargo per {duration} dopo la pubblicazione.",
+    wlDepositZenodoDoi:
+      "Su Zenodo, rispondi “No” a “Do you already have a DOI for this upload?” e aggiungi questo DOI in “Related works”.",
+    wlDepositOtherPlaces: "Altri archivi",
+    wlDepositCopyDoi: "Copia DOI",
+    wlDepositDoiCopied: "DOI copiato",
+    wlDepositBasisLabel: "Suggerisci archivi in base a",
+    wlDepositBasisPaper: "l'affiliazione di ciascun articolo",
+    wlDepositBasisCurrent: "la tua affiliazione attuale ({country})",
+    wlDepositHelp:
+      "Ogni link apre l'archivio in una nuova scheda (il suo modulo di deposito, quando SigmaCV lo conosce). Copia il DOI per compilare i dati dell'articolo. Quale file caricare lo scegli tu; la politica della rivista indica quali versioni consente.",
     wlJump: "Vai a questa voce",
     wlFundingHeading: "I tuoi finanziamenti e le loro politiche di accesso aperto",
     wlFundingHelp:
@@ -1504,6 +1851,40 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "초안이며 아직 법령 원문과 대조하지 않았습니다.",
     wlStatutorySourceLink: "법령 원문",
     wlStatutoryGuidanceLink: "안내",
+    wlDepositAccepted: "게재 승인 원고를 {destination}에 기탁하기",
+    wlDepositPublished: "출판사 최종본을 {destination}에 기탁하기",
+    wlDepositSubmitted: "투고 원고를 {destination}에 기탁하기",
+    wlDepositUnrecorded:
+      "학술지 정책이 허용하면 출판사 PDF가 아닌 게재 승인 원고를 {destination}에 기탁하기",
+    wlDepositIfAgreement: "출판 계약이 허용하는 경우에만 {destination}에 기탁하기",
+    wlDepositIfRightOrAgreement:
+      "위에 표시된 권리나 출판 계약이 허용하는 경우에만 {destination}에 기탁하기",
+    wlDepositLine: "{action} — {reason}",
+    wlDepositBecauseFunder:
+      "이 논문에 {funder}이(가) 명시되어 있기 때문(공저자가 이미 제출했을 수 있음)",
+    wlDepositBecauseOwn: "OpenAlex에 따르면 내 논문 일부가 {repository}에 있기 때문",
+    wlDepositBecausePaperCountry: "이 논문의 소속 기관이 {country}에 있기 때문",
+    wlDepositBecauseCurrentCountry: "현재 소속 기관이 {country}에 있기 때문",
+    wlDepositBecauseNoRepositoryPaper:
+      "이 논문의 소속 국가({country})에 대해 SigmaCV가 아는 국가 리포지터리가 없기 때문",
+    wlDepositBecauseNoRepositoryCurrent:
+      "현재 소속 국가({country})에 대해 SigmaCV가 아는 국가 리포지터리가 없기 때문",
+    wlDepositBecauseNoAffiliation: "이 논문에 소속 국가가 기록되어 있지 않기 때문",
+    wlDepositZenodoAny: "모든 연구자에게 열려 있음",
+    wlDepositShareYourPaper: "출판사 허가와 업로드한 파일을 확인한 뒤 Zenodo에 기탁해 주는 서비스",
+    wlDepositFormLicence: "기탁 양식에서 라이선스를 {licence}(으)로 설정하세요.",
+    wlDepositFormEmbargoDate: "파일을 {date}까지 비공개(엠바고)로 두세요.",
+    wlDepositFormEmbargoDuration: "파일을 출판 후 {duration} 동안 비공개(엠바고)로 두세요.",
+    wlDepositZenodoDoi:
+      "Zenodo에서 “Do you already have a DOI for this upload?”에 “No”로 답하고 이 DOI를 “Related works”에 추가하세요.",
+    wlDepositOtherPlaces: "다른 기탁처",
+    wlDepositCopyDoi: "DOI 복사",
+    wlDepositDoiCopied: "DOI 복사됨",
+    wlDepositBasisLabel: "기탁처 추천 기준",
+    wlDepositBasisPaper: "각 논문의 소속",
+    wlDepositBasisCurrent: "현재 소속({country})",
+    wlDepositHelp:
+      "각 링크는 새 탭에서 리포지터리를 엽니다(SigmaCV가 아는 경우 기탁 양식). DOI를 복사해 논문 정보를 입력하세요. 어떤 파일을 올릴지는 직접 선택하세요(허용되는 버전은 학술지 정책에 나와 있습니다).",
     wlJump: "이 항목으로 이동",
     wlFundingHeading: "내 연구비와 그 오픈 액세스 정책",
     wlFundingHelp:
@@ -1655,6 +2036,43 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryPending: "Черновик, ещё не сверен с текстом закона.",
     wlStatutorySourceLink: "текст закона",
     wlStatutoryGuidanceLink: "разъяснения",
+    wlDepositAccepted: "Разместить принятую к публикации рукопись в {destination}",
+    wlDepositPublished: "Разместить опубликованную версию в {destination}",
+    wlDepositSubmitted: "Разместить поданную рукопись в {destination}",
+    wlDepositUnrecorded:
+      "Разместить свою принятую рукопись, а не PDF издателя, в {destination}, если политика журнала это допускает",
+    wlDepositIfAgreement:
+      "Разместить в {destination}, только если это допускает ваш издательский договор",
+    wlDepositIfRightOrAgreement:
+      "Разместить в {destination}, только если это допускает указанное выше право или ваш издательский договор",
+    wlDepositLine: "{action} — {reason}",
+    wlDepositBecauseFunder:
+      "так как в этой работе указана финансирующая организация {funder} (возможно, соавтор уже подал рукопись)",
+    wlDepositBecauseOwn:
+      "так как, по данным OpenAlex, некоторые ваши работы размещены в {repository}",
+    wlDepositBecausePaperCountry: "так как страна вашей аффилиации в этой статье — {country}",
+    wlDepositBecauseCurrentCountry: "так как страна вашей текущей аффилиации — {country}",
+    wlDepositBecauseNoRepositoryPaper:
+      "так как SigmaCV не знает национального репозитория для страны вашей аффилиации в этой статье ({country})",
+    wlDepositBecauseNoRepositoryCurrent:
+      "так как SigmaCV не знает национального репозитория для страны вашей текущей аффилиации ({country})",
+    wlDepositBecauseNoAffiliation: "так как в этой статье не указана страна вашей аффилиации",
+    wlDepositZenodoAny: "открыт для любого исследователя",
+    wlDepositShareYourPaper:
+      "проверяет разрешение издателя и загружаемый вами файл, затем размещает статью в Zenodo",
+    wlDepositFormLicence: "В форме выберите лицензию {licence}.",
+    wlDepositFormEmbargoDate: "Держите файл под эмбарго до {date}.",
+    wlDepositFormEmbargoDuration: "Держите файл под эмбарго {duration} после публикации.",
+    wlDepositZenodoDoi:
+      "В Zenodo ответьте «No» на вопрос «Do you already have a DOI for this upload?» и добавьте этот DOI в раздел «Related works».",
+    wlDepositOtherPlaces: "Другие места размещения",
+    wlDepositCopyDoi: "Копировать DOI",
+    wlDepositDoiCopied: "DOI скопирован",
+    wlDepositBasisLabel: "Предлагать места по",
+    wlDepositBasisPaper: "аффилиации в каждой статье",
+    wlDepositBasisCurrent: "вашей текущей аффилиации ({country})",
+    wlDepositHelp:
+      "Каждая ссылка открывает репозиторий в новой вкладке (его форму размещения, если SigmaCV её знает). Скопируйте DOI, чтобы заполнить данные статьи. Какой файл загрузить, решаете вы; какие версии допустимы, указано в политике журнала.",
     wlJump: "Перейти к этой записи",
     wlFundingHeading: "Ваши гранты и их политики открытого доступа",
     wlFundingHelp:

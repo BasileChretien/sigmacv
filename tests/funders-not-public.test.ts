@@ -79,7 +79,10 @@ describe("the funder join never reaches a public surface", () => {
  * owner's worklist alone (the stored fields are stripped by the projections —
  * self-archiving-fields.test.ts). No public scope imports the programme or the
  * OA.Works client, and the anonymous preview makes no OA.Works call: the pass runs
- * in `syncCvForUser`, never in the `buildCvFromOrcid` the preview shares.
+ * in `syncCvForUser`, never in the `buildCvFromOrcid` the preview shares. The
+ * deposit routes follow the same rule: the repository pass's OpenAlex calls run in
+ * the owner sync, `owner.depositRepositories` is stripped like the item fields
+ * (deposit-repositories-fields.test.ts), and the routes render in the editor only.
  */
 describe("the self-archiving programme never reaches a public surface", () => {
   const PROGRAMME = [
@@ -88,6 +91,12 @@ describe("the self-archiving programme never reaches a public surface", () => {
     "src/lib/archiving/rightsSentences.ts",
     "src/lib/oaworks/client.ts",
     "src/components/WorklistRights.tsx",
+    "src/lib/archiving/depositRoutes.ts",
+    "src/lib/archiving/depositRepositoriesPass.ts",
+    "src/lib/archiving/repositoryDirectory.ts",
+    "src/lib/archiving/currentAffiliation.ts",
+    "src/lib/openalex/repositories.ts",
+    "src/components/WorklistDeposit.tsx",
   ];
   const files = PUBLIC_SCOPES.flatMap(sourceFiles);
 
@@ -100,11 +109,11 @@ describe("the self-archiving programme never reaches a public surface", () => {
     expect(src).not.toMatch(/["']@\/lib\/archiving/);
     expect(src).not.toMatch(/["']@\/lib\/oaworks/);
     expect(src).not.toMatch(
-      /enrichCvWithSelfArchiving|fetchSelfArchivingPermission|statutoryArchivingFor|WorklistRights/,
+      /enrichCvWithSelfArchiving|fetchSelfArchivingPermission|statutoryArchivingFor|WorklistRights|enrichCvWithDepositRepositories|fetchAuthorRepositories|depositRoutes|WorklistDeposit|loadCurrentAffiliationCountry/,
     );
   });
 
-  it("runs the OA.Works pass in the owner sync only — never in the build the anonymous preview shares", () => {
+  it("runs the OA.Works and repository passes in the owner sync only — never in the build the anonymous preview shares", () => {
     const sync = readFileSync(join(ROOT, "src/lib/cv/sync.ts"), "utf8");
     const buildStart = sync.indexOf("export async function buildCvFromOrcid");
     const ownerStart = sync.indexOf("export async function syncCvForUser");
@@ -116,6 +125,8 @@ describe("the self-archiving programme never reaches a public surface", () => {
     expect(build.length).toBeGreaterThan(2000);
     expect(build).not.toContain("enrichCvWithSelfArchiving");
     expect(owner).toContain("enrichCvWithSelfArchiving(");
+    expect(build).not.toContain("enrichCvWithDepositRepositories");
+    expect(owner).toContain("enrichCvWithDepositRepositories(");
     // The preview builder reaches the sources through buildCvFromOrcid alone.
     const preview = readFileSync(join(ROOT, "src/lib/cv/previewFromOrcid.ts"), "utf8");
     expect(preview).not.toContain("syncCvForUser");

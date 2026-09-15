@@ -236,7 +236,11 @@ describe("WorklistPanel (component)", () => {
     const cv = makeCv([{ ...closed, csl: { id: "W-closed", type: "article-journal" } }], []);
     render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} />);
     expect(screen.queryByRole("button")).toBeNull();
-    expect(screen.queryByRole("link")).toBeNull();
+    // The only links are the deposit places under the closed work (no DOI here, so
+    // no Copy DOI button): the row itself and the journal policy stay plain.
+    const links = screen.queryAllByRole("link");
+    expect(links.length).toBeGreaterThan(0);
+    expect(links.every((a) => a.closest('[data-worklist="deposit"]'))).toBe(true);
     expect(screen.getByText("(untitled) (2021)")).toBeTruthy();
     expect(screen.getByText("No open copy found")).toBeTruthy();
   });

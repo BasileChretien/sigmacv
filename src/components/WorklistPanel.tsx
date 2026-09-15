@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
-import type { CanonicalCv } from "@/lib/canonical/schema";
+import { useMemo, useState, type ReactNode } from "react";
+import { basisChangesPrimary, regionName, type DepositBasis } from "@/lib/archiving/depositRoutes";
+import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import {
   affiliationGaps,
   groupByRor,
@@ -20,6 +21,7 @@ import { fill } from "@/lib/i18n/fill";
 import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
 import InstitutionListingRow, { type InstitutionListing } from "./InstitutionListingRow";
 import IndexingRow from "./IndexingRow";
+import WorklistDeposit from "./WorklistDeposit";
 import WorklistRights from "./WorklistRights";
 
 /** A stable empty crosswalk (a fresh `[]` per render would defeat the memo). */
@@ -42,6 +44,9 @@ interface WorklistPanelProps {
   /** The publish state and its setter, for the "Institution listing" status
    *  line (owner-only; the anonymous preview passes nothing and gets no row). */
   listing?: InstitutionListing;
+  /** ISO-3166 code of the owner's current affiliation (the Institution table, loaded
+   *  by the page), for the deposit routes' "current affiliation" choice. */
+  currentAffiliationCountry?: string;
 }
 
 const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
@@ -69,8 +74,9 @@ function counted(template: string, n: number, total: number): string {
  * countable works with no open copy found, each with its four-state label, a
  * link to the journal's policy and — when the owner's sync stored them — the
  * publisher's self-archiving policy as OA.Works recorded it and the statutory
- * rule that may also apply (`WorklistRights`, one disclaimer under the list),
- * (d) the works that acknowledge one of the
+ * rule that may also apply (`WorklistRights`, one disclaimer under the list) and,
+ * for a journal article, one place to deposit it (`WorklistDeposit`) — the
+ * journal-policy search link shows whenever OA.Works gives no policy link, (d) the works that acknowledge one of the
  * owner's OWN grants (`funders/join.ts`), each beside the funder's recorded
  * open-access policy — dated, linked — and what SigmaCV found. Counts carry
  * their denominators; the funding heading carries none. Every row jumps to the
@@ -85,12 +91,20 @@ export default function WorklistPanel({
   funderCrosswalk = NO_FUNDER_CROSSWALK,
   onJump,
   listing,
+  currentAffiliationCountry,
 }: WorklistPanelProps) {
   const wu = workspaceUi(locale);
   const gaps = useMemo(() => affiliationGaps(cv, consentedRorIds), [cv, consentedRorIds]);
   const oa = useMemo(() => openAccessStates(cv), [cv]);
   const crosswalk = useMemo(() => toCrosswalk(funderCrosswalk), [funderCrosswalk]);
   const funding = useMemo(() => joinOwnerFunding(cv, crosswalk), [cv, crosswalk]);
+  // Which affiliation the deposit routes follow: the one printed on each paper by
+  // default, the owner's current one when they choose it.
+  const [depositBasis, setDepositBasis] = useState<DepositBasis>("paper");
+  const itemsById = useMemo(
+    () => new Map<string, CvItem>(cv.sections.flatMap((s) => s.items).map((it) => [it.id, it])),
+    [cv],
+  );
   // The status line is a reason to show the panel only while a choice is open
   // (an unlisted ROR-linked current affiliation) — never counted anywhere.
   const unlisted = listing ? unlistedAffiliations(listing.state).length > 0 : false;
@@ -104,6 +118,13 @@ export default function WorklistPanel({
 
   const closed = oa.rows.filter((r) => r.state === "no-open-copy-found");
   const groups = groupByRor(gaps.missing);
+
+  // The deposit action is for journal articles: the works OA.Works records a
+  // publisher policy for, and the ones repositories take as manuscripts.
+  const depositItem = (itemId: string): CvItem | undefined => {
+    const item = itemsById.get(itemId);
+    return item?.csl?.type === "article-journal" ? item : undefined;
+  };
 
   const rowText = (row: WorklistRow): string => {
     const title = row.title ?? wu.srNoTitle;
@@ -232,12 +253,49 @@ export default function WorklistPanel({
             ))}
           </p>
           <p className="muted">{wu.wlClosedHelp}</p>
+          {closed.some((r) => depositItem(r.itemId)) ? (
+            <p className="muted cv-worklist-deposit-help">{wu.wlDepositHelp}</p>
+          ) : null}
+          {currentAffiliationCountry &&
+          closed.some((r) => {
+            const item = depositItem(r.itemId);
+            return item
+              ? basisChangesPrimary(cv, item, {
+                  currentCountry: currentAffiliationCountry,
+                  crosswalk,
+                })
+              : false;
+          }) ? (
+            <fieldset className="cv-worklist-deposit-basis">
+              <legend>{wu.wlDepositBasisLabel}</legend>
+              <label>
+                <input
+                  type="radio"
+                  name="cv-worklist-deposit-basis"
+                  checked={depositBasis === "paper"}
+                  onChange={() => setDepositBasis("paper")}
+                />{" "}
+                {wu.wlDepositBasisPaper}
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="cv-worklist-deposit-basis"
+                  checked={depositBasis === "current"}
+                  onChange={() => setDepositBasis("current")}
+                />{" "}
+                {fill(wu.wlDepositBasisCurrent, {
+                  country: regionName(currentAffiliationCountry, locale),
+                })}
+              </label>
+            </fieldset>
+          ) : null}
           <ul>
             {closed.map((r) => (
               <li key={r.itemId}>
                 {jump(r.itemId, rowText(r))} {stateChip(r.state)}
                 {r.venue ? <span className="muted"> · {r.venue}</span> : null}
-                {finderLink(r.venue)}
+                {r.selfArchiving?.policyUrl ? null : finderLink(r.venue)}
                 {r.funderNames.length > 0 ? (
                   <div className="muted cv-worklist-funders">
                     {wu.wlFunders.replace("{names}", () => r.funderNames.join(", "))}
@@ -248,6 +306,17 @@ export default function WorklistPanel({
                   selfArchiving={r.selfArchiving}
                   statutory={r.statutory}
                 />
+                {depositItem(r.itemId) ? (
+                  <WorklistDeposit
+                    locale={locale}
+                    cv={cv}
+                    item={depositItem(r.itemId)!}
+                    hasStatutoryRight={r.statutory.some((entry) => entry.kind === "author-right")}
+                    basis={depositBasis}
+                    currentCountry={currentAffiliationCountry}
+                    crosswalk={crosswalk}
+                  />
+                ) : null}
               </li>
             ))}
           </ul>

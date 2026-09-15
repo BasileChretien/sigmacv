@@ -11,6 +11,7 @@ import {
 } from "@/lib/cv/sync";
 import type { SyncReport } from "@/lib/cv/syncReport";
 import { getDigestPrefs } from "@/lib/email/digest";
+import { loadCurrentAffiliationCountry } from "@/lib/archiving/currentAffiliation";
 import { loadFunderCrosswalk } from "@/lib/funders/crosswalk";
 import { logger } from "@/lib/log";
 import { isResearchLoggingEnabled } from "@/lib/research/enabled";
@@ -60,6 +61,11 @@ export default async function CvPage() {
   // The funder crosswalk rows for the owner's works — the worklist's funder
   // join (owner-only; the same loader as the CV, never a public path).
   const funderCrosswalk = cv ? await loadFunderCrosswalk(cv) : [];
+  // The country of the owner's current affiliation, for the worklist's deposit
+  // routes (owner-only; ROR's record in the Institution table).
+  const currentAffiliationCountry = await loadCurrentAffiliationCountry(
+    publish.visibleCurrentRorIds,
+  );
 
   async function handleSignOut() {
     "use server";
@@ -70,6 +76,7 @@ export default async function CvPage() {
     <CvWorkspace
       initialCv={cv}
       funderCrosswalk={funderCrosswalk}
+      currentAffiliationCountry={currentAffiliationCountry}
       initialSyncReport={syncReport}
       initialSyncFailed={initialSyncFailed}
       autoSyncOnLoad={autoSync}

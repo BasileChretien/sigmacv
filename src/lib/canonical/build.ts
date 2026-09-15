@@ -2789,6 +2789,16 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
       // Owner-declared career context: declared parts carried over, the derived
       // first-publication year recomputed (never feeds `metrics` above).
       careerContext: buildCareerContext(prevOwner?.careerContext, sectionsWithSelf),
+      // The places the owner's works already sit (the owner sync's repository
+      // pass), carried while the OpenAlex author record is the same — a merged or
+      // split profile is looked up afresh on the next owner sync.
+      ...(prevOwner &&
+      [...prevOwner.openAlexAuthorIds].sort().join() === [...resolved.authorIds].sort().join()
+        ? {
+            depositRepositories: prevOwner.depositRepositories,
+            depositRepositoriesCheckedAt: prevOwner.depositRepositoriesCheckedAt,
+          }
+        : {}),
     },
     display,
     sections: sectionsWithSelf,

@@ -48,7 +48,7 @@ function orList(values: readonly string[], locale: string): string {
   return new Intl.ListFormat(locale, { type: "disjunction" }).format(values);
 }
 
-function monthsLong(months: number, locale: string): string {
+export function monthsLong(months: number, locale: string): string {
   return new Intl.NumberFormat(locale, {
     style: "unit",
     unit: "month",

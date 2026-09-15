@@ -4765,6 +4765,48 @@ button.src-prov-chip.is-actionable:focus-visible {
   font-style: italic;
   overflow-wrap: anywhere;
 }
+/* The deposit action under a closed work: one place with its reason, the other
+   places behind a disclosure, a small "Copy DOI" button — and, above the list,
+   the choice of affiliation the places follow. No colour, no badge. */
+.cv-worklist-deposit {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--text-xs);
+}
+.cv-worklist-deposit p {
+  margin: 0 0 0.15rem;
+}
+.cv-worklist-deposit-primary a {
+  font-weight: 600;
+}
+.cv-worklist-deposit-copy {
+  margin-left: var(--space-1);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.cv-worklist-deposit-others summary {
+  cursor: pointer;
+}
+.cv-worklist-deposit-others ul {
+  margin: 0.15rem 0 0;
+}
+.cv-worklist-deposit-basis {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-2);
+  margin: 0 0 var(--space-1);
+  padding: 0;
+  border: 0;
+  font-size: var(--text-xs);
+}
+.cv-worklist-deposit-basis legend {
+  float: left;
+  padding: 0;
+}
 
 /* ── Bulk-curation bar ─────────────────────────────────────────────────────── */
 .bulk-bar {

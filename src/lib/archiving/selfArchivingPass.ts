@@ -8,6 +8,7 @@ import {
 } from "@/lib/canonical/enrich";
 import { fetchSelfArchivingPermission } from "@/lib/oaworks/client";
 import { countableWorks } from "@/lib/render/countable";
+import { answeredWithin } from "./freshness";
 
 /**
  * The OWNER sync's self-archiving pass: for each countable journal article with
@@ -37,8 +38,6 @@ export const SELF_ARCHIVING_MAX_LOOKUPS = 40;
 const SELF_ARCHIVING_BUDGET_MS = 12_000;
 export const SELF_ARCHIVING_REFRESH_DAYS = 7;
 
-const DAY_MS = 86_400_000;
-
 /** A countable journal article with no open copy found and a DOI. */
 function isCandidate(item: CvItem, countable: ReadonlySet<CvItem>): boolean {
   return (
@@ -48,13 +47,6 @@ function isCandidate(item: CvItem, countable: ReadonlySet<CvItem>): boolean {
     typeof item.csl.DOI === "string" &&
     item.csl.DOI.trim() !== ""
   );
-}
-
-/** Whether a work was answered recently enough not to ask again. */
-function isFresh(checkedAt: string | undefined, now: string): boolean {
-  if (!checkedAt) return false;
-  const age = Date.parse(now) - Date.parse(checkedAt);
-  return Number.isFinite(age) && age >= 0 && age < SELF_ARCHIVING_REFRESH_DAYS * DAY_MS;
 }
 
 /** Drop the record + sentinel from every item that is no longer a candidate. */
@@ -86,7 +78,9 @@ export async function enrichCvWithSelfArchiving(
       candidates.push({ s, i, doi: item.csl!.DOI!, checkedAt: item.meta.selfArchivingCheckedAt });
     });
   });
-  const due = candidates.filter((t) => !isFresh(t.checkedAt, now));
+  const due = candidates.filter(
+    (t) => !answeredWithin(t.checkedAt, now, SELF_ARCHIVING_REFRESH_DAYS),
+  );
   const targets = rotationQueue(due, SELF_ARCHIVING_MAX_LOOKUPS);
 
   // Each lookup gets at most what remains of the pass budget (the client also caps
