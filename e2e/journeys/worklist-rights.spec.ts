@@ -99,8 +99,10 @@ test("a closed work shows the publisher's recorded policy, the statutory rule an
 
   // One deposit action under the same work: the national repository of the country
   // on the paper, with its reason, and the other places behind a disclosure.
-  const row = worklist.locator("li").filter({ has: page.locator('[data-worklist="rights"]') });
-  const deposit = row.locator('[data-worklist="deposit"]');
+  const closedRow = worklist
+    .locator("li")
+    .filter({ has: page.locator('[data-worklist="rights"]') });
+  const deposit = closedRow.locator('[data-worklist="deposit"]');
   await expect(deposit).toBeVisible();
   const primary = deposit.locator(".cv-worklist-deposit-primary");
   await expect(primary.getByRole("link")).toHaveAttribute("href", "https://hal.science/submit");
