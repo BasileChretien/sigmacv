@@ -50,8 +50,9 @@ function truncate(s: string, max: number): string {
  * `displayText` already reads like "Assistant Professor, Nagoya University
  * (2024–present)"; we strip a trailing "(years)" suffix so the card stays clean.
  * Hidden / "not mine" items are skipped (they aren't on the public CV either).
+ * Shared with the SERP description fallback (`publicMeta.ts`).
  */
-function latestAffiliation(cv: CanonicalCv): string {
+export function latestAffiliation(cv: CanonicalCv): string {
   const section = cv.sections.find((s) => s.type === "positions");
   if (!section) return "";
   // Items are built most-recent-first; take the first visible one.

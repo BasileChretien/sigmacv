@@ -1,4 +1,6 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { latestAffiliation } from "@/lib/cv/ogImage";
+import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml } from "@/lib/render/escape";
 
 /**
@@ -14,6 +16,12 @@ import { escapeHtml } from "@/lib/render/escape";
 
 /** Max length of the og:description before we trim + ellipsis (keeps previews tidy). */
 const DESCRIPTION_MAX = 200;
+/**
+ * Below this a search engine reports the description as "too short" (Bing's
+ * floor is 25 characters) and writes its own snippet from the page body — for a
+ * CV, usually the contact line. A headline like "PharmD" alone falls under it.
+ */
+const DESCRIPTION_MIN = 25;
 
 /** Collapse whitespace and trim to a single clean line for a meta attribute. */
 function oneLine(s: string): string {
@@ -26,12 +34,17 @@ function isHighSurrogate(code: number): boolean {
 }
 
 /**
- * The social description: the headline, then the summary (truncated). Returns ""
- * when neither is set, so the caller can omit the og:description tag entirely.
+ * The social description: the headline, then the summary (truncated). When the
+ * owner wrote neither — or only a few words — it falls back to a localized line
+ * built from what the page already shows: the name, then the headline or the
+ * latest visible affiliation (never a gated field). Three of the live public
+ * pages had no description at all and two said only "PharmD" / "Curriculum
+ * Vitae" (Bing audit, 2026-09-15).
  */
 export function publicMetaDescription(cv: CanonicalCv): string {
   const parts = [cv.owner.headline, cv.owner.summary].map((p) => oneLine(p ?? "")).filter(Boolean);
   const joined = parts.join(" — ");
+  if (joined.length < DESCRIPTION_MIN) return fallbackDescription(cv, joined);
   if (joined.length <= DESCRIPTION_MAX) return joined;
   // Trim at the limit and add an ellipsis (cut on a word boundary when possible).
   let cutLen = DESCRIPTION_MAX - 1;
@@ -43,6 +56,22 @@ export function publicMetaDescription(cv: CanonicalCv): string {
   const lastSpace = cut.lastIndexOf(" ");
   const head = lastSpace > DESCRIPTION_MAX / 2 ? cut.slice(0, lastSpace) : cut;
   return `${head.trimEnd()}…`;
+}
+
+/**
+ * "{who} — academic CV on SigmaCV, built from open research data" in the CV's
+ * locale, where `who` is the display name followed by the short headline the
+ * owner did write, else the latest visible position. A CV with no name and no
+ * position still yields the localized tail, which is above the floor on its own.
+ */
+function fallbackDescription(cv: CanonicalCv, shortLead: string): string {
+  const name = oneLine(cv.owner.displayName || "");
+  const who = [name, shortLead || latestAffiliation(cv)].filter(Boolean).join(", ");
+  const template = renderStrings(cv.display.locale).metaDescriptionFallback;
+  // No `who` at all: drop the placeholder and the dash that would have followed it.
+  // Function replacer: `who` is user text, and a string replacer would expand
+  // "$&", "$`" or "$'" inside it (same idiom as `{org}` in render/html.ts).
+  return who ? template.replace("{who}", () => who) : template.replace(/^\{who\}\s*[—–-]+\s*/u, "");
 }
 
 /** One `<meta property="..." content="..."/>` tag (property = og:* namespace). */

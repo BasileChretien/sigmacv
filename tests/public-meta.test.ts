@@ -2,16 +2,33 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { publicMetaDescription, publicMetaTags } from "@/lib/cv/publicMeta";
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { SUPPORTED_LOCALES } from "@/lib/i18n";
+import type { OrcidPosition } from "@/lib/orcid/client";
 
-function makeCv(owner: Partial<CanonicalCv["owner"]> = {}): CanonicalCv {
+function makeCv(
+  owner: Partial<CanonicalCv["owner"]> = {},
+  opts: { employments?: OrcidPosition[]; locale?: string } = {},
+): CanonicalCv {
   const cv = buildCanonicalCv({
     id: "m",
     resolved: { orcid: "0000-0002-7483-2489", authorIds: ["A1"], displayName: "Basile Chrétien" },
     works: [],
     now: "2026-06-02T00:00:00.000Z",
+    employments: opts.employments,
   });
-  return { ...cv, owner: { ...cv.owner, ...owner } };
+  return {
+    ...cv,
+    owner: { ...cv.owner, ...owner },
+    display: { ...cv.display, ...(opts.locale ? { locale: opts.locale } : {}) },
+  };
 }
+
+const NAGOYA: OrcidPosition = {
+  putCode: "200",
+  organization: "Nagoya University",
+  roleTitle: "Assistant Professor",
+  startYear: 2024,
+};
 
 describe("publicMetaDescription", () => {
   it("joins headline + summary", () => {
@@ -19,12 +36,56 @@ describe("publicMetaDescription", () => {
     expect(d).toBe("Researcher — I study ADRs.");
   });
 
-  it("returns '' when neither headline nor summary is set", () => {
-    expect(publicMetaDescription(makeCv())).toBe("");
+  it("falls back to name + latest affiliation when neither headline nor summary is set", () => {
+    expect(publicMetaDescription(makeCv({}, { employments: [NAGOYA] }))).toBe(
+      "Basile Chrétien, Assistant Professor, Nagoya University — academic CV on SigmaCV, built from open research data (ORCID, OpenAlex).",
+    );
+    // No position either: the name alone, still above a search engine's floor.
+    const d = publicMetaDescription(makeCv());
+    expect(d).toBe(
+      "Basile Chrétien — academic CV on SigmaCV, built from open research data (ORCID, OpenAlex).",
+    );
+    expect(d.length).toBeGreaterThanOrEqual(25);
+  });
+
+  it("keeps a short headline but puts the name before it (a bare 'PharmD' was the live snippet)", () => {
+    expect(publicMetaDescription(makeCv({ headline: "PharmD" }, { employments: [NAGOYA] }))).toBe(
+      "Basile Chrétien, PharmD — academic CV on SigmaCV, built from open research data (ORCID, OpenAlex).",
+    );
+  });
+
+  it("a headline of 25+ characters stands on its own, as before", () => {
+    expect(publicMetaDescription(makeCv({ headline: "Clinical pharmacologist (PharmD)" }))).toBe(
+      "Clinical pharmacologist (PharmD)",
+    );
+  });
+
+  it("falls back in the CV's own locale, and to the tail alone when there is no name", () => {
+    expect(publicMetaDescription(makeCv({}, { locale: "fr-FR" }))).toBe(
+      "Basile Chrétien — CV académique sur SigmaCV, construit à partir de données de recherche ouvertes (ORCID, OpenAlex).",
+    );
+    const bare = publicMetaDescription(makeCv({ displayName: "" }));
+    expect(bare).toBe("academic CV on SigmaCV, built from open research data (ORCID, OpenAlex).");
+    for (const loc of SUPPORTED_LOCALES) {
+      const d = publicMetaDescription(makeCv({ displayName: "" }, { locale: loc }));
+      expect(d, loc).not.toContain("{who}");
+      expect(d.length, loc).toBeGreaterThanOrEqual(25);
+    }
+  });
+
+  it("leaves a '$' in the owner's text alone (no replacement-pattern expansion)", () => {
+    const d = publicMetaDescription(
+      makeCv({ displayName: "Ada $& Lovelace", headline: "$' $$ 50$" }),
+    );
+    expect(d).toBe(
+      "Ada $& Lovelace, $' $$ 50$ — academic CV on SigmaCV, built from open research data (ORCID, OpenAlex).",
+    );
   });
 
   it("collapses whitespace", () => {
-    expect(publicMetaDescription(makeCv({ headline: "  a\n  b  " }))).toBe("a b");
+    expect(
+      publicMetaDescription(makeCv({ headline: "  a\n  b  ", summary: "c ".repeat(20) })),
+    ).toBe(`a b — ${"c ".repeat(20).trim()}`);
   });
 
   it("truncates long text with an ellipsis", () => {
@@ -71,19 +132,18 @@ describe("publicMetaDescription", () => {
 
 describe("publicMetaTags", () => {
   it("emits og:type=profile, og:title, twitter:card=summary", () => {
-    const html = publicMetaTags(makeCv({ headline: "Researcher" }));
+    const html = publicMetaTags(makeCv({ headline: "Researcher in pharmacology" }));
     expect(html).toContain('property="og:type" content="profile"');
     expect(html).toContain('property="og:title" content="Basile Chrétien"');
-    expect(html).toContain('property="og:description" content="Researcher"');
+    expect(html).toContain('property="og:description" content="Researcher in pharmacology"');
     expect(html).toContain('name="twitter:card" content="summary"');
   });
 
-  it("omits the description tags when there is no headline/summary", () => {
+  it("still emits the description tags when there is no headline/summary (the fallback line)", () => {
     const html = publicMetaTags(makeCv());
-    expect(html).not.toContain("og:description");
-    expect(html).not.toContain("twitter:description");
-    // title still present, falling back when displayName is set it uses the name.
-    expect(html).toContain('content="Basile Chrétien"');
+    expect(html).toContain('property="og:description" content="Basile Chrétien — academic CV');
+    expect(html).toContain('name="twitter:description"');
+    expect(html).toContain('property="og:title" content="Basile Chrétien"');
   });
 
   it("falls back to a generic title when there is no display name", () => {
@@ -105,16 +165,16 @@ describe("publicMetaTags", () => {
   });
 
   it("emits canonical, og:url and a standard description when a page URL is given", () => {
-    const html = publicMetaTags(makeCv({ headline: "Researcher" }), {
+    const html = publicMetaTags(makeCv({ headline: "Researcher in pharmacology" }), {
       pageUrl: "https://sigmacv.org/p/abc",
     });
     expect(html).toContain('<link rel="canonical" href="https://sigmacv.org/p/abc" />');
     expect(html).toContain('property="og:url" content="https://sigmacv.org/p/abc"');
-    expect(html).toContain('name="description" content="Researcher"');
+    expect(html).toContain('name="description" content="Researcher in pharmacology"');
   });
 
   it("omits canonical/og:url when no page URL is given", () => {
-    const html = publicMetaTags(makeCv({ headline: "Researcher" }));
+    const html = publicMetaTags(makeCv({ headline: "Researcher in pharmacology" }));
     expect(html).not.toContain("canonical");
     expect(html).not.toContain("og:url");
   });
