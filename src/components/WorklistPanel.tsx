@@ -9,7 +9,6 @@ import {
   hasWorklistContent,
   openAccessStates,
   policyFinderUrl,
-  OPEN_ACCESS_STATES,
   type OpenAccessState,
   type WorklistRow,
 } from "@/lib/cv/worklist";
@@ -56,13 +55,9 @@ const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
   "not-determined": "wlStateUnknown",
 };
 
-/** Every substitution below uses a FUNCTION replacer: a source value (a ROR
- *  key, a funder name, an award number) may contain `$'`, `$&` or `` $` ``,
- *  which a string replacement would read as a pattern and corrupt the copy
- *  with. */
-function counted(template: string, n: number, total: number): string {
-  return template.replace("{n}", () => String(n)).replace("{total}", () => String(total));
-}
+// Every substitution below uses a FUNCTION replacer: a source value (a ROR
+// key, a funder name, an award number) may contain `$'`, `$&` or `` $` ``,
+// which a string replacement would read as a pattern and corrupt the copy with.
 
 /**
  * The owner's "Affiliations & open access" worklist — the researcher-first half
@@ -78,9 +73,10 @@ function counted(template: string, n: number, total: number): string {
  * for a journal article, one place to deposit it (`WorklistDeposit`) — the
  * journal-policy search link shows whenever OA.Works gives no policy link, (d) the works that acknowledge one of the
  * owner's OWN grants (`funders/join.ts`), each beside the funder's recorded
- * open-access policy — dated, linked — and what SigmaCV found. Counts carry
- * their denominators; the funding heading carries none. Every row jumps to the
- * entry. It is help, not judgement — no compliance state exists (the i18n tests
+ * open-access policy — dated, linked — and what SigmaCV found. No heading
+ * carries a count or a share — no "N of M", no open-access breakdown (actions,
+ * never states); the only numbers are a ROR group's size and the note on works
+ * not checked. Every row jumps to the entry. It is help, not judgement — no compliance state exists (the i18n tests
  * ban the vocabulary) — and nothing here reaches the CV, the public page or an
  * export. Renders nothing when there is nothing to show.
  */
@@ -184,9 +180,7 @@ export default function WorklistPanel({
 
       {gaps.positionsWithoutRor.length > 0 ? (
         <section className="cv-worklist-group">
-          <h4>
-            {counted(wu.wlPositionsHeading, gaps.positionsWithoutRor.length, gaps.currentPositions)}
-          </h4>
+          <h4>{wu.wlPositionsHeading}</h4>
           <p className="muted">{wu.wlPositionsHelp}</p>
           <ul>
             {gaps.positionsWithoutRor.map((p) => (
@@ -198,7 +192,7 @@ export default function WorklistPanel({
 
       {gaps.missing.length > 0 ? (
         <section className="cv-worklist-group">
-          <h4>{counted(wu.wlGapsHeading, gaps.missing.length, gaps.consideredWorks)}</h4>
+          <h4>{wu.wlGapsHeading}</h4>
           <p className="muted">{wu.wlGapsHelp}</p>
           {groups.map((g) => (
             <div key={g.rorId} className="cv-worklist-subgroup">
@@ -219,13 +213,7 @@ export default function WorklistPanel({
 
       {gaps.noAffiliationData.length > 0 ? (
         <section className="cv-worklist-group">
-          <h4>
-            {counted(
-              wu.wlNoAffiliationHeading,
-              gaps.noAffiliationData.length,
-              gaps.consideredWorks,
-            )}
-          </h4>
+          <h4>{wu.wlNoAffiliationHeading}</h4>
           <p className="muted">{wu.wlNoAffiliationHelp}</p>
           <ul>
             {gaps.noAffiliationData.map((r) => (
@@ -243,15 +231,7 @@ export default function WorklistPanel({
 
       {closed.length > 0 ? (
         <section className="cv-worklist-group">
-          <h4>{counted(wu.wlClosedHeading, closed.length, oa.total)}</h4>
-          <p className="muted cv-worklist-oa-summary">
-            {wu.wlOaSummary.replace("{total}", () => String(oa.total))}{" "}
-            {OPEN_ACCESS_STATES.map((s) => (
-              <span key={s} className="cv-worklist-chip" data-state={s}>
-                {wu[STATE_LABEL[s]]}: {oa.counts[s]}
-              </span>
-            ))}
-          </p>
+          <h4>{wu.wlClosedHeading}</h4>
           <p className="muted">{wu.wlClosedHelp}</p>
           {closed.some((r) => depositItem(r.itemId)) ? (
             <p className="muted cv-worklist-deposit-help">{wu.wlDepositHelp}</p>

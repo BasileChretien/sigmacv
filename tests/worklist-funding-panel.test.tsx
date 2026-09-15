@@ -212,7 +212,7 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
     expect(screen.getByText("SigmaCV has no policy record for AMED.")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /policy page/ })).toBeNull();
     expect(screen.getByText(/SigmaCV found:/).textContent).toContain("No open copy found");
-    expect(screen.getByText(/no open copy found \(1 of 1\)/)).toBeTruthy();
+    expect(screen.getByText("Works with no open copy found")).toBeTruthy();
     // No jump handler → plain text, not a button.
     expect(screen.queryByRole("button")).toBeNull();
     expect(screen.getAllByText("Work W-amed (2024)")).toHaveLength(2);

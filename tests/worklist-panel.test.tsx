@@ -90,7 +90,7 @@ describe("WorklistPanel (component)", () => {
     expect(container.innerHTML).toBe("");
   });
 
-  it("lists the three groups with denominators, the state chip, the funder names and the policy link, and jumps on activation", () => {
+  it("lists the three groups under plain headings (no count, no open-access breakdown), the state chip, the funder names and the policy link, and jumps on activation", () => {
     const cv = makeCv(
       [
         work("W-gap", {
@@ -120,28 +120,24 @@ describe("WorklistPanel (component)", () => {
     expect(details).toBeTruthy();
     expect(screen.getByText(/Nothing here appears on your CV/)).toBeTruthy();
 
-    // (a) positions without ROR — 1 of 2 current positions.
-    expect(
-      screen.getByText(/Current positions without an institution record \(1 of 2\)/),
-    ).toBeTruthy();
+    // (a) positions without ROR.
+    expect(screen.getByText("Current positions without an institution record")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Some Hospital/ }));
     expect(onJump).toHaveBeenLastCalledWith("P-noror");
 
-    // (b) gaps grouped by the ROR they DO carry — 1 of 4 works in the window.
-    expect(screen.getByText(/lacks your institution \(1 of 4\)/)).toBeTruthy();
+    // (b) gaps grouped by the ROR they DO carry.
+    expect(screen.getByText("Works whose printed affiliation lacks your institution")).toBeTruthy();
     expect(screen.getByText(new RegExp(`ROR ${OTHER}`))).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Work W-gap/ }));
     expect(onJump).toHaveBeenLastCalledWith("W-gap");
 
     // No-affiliation-data bucket, separate from "missing".
-    expect(screen.getByText(/no affiliation data \(1 of 4\)/)).toBeTruthy();
+    expect(screen.getByText("Works with no affiliation data")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Work W-nodata/ }));
     expect(onJump).toHaveBeenLastCalledWith("W-nodata");
 
-    // (c) closed works: 1 of 4 countable; state summary; chip; funders; policy link.
-    expect(screen.getByText(/no open copy found \(1 of 4\)/)).toBeTruthy();
-    expect(screen.getByText(/Open, Creative Commons licence: 1/)).toBeTruthy();
-    expect(screen.getByText(/Not determined: 1/)).toBeTruthy();
+    // (c) closed works: chip; funders; policy link.
+    expect(screen.getByText("Works with no open copy found")).toBeTruthy();
     expect(screen.getByText(/Funders named on the work: Wellcome Trust/)).toBeTruthy();
     const link = screen.getByRole("link", { name: /Open Policy Finder/ }) as HTMLAnchorElement;
     expect(link.href).toBe(`${OPEN_POLICY_FINDER_URL}?q=Journal%20%26%20Co`);
@@ -152,6 +148,11 @@ describe("WorklistPanel (component)", () => {
     // The help copy is help, never a verdict.
     expect(screen.getByText(/a repository deposit may be possible/)).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/compliant|overdue|violation/i);
+    // Actions, never states: no "N of M", no open-access breakdown by state.
+    expect(document.body.textContent).not.toMatch(/\d+ of \d+/);
+    expect(document.body.textContent).not.toMatch(
+      /countable works|Not determined: \d|Creative Commons licence: \d/,
+    );
   });
 
   const dataset = (): CvItem => ({
@@ -181,13 +182,13 @@ describe("WorklistPanel (component)", () => {
     expect(container.innerHTML).toBe("");
   });
 
-  it("counts the works it does not check on one line — no verdict — and keeps them out of the denominators", () => {
+  it("counts the works it does not check on one line — no verdict — and lists none of them", () => {
     const cv = makeCv(
       [work("W-nodata", { year: 2022, oaIsOpen: true }), dataset(), conferencePaper()],
       [nagoyaNow()],
     );
     render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[NAGOYA]} />);
-    expect(screen.getByText(/no affiliation data \(1 of 1\)/)).toBeTruthy();
+    expect(screen.getByText("Works with no affiliation data")).toBeTruthy();
     expect(screen.getByText(/OpenAlex recorded no institution/)).toBeTruthy();
     expect(
       screen.getByText(/^2 further works in this period come from other sources/),
