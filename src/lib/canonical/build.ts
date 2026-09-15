@@ -2073,6 +2073,12 @@ function buildWorkCvItem(
       // Spread FIRST so a source-driven field below always wins where both exist.
       ...carriedEnrichmentMeta(prev),
       ...carriedCitationOverrides(prev),
+      // The OA.Works record is DOI-keyed: carried only while the DOI is unchanged,
+      // so a corrected DOI is asked about afresh rather than keeping the old DOI's
+      // policy through the pass's seven-day refresh window.
+      ...(prev && prev.csl?.DOI?.trim().toLowerCase() !== csl.DOI?.trim().toLowerCase()
+        ? { selfArchiving: undefined, selfArchivingCheckedAt: undefined }
+        : {}),
       year: work.publication_year ?? undefined,
       type: work.type ?? undefined,
       doi: csl.DOI,

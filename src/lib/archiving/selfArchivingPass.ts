@@ -89,10 +89,13 @@ export async function enrichCvWithSelfArchiving(
   const due = candidates.filter((t) => !isFresh(t.checkedAt, now));
   const targets = rotationQueue(due, SELF_ARCHIVING_MAX_LOOKUPS);
 
+  // Each lookup gets at most what remains of the pass budget (the client also caps
+  // it at its own limit), so a lookup started near the deadline ends with it.
+  const deadline = Date.now() + SELF_ARCHIVING_BUDGET_MS;
   const { examined, results } = await mapWithinBudget(
     "oaworks.permissions",
     targets,
-    (t) => fetchSelfArchivingPermission(t.doi, mailto),
+    (t) => fetchSelfArchivingPermission(t.doi, mailto, Math.max(1, deadline - Date.now())),
     1,
     SELF_ARCHIVING_BUDGET_MS,
   );

@@ -124,6 +124,24 @@ describe("build: the affiliation countries on the owner's own authorship", () =>
     expect(own(again).meta.selfArchiving).toEqual(RECORD);
     expect(own(again).meta.selfArchivingCheckedAt).toBe(NOW);
   });
+
+  it("drops the carried OA.Works record when the work's DOI changed, so the new DOI is asked about", () => {
+    const first = build(works);
+    const stored = withOwnMeta(first, { selfArchiving: RECORD, selfArchivingCheckedAt: NOW });
+    const ownFixture = works.find((x) => x.id === OWN)!;
+    const sameDoiUpperCased = build(
+      [{ ...ownFixture, doi: ownFixture.doi?.toUpperCase() }, ...others()],
+      stored,
+    );
+    expect(own(sameDoiUpperCased).meta.selfArchiving).toEqual(RECORD);
+    const corrected = build(
+      [{ ...ownFixture, doi: "https://doi.org/10.9999/corrected" }, ...others()],
+      stored,
+    );
+    expect(own(corrected).csl?.DOI).toMatch(/10\.9999\/corrected/i);
+    expect(own(corrected).meta.selfArchiving).toBeUndefined();
+    expect(own(corrected).meta.selfArchivingCheckedAt).toBeUndefined();
+  });
 });
 
 describe("schema: the self-archiving fields round-trip and degrade", () => {

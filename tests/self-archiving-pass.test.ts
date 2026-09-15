@@ -119,10 +119,15 @@ describe("enrichCvWithSelfArchiving", () => {
     );
     const out = await enrichCvWithSelfArchiving(cv, MAILTO, NOW);
 
-    expect(lookup.mock.calls).toEqual([
+    expect(lookup.mock.calls.map(([doi, mail]) => [doi, mail])).toEqual([
       ["10.1234/A", MAILTO],
       ["10.1234/B", MAILTO],
     ]);
+    // Each lookup is bounded by what remains of the pass budget.
+    for (const [, , remaining] of lookup.mock.calls) {
+      expect(remaining).toBeGreaterThan(0);
+      expect(remaining).toBeLessThanOrEqual(12_000);
+    }
     expect(maxInFlight).toBe(1);
     for (const id of ["A", "B"]) {
       expect(byId(out, id).meta.selfArchiving).toEqual({

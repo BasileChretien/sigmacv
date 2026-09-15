@@ -250,19 +250,64 @@ function userAgent(mailto: string | undefined): string {
   return `SigmaCV (+https://github.com/BasileChretien/sigmacv${contact})`;
 }
 
+/** The longest one lookup may take, headers and body together. */
+const OAWORKS_TIMEOUT_MS = 8_000;
+const TIMED_OUT = Symbol("timed out");
+
+/** `promise`, or {@link TIMED_OUT} once `ms` have passed — whichever comes first. */
+function within<T>(promise: Promise<T>, ms: number): Promise<T | typeof TIMED_OUT> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<typeof TIMED_OUT>((resolve) => {
+    timer = setTimeout(() => resolve(TIMED_OUT), Math.max(0, ms));
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+/**
+ * The response body as text, read chunk by chunk against the lookup's deadline and
+ * {@link MAX_BYTES}: undefined when there is no body, when it stalls past the
+ * deadline or when it grows too large — the stream is then cancelled at once,
+ * never buffered whole first (`resilientFetch`'s timeout stops at the headers).
+ */
+async function boundedBody(res: Response, deadline: number): Promise<string | undefined> {
+  const reader = res.body?.getReader();
+  if (!reader) return undefined;
+  const decoder = new TextDecoder();
+  let bytes = 0;
+  let text = "";
+  try {
+    for (;;) {
+      const chunk = await within(reader.read(), deadline - Date.now());
+      if (chunk === TIMED_OUT) return undefined;
+      if (chunk.done) return text + decoder.decode();
+      bytes += chunk.value.byteLength;
+      if (bytes > MAX_BYTES) return undefined;
+      text += decoder.decode(chunk.value, { stream: true });
+    }
+  } finally {
+    /* v8 ignore next -- cancelling a finished or errored stream is fail-soft by design */
+    void reader.cancel().catch(() => undefined);
+  }
+}
+
 /**
  * The self-archiving permission OA.Works records for a journal article's DOI.
  * `none` for a malformed DOI (no call), a 4xx other than 429 — including the
  * 501 "DOI is not a journal article" — or a 200 with no `best_permission`;
- * `failed` for a network error, a timeout, a 429 / 5xx, a malformed or oversized
- * body, or a `best_permission` this parser cannot read. Never throws.
+ * `failed` for a network error, a redirect, a timeout (headers or body), a 429 /
+ * 5xx, a missing, stalled, malformed or oversized body, or a `best_permission`
+ * this parser cannot read. `timeoutMs` bounds the whole lookup (the caller's
+ * remaining budget), never beyond the client's own limit. Never throws.
  */
 export async function fetchSelfArchivingPermission(
   doi: string,
   mailto?: string,
+  timeoutMs: number = OAWORKS_TIMEOUT_MS,
 ): Promise<PermissionLookup> {
   const bare = bareDoi(doi);
   if (!bare) return NONE;
+  const limit = Math.max(1, Math.min(OAWORKS_TIMEOUT_MS, timeoutMs));
+  const deadline = Date.now() + limit;
   try {
     // The DOI's own "/" stays a path separator (OA.Works routes on it); every
     // other reserved character is escaped — and the parsed URL must still sit
@@ -274,15 +319,18 @@ export async function fetchSelfArchivingPermission(
       headers: { Accept: "application/json", "User-Agent": userAgent(mailto) },
       // One attempt: the pass retries a failed work on a later sync, and a 501
       // "DOI is not a journal article" is not worth asking twice.
-      timeoutMs: 8_000,
+      timeoutMs: limit,
       retries: 0,
+      // No redirect is followed: the User-Agent carries the contact address, which
+      // must not be forwarded to another host.
+      redirect: "error",
       // `retrievedAt` must mean when SigmaCV asked, not when a cache did.
       cache: "no-store",
     });
     if (res.status === 429 || (res.status >= 500 && res.status !== 501)) return FAILED;
     if (!res.ok) return NONE;
-    const body = await res.text();
-    if (body.length > MAX_BYTES) return FAILED;
+    const body = await boundedBody(res, deadline);
+    if (body === undefined) return FAILED;
     const data: unknown = JSON.parse(body);
     if (typeof data !== "object" || data === null || Array.isArray(data)) return FAILED;
     const raw = (data as { best_permission?: unknown }).best_permission;

@@ -13,8 +13,9 @@ import {
  * addresses, copyright owner, score).
  */
 
+/** A real Response: the client reads its body as a stream. */
 function res(body: string, status = 200): Response {
-  return { ok: status >= 200 && status < 300, status, text: async () => body } as Response;
+  return new Response(body, { status });
 }
 const json = (value: unknown, status = 200) => res(JSON.stringify(value), status);
 
@@ -192,6 +193,41 @@ describe("fetchSelfArchivingPermission — failures are not answers", () => {
     const fetchMock = stubFetch(new Error("ECONNRESET"));
     expect(await fetchSelfArchivingPermission("10.1234/a")).toEqual({ status: "failed" });
     expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("follows no redirect: the contact address in the User-Agent never leaves OA.Works", async () => {
+    const fetchMock = stubFetch(json(CELL));
+    await fetchSelfArchivingPermission("10.1016/j.cell.2020.01.001", "ci@example.org");
+    expect(fetchMock.mock.calls[0]![1].redirect).toBe("error");
+  });
+
+  it("fails on a 200 with no body, and on a body that stalls past the lookup's deadline", async () => {
+    const stalled = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue(new TextEncoder().encode('{"best_permission":'));
+      },
+    });
+    stubFetch(new Response(null, { status: 200 }), new Response(stalled, { status: 200 }));
+    expect(await fetchSelfArchivingPermission("10.1234/a")).toEqual({ status: "failed" });
+    const started = Date.now();
+    expect(await fetchSelfArchivingPermission("10.1234/b", undefined, 50)).toEqual({
+      status: "failed",
+    });
+    expect(Date.now() - started).toBeLessThan(2_000);
+  });
+
+  it("stops reading a streamed body as soon as it passes the size bound", async () => {
+    const chunk = new TextEncoder().encode("x".repeat(400_000));
+    let pulls = 0;
+    const endless = new ReadableStream<Uint8Array>({
+      pull(controller) {
+        pulls++;
+        controller.enqueue(chunk);
+      },
+    });
+    stubFetch(new Response(endless, { status: 200 }));
+    expect(await fetchSelfArchivingPermission("10.1234/a")).toEqual({ status: "failed" });
+    expect(pulls).toBeLessThan(10);
   });
 });
 
