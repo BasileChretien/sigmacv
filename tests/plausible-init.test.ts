@@ -67,7 +67,7 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(transform({ u: "https://sigmacv.org/search" }).u).toBe("https://sigmacv.org/search");
   });
 
-  it("cuts a paper's DOI out of an outbound-link event (ShareYourPaper, doi.org), keeping the host", () => {
+  it("keeps only the origin of an outbound-link event's URL, so no identifier in a path reaches the collector", () => {
     const transform = boot().o!.transformRequest!;
     type Event = Payload & { p?: Record<string, string> };
     const outbound = (url: string) =>
@@ -79,19 +79,18 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
         } as Event) as Event
       ).p!.url;
     expect(outbound("https://shareyourpaper.org/10.1002/pds.5000")).toBe(
-      "https://shareyourpaper.org/_",
+      "https://shareyourpaper.org",
     );
-    expect(outbound("https://doi.org/10.1234/(SICI)1?x=1#frag")).toBe("https://doi.org/_#frag");
-    expect(outbound("http://dx.doi.org/10.1234/x")).toBe("http://dx.doi.org/_");
-    // Every other destination — and a look-alike host — is left as it was.
-    for (const url of [
-      "https://hal.science/submit",
-      "https://zenodo.org/uploads/new",
-      "https://notdoi.org/10.1234/x",
-      "https://doi.org.example.com/10.1234/x",
-    ]) {
-      expect(outbound(url)).toBe(url);
-    }
+    expect(outbound("https://doi.org/10.1234/(SICI)1?x=1#frag")).toBe("https://doi.org");
+    expect(outbound("https://orcid.org/0000-0002-7483-2489")).toBe("https://orcid.org");
+    expect(outbound("https://hal.science/submit")).toBe("https://hal.science");
+    // Forms a URL parser would also normalise: user info, a port, a trailing dot, a bare host.
+    expect(outbound("https://x:y@doi.org/10.1234/x")).toBe("https://doi.org");
+    expect(outbound("https://doi.org:443/10.1234/x")).toBe("https://doi.org:443");
+    expect(outbound("https://doi.org./10.1234/x")).toBe("https://doi.org.");
+    expect(outbound("https://doi.org")).toBe("https://doi.org");
+    // Not an absolute URL: left as it was.
+    expect(outbound("mailto:someone@example.org")).toBe("mailto:someone@example.org");
     // A custom event's own props are not touched.
     const custom = transform({
       n: "Deposit route",

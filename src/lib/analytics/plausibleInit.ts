@@ -7,8 +7,9 @@
  * option: a `transformRequest` that, before the request leaves the browser,
  *  - rewrites `/preview/<ORCID>` to `/preview/_` and drops the query string from
  *    `/search?q=<name>` in the payload's URL (`u`) and referrer (`r`);
- *  - cuts the path from an outbound-link event's URL (`p.url`) when it points at
- *    `shareyourpaper.org` or `doi.org` (`https://doi.org/_`).
+ *  - keeps only the origin of a URL an event carries (`p.url` — the clicked link
+ *    of an outbound-link event): `https://doi.org/10.1234/x` becomes
+ *    `https://doi.org`, user info dropped.
  *
  * Why: Plausible stores the pathname of every pageview. The no-login preview is
  * keyed by the looked-up researcher's ORCID iD, so without this the analytics
@@ -19,9 +20,10 @@
  * name would still cross the wire to the collector, so it is cut here too.
  * Outbound-link tracking is switched on in the site's Plausible configuration
  * (read off the live `pa-*.js` on 2026-09-15), and its event carries the clicked
- * URL: a click on the owner worklist's ShareYourPaper link, or on any DOI link,
- * would send the paper's DOI with it. The destination host is kept, so clicks
- * still count by destination.
+ * URL: a click on the owner worklist's ShareYourPaper link, or on any DOI, ORCID
+ * or OpenAlex link in the editor's own chrome, would send an identifier with it.
+ * A rule on the origin alone cannot miss a future kind of link, and clicks still
+ * count by destination.
  *
  * Kept as a plain string (not a function) because it must be inlined verbatim
  * into a <script> tag; `tests/plausible-init.test.ts` executes it in a sandbox
@@ -33,8 +35,8 @@ export const PLAUSIBLE_INIT_SCRIPT =
   "plausible.init=plausible.init||function(i){plausible.o=i||{}};" +
   "plausible.init({transformRequest:function(p){" +
   "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)[?][^#]*/," +
-  "dq=/^(https?:[/][/](?:[a-z0-9-]+[.])*(?:shareyourpaper|doi)[.]org)[/][^#]*/i;" +
+  "ou=/^([a-z][a-z0-9+.-]*:[/][/])(?:[^/?#@]*@)?([^/?#]*).*$/i;" +
   'if(p&&typeof p.u==="string")p.u=p.u.replace(re,"/preview/_").replace(rs,"$1");' +
   'if(p&&typeof p.r==="string")p.r=p.r.replace(re,"/preview/_").replace(rs,"$1");' +
-  'if(p&&p.p&&typeof p.p.url==="string")p.p.url=p.p.url.replace(dq,"$1/_");' +
+  'if(p&&p.p&&typeof p.p.url==="string")p.p.url=p.p.url.replace(ou,"$1$2");' +
   "return p}})";
