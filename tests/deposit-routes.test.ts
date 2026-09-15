@@ -123,7 +123,7 @@ describe("depositRoutes — the rule stack", () => {
     ]);
   });
 
-  it("never routes to an unconfirmed or unknown funder repository", () => {
+  it("routes to a funder's confirmed repository, and never for a funder with none on record", () => {
     const routes = depositRoutes(
       cvWith(),
       work({
@@ -134,7 +134,14 @@ describe("depositRoutes — the rule stack", () => {
       }),
       ctx(),
     );
-    expect(kinds(routes)).toEqual(["zenodo"]);
+    expect(kinds(routes)).toEqual(["funder", "zenodo"]);
+    expect(routes[0]).toMatchObject({
+      destination: "Europe PMC plus",
+      href: "https://plus.europepmc.org/",
+      reason: { key: "wlDepositBecauseFunder", params: { funder: "Wellcome Trust" } },
+    });
+    const unknown = work({ funders: [{ id: "https://openalex.org/F999", name: "Unknown" }] });
+    expect(kinds(depositRoutes(cvWith(), unknown, ctx()))).toEqual(["zenodo"]);
   });
 
   it("names the funder from the crosswalk, then from the work, then from the table", () => {
