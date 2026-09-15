@@ -108,7 +108,9 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
           policyUrl: undefined,
           recordUpdated: undefined,
         },
-        workCountries: ["BE"],
+        // Japan's national policy is read on a guidance page (and starts with 2025).
+        workCountries: ["JP"],
+        year: 2025,
       }),
     ]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} />);
@@ -120,13 +122,11 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     expect(rights.querySelector("blockquote")).toBeNull();
     expect(screen.queryByRole("link", { name: EN.wlArchivingPolicyLink })).toBeNull();
     const statutory = rights.querySelector(".cv-worklist-rights-statutory")!;
-    expect(statutory.textContent).toContain(
-      "May also apply — secondary-publication right (Belgium), ",
-    );
+    expect(statutory.textContent).toContain("(Japan)");
     expect(statutory.textContent).toContain("Recorded on 2026-09-15.");
     expect(
       screen.getByRole("link", { name: EN.wlStatutoryGuidanceLink }).getAttribute("href"),
-    ).toBe(entry("BE").sourceUrl);
+    ).toBe(entry("JP").sourceUrl);
     expect(screen.queryByRole("link", { name: EN.wlStatutorySourceLink })).toBeNull();
   });
 
