@@ -4742,9 +4742,6 @@ button.src-prov-chip.is-actionable:focus-visible {
   color: var(--text-secondary);
   white-space: nowrap;
 }
-.cv-worklist-oa-summary .cv-worklist-chip {
-  margin: 0 var(--space-1) 0 0;
-}
 .cv-worklist-funders {
   font-size: var(--text-xs);
 }

@@ -82,14 +82,25 @@ describe("worklist strings (workspaceUi wl*)", () => {
         "wlNoAffiliationHeading",
         "wlClosedHeading",
       ] as const) {
-        expect(s[key], `${loc} ${key}`).toContain("{n}");
-        expect(s[key], `${loc} ${key}`).toContain("{total}");
+        // Actions, never states: a heading names the list below it, never its size.
+        expect(s[key], `${loc} ${key}`).not.toMatch(/\{n\}|\{total\}|\d/);
       }
       expect(s.wlGapsGroup, `${loc} wlGapsGroup`).toContain("{ror}");
       expect(s.wlGapsGroup, `${loc} wlGapsGroup`).toContain("{n}");
       expect(s.wlFunders, `${loc} wlFunders`).toContain("{names}");
-      expect(s.wlOaSummary, `${loc} wlOaSummary`).toContain("{total}");
       expect(s.wlNotCheckedNote, `${loc} wlNotCheckedNote`).toContain("{n}");
+    }
+  });
+
+  it("never puts a denominator in a worklist string, in any locale", () => {
+    const keys = Object.keys(workspaceUi("en-US")).filter((k) => k.startsWith("wl")) as Array<
+      keyof ReturnType<typeof workspaceUi>
+    >;
+    for (const loc of SUPPORTED_LOCALES) {
+      const s = workspaceUi(loc);
+      for (const key of keys) {
+        expect(String(s[key]), `${loc} ${key}`).not.toContain("{total}");
+      }
     }
   });
 
