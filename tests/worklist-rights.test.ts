@@ -128,7 +128,7 @@ describe("statutoryLine", () => {
 
   it("words each kind its own way, with the country named in the viewer's locale", () => {
     expect(statutoryLine(entry("ES"), EN, "en-US").text).toMatch(
-      /^May also apply — legal deposit requirement \(Spain\), /,
+      /^May also apply — statutory repository-deposit requirement \(Spain\), /,
     );
     expect(statutoryLine(entry("JP"), EN, "en-US").text).toMatch(
       /^May also apply — national open-access policy \(Japan\), /,

@@ -83,10 +83,9 @@ test("a closed work shows the publisher's recorded policy, the statutory rule an
   await expect(rights).toContainText("Embargo: 12 months, ending 2021-01-23.");
   await expect(rights).toContainText("OA.Works record updated 2021-01-27; retrieved 2026-09-15.");
   await expect(rights.locator("blockquote")).toHaveText(STATEMENT);
-  await expect(rights.getByRole("link", { name: "archived publisher policy" })).toHaveAttribute(
-    "href",
-    "https://perma.cc/J5MA-H2EJ",
-  );
+  await expect(
+    rights.getByRole("link", { name: "archived copy of the publisher's policy" }),
+  ).toHaveAttribute("href", "https://perma.cc/J5MA-H2EJ");
   await expect(rights).toContainText("May also apply — secondary-publication right (France)");
   await expect(rights.getByRole("link", { name: "legal text" })).toHaveAttribute(
     "href",

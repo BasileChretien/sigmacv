@@ -130,7 +130,9 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} />);
     const rights = container.querySelector('[data-worklist="rights"]')!;
     expect(rights.querySelector(".cv-worklist-rights-publisher")).toBeNull();
-    expect(rights.textContent).toContain("May also apply — legal deposit requirement (Spain), ");
+    expect(rights.textContent).toContain(
+      "May also apply — statutory repository-deposit requirement (Spain), ",
+    );
     expect(container.textContent).toContain(EN.wlArchivingDisclaimer);
   });
 
