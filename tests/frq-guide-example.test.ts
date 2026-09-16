@@ -145,7 +145,7 @@ describe("the French CV-FRQ example", () => {
     expect(example.sources!.length).toBeGreaterThanOrEqual(4);
     const external = example.sources!.filter((s) => !s.href.startsWith("/"));
     for (const { href } of external) expect(OFFICIAL_HOSTS).toContain(new URL(href).host);
-    expect(example.sources!.some((s) => s.href === "/fr/guides/frq-narrative-cv")).toBe(true);
+    expect(example.sources!.some((s) => s.href === "/guides/frq-narrative-cv")).toBe(true);
     expect(JSON.stringify(example)).not.toMatch(DASHES);
   });
 

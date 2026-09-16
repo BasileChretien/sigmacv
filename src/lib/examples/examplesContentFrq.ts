@@ -49,7 +49,7 @@ export const FRQ_EXAMPLE: ExampleContent = {
       label: "CV des trois organismes fédéraux (page des IRSC)",
       href: "https://cihr-irsc.gc.ca/f/53574.html",
     },
-    { label: "Notre guide du CV-FRQ", href: "/fr/guides/frq-narrative-cv" },
+    { label: "Notre guide du CV-FRQ", href: "/guides/frq-narrative-cv" },
   ],
   sections: [
     {

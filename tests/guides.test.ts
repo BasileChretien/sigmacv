@@ -61,7 +61,9 @@ describe("guides content", () => {
           expect(b.href.length).toBeGreaterThan(0);
           expect(b.label.length).toBeGreaterThan(0);
         }
-        if (b.type === "ul" || b.type === "ol") expect(b.items.length).toBeGreaterThan(0);
+        if (b.type === "ul" || b.type === "ol" || b.type === "links") {
+          expect(b.items.length).toBeGreaterThan(0);
+        }
       }
       for (const f of g.faq ?? []) {
         expect(f.q.length).toBeGreaterThan(0);
