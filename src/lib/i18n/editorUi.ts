@@ -77,6 +77,9 @@ export interface EditorExtraStrings {
   proseStarterInsert: string;
   proseStarterHint: string;
   proseCharsLeft: string;
+  /** "≈ {n} pages" beside the counter, and its title explaining the basis. */
+  prosePagesApprox: string;
+  prosePagesHint: string;
   // Evidence references in prose sections ([[id]] → a link to the entry).
   evInsert: string;
   evPanel: string;
@@ -218,6 +221,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Body",
     proseBodyHint: "Blank line = new paragraph; lines starting with “- ” become a list.",
     proseCharsLeft: "{n} characters left",
+    prosePagesApprox: "≈ {n} pages",
+    prosePagesHint:
+      "Estimate for the funder's own template: letter paper, 2 cm margins, 12-point Times, single spacing (the FRQnet presentation standards).",
     evInsert: "Insert evidence",
     evPanel: "Insert an entry as evidence",
     evSearch: "Search your entries…",
@@ -340,6 +346,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "正文",
     proseBodyHint: "空行＝新段落；以“- ”开头的行会变成列表。",
     proseCharsLeft: "还剩 {n} 个字符",
+    prosePagesApprox: "≈ {n} 页",
+    prosePagesHint:
+      "按资助机构模板估算：Letter 纸张、2 cm 页边距、12 磅 Times、单倍行距（FRQnet 排版规范）。",
     evInsert: "插入证据",
     evPanel: "将一个条目作为证据插入",
     evSearch: "搜索您的条目…",
@@ -463,6 +472,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Línea en blanco = párrafo nuevo; las líneas que empiezan por «- » forman una lista.",
     proseCharsLeft: "Quedan {n} caracteres",
+    prosePagesApprox: "≈ {n} páginas",
+    prosePagesHint:
+      "Estimación para la plantilla del financiador: papel carta, márgenes de 2 cm, Times de 12 puntos, interlineado sencillo (normas de presentación de FRQnet).",
     evInsert: "Insertar evidencia",
     evPanel: "Insertar una entrada como evidencia",
     evSearch: "Buscar en tus entradas…",
@@ -590,6 +602,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Ligne vide = nouveau paragraphe ; les lignes commençant par « - » forment une liste.",
     proseCharsLeft: "{n} caractères restants",
+    prosePagesApprox: "≈ {n} pages",
+    prosePagesHint:
+      "Estimation pour le modèle du financeur : papier lettre, marges de 2 cm, Times 12 points, interligne simple (normes de présentation FRQnet).",
     evInsert: "Insérer une preuve",
     evPanel: "Insérer une entrée comme preuve",
     evSearch: "Rechercher dans vos entrées…",
@@ -716,6 +731,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Text",
     proseBodyHint: "Leerzeile = neuer Absatz; Zeilen mit „- “ am Anfang werden zur Liste.",
     proseCharsLeft: "{n} Zeichen übrig",
+    prosePagesApprox: "≈ {n} Seiten",
+    prosePagesHint:
+      "Schätzung für die Vorlage des Förderers: Letter-Papier, 2 cm Rand, Times 12 Punkt, einzeiliger Abstand (FRQnet-Darstellungsstandards).",
     evInsert: "Beleg einfügen",
     evPanel: "Einen Eintrag als Beleg einfügen",
     evSearch: "Deine Einträge durchsuchen …",
@@ -842,6 +860,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "本文",
     proseBodyHint: "空行＝段落の区切り。「- 」で始まる行は箇条書きになります。",
     proseCharsLeft: "残り{n}文字",
+    prosePagesApprox: "≈ {n} ページ",
+    prosePagesHint:
+      "助成機関のテンプレート基準の概算：レター用紙、余白 2 cm、Times 12 ポイント、シングルスペース（FRQnet の表記基準）。",
     evInsert: "根拠を挿入",
     evPanel: "項目を根拠として挿入",
     evSearch: "項目を検索…",
@@ -967,6 +988,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Texto",
     proseBodyHint: "Linha em branco = novo parágrafo; linhas iniciadas por “- ” viram uma lista.",
     proseCharsLeft: "Faltam {n} caracteres",
+    prosePagesApprox: "≈ {n} páginas",
+    prosePagesHint:
+      "Estimativa para o modelo do financiador: papel carta, margens de 2 cm, Times 12 pontos, espaçamento simples (normas de apresentação do FRQnet).",
     evInsert: "Inserir evidência",
     evPanel: "Inserir uma entrada como evidência",
     evSearch: "Buscar nas suas entradas…",
@@ -1094,6 +1118,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Riga vuota = nuovo paragrafo; le righe che iniziano con «- » diventano un elenco.",
     proseCharsLeft: "{n} caratteri rimasti",
+    prosePagesApprox: "≈ {n} pagine",
+    prosePagesHint:
+      "Stima per il modello del finanziatore: carta letter, margini di 2 cm, Times 12 punti, interlinea singola (standard di presentazione FRQnet).",
     evInsert: "Inserisci evidenza",
     evPanel: "Inserisci una voce come evidenza",
     evSearch: "Cerca tra le tue voci…",
@@ -1219,6 +1246,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "본문",
     proseBodyHint: "빈 줄 = 새 문단, “- ”로 시작하는 줄은 목록이 됩니다.",
     proseCharsLeft: "{n}자 남음",
+    prosePagesApprox: "≈ {n}쪽",
+    prosePagesHint:
+      "지원기관 서식 기준 추정: 레터 용지, 여백 2 cm, Times 12포인트, 1줄 간격(FRQnet 표기 기준).",
     evInsert: "근거 삽입",
     evPanel: "항목을 근거로 삽입",
     evSearch: "내 항목 검색…",
@@ -1343,6 +1373,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Текст",
     proseBodyHint: "Пустая строка = новый абзац; строки, начинающиеся с «- », образуют список.",
     proseCharsLeft: "Осталось символов: {n}",
+    prosePagesApprox: "≈ {n} стр.",
+    prosePagesHint:
+      "Оценка для шаблона фонда: формат Letter, поля 2 см, Times 12 пунктов, одинарный интервал (стандарты оформления FRQnet).",
     evInsert: "Вставить подтверждение",
     evPanel: "Вставить запись как подтверждение",
     evSearch: "Поиск по вашим записям…",

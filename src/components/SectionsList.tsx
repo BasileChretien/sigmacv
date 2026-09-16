@@ -19,6 +19,7 @@ import {
 import { isHidden } from "@/lib/canonical/schema";
 import { publicationSortActive, sortPublicationItems } from "@/lib/canonical/publicationSort";
 import { starterProseBody } from "@/lib/canonical/proseStarter";
+import { proseSectionPages } from "@/lib/canonical/pageEstimate";
 import {
   addManualEntry,
   addStructuredEntry,
@@ -787,6 +788,19 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                             "{n}",
                             String(PROSE_BODY_MAX - (section.body ?? "").length),
                           )}
+                          {(section.body ?? "").trim() ? (
+                            <>
+                              {" · "}
+                              <span title={eu.prosePagesHint}>
+                                {eu.prosePagesApprox.replace(
+                                  "{n}",
+                                  new Intl.NumberFormat(locale, {
+                                    maximumFractionDigits: 1,
+                                  }).format(proseSectionPages(section)),
+                                )}
+                              </span>
+                            </>
+                          ) : null}
                         </span>
                         {(section.body ?? "").trim().length === 0 ? (
                           <span className="field-inline prose-starter">

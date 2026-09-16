@@ -608,6 +608,15 @@
           "type": "string",
           "enum": ["a4", "letter"]
         },
+        "hideHeaderSummary": {
+          "default": false,
+          "type": "boolean"
+        },
+        "pageLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        },
         "publicContact": {
           "default": {},
           "type": "object",
@@ -1867,6 +1876,15 @@
                 "default": "a4",
                 "type": "string",
                 "enum": ["a4", "letter"]
+              },
+              "hideHeaderSummary": {
+                "default": false,
+                "type": "boolean"
+              },
+              "pageLimit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 50
               },
               "publicContact": {
                 "default": {},
