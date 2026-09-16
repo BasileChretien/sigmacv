@@ -8,7 +8,8 @@ import SiteHeader from "./SiteHeader";
 
 /**
  * The /examples index — a hub of illustrative academic-CV examples by field and
- * career stage. Emits WebPage (DocJsonLd) + BreadcrumbList + ItemList. English-only.
+ * career stage. Emits WebPage (DocJsonLd) + BreadcrumbList + ItemList. The index itself
+ * is English; each example page speaks its own language (`ExampleMeta.locale`).
  */
 export const EXAMPLES_INDEX_TITLE = "Academic CV examples";
 export const EXAMPLES_INDEX_DESCRIPTION =

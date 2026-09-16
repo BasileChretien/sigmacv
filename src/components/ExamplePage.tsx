@@ -6,7 +6,7 @@ import { examplesChrome, fillChrome } from "@/lib/i18n/examplesChrome";
 import { examplesNavLabel } from "@/lib/i18n/guidesNav";
 import { anyLandingPageStrings } from "@/lib/i18n/landingAll";
 import { serializeJsonLd } from "@/lib/jsonLd";
-import { localeLandingPagePath } from "@/lib/seo";
+import { localeHomePath, localeLandingPagePath } from "@/lib/seo";
 import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
 import DocJsonLd from "./DocJsonLd";
 import SiteFooter from "./SiteFooter";
@@ -123,7 +123,7 @@ export default function ExamplePage({ example }: { example: CvExample }) {
           <h2>{chrome.buildHeading}</h2>
           <p>{chrome.buildBody}</p>
           <p>
-            <Link className="btn btn-primary" href="/">
+            <Link className="btn btn-primary" href={localeHomePath(locale)}>
               {chrome.buildCta}
             </Link>
           </p>

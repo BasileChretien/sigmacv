@@ -70,7 +70,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
   "fr-FR": {
     disclaimerLead: "Exemple illustratif.",
     disclaimerBody:
-      "{name} est une chercheuse fictive et les publications ci-dessous sont inventées pour la démonstration — toute ressemblance avec une personne ou un travail réel serait fortuite.",
+      "{name} est une personne fictive et les publications ci-dessous sont inventées pour la démonstration — toute ressemblance avec une personne ou un travail réel serait fortuite.",
     citations: "citations {style}",
     template: "modèle {template}",
     exampleAria: "CV d'exemple : {label}",
@@ -84,7 +84,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
   "de-DE": {
     disclaimerLead: "Anschauungsbeispiel.",
     disclaimerBody:
-      "{name} ist eine fiktive Forscherin und die folgenden Publikationen sind zu Demonstrationszwecken erfunden — jede Ähnlichkeit mit einer realen Person oder Arbeit wäre zufällig.",
+      "{name} ist eine fiktive Person und die folgenden Publikationen sind zu Demonstrationszwecken erfunden — jede Ähnlichkeit mit einer realen Person oder Arbeit wäre zufällig.",
     citations: "{style}-Zitate",
     template: "Vorlage {template}",
     exampleAria: "Beispiel-Lebenslauf: {label}",
@@ -112,7 +112,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
   "pt-BR": {
     disclaimerLead: "Exemplo ilustrativo.",
     disclaimerBody:
-      "{name} é uma pesquisadora fictícia e as publicações abaixo foram inventadas para demonstração — qualquer semelhança com uma pessoa ou obra real é coincidência.",
+      "{name} é uma pessoa fictícia e as publicações abaixo foram inventadas para demonstração — qualquer semelhança com uma pessoa ou obra real é coincidência.",
     citations: "citações {style}",
     template: "modelo {template}",
     exampleAria: "CV de exemplo: {label}",
@@ -126,7 +126,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
   "it-IT": {
     disclaimerLead: "Esempio illustrativo.",
     disclaimerBody:
-      "{name} è una ricercatrice immaginaria e le pubblicazioni qui sotto sono inventate a scopo dimostrativo — ogni somiglianza con una persona o un lavoro reale è casuale.",
+      "{name} è una persona immaginaria e le pubblicazioni qui sotto sono inventate a scopo dimostrativo — ogni somiglianza con una persona o un lavoro reale è casuale.",
     citations: "citazioni {style}",
     template: "modello {template}",
     exampleAria: "CV di esempio: {label}",
@@ -154,7 +154,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
   "ru-RU": {
     disclaimerLead: "Иллюстративный пример.",
     disclaimerBody:
-      "{name} — вымышленная исследовательница, а публикации ниже придуманы для демонстрации; любое сходство с реальным человеком или работой случайно.",
+      "{name} — вымышленное лицо, а публикации ниже придуманы для демонстрации; любое сходство с реальным человеком или работой случайно.",
     citations: "цитирование {style}",
     template: "шаблон {template}",
     exampleAria: "Пример резюме: {label}",
