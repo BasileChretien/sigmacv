@@ -1246,6 +1246,15 @@ export default function StyleControls({
           <span>{eu.showCreditRoles}</span>
         </label>
 
+        <label className="field-inline" title={eu.markSuperviseesHint}>
+          <input
+            type="checkbox"
+            checked={cv.display.markSupervisees}
+            onChange={(e) => onChange(updateDisplay(cv, { markSupervisees: e.target.checked }))}
+          />
+          <span>{eu.markSupervisees}</span>
+        </label>
+
         <label className="field-inline">
           <input
             type="checkbox"

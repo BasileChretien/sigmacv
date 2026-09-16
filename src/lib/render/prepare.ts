@@ -1,3 +1,5 @@
+import { markSuperviseeNames } from "./nameMarks";
+import { shouldMarkSupervisees, superviseeNameVariants } from "@/lib/canonical/supervisees";
 import {
   displayInstitution,
   itemDateRange,
@@ -122,6 +124,9 @@ export function prepareSections(
   // (3,4,5,…,11) because Preprints/Datasets occupied the skipped numbers. Per
   // section, each list is contiguous (Publications 1..K, Preprints 1..M).
   // Author–date styles (APA) carry no numbers, so their output is unchanged.
+  // Supervisee names to mark with an asterisk in the owner's references (the FRQ
+  // rule), once for every format; [] unless the owner asked and is not hiding names.
+  const superviseeVariants = shouldMarkSupervisees(cv.display) ? superviseeNameVariants(cv) : [];
   return selectSections(cv).map(({ section, items }) => {
     // The per-work year/venue overrides (cslForRender) go on BEFORE citeproc, so a
     // correction shows identically in every format (never feed raw item.csl).
@@ -138,7 +143,11 @@ export function prepareSections(
         // of 12]" tail INSIDE the entry, so the account holder stays visible on
         // their own work in every format (selfTail.ts). "" when they are printed.
         const entry = byId.get(item.id) ?? "";
-        return withSelfAuthorTail(item, entry, cv.display.locale, outputFormat);
+        return markSuperviseeNames(
+          withSelfAuthorTail(item, entry, cv.display.locale, outputFormat),
+          superviseeVariants,
+          outputFormat,
+        );
       }
       // A STRUCTURED supervision record is serialized here, once, for every
       // format (the two-line HTML record / the flat text line) — with the

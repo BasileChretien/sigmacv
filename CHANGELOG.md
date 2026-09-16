@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **An asterisk after the people you supervised, in your references.** The FRQ asks for it in its CV descriptif ("Nom, Prénom*"), and the CV-FRQ layouts now do it: every co-author of one of your works whose name matches one of your supervision records gets an asterisk after the name, in the form the citation style prints ("Kaur, P._", "P. Kaur_", "Kaur P*"), in PDF, HTML, DOCX, LaTeX and Markdown alike. It is a switch in the Design panel, off by default; the FRQ layouts turn it on and hand your own setting back when you leave them. It is the one place SigmaCV matches a person by name rather than by identifier, because a supervisee has no identifier in the data and the names are the ones you typed yourself; the switch says so, and warns that a co-author with the same name would be marked too. It stays off while supervisee names are hidden, since the asterisk would reveal the relationship that toggle keeps off the page.
+
 ### Changed
 
 - **A citation marker in a narrative section now reads as a citation.** Choosing an entry to cite used to drop `[[W2741809807]]` into the text, an opaque identifier the writer had to trust. The marker now carries the entry's short reference after a pipe, `[[W2741809807 | Chrétien et al. 2022]]`, so the text box reads like prose. Only the identifier counts: exports keep printing the entry's own reference, the label may be edited or deleted without effect, and every marker written before (bare identifier) is read exactly as before.
