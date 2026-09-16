@@ -13,6 +13,8 @@ import {
   evidenceRefLabel,
   parseEvidenceRefs,
   resolveEvidenceRefs,
+  EVIDENCE_TOKEN_LABEL_MAX,
+  evidenceToken,
 } from "@/lib/canonical/evidenceRefs";
 import {
   isNarrativeModuleType,
@@ -103,6 +105,36 @@ describe("parseEvidenceRefs", () => {
 
   it("never lets a token span a line break", () => {
     expect(parseEvidenceRefs("[[W1\n]]")).toEqual([{ kind: "text", text: "[[W1\n]]" }]);
+  });
+});
+
+describe("readable markers ([[id | label]])", () => {
+  it("parses the id before the pipe and ignores the label; a blank id with a label is text", () => {
+    expect(parseEvidenceRefs("See [[W1 | Smith 2021]] and [[W2|Doe]].")).toEqual([
+      { kind: "text", text: "See " },
+      { kind: "ref", id: "W1" },
+      { kind: "text", text: " and " },
+      { kind: "ref", id: "W2" },
+      { kind: "text", text: "." },
+    ]);
+    expect(parseEvidenceRefs("[[ | orphan label ]]")).toEqual([
+      { kind: "text", text: "[[ | orphan label ]]" },
+    ]);
+  });
+
+  it("evidenceToken builds the marker with a cleaned, capped label, or the bare id", () => {
+    expect(evidenceToken("W1", "Smith et al. 2021")).toBe("[[W1 | Smith et al. 2021]]");
+    expect(evidenceToken("W1")).toBe("[[W1]]");
+    expect(evidenceToken("W1", "   ")).toBe("[[W1]]");
+    // Brackets, pipes and line breaks inside a label would break the token: cleaned.
+    expect(evidenceToken("W1", "A [tricky] | title\nhere")).toBe("[[W1 | A tricky title here]]");
+    // Capped to the label maximum.
+    const long = evidenceToken("W1", "x".repeat(200));
+    expect(long.length).toBeLessThanOrEqual("[[W1 | ]]".length + EVIDENCE_TOKEN_LABEL_MAX);
+    // What the builder makes, the parser resolves to the id.
+    expect(parseEvidenceRefs(evidenceToken("W1", "Smith 2021"))).toEqual([
+      { kind: "ref", id: "W1" },
+    ]);
   });
 });
 

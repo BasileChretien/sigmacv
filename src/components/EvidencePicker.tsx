@@ -2,7 +2,11 @@
 
 import { useMemo, useState } from "react";
 import type { CanonicalCv, CvSectionType } from "@/lib/canonical/schema";
-import { evidenceCandidates, resolveEvidenceRefs } from "@/lib/canonical/evidenceRefs";
+import {
+  evidenceCandidates,
+  evidenceToken,
+  resolveEvidenceRefs,
+} from "@/lib/canonical/evidenceRefs";
 import { editorUi } from "@/lib/i18n/editorUi";
 import Popover from "./Popover";
 
@@ -90,7 +94,9 @@ export default function EvidencePicker({
                       type="button"
                       className="evidence-option"
                       onClick={() => {
-                        onInsert(`[[${c.id}]]`);
+                        // A readable marker: the id (authoritative) plus the entry's
+                        // short reference, so the text box shows "[[W… | Smith 2021]]".
+                        onInsert(evidenceToken(c.id, c.label));
                         close();
                       }}
                     >
