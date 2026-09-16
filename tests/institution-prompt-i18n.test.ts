@@ -8,7 +8,7 @@ import { ui } from "@/lib/i18n/ui";
 import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
 
 /**
- * The institution prompt and the worklist's "Institution listing" line are an
+ * The institution prompt (and the worklist's "Change" link back to it) is an
  * ASK, not a default and not a judgement. The copy rules are test-enforced in
  * every locale: no compliance vocabulary, no mandate, no percentage, no ratio
  * or share-as-a-quantity, nothing that implies the institution asked for
@@ -19,9 +19,8 @@ import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
 const PROMPT_KEYS = Object.keys(institutionPromptStrings("en-US")) as Array<
   keyof InstitutionPromptStrings
 >;
-const LISTING_KEYS = Object.keys(workspaceUi("en-US")).filter((k) =>
-  k.startsWith("wlListing"),
-) as Array<keyof WorkspaceUiStrings>;
+// The one worklist string left from the listing row: the prompts' "Change" link.
+const LISTING_KEYS = ["wlListingChange"] as const satisfies ReadonlyArray<keyof WorkspaceUiStrings>;
 
 /** Compliance / mandate / quantity vocabulary, per locale (lower-case
  *  substrings; the worklist test carries the compliance half — this list adds
@@ -97,7 +96,6 @@ describe("institution prompt + listing strings", () => {
   it("exist, non-empty, in all ten locales, and fall back to English", () => {
     expect(SUPPORTED_LOCALES).toHaveLength(10);
     expect(PROMPT_KEYS.length).toBeGreaterThanOrEqual(11);
-    expect(LISTING_KEYS.length).toBeGreaterThanOrEqual(8);
     for (const loc of SUPPORTED_LOCALES) {
       for (const [key, value] of allStrings(loc)) {
         expect(typeof value, `${loc} ${key}`).toBe("string");
@@ -109,35 +107,22 @@ describe("institution prompt + listing strings", () => {
 
   it("actually translates the non-English locales", () => {
     const en = institutionPromptStrings("en-US");
-    const enWl = workspaceUi("en-US");
     for (const loc of SUPPORTED_LOCALES.filter((l) => l !== "en-US")) {
       const s = institutionPromptStrings(loc);
       expect(s.what, loc).not.toBe(en.what);
       expect(s.yes, loc).not.toBe(en.yes);
-      expect(workspaceUi(loc).wlListingUnlisted, loc).not.toBe(enWl.wlListingUnlisted);
     }
   });
 
   it("keeps the placeholders every locale substitutes", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const s = institutionPromptStrings(loc);
-      const w = workspaceUi(loc);
       for (const key of ["heading", "what", "yes"] as const) {
         expect(s[key], `${loc} prompt.${key}`).toContain("{institution}");
       }
       expect(s.reconciliation, `${loc} prompt.reconciliation`).toContain("{versions}");
       expect(s.headingMany, `${loc} prompt.headingMany`).not.toContain("{institution}");
       expect(s.yesNone, `${loc} prompt.yesNone`).not.toContain("{institution}");
-      for (const key of [
-        "wlListingUnlisted",
-        "wlListingListMe",
-        "wlListingListed",
-        "wlListingPageOnly",
-        "wlListingSetOnly",
-      ] as const) {
-        expect(w[key], `${loc} ${key}`).toContain("{institution}");
-      }
-      expect(w.wlListingListMeNone, `${loc} wlListingListMeNone`).not.toContain("{institution}");
     }
   });
 
@@ -198,19 +183,13 @@ describe("institution prompt + listing strings", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const { absence, immediate } = PRESENCE[loc];
       const s = institutionPromptStrings(loc);
-      const help = workspaceUi(loc).wlListingHelp;
       expect(s.nothingUntil, `${loc} prompt.nothingUntil`).toContain(absence);
       expect(s.withdraw, `${loc} prompt.withdraw`).toContain(immediate);
-      // The worklist's status line repeats both — it is the surface someone
-      // who dismissed the prompt still sees.
-      expect(help, `${loc} wlListingHelp`).toContain(absence);
-      expect(help, `${loc} wlListingHelp`).toContain(immediate);
     }
   });
 
   it("in English: the disclosure names both destinations, and always says absence means nothing and withdrawal is immediate", () => {
     const s = institutionPromptStrings("en-US");
-    const w = workspaceUi("en-US");
     expect(s.what).toMatch(/OAI-PMH set/);
     expect(s.what).toMatch(/institution's public page/);
     expect(s.what).toMatch(/figures/);
@@ -218,8 +197,6 @@ describe("institution prompt + listing strings", () => {
     expect(s.nothingUntil).toMatch(/absence means nothing/);
     expect(s.withdraw).toMatch(/withdraw at any time/);
     expect(s.withdraw).toMatch(/immediate/);
-    expect(w.wlListingHelp).toMatch(/absence means nothing/);
-    expect(w.wlListingHelp).toMatch(/immediate/);
     // The reconciliation rows are mentioned, once, as a separate choice made
     // after designating a frozen version — never a third box in the prompt.
     expect(s.reconciliation).toMatch(/separate choice/);
@@ -227,6 +204,5 @@ describe("institution prompt + listing strings", () => {
     // The two buttons: the consent names the institution; the other is a plain "Not now".
     expect(s.yes).toBe("Yes, list me under {institution}");
     expect(s.notNow).toBe("Not now");
-    expect(w.wlListingListMe).toBe("List me under {institution}");
   });
 });
