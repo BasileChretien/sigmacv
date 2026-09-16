@@ -111,6 +111,9 @@ describe("Deposit chip on a publication row", () => {
         .querySelector(".cv-deposit-chip"),
     ).toBeNull();
     expect(chips()[0]!.getAttribute("title")).toBe("Opens this work in the Open access tab");
+    // Described by a hidden note too — a title alone is not read by every screen reader.
+    const note = document.getElementById(chips()[0]!.getAttribute("aria-describedby")!)!;
+    expect(note.textContent).toBe("Opens this work in the Open access tab");
   });
 
   it("jumps to the work's row in the Open access tab: tab selected, disclosure open, row scrolled and focused", async () => {
@@ -124,7 +127,14 @@ describe("Deposit chip on a publication row", () => {
     const row = document.querySelector<HTMLElement>('[data-worklist-item="W-closed"]')!;
     await vi.waitFor(() => expect(document.activeElement).toBe(row));
     expect(panel.open).toBe(true);
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    const scrolls = vi.mocked(Element.prototype.scrollIntoView).mock.calls.length;
+    expect(scrolls).toBeGreaterThan(0);
+    // A second jump to the row already focused scrolls again (the owner may
+    // have scrolled away meanwhile).
+    fireEvent.click(chips()[0]!);
+    await vi.waitFor(() =>
+      expect(vi.mocked(Element.prototype.scrollIntoView).mock.calls.length).toBe(scrolls + 1),
+    );
     // The row jumps back to the item in Content — the two surfaces point at each other.
     fireEvent.click(within(row).getByRole("button", { name: /Work W-closed/ }));
     expect(screen.getByRole("tab", { name: "Content" }).getAttribute("aria-selected")).toBe("true");

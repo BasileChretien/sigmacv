@@ -136,11 +136,12 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // The reverse jump: a chip opens the Open access tab at that work's worklist
   // row. The panel is always mounted (only hidden), so one frame after the tab
   // switch the row is laid out; the panel's disclosure is opened in case the
-  // owner had folded it. A tick makes a second jump to the same row fire again.
-  const [worklistFocus, setWorklistFocus] = useState<{ itemId: string; tick: number } | null>(null);
+  // owner had folded it. A fresh object per jump re-runs the effect even for
+  // the row already focused.
+  const [worklistFocus, setWorklistFocus] = useState<{ itemId: string } | null>(null);
   const jumpToWorklist = useCallback((itemId: string) => {
     setActivePart("openAccess");
-    setWorklistFocus((f) => ({ itemId, tick: (f?.tick ?? 0) + 1 }));
+    setWorklistFocus({ itemId });
   }, []);
   useEffect(() => {
     if (!worklistFocus) return;

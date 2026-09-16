@@ -9,6 +9,7 @@ import {
   type DepositActionKind,
   type DepositBasis,
 } from "@/lib/archiving/depositRoutes";
+import { depositCandidate } from "@/lib/archiving/depositChips";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import {
   affiliationGaps,
@@ -139,12 +140,10 @@ export default function WorklistPanel({
     [cv],
   );
   // The deposit action is for journal articles: the works OA.Works records a
-  // publisher policy for, and the ones repositories take as manuscripts.
+  // publisher policy for, and the ones repositories take as manuscripts. ONE
+  // predicate, shared with the chips on the publication rows (`depositChips`).
   const depositItem = useCallback(
-    (itemId: string): CvItem | undefined => {
-      const item = itemsById.get(itemId);
-      return item?.csl?.type === "article-journal" ? item : undefined;
-    },
+    (itemId: string): CvItem | undefined => depositCandidate(itemsById.get(itemId)),
     [itemsById],
   );
   // Closed works in the order of what the owner can do now: a named version

@@ -2524,12 +2524,6 @@ textarea.narrative-ai-draft {
 .cv-deposit-chip:focus-visible {
   border-color: var(--accent);
 }
-/* The worklist row a chip jumps to receives focus. */
-.cv-worklist-row:focus-visible {
-  outline: none;
-  box-shadow: var(--focus-ring);
-  border-radius: 4px;
-}
 /* The "possible duplicate" badge is a button (toggles the explainer), so it
    gets a pointer cursor rather than the `help` cursor used by the static ones. */
 button.cv-review-badge.is-duplicate {
