@@ -152,6 +152,11 @@ describe("STATUTORY_ARCHIVING", () => {
     const bg = entry("BG");
     expect(bg.kind).toBe("author-right");
     expect(bg.appliesFrom).toBe("2021-06-07");
+    // Germany and Austria: the right exists from its entry into force; whether it
+    // reaches earlier works is disputed (DE) or unaddressed (AT), so the line is
+    // not printed under them.
+    expect(entry("DE").appliesFrom).toBe("2014-01-01");
+    expect(entry("AT").appliesFrom).toBe("2015-10-01");
     expect(bg.workTypes).toContain("chapter");
     expect(bg.workTypes).not.toContain("dataset");
     expect(bg.statements.join(" ")).toMatch(/not to contracts concluded or rights acquired before/);
