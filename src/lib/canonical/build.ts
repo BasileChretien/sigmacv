@@ -515,6 +515,7 @@ const BOUNDED_ENRICHMENT_KEYS = [
   // OA.Works self-archiving permission (the OWNER sync's pass only)
   "selfArchiving",
   "selfArchivingCheckedAt",
+  "selfArchivingTriedAt",
 ] as const satisfies readonly (keyof CvItem["meta"])[];
 
 /** {@link BOUNDED_ENRICHMENT_KEYS} carried from `prev` (defined values only). */
@@ -2077,7 +2078,11 @@ function buildWorkCvItem(
       // so a corrected DOI is asked about afresh rather than keeping the old DOI's
       // policy through the pass's seven-day refresh window.
       ...(prev && prev.csl?.DOI?.trim().toLowerCase() !== csl.DOI?.trim().toLowerCase()
-        ? { selfArchiving: undefined, selfArchivingCheckedAt: undefined }
+        ? {
+            selfArchiving: undefined,
+            selfArchivingCheckedAt: undefined,
+            selfArchivingTriedAt: undefined,
+          }
         : {}),
       year: work.publication_year ?? undefined,
       type: work.type ?? undefined,

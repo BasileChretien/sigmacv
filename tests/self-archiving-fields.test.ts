@@ -116,18 +116,27 @@ describe("build: the affiliation countries on the owner's own authorship", () =>
 
   it("rebuilds the countries from the source on every sync, and carries the OA.Works record with its date", () => {
     const first = build([withCountries(["FR"]), ...others()]);
-    const stored = withOwnMeta(first, { selfArchiving: RECORD, selfArchivingCheckedAt: NOW });
+    const stored = withOwnMeta(first, {
+      selfArchiving: RECORD,
+      selfArchivingCheckedAt: NOW,
+      selfArchivingTriedAt: NOW,
+    });
     const again = build([withCountries(["DE"]), ...others()], stored);
     // Source-driven: the new affiliation country replaces the old one.
     expect(own(again).meta.workCountries).toEqual(["DE"]);
     // Bounded-enrichment result: carried until the owner's pass refreshes it.
     expect(own(again).meta.selfArchiving).toEqual(RECORD);
     expect(own(again).meta.selfArchivingCheckedAt).toBe(NOW);
+    expect(own(again).meta.selfArchivingTriedAt).toBe(NOW);
   });
 
   it("drops the carried OA.Works record when the work's DOI changed, so the new DOI is asked about", () => {
     const first = build(works);
-    const stored = withOwnMeta(first, { selfArchiving: RECORD, selfArchivingCheckedAt: NOW });
+    const stored = withOwnMeta(first, {
+      selfArchiving: RECORD,
+      selfArchivingCheckedAt: NOW,
+      selfArchivingTriedAt: NOW,
+    });
     const ownFixture = works.find((x) => x.id === OWN)!;
     const sameDoiUpperCased = build(
       [{ ...ownFixture, doi: ownFixture.doi?.toUpperCase() }, ...others()],
@@ -141,6 +150,7 @@ describe("build: the affiliation countries on the owner's own authorship", () =>
     expect(own(corrected).csl?.DOI).toMatch(/10\.9999\/corrected/i);
     expect(own(corrected).meta.selfArchiving).toBeUndefined();
     expect(own(corrected).meta.selfArchivingCheckedAt).toBeUndefined();
+    expect(own(corrected).meta.selfArchivingTriedAt).toBeUndefined();
   });
 });
 
@@ -149,6 +159,7 @@ describe("schema: the self-archiving fields round-trip and degrade", () => {
     withOwnMeta(build(works), {
       selfArchiving: RECORD,
       selfArchivingCheckedAt: NOW,
+      selfArchivingTriedAt: NOW,
       workCountries: ["FR"],
     });
 
@@ -185,9 +196,15 @@ describe("the self-archiving fields never reach a public surface", () => {
   const cv = withOwnMeta(build(works), {
     selfArchiving: RECORD,
     selfArchivingCheckedAt: NOW,
+    selfArchivingTriedAt: NOW,
     workCountries: ["FR"],
   });
-  const FIELDS = ["selfArchiving", "selfArchivingCheckedAt", "workCountries"] as const;
+  const FIELDS = [
+    "selfArchiving",
+    "selfArchivingCheckedAt",
+    "selfArchivingTriedAt",
+    "workCountries",
+  ] as const;
 
   it("is stripped by the public projection, the preview projection and the snapshot freeze", () => {
     for (const projected of [

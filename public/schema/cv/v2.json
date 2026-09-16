@@ -1533,6 +1533,9 @@
                     "selfArchivingCheckedAt": {
                       "type": "string"
                     },
+                    "selfArchivingTriedAt": {
+                      "type": "string"
+                    },
                     "workCountries": {
                       "maxItems": 10,
                       "type": "array",
