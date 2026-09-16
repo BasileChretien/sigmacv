@@ -150,6 +150,8 @@ export interface WorkspaceUiStrings {
   wlStatutoryPending: string;
   /** Link text: the legal text. */
   wlStatutorySourceLink: string;
+  /** Link text: a policy document where no statute exists (Japan). */
+  wlStatutoryPolicyLink: string;
   /** Link text: the guidance page quoting or explaining the text. */
   wlStatutoryGuidanceLink: string;
   /** Action: deposit the accepted manuscript; {destination}. */
@@ -373,6 +375,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Recorded on {date}.",
     wlStatutoryPending: "Drafted and not yet confirmed against the legal text.",
     wlStatutorySourceLink: "legal text",
+    wlStatutoryPolicyLink: "policy text",
     wlStatutoryGuidanceLink: "guidance",
     wlDepositAccepted: "Deposit the accepted manuscript in {destination}",
     wlDepositPublished: "Deposit the published version in {destination}",
@@ -543,6 +546,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "记录日期 {date}。",
     wlStatutoryPending: "已起草，尚未与法律文本核对。",
     wlStatutorySourceLink: "法律文本",
+    wlStatutoryPolicyLink: "政策文本",
     wlStatutoryGuidanceLink: "指南",
     wlDepositAccepted: "将最终审定稿存缴至 {destination}",
     wlDepositPublished: "将出版版本存缴至 {destination}",
@@ -715,6 +719,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Registrado el {date}.",
     wlStatutoryPending: "Redactado y aún sin contrastar con el texto legal.",
     wlStatutorySourceLink: "texto legal",
+    wlStatutoryPolicyLink: "texto de la política",
     wlStatutoryGuidanceLink: "guía",
     wlDepositAccepted: "Deposita el manuscrito aceptado en {destination}",
     wlDepositPublished: "Deposita la versión publicada en {destination}",
@@ -897,6 +902,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Enregistré le {date}.",
     wlStatutoryPending: "Rédigé, pas encore vérifié au regard du texte de loi.",
     wlStatutorySourceLink: "texte de loi",
+    wlStatutoryPolicyLink: "texte de la politique",
     wlStatutoryGuidanceLink: "guide",
     wlDepositAccepted: "Déposer le manuscrit accepté dans {destination}",
     wlDepositPublished: "Déposer la version éditeur dans {destination}",
@@ -1084,6 +1090,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Stand: {date}.",
     wlStatutoryPending: "Entwurf, noch nicht mit dem Gesetzestext abgeglichen.",
     wlStatutorySourceLink: "Gesetzestext",
+    wlStatutoryPolicyLink: "Richtlinientext",
     wlStatutoryGuidanceLink: "Erläuterungen",
     wlDepositAccepted: "Akzeptierte Manuskriptversion in {destination} ablegen",
     wlDepositPublished: "Verlagsversion in {destination} ablegen",
@@ -1264,6 +1271,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "{date} 時点の記録。",
     wlStatutoryPending: "草案段階で、法令本文との照合はまだ済んでいません。",
     wlStatutorySourceLink: "法令本文",
+    wlStatutoryPolicyLink: "方針本文",
     wlStatutoryGuidanceLink: "解説",
     wlDepositAccepted: "著者最終稿を {destination} に登録する",
     wlDepositPublished: "出版社版を {destination} に登録する",
@@ -1447,6 +1455,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Registrado em {date}.",
     wlStatutoryPending: "Redigido e ainda não conferido com o texto legal.",
     wlStatutorySourceLink: "texto legal",
+    wlStatutoryPolicyLink: "texto da política",
     wlStatutoryGuidanceLink: "guia",
     wlDepositAccepted: "Deposite o manuscrito aceito em {destination}",
     wlDepositPublished: "Deposite a versão publicada em {destination}",
@@ -1631,6 +1640,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Registrato il {date}.",
     wlStatutoryPending: "Bozza, non ancora confrontata con il testo di legge.",
     wlStatutorySourceLink: "testo di legge",
+    wlStatutoryPolicyLink: "testo della politica",
     wlStatutoryGuidanceLink: "guida",
     wlDepositAccepted: "Deposita il manoscritto accettato in {destination}",
     wlDepositPublished: "Deposita la versione editoriale in {destination}",
@@ -1813,6 +1823,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "{date} 기준 기록.",
     wlStatutoryPending: "초안이며 아직 법령 원문과 대조하지 않았습니다.",
     wlStatutorySourceLink: "법령 원문",
+    wlStatutoryPolicyLink: "정책 원문",
     wlStatutoryGuidanceLink: "안내",
     wlDepositAccepted: "게재 승인 원고를 {destination}에 기탁하기",
     wlDepositPublished: "출판사 최종본을 {destination}에 기탁하기",
@@ -1994,6 +2005,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Запись от {date}.",
     wlStatutoryPending: "Черновик, ещё не сверен с текстом закона.",
     wlStatutorySourceLink: "текст закона",
+    wlStatutoryPolicyLink: "текст политики",
     wlStatutoryGuidanceLink: "разъяснения",
     wlDepositAccepted: "Разместить принятую к публикации рукопись в {destination}",
     wlDepositPublished: "Разместить опубликованную версию в {destination}",

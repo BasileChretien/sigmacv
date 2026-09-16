@@ -38,13 +38,14 @@ const SOURCE: Record<string, { domain: string; kind: string }> = {
   BE: { domain: "ejustice.just.fgov.be", kind: "legal-text" },
   BG: { domain: "dv.parliament.bg", kind: "legal-text" },
   ES: { domain: "boe.es", kind: "legal-text" },
-  JP: { domain: "kyushu-u.ac.jp", kind: "guidance" },
+  JP: { domain: "cao.go.jp", kind: "policy-text" },
 };
 const GUIDANCE_DOMAIN: Record<string, string> = {
   FR: "ouvrirlascience.fr",
   DE: "irights.info",
   NL: "openaccess.nl",
   BE: "kuleuven.be",
+  JP: "cao.go.jp",
 };
 
 const NOTE = readFileSync(join(__dirname, "..", "docs", "STATUTORY-ARCHIVING-RIGHTS.md"), "utf8");
