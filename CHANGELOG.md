@@ -467,7 +467,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   field-normalised; sensitive to career length and field"), in all ten languages,
   matching what the field-normalised measures already did.
 - Routine dependency refresh: Next.js, Prisma, Zod, Vite/Vitest tooling and types
-  moved to their current releases.
+  moved to their current releases. Also Playwright (the npm package and the Docker
+  runtime base image together, as one version — they are guarded to match, because
+  a mismatch means the PDF renderer cannot launch Chromium), Motion, Vitest 5 and
+  lint-staged.
 - **Corrected two false claims in the public documentation.** The README, the
   contributor guides and the AI-facing `/llms-full.txt` all described SigmaCV as
   offering an optional **Sigma-Score** metric. No such metric exists — the name is
