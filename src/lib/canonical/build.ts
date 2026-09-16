@@ -508,6 +508,7 @@ const BOUNDED_ENRICHMENT_KEYS = [
   "dataLinks",
   "hasDataStatement",
   "dataLinksCheckedAt",
+  "dataLinksTriedAt",
   // FORRT / FReD replication evidence
   "replications",
   "replicationOf",

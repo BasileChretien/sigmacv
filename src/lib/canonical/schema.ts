@@ -582,6 +582,22 @@ const CvItemSchema = z.object({
      */
     dataLinksCheckedAt: z.string().optional(),
     /**
+     * ISO timestamp of the last data-links ATTEMPT on this work — stamped on
+     * every work the pass examined, including one whose Europe PMC data-links
+     * call failed or was skipped by the open circuit breaker. Only the ROTATION
+     * reads it: {@link dataLinksCheckedAt} means a COMPLETED lookup, so without a
+     * separate attempt stamp a work that fails on every call stays "never
+     * examined", holds the head of the queue and starves the tail of the CV —
+     * the failure that stalled the OA.Works pass in production (see
+     * {@link selfArchivingTriedAt}). An incomplete lookup is still retried on the
+     * next sync, behind the works waiting for their first one. Carried across
+     * re-sync like {@link dataLinks}, and — like {@link dataLinksCheckedAt} and
+     * unlike the self-archiving sentinels — NOT stripped from the public
+     * projection: a lookup date is no editorial-workflow signal, and
+     * {@link dataLinks} itself is public.
+     */
+    dataLinksTriedAt: z.string().optional(),
+    /**
      * Replication studies FReD (FORRT Replication Database, CC-BY) recorded of THIS
      * work, folded in by the FORRT enrichment (DOI-matched — auto-included, no
      * review flag). Capped at 10; outcomes are FReD's own labels (e.g.

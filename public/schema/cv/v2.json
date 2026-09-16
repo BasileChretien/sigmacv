@@ -1105,6 +1105,9 @@
                     "dataLinksCheckedAt": {
                       "type": "string"
                     },
+                    "dataLinksTriedAt": {
+                      "type": "string"
+                    },
                     "replications": {
                       "maxItems": 10,
                       "type": "array",
