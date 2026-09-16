@@ -29,6 +29,7 @@ import {
   resetCvSections,
   type CvModelCategory,
 } from "@/lib/canonical/cvModels";
+import { prefillEmptyProse } from "@/lib/canonical/proseStarter";
 import { cvModelDescription } from "@/lib/i18n/cvModelDescriptions";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
 import { READER_MODE_KEYS, type ReaderModeKey } from "@/lib/render/readerMode";
@@ -557,8 +558,13 @@ export default function StyleControls({
             disabled={!selectedModel && !canResetModel}
             onClick={() => {
               if (selectedModel) {
+                // A narrative layout shows prose sections and hides the lists; an
+                // empty prose section is not rendered, so the preview would go blank.
+                // Each empty one the layout shows gets a starter draft from the record.
                 onChange(
-                  applyCvModel(savePreset(cv, eu.modelSnapshot), selectedModel.id, cvLocale),
+                  prefillEmptyProse(
+                    applyCvModel(savePreset(cv, eu.modelSnapshot), selectedModel.id, cvLocale),
+                  ),
                 );
               } else if (canResetModel) {
                 // "(None)": revert the funder layout back to the default sections.

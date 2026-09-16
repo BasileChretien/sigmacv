@@ -18,6 +18,7 @@ import {
 } from "@/lib/canonical/schema";
 import { isHidden } from "@/lib/canonical/schema";
 import { publicationSortActive, sortPublicationItems } from "@/lib/canonical/publicationSort";
+import { starterProseBody } from "@/lib/canonical/proseStarter";
 import {
   addManualEntry,
   addStructuredEntry,
@@ -787,6 +788,26 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                             String(PROSE_BODY_MAX - (section.body ?? "").length),
                           )}
                         </span>
+                        {(section.body ?? "").trim().length === 0 ? (
+                          <span className="field-inline prose-starter">
+                            <button
+                              type="button"
+                              className="btn btn-sm"
+                              title={eu.proseStarterHint}
+                              onClick={() =>
+                                onChange(
+                                  setSectionBody(
+                                    cv,
+                                    section.id,
+                                    starterProseBody(cv, section.type),
+                                  ),
+                                )
+                              }
+                            >
+                              {eu.proseStarterInsert}
+                            </button>
+                          </span>
+                        ) : null}
                         {/* Verifiable narrative: reference an entry of the CV with
                             [[id]] — every export renders it as a link / label to
                             that entry. The picker offers the entries that support
