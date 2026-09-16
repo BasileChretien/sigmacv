@@ -1049,6 +1049,19 @@ const CvItemSchema = z.object({
      */
     selfArchivingCheckedAt: z.string().optional(),
     /**
+     * ISO timestamp of the last OA.Works lookup ATTEMPT for this work — stamped
+     * on every work the pass examined, a failed or timed-out call included. Only
+     * the ROTATION reads it: without it a DOI whose record OA.Works computes
+     * slowly stays "never examined", holds the head of the queue and spends the
+     * pass budget on every sync, so the rest of the CV is never asked about
+     * (production, 2026-09-16: two such works, 38 deferred, per sync). The
+     * seven-day refresh window still keys on {@link selfArchivingCheckedAt}, so a
+     * failed work is retried on the NEXT sync — behind the works that have never
+     * been examined, and behind those examined longer ago, not in front of them. Carried across re-sync; owner-only,
+     * stripped from every public surface with the record itself.
+     */
+    selfArchivingTriedAt: z.string().optional(),
+    /**
      * ISO-3166 alpha-2 codes of the account holder's OWN authorship of this work
      * (OpenAlex `authorships[].countries` on the self-matched authorship — the
      * affiliation country printed on the paper), upper-case, deduped, bounded at

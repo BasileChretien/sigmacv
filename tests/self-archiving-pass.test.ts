@@ -16,7 +16,8 @@ import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonica
 /**
  * The owner sync's OA.Works pass: one lookup per countable closed journal
  * article with a DOI, sequential and capped; answers stored with their retrieval
- * date, "no record" clears, a failure keeps the old record and is retried; a
+ * date, "no record" clears, a failure keeps the old record and is retried behind
+ * the works never examined (the attempt is stamped, the answer is not); a
  * work that stops being a candidate loses its record (store only what the row
  * prints). The client is mocked — its own behaviour is `oaworks-client.test.ts`.
  */
@@ -136,6 +137,7 @@ describe("enrichCvWithSelfArchiving", () => {
         retrievedAt: NOW,
       });
       expect(byId(out, id).meta.selfArchivingCheckedAt).toBe(NOW);
+      expect(byId(out, id).meta.selfArchivingTriedAt).toBe(NOW);
     }
     for (const id of [
       "open",
@@ -155,7 +157,7 @@ describe("enrichCvWithSelfArchiving", () => {
     expect(CanonicalCvSchema.parse(out)).toEqual(out);
   });
 
-  it("clears the record on an answered 'no record', and keeps it — unstamped, to retry — on a failed call", async () => {
+  it("clears the record on an answered 'no record'; a failed call keeps it and stamps the attempt only", async () => {
     lookup.mockResolvedValueOnce({ status: "none" }).mockResolvedValueOnce({ status: "failed" });
     const cv = makeCv([
       work("gone", { selfArchiving: OLD_RECORD, selfArchivingCheckedAt: daysAgo(30) }),
@@ -164,8 +166,34 @@ describe("enrichCvWithSelfArchiving", () => {
     const out = await enrichCvWithSelfArchiving(cv, MAILTO, NOW);
     expect(byId(out, "gone").meta.selfArchiving).toBeUndefined();
     expect(byId(out, "gone").meta.selfArchivingCheckedAt).toBe(NOW);
+    expect(byId(out, "gone").meta.selfArchivingTriedAt).toBe(NOW);
     expect(byId(out, "flaky").meta.selfArchiving).toEqual(OLD_RECORD);
     expect(byId(out, "flaky").meta.selfArchivingCheckedAt).toBe(daysAgo(30));
+    // The attempt IS stamped, so this DOI does not hold the head of the queue.
+    expect(byId(out, "flaky").meta.selfArchivingTriedAt).toBe(NOW);
+  });
+
+  it("orders by the last ATTEMPT, so a failing work keeps moving back instead of holding the queue", async () => {
+    const cv = makeCv([
+      // Answered a month ago, failing on every call since yesterday: the stale
+      // ANSWER date must not put it in front of works waiting far longer.
+      work("answeredThenFailing", {
+        selfArchiving: OLD_RECORD,
+        selfArchivingCheckedAt: daysAgo(30),
+        selfArchivingTriedAt: daysAgo(1),
+      }),
+      work("timedOutLongAgo", { selfArchivingTriedAt: daysAgo(9) }),
+      work("answeredLongAgo", { selfArchiving: OLD_RECORD, selfArchivingCheckedAt: daysAgo(20) }),
+      work("never"),
+    ]);
+    await enrichCvWithSelfArchiving(cv, MAILTO, NOW);
+    // Never examined first, then oldest attempt first.
+    expect(lookup.mock.calls.map((c) => c[0])).toEqual([
+      "10.1234/never",
+      "10.1234/answeredLongAgo",
+      "10.1234/timedOutLongAgo",
+      "10.1234/answeredThenFailing",
+    ]);
   });
 
   it(`skips works answered within ${SELF_ARCHIVING_REFRESH_DAYS} days and asks never-checked works first, then the oldest`, async () => {
@@ -198,7 +226,11 @@ describe("enrichCvWithSelfArchiving", () => {
   });
 
   it("drops the record and its date from a work that is no longer a candidate, without asking", async () => {
-    const stored = { selfArchiving: OLD_RECORD, selfArchivingCheckedAt: daysAgo(1) };
+    const stored = {
+      selfArchiving: OLD_RECORD,
+      selfArchivingCheckedAt: daysAgo(1),
+      selfArchivingTriedAt: daysAgo(1),
+    };
     const cv = makeCv([
       work("nowOpen", { ...stored, oaIsOpen: true }),
       { ...work("nowHidden", stored), notMine: true },
@@ -209,6 +241,7 @@ describe("enrichCvWithSelfArchiving", () => {
     for (const id of ["nowOpen", "nowHidden"]) {
       expect(byId(out, id).meta.selfArchiving, id).toBeUndefined();
       expect(byId(out, id).meta.selfArchivingCheckedAt, id).toBeUndefined();
+      expect(byId(out, id).meta.selfArchivingTriedAt, id).toBeUndefined();
     }
     // Still a candidate, answered yesterday: kept as it was.
     expect(byId(out, "fresh").meta.selfArchiving).toEqual(OLD_RECORD);
