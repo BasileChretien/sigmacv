@@ -12,6 +12,7 @@ import { setSectionBody } from "@/lib/canonical/curate";
 import { evidenceCandidates, evidenceRefCounts } from "@/lib/canonical/evidenceRefs";
 import { listAvailableStyles } from "@/lib/citeproc/assets";
 import { renderCvHtml } from "@/lib/render/html";
+import { evidenceMarkdown } from "@/lib/render/evidenceRefs";
 import { renderCvMarkdown } from "@/lib/render/markdown";
 import { renderCvDocxBuffer } from "@/lib/render/docx";
 
@@ -123,6 +124,32 @@ describe("citing an entry whose list the layout hides", () => {
       expect(html).not.toContain("[[");
     },
   );
+
+  it("Markdown: a URL that could close the angle-bracket destination is percent-encoded", () => {
+    const crafted = "https://x.example/a b>[click](javascript:alert(1))\\>";
+    const cv = makeCv();
+    const pubs = cv.sections.find((s) => s.type === "publications")!;
+    const edited = {
+      ...cv,
+      sections: cv.sections.map((s) =>
+        s.id !== pubs.id
+          ? s
+          : {
+              ...s,
+              visible: false,
+              items: s.items.map((it) => ({
+                ...it,
+                meta: { ...it.meta, entryUrlOverride: crafted },
+              })),
+            },
+      ),
+    };
+    const md = evidenceMarkdown(edited, "See [[W1]].", {});
+    expect(md).toBe(
+      "See [Chrétien 2022](<https://x.example/a%20b%3E[click]%28javascript:alert%281%29%29%5C%3E>).",
+    );
+    expect(md).not.toContain("](javascript:");
+  });
 
   it.skipIf(!hasApa)("Markdown and DOCX carry the DOI link for an unlisted entry", async () => {
     const md = renderCvMarkdown(frqCv());

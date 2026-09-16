@@ -1,6 +1,6 @@
 import { evidenceResolver, type ResolvedEvidenceSegment } from "@/lib/canonical/evidenceRefs";
 import type { CanonicalCv } from "@/lib/canonical/schema";
-import { escapeHtml, escapeMarkdown, safeHref } from "./escape";
+import { escapeHtml, escapeMarkdown, markdownHref, safeHref } from "./escape";
 import type { PreparedSection } from "./prepare";
 
 /**
@@ -70,7 +70,7 @@ export function evidenceMarkdown(
       const label = escapeMarkdown(seg.label);
       if (seg.listed && opts.anchorId) return `[${label}](#${opts.anchorId(seg.id)})`;
       const href = safeHref(seg.url);
-      return href ? `[${label}](<${href}>)` : `(${label})`;
+      return href ? `[${label}](<${markdownHref(href)}>)` : `(${label})`;
     })
     .join("");
 }
