@@ -1,4 +1,5 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
+import { headerSummary } from "@/lib/canonical/headerSummary";
 import { latestAffiliation } from "@/lib/cv/ogImage";
 import { renderStrings } from "@/lib/i18n/render";
 import { escapeHtml } from "@/lib/render/escape";
@@ -42,7 +43,11 @@ function isHighSurrogate(code: number): boolean {
  * Vitae" (Bing audit, 2026-09-15).
  */
 export function publicMetaDescription(cv: CanonicalCv): string {
-  const parts = [cv.owner.headline, cv.owner.summary].map((p) => oneLine(p ?? "")).filter(Boolean);
+  // Only what the page itself shows: a layout that leaves the headline + summary
+  // off the document leaves them out of the description too (the fallback then
+  // builds the line from the name and the latest affiliation).
+  const shown = headerSummary(cv);
+  const parts = [shown.headline, shown.summary].map((p) => oneLine(p ?? "")).filter(Boolean);
   const joined = parts.join(" — ");
   if (joined.length < DESCRIPTION_MIN) return fallbackDescription(cv, joined);
   if (joined.length <= DESCRIPTION_MAX) return joined;

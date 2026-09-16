@@ -748,3 +748,14 @@ describe("currentAffiliation", () => {
     });
   });
 });
+
+describe("profilePageJsonLd under a layout that hides the header summary", () => {
+  it("emits no jobTitle when the page does not show the headline", () => {
+    const cv = makeCv({ owner: { headline: "Pharmacovigilance researcher" } });
+    const hidden = updateDisplay(cv, { hideHeaderSummary: true });
+    const shown = JSON.parse(profilePageJsonLd(cv, "https://sigmacv.org/p/x"));
+    const off = JSON.parse(profilePageJsonLd(hidden, "https://sigmacv.org/p/x"));
+    expect(shown.mainEntity.jobTitle).toBe("Pharmacovigilance researcher");
+    expect(off.mainEntity.jobTitle).toBeUndefined();
+  });
+});

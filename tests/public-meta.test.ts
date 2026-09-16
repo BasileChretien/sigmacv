@@ -179,3 +179,20 @@ describe("publicMetaTags", () => {
     expect(html).not.toContain("og:url");
   });
 });
+
+describe("publicMetaDescription under a layout that hides the header summary", () => {
+  it("leaves the headline and summary out and falls back to the name and affiliation", () => {
+    const cv = makeCv(
+      { headline: "Pharmacologist", summary: "A summary the CV-FRQ template has no place for." },
+      { employments: [NAGOYA] },
+    );
+    const hidden = { ...cv, display: { ...cv.display, hideHeaderSummary: true } };
+    const shown = publicMetaDescription(cv);
+    const off = publicMetaDescription(hidden);
+    expect(shown).toContain("A summary the CV-FRQ template");
+    expect(off).not.toContain("A summary the CV-FRQ template");
+    expect(off).not.toContain("Pharmacologist");
+    expect(off).toContain("Basile Chrétien");
+    expect(off).toContain("Nagoya University");
+  });
+});

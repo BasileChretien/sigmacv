@@ -1,4 +1,5 @@
 import { itemDisplayText, type CanonicalCv } from "@/lib/canonical/schema";
+import { headerSummary } from "@/lib/canonical/headerSummary";
 
 /**
  * Display props for the per-CV Open Graph / social-share card (`/p/<slug>/og`).
@@ -90,7 +91,10 @@ function nameInitials(name: string): string {
  */
 export function ogImageProps(cv: CanonicalCv): OgImageProps {
   const name = oneLine(cv.owner.displayName || "") || NAME_FALLBACK;
-  const rawHeadline = cv.owner.headline || cv.owner.summary || "";
+  // The card shows what the page shows: nothing from a headline + summary a
+  // layout leaves off the document.
+  const shown = headerSummary(cv);
+  const rawHeadline = shown.headline || shown.summary || "";
   return {
     name: truncate(name, HEADLINE_MAX),
     initials: nameInitials(name),

@@ -168,3 +168,11 @@ describe("ogImageProps", () => {
     expect(ogImageProps(allHidden).affiliation).toBe("");
   });
 });
+
+describe("ogImageProps under a layout that hides the header summary", () => {
+  it("prints no headline from the hidden headline or summary", () => {
+    const owner = { headline: "Pharmacologist", summary: "Hidden summary" };
+    expect(ogImageProps(makeCv(owner)).headline).toBe("Pharmacologist");
+    expect(ogImageProps(makeCv(owner, { display: { hideHeaderSummary: true } })).headline).toBe("");
+  });
+});

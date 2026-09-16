@@ -7,6 +7,7 @@ import {
   type CvSection,
 } from "@/lib/canonical/schema";
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
+import { headerSummary } from "@/lib/canonical/headerSummary";
 import { isSoftwareItem } from "@/lib/canonical/softwareItem";
 import { selectSections } from "@/lib/render/citationItems";
 import { serializeJsonLd } from "@/lib/jsonLd";
@@ -424,7 +425,9 @@ export function profilePageJsonLd(
     "@type": "Person",
     name: owner.displayName || "Researcher",
   };
-  if (owner.headline) person.jobTitle = owner.headline;
+  // `jobTitle` only when the page shows the headline (a layout may leave it off).
+  const shownHeadline = headerSummary(cv).headline;
+  if (shownHeadline) person.jobTitle = shownHeadline;
   if (orcidUrl) person.identifier = orcidUrl;
 
   const sameAs = sameAsUrls(cv, orcidUrl);
