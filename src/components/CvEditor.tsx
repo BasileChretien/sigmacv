@@ -29,9 +29,7 @@ type EditorPart = "content" | "design" | "profile" | "openAccess";
 const EDITOR_PARTS: readonly EditorPart[] = ["profile", "design", "content", "openAccess"];
 const PREVIEW_PARTS: readonly EditorPart[] = EDITOR_PARTS.filter((p) => p !== "openAccess");
 
-/** A stable empty consent (a fresh `[]` per render would defeat the worklist's memo). */
-const NO_CONSENTED_ROR_IDS: readonly string[] = [];
-/** A stable empty crosswalk, for the same reason. */
+/** A stable empty crosswalk (a fresh `[]` per render would defeat the worklist's memo). */
 const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
 
 interface CvEditorProps {
@@ -54,9 +52,6 @@ interface CvEditorProps {
    *  panels (they save server-side) and the owner worklist. Curation/styling
    *  stay fully available. */
   anonymous?: boolean;
-  /** The ROR ids the owner consented to on the institution page (bare ids) —
-   *  what the owner worklist checks affiliations against. Default: none. */
-  consentedRorIds?: readonly string[];
   /** The OpenAlex funder crosswalk rows for the funders printed on the owner's
    *  works (owner-only, loaded by the page) — what the worklist joins the
    *  owner's grants through. Default: none (award-number matches only). */
@@ -86,7 +81,6 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     onClaimAdded = () => {},
     variant = "classic",
     anonymous = false,
-    consentedRorIds = NO_CONSENTED_ROR_IDS,
     funderCrosswalk = NO_FUNDER_CROSSWALK,
     currentAffiliationCountry,
     institutionListing,
@@ -166,7 +160,6 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     <WorklistPanel
       cv={cv}
       locale={locale}
-      consentedRorIds={consentedRorIds}
       funderCrosswalk={funderCrosswalk}
       currentAffiliationCountry={currentAffiliationCountry}
       onJump={jumpToItem}

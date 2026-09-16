@@ -125,13 +125,12 @@ function lastBody(): Record<string, unknown> {
   return JSON.parse(init.body) as Record<string, unknown>;
 }
 
-function renderPanel(cv: CanonicalCv, state: PublishSnapshot, consented: string[] = []) {
+function renderPanel(cv: CanonicalCv, state: PublishSnapshot) {
   const onPublishStateChange = vi.fn();
   const { container } = render(
     <WorklistPanel
       cv={cv}
       locale="en-US"
-      consentedRorIds={consented}
       onJump={vi.fn()}
       listing={{ state, onPublishStateChange }}
     />,
@@ -308,7 +307,7 @@ describe("InstitutionListingRow — on exactly ONE of the two surfaces", () => {
     template.replace("{institution}", institution);
 
   it("on the page but not in the repository set: says exactly that, with Change and no ask", () => {
-    renderPanel(quietCv({ closed: true }), onPage, [NAGOYA.rorId]);
+    renderPanel(quietCv({ closed: true }), onPage);
     expect(row()!.textContent).toContain(fill(wu.wlListingPageOnly, "Nagoya University"));
     expect(row()!.textContent).not.toContain("You are not yet listed");
     expect(screen.queryByRole("button", { name: /List me under/ })).toBeNull();
@@ -316,7 +315,7 @@ describe("InstitutionListingRow — on exactly ONE of the two surfaces", () => {
   });
 
   it("in the repository set but not on the page: the other half of the same sentence", () => {
-    renderPanel(quietCv({ closed: true }), inSet, []);
+    renderPanel(quietCv({ closed: true }), inSet);
     expect(row()!.textContent).toContain(fill(wu.wlListingSetOnly, "Nagoya University"));
     expect(row()!.textContent).not.toContain("You are not yet listed");
     expect(screen.queryByRole("button", { name: /List me under/ })).toBeNull();
@@ -324,7 +323,7 @@ describe("InstitutionListingRow — on exactly ONE of the two surfaces", () => {
   });
 
   it("is a status, not an open choice: it alone does not open an otherwise-empty panel", () => {
-    const { container } = renderPanel(quietCv(), onPage, [NAGOYA.rorId]);
+    const { container } = renderPanel(quietCv(), onPage);
     expect(container.innerHTML).toBe("");
   });
 });
@@ -332,25 +331,25 @@ describe("InstitutionListingRow — on exactly ONE of the two surfaces", () => {
 describe("IndexingRow — the open indexing decision keeps the panel visible", () => {
   it("a clean CV with a live, un-indexed page shows the Search indexing row (and nothing else)", () => {
     const snap = { ...listedSnapshot(), indexable: false, listUnderAffiliation: false };
-    const { container } = renderPanel(quietCv(), snap, []);
+    const { container } = renderPanel(quietCv(), snap);
     expect(container.innerHTML).not.toBe("");
     const row = document.querySelector('[data-testid="worklist-indexing"]');
     expect(row?.getAttribute("data-state")).toBe("undecided");
     expect(screen.getByTestId("worklist-indexing-yes")).toBeTruthy();
     cleanup();
     // Indexing ON is a status, not a reason: the clean panel stays empty.
-    const { container: c2 } = renderPanel(quietCv(), { ...snap, indexable: true }, []);
+    const { container: c2 } = renderPanel(quietCv(), { ...snap, indexable: true });
     expect(c2.innerHTML).toBe("");
   });
 });
 
 describe("InstitutionListingRow — listed and lapsed", () => {
   it("listed: says so with a Change link, and is NOT a reason to show an otherwise-empty panel", () => {
-    const { container } = renderPanel(quietCv(), listedSnapshot(), [NAGOYA.rorId]);
+    const { container } = renderPanel(quietCv(), listedSnapshot());
     expect(container.innerHTML).toBe("");
     cleanup();
     // With something else to show, the status line leads.
-    renderPanel(quietCv({ closed: true }), listedSnapshot(), [NAGOYA.rorId]);
+    renderPanel(quietCv({ closed: true }), listedSnapshot());
     expect(row()).toBeTruthy();
     expect(screen.getByText(/^Listed under Nagoya University\./)).toBeTruthy();
     expect(screen.getByRole("button", { name: wu.wlListingChange })).toBeTruthy();
@@ -375,7 +374,7 @@ describe("InstitutionListingRow — listed and lapsed", () => {
       cb(0);
       return 0;
     });
-    renderPanel(quietCv({ closed: true }), listedSnapshot(), [NAGOYA.rorId]);
+    renderPanel(quietCv({ closed: true }), listedSnapshot());
     fireEvent.click(screen.getByRole("button", { name: wu.wlListingChange }));
     expect(document.activeElement).toBe(anchor);
     trigger.remove();
@@ -398,7 +397,6 @@ describe("InstitutionListingRow — listed and lapsed", () => {
           lapsedRorIds: ["00old0000"],
         },
       }),
-      ["00old0000"],
     );
     expect(
       screen.getByText(u.institutionPageLapsedKept.replace("{rorId}", "00old0000")),
@@ -421,7 +419,6 @@ describe("InstitutionListingRow — listed and lapsed", () => {
           lapsedRorIds: ["00old0000"],
         },
       }),
-      ["00old0000"],
     );
     expect(
       screen.getByText(u.institutionPageLapsedKept.replace("{rorId}", "00old0000")),
@@ -439,14 +436,7 @@ describe("InstitutionListingRow — listed and lapsed", () => {
     );
     expect(row()).toBeNull();
     cleanup();
-    render(
-      <WorklistPanel
-        cv={quietCv({ closed: true })}
-        locale="en-US"
-        consentedRorIds={[]}
-        onJump={vi.fn()}
-      />,
-    );
+    render(<WorklistPanel cv={quietCv({ closed: true })} locale="en-US" onJump={vi.fn()} />);
     expect(row()).toBeNull();
   });
 });

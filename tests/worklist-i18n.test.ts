@@ -76,19 +76,11 @@ describe("worklist strings (workspaceUi wl*)", () => {
   it("keeps the placeholders every locale substitutes", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const s = workspaceUi(loc);
-      for (const key of [
-        "wlPositionsHeading",
-        "wlGapsHeading",
-        "wlNoAffiliationHeading",
-        "wlClosedHeading",
-      ] as const) {
+      for (const key of ["wlPositionsHeading", "wlClosedHeading"] as const) {
         // Actions, never states: a heading names the list below it, never its size.
         expect(s[key], `${loc} ${key}`).not.toMatch(/\{n\}|\{total\}|\d/);
       }
-      expect(s.wlGapsGroup, `${loc} wlGapsGroup`).toContain("{ror}");
-      expect(s.wlGapsGroup, `${loc} wlGapsGroup`).toContain("{n}");
       expect(s.wlFunders, `${loc} wlFunders`).toContain("{names}");
-      expect(s.wlNotCheckedNote, `${loc} wlNotCheckedNote`).toContain("{n}");
     }
   });
 
@@ -111,12 +103,10 @@ describe("worklist strings (workspaceUi wl*)", () => {
     expect(s.wlClosedHelp).toMatch(/check the journal.s policy/i);
   });
 
-  it("says, in English, what the no-affiliation bucket holds and that other sources are counted, not checked", () => {
+  it("says, in English, what resolves a position without a record — ORCID, then a sync — and promises no picker", () => {
     const s = workspaceUi("en-US");
-    expect(s.wlNoAffiliationHelp).toMatch(/OpenAlex recorded no institution/);
-    expect(s.wlNoAffiliationHelp).toMatch(/none with a ROR id/);
-    expect(s.wlNoAffiliationHelp).toMatch(/missing data, not a missing affiliation/);
-    expect(s.wlNotCheckedNote).toMatch(/other sources/);
-    expect(s.wlNotCheckedNote).toMatch(/not checked here/);
+    expect(s.wlPositionsHelp).toMatch(/on ORCID/);
+    expect(s.wlPositionsHelp).toMatch(/sync again/);
+    expect(s.wlPositionsHelp).not.toMatch(/pick it in the editor/);
   });
 });

@@ -3,7 +3,6 @@ import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonica
 import {
   OPEN_POLICY_FINDER_URL,
   affiliationGaps,
-  groupByRor,
   hasWorklistContent,
   openAccessState,
   openAccessStates,
@@ -11,16 +10,13 @@ import {
 } from "@/lib/cv/worklist";
 
 /**
- * The owner worklist: help with the record, never a verdict. Affiliation gaps
- * are computed STRICTLY against the ROR ids the researcher consented to (no
- * lineage folding — that belongs to the institution page), and the open-access
- * states are derived ONLY from stored fields (`oaIsOpen`, `license`). Nothing
- * here reads as compliance.
+ * The owner worklist: help with the record, never a verdict. The affiliation
+ * check is the one with a verb — a current position without a ROR record — and
+ * the open-access states are derived ONLY from stored fields (`oaIsOpen`,
+ * `license`). Nothing here reads as compliance.
  */
 
 const NAGOYA = "04chrp450";
-const CAEN = "04d9jrx35";
-const OTHER = "02kpeqv85";
 
 function work(
   id: string,
@@ -109,222 +105,6 @@ const nagoyaNow = position("p-nagoya", {
   rorId: NAGOYA,
   startYear: 2020,
 });
-const caenPast = position("p-caen", {
-  institution: "CHU de Caen Normandie",
-  rorId: `https://ror.org/${CAEN}`,
-  startYear: 2015,
-  endYear: 2019,
-});
-
-describe("affiliationGaps — works inside consented position windows", () => {
-  it("flags a work dated in the window whose printed affiliation carries none of the consented ids", () => {
-    const cv = makeCv({
-      positions: [nagoyaNow],
-      works: [work("W1", { meta: { year: 2022, workInstitutions: [`https://ror.org/${OTHER}`] } })],
-    });
-    const gaps = affiliationGaps(cv, [NAGOYA]);
-    expect(gaps.consideredWorks).toBe(1);
-    expect(gaps.missing).toEqual([{ itemId: "W1", title: "Work W1", year: 2022, rorIds: [OTHER] }]);
-    expect(gaps.noAffiliationData).toEqual([]);
-  });
-
-  it("accepts the consented id in either the IRI or the bare form, and never flags it", () => {
-    const cv = makeCv({
-      positions: [nagoyaNow],
-      works: [
-        work("W1", { meta: { year: 2022, workInstitutions: [`https://ror.org/${NAGOYA}`] } }),
-        work("W2", {
-          meta: { year: 2023, workInstitutions: [NAGOYA, `https://ror.org/${OTHER}`] },
-        }),
-      ],
-    });
-    const gaps = affiliationGaps(cv, [NAGOYA]);
-    expect(gaps.consideredWorks).toBe(2);
-    expect(gaps.missing).toEqual([]);
-  });
-
-  it("puts works with EMPTY affiliation data in their own bucket — never 'missing'", () => {
-    const cv = makeCv({
-      positions: [nagoyaNow],
-      works: [
-        work("W1", { meta: { year: 2022 } }),
-        work("W2", { meta: { year: 2022, workInstitutions: [] } }),
-      ],
-    });
-    const gaps = affiliationGaps(cv, [NAGOYA]);
-    expect(gaps.missing).toEqual([]);
-    expect(gaps.noAffiliationData.map((r) => r.itemId)).toEqual(["W1", "W2"]);
-    expect(gaps.consideredWorks).toBe(2);
-  });
-
-  it("checks OpenAlex works only — other sources never carry printed-affiliation data, so they are counted, not bucketed", () => {
-    // `workInstitutions` is written by the OpenAlex build alone (and only when
-    // the owner's authorship carries a ROR'd institution). A dataset, a
-    // conference paper or a DOI-claimed work can never carry it, so listing
-    // them under "no affiliation data" would pad the bucket with items the
-    // owner cannot act on. They are counted apart, out of the denominator,
-    // with no verdict — and only inside a window, like everything else.
-    const cv = makeCv({
-      positions: [nagoyaNow],
-      works: [
-        work("W-oa-nodata", { meta: { year: 2022 } }),
-        work("W-oa-ok", { meta: { year: 2022, workInstitutions: [NAGOYA] } }),
-        work("D1", {
-          source: "datacite",
-          sourceId: "10.5281/zenodo.1",
-          csl: { id: "D1", type: "dataset", title: "A dataset" },
-          meta: { year: 2022 },
-        }),
-        work("C1", {
-          source: "dblp",
-          sourceId: "conf/x/1",
-          csl: { id: "C1", type: "paper-conference", title: "A talk" },
-          meta: { year: 2022 },
-        }),
-        work("M1", {
-          source: "manual",
-          sourceId: "10.1000/claimed",
-          meta: { year: 2022, claimed: true, matchBasis: "claimed" },
-        }),
-        work("D-old", {
-          source: "datacite",
-          sourceId: "10.5281/zenodo.2",
-          csl: { id: "D-old", type: "dataset", title: "An old dataset" },
-          meta: { year: 2010 },
-        }),
-      ],
-    });
-    const gaps = affiliationGaps(cv, [NAGOYA]);
-    expect(gaps.noAffiliationData.map((r) => r.itemId)).toEqual(["W-oa-nodata"]);
-    expect(gaps.missing).toEqual([]);
-    expect(gaps.consideredWorks).toBe(2);
-    expect(gaps.notChecked).toBe(3);
-    // Without a window nothing is considered — and nothing is "not checked" either.
-    expect(affiliationGaps(cv, []).notChecked).toBe(0);
-  });
-
-  it("ignores works outside every consented window (source dates: start..end inclusive; no end = ongoing)", () => {
-    const cv = makeCv({
-      positions: [nagoyaNow, caenPast],
-      works: [
-        work("W-before", { meta: { year: 2014, workInstitutions: [`https://ror.org/${OTHER}`] } }),
-        work("W-caen-edge", {
-          meta: { year: 2019, workInstitutions: [`https://ror.org/${OTHER}`] },
-        }),
-        work("W-between", {
-          meta: { year: 2019, workInstitutions: [`https://ror.org/${NAGOYA}`] },
-        }),
-        work("W-nagoya-start", {
-          meta: { year: 2020, workInstitutions: [`https://ror.org/${OTHER}`] },
-        }),
-        work("W-far-future", {
-          meta: { year: 2099, workInstitutions: [`https://ror.org/${OTHER}`] },
-        }),
-      ],
-    });
-    const gaps = affiliationGaps(cv, [NAGOYA, CAEN]);
-    expect(gaps.missing.map((r) => r.itemId)).toEqual([
-      "W-caen-edge",
-      "W-nagoya-start",
-      "W-far-future",
-    ]);
-    // W-between (2019) is inside Caen's window and carries Nagoya — a consented
-    // id — so it is fine: multi-ROR consent matches ANY consented id.
-    expect(gaps.consideredWorks).toBe(4);
-  });
-
-  it("uses the owner's date-range override INSTEAD of the source dates", () => {
-    const overridden = position("p-over", {
-      institution: "Nagoya University",
-      rorId: NAGOYA,
-      startYear: 2010,
-      endYear: 2012,
-      dateRangeOverride: { startYear: 2020 },
-    });
-    const cv = makeCv({
-      positions: [overridden],
-      works: [
-        work("W-2011", { meta: { year: 2011, workInstitutions: [`https://ror.org/${OTHER}`] } }),
-        work("W-2021", { meta: { year: 2021, workInstitutions: [`https://ror.org/${OTHER}`] } }),
-      ],
-    });
-    expect(affiliationGaps(cv, [NAGOYA]).missing.map((r) => r.itemId)).toEqual(["W-2021"]);
-  });
-
-  it("uses the owner's year override for the work, skips undated works, and skips hidden / not-mine works", () => {
-    const cv = makeCv({
-      positions: [nagoyaNow],
-      works: [
-        work("W-override", {
-          meta: { year: 2010, yearOverride: 2022, workInstitutions: [`https://ror.org/${OTHER}`] },
-        }),
-        // The helper defaults `year`; drop it entirely for a truly undated work.
-        { ...work("W-undated"), meta: { workInstitutions: [`https://ror.org/${OTHER}`] } },
-        work("W-hidden", {
-          included: false,
-          meta: { year: 2022, workInstitutions: [`https://ror.org/${OTHER}`] },
-        }),
-        work("W-notmine", {
-          notMine: true,
-          meta: { year: 2022, workInstitutions: [`https://ror.org/${OTHER}`] },
-        }),
-      ],
-    });
-    const gaps = affiliationGaps(cv, [NAGOYA]);
-    expect(gaps.missing.map((r) => r.itemId)).toEqual(["W-override"]);
-    expect(gaps.consideredWorks).toBe(1);
-  });
-
-  it("considers preprints too (affiliation is about the paper, not the figures)", () => {
-    const cv = makeCv({
-      positions: [nagoyaNow],
-      preprints: [
-        work("PP1", { meta: { year: 2022, workInstitutions: [`https://ror.org/${OTHER}`] } }),
-      ],
-    });
-    expect(affiliationGaps(cv, [NAGOYA]).missing.map((r) => r.itemId)).toEqual(["PP1"]);
-  });
-
-  it("has no windows without consent, from a hidden position, or from a position with no start year", () => {
-    const hidden = position(
-      "p-hidden",
-      { institution: "Nagoya University", rorId: NAGOYA, startYear: 2020 },
-      { included: false },
-    );
-    const undated = position("p-undated", { institution: "Nagoya University", rorId: NAGOYA });
-    const works = [
-      work("W1", { meta: { year: 2022, workInstitutions: [`https://ror.org/${OTHER}`] } }),
-    ];
-    expect(affiliationGaps(makeCv({ positions: [nagoyaNow], works }), []).missing).toEqual([]);
-    expect(affiliationGaps(makeCv({ positions: [hidden], works }), [NAGOYA]).missing).toEqual([]);
-    expect(affiliationGaps(makeCv({ positions: [undated], works }), [NAGOYA]).missing).toEqual([]);
-    expect(affiliationGaps(makeCv({ positions: [undated], works }), [NAGOYA]).consideredWorks).toBe(
-      0,
-    );
-  });
-
-  it("keeps a non-ROR affiliation value as printed (lower-cased) so the group is still explainable", () => {
-    const cv = makeCv({
-      positions: [nagoyaNow],
-      works: [work("W1", { meta: { year: 2022, workInstitutions: ["https://example.org/X "] } })],
-    });
-    expect(affiliationGaps(cv, [NAGOYA]).missing[0]!.rorIds).toEqual(["https://example.org/x"]);
-  });
-
-  it("falls back to an untitled row when the CSL has no title", () => {
-    const cv = makeCv({
-      positions: [nagoyaNow],
-      works: [
-        {
-          ...work("W1", { meta: { year: 2022, workInstitutions: [`https://ror.org/${OTHER}`] } }),
-          csl: { id: "W1", type: "article-journal" },
-        },
-      ],
-    });
-    expect(affiliationGaps(cv, [NAGOYA]).missing[0]!.title).toBeUndefined();
-  });
-});
-
 describe("affiliationGaps — current positions without a ROR record", () => {
   it("lists visible current positions whose ROR is unresolved, with the institution as the CV shows it", () => {
     const noRor = position("p-noror", { institution: "Some Hospital", startYear: 2021 });
@@ -337,7 +117,7 @@ describe("affiliationGaps — current positions without a ROR record", () => {
     const ended = position("p-ended", { institution: "Past", startYear: 2000, endYear: 2001 });
     const bare = position("p-bare", {}, {}, "Visiting fellow, Somewhere");
     const cv = makeCv({ positions: [nagoyaNow, noRor, renamed, junk, ended, bare] });
-    const gaps = affiliationGaps(cv, []);
+    const gaps = affiliationGaps(cv);
     expect(gaps.currentPositions).toBe(5);
     expect(gaps.positionsWithoutRor).toEqual([
       { itemId: "p-noror", label: "Some Hospital" },
@@ -349,23 +129,8 @@ describe("affiliationGaps — current positions without a ROR record", () => {
 
   it("labels a position with neither institution nor text with an empty string rather than failing", () => {
     const empty = position("p-empty", {}, { displayText: undefined });
-    expect(affiliationGaps(makeCv({ positions: [empty] }), []).positionsWithoutRor).toEqual([
+    expect(affiliationGaps(makeCv({ positions: [empty] })).positionsWithoutRor).toEqual([
       { itemId: "p-empty", label: "" },
-    ]);
-  });
-});
-
-describe("groupByRor", () => {
-  it("groups gap rows under EACH ROR they carry, largest group first, then by id", () => {
-    const rows = [
-      { itemId: "A", rorIds: ["z1", "a1"] },
-      { itemId: "B", rorIds: ["a1"] },
-      { itemId: "C", rorIds: ["m1"] },
-    ];
-    expect(groupByRor(rows)).toEqual([
-      { rorId: "a1", rows: [rows[0], rows[1]] },
-      { rorId: "m1", rows: [rows[2]] },
-      { rorId: "z1", rows: [rows[0]] },
     ]);
   });
 });
@@ -483,14 +248,7 @@ describe("policyFinderUrl", () => {
 
 describe("hasWorklistContent", () => {
   it("is true when any group has a row, false otherwise", () => {
-    const empty = {
-      positionsWithoutRor: [],
-      currentPositions: 1,
-      missing: [],
-      noAffiliationData: [],
-      consideredWorks: 3,
-      notChecked: 0,
-    };
+    const empty = { positionsWithoutRor: [], currentPositions: 1 };
     const oaEmpty = {
       rows: [{ itemId: "x", state: "open-cc" as const, funderNames: [] }],
       counts: { "open-cc": 1, "open-other": 0, "no-open-copy-found": 0, "not-determined": 0 },
@@ -501,20 +259,11 @@ describe("hasWorklistContent", () => {
       hasWorklistContent({ ...empty, positionsWithoutRor: [{ itemId: "p", label: "X" }] }, oaEmpty),
     ).toBe(true);
     expect(
-      hasWorklistContent({ ...empty, missing: [{ itemId: "w", rorIds: ["a"] }] }, oaEmpty),
-    ).toBe(true);
-    expect(hasWorklistContent({ ...empty, noAffiliationData: [{ itemId: "w" }] }, oaEmpty)).toBe(
-      true,
-    );
-    expect(
       hasWorklistContent(empty, {
         ...oaEmpty,
         counts: { ...oaEmpty.counts, "no-open-copy-found": 1 },
       }),
     ).toBe(true);
-    // Works the list does not check are a count, never a reason to show it.
-    const onlyNotChecked = { ...empty, notChecked: 4 };
-    expect(hasWorklistContent(onlyNotChecked, oaEmpty)).toBe(false);
     // A grant join is a reason.
     expect(hasWorklistContent(empty, oaEmpty, 1)).toBe(true);
     // The fourth reason: a ROR-linked current affiliation not yet listed

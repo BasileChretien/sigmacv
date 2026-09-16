@@ -1,31 +1,31 @@
 import {
-  isHidden,
-  itemDateRange,
   itemDisplayText,
   itemEffectiveYear,
   itemVenue,
   type CanonicalCv,
   type CvItem,
 } from "@/lib/canonical/schema";
-import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { positionRorId, visibleCurrentPositions } from "@/lib/cv/currentPositions";
 import {
   statutoryArchivingFor,
   type StatutoryArchivingEntry,
 } from "@/lib/archiving/statutoryRights";
 import { countableWorks } from "@/lib/render/countable";
-import { bareRorId } from "@/lib/ror/id";
 
 /**
- * The OWNER worklist — the researcher-first half of reconciliation with an
- * institution's record. Everything here is editor-only: never rendered on a CV
- * output, never on the public page, never in an export (a later PR lets the
- * owner FREEZE rows deliberately). It is help, not judgement: the affiliation
- * check is strict and explainable (a work matches when its printed affiliation
- * carries a ROR id the researcher consented to — no lineage folding, which the
- * institution page does and prints), and the open-access states are derived
- * ONLY from stored fields. No compliance state exists anywhere in this module,
- * by design (see the panel's vetoes) — and the i18n test enforces the wording.
+ * The OWNER worklist: what the owner can act on. Everything here is editor-only:
+ * never rendered on a CV output, never on the public page, never in an export.
+ * It is help, not judgement — every row carries a verb (link a position to its
+ * institution, deposit a paper), and the open-access states are derived ONLY
+ * from stored fields. No compliance state exists anywhere in this module, by
+ * design (see the panel's vetoes) — and the i18n test enforces the wording.
+ *
+ * There is deliberately NO list of works "whose printed affiliation lacks your
+ * institution" (removed 2026-09-16): nothing in the editor can change a work's
+ * printed affiliation and nothing counts it — the institution page counts every
+ * listed work of a consenting CV and the export matches by ORCID — so such a list
+ * was a state with no action, and it flagged every paper published after a move
+ * and every hospital ROR marks `related` rather than a child of its university.
  */
 
 // ── Affiliation gaps ─────────────────────────────────────────────────────────
@@ -39,13 +39,6 @@ export interface WorklistRow {
   year?: number;
 }
 
-export interface AffiliationGapRow extends WorklistRow {
-  /** The affiliation(s) printed on the paper: bare ROR ids when the stored value
-   *  is a ROR IRI / id, else the stored value lower-cased — so a group is always
-   *  explainable even when the source carried something odd. */
-  rorIds: string[];
-}
-
 export interface PositionRorRow {
   itemId: string;
   /** The institution as the CV shows it (owner rename, source name, or the line). */
@@ -55,80 +48,13 @@ export interface PositionRorRow {
 export interface AffiliationGaps {
   /** Visible CURRENT positions whose ROR is unresolved (no id, junk, or foreign). */
   positionsWithoutRor: PositionRorRow[];
-  /** Denominator for {@link positionsWithoutRor}: all visible current positions. */
+  /** All visible current positions (never printed as a denominator). */
   currentPositions: number;
-  /** Works dated inside a consented position window whose printed affiliation
-   *  carries NONE of the consented ids. */
-  missing: AffiliationGapRow[];
-  /** OpenAlex-sourced works dated inside a window with NO affiliation data
-   *  (no institution on the owner's authorship, or none with a ROR id) —
-   *  missing data, never a missing affiliation, so a separate bucket. */
-  noAffiliationData: WorklistRow[];
-  /** Denominator for the two buckets: visible OpenAlex-sourced works dated
-   *  inside a window — the only works that can carry printed-affiliation data. */
-  consideredWorks: number;
-  /** Visible works dated inside a window from every OTHER source (datasets,
-   *  conference papers, claimed DOIs, …). `workInstitutions` is written by the
-   *  OpenAlex build alone, so these are never checked: a count the panel shows
-   *  so the owner knows what the list left out — never a bucket, never a verdict,
-   *  and not part of {@link consideredWorks}. */
-  notChecked: number;
-}
-
-interface YearWindow {
-  start: number;
-  end: number;
-}
-
-/** A bare ROR id for a stored affiliation value when it is one, else the value
- *  itself normalised (trimmed, lower-cased) so equal strings compare equal. */
-function affiliationKey(value: string): string {
-  const trimmed = value.trim();
-  return bareRorId(trimmed) ?? trimmed.toLowerCase();
-}
-
-/**
- * The year windows of the VISIBLE positions whose ROR id is consented — the
- * owner's date-range override replaces the source dates entirely (an absent
- * end = ongoing). A position with no start year cannot be placed on the
- * timeline and contributes no window: the list stays explainable ("dated
- * during a position you are listed under") rather than covering all time.
- */
-function consentedWindows(cv: CanonicalCv, consented: ReadonlySet<string>): YearWindow[] {
-  const section = visibleSections(cv).find((s) => s.type === "positions");
-  if (!section) return [];
-  const out: YearWindow[] = [];
-  for (const pos of visibleItems(section)) {
-    const rorId = positionRorId(pos);
-    if (!rorId || !consented.has(rorId)) continue;
-    const { startYear, endYear } = itemDateRange(pos);
-    if (startYear === undefined) continue;
-    out.push({ start: startYear, end: endYear ?? Number.POSITIVE_INFINITY });
-  }
-  return out;
-}
-
-function inAnyWindow(year: number, windows: readonly YearWindow[]): boolean {
-  return windows.some((w) => year >= w.start && year <= w.end);
 }
 
 function cslTitle(item: CvItem): string | undefined {
   const title = item.csl?.title;
   return typeof title === "string" && title.trim() ? title : undefined;
-}
-
-/** Every visible work (citation item) in document order — preprints included:
- *  the affiliation printed on a paper is about the paper, not the figures.
- *  Every source is swept; the caller splits OpenAlex works (checkable) from
- *  the rest (counted only). */
-function visibleWorks(cv: CanonicalCv): CvItem[] {
-  const out: CvItem[] = [];
-  for (const section of cv.sections) {
-    for (const item of section.items) {
-      if (item.csl && !isHidden(item)) out.push(item);
-    }
-  }
-  return out;
 }
 
 function positionLabel(pos: CvItem): string {
@@ -141,81 +67,16 @@ function positionLabel(pos: CvItem): string {
 }
 
 /**
- * Affiliation gaps against the ROR ids the researcher consented to (the
- * institution-page consent, `Cv.consentedRorIds` — bare ids). A work matches
- * when its printed affiliation (`meta.workInstitutions`, the account holder's
- * own authorship as OpenAlex indexes it) carries ANY consented id; a stored
- * IRI (`https://ror.org/<id>`) and a bare id compare equal. Only OpenAlex-
- * sourced works are checked — `workInstitutions` exists for no other source —
- * the rest are counted as {@link AffiliationGaps.notChecked}. With no consented
- * id there is no window, so both work buckets are empty; the positions check
- * does not depend on consent.
+ * The owner's visible CURRENT positions whose ROR record is unresolved — the one
+ * affiliation fact with a verb: the organisation, added to the position on ORCID,
+ * resolves to its ROR record at the next sync (`canonical/enrich.ts`).
  */
-export function affiliationGaps(
-  cv: CanonicalCv,
-  consentedRorIds: readonly string[],
-): AffiliationGaps {
+export function affiliationGaps(cv: CanonicalCv): AffiliationGaps {
   const current = visibleCurrentPositions(cv);
   const positionsWithoutRor: PositionRorRow[] = current
     .filter((pos) => positionRorId(pos) === null)
     .map((pos) => ({ itemId: pos.id, label: positionLabel(pos) }));
-
-  const consented = new Set(consentedRorIds.map(affiliationKey));
-  const windows = consentedWindows(cv, consented);
-  const missing: AffiliationGapRow[] = [];
-  const noAffiliationData: WorklistRow[] = [];
-  let consideredWorks = 0;
-  let notChecked = 0;
-  if (windows.length > 0) {
-    for (const item of visibleWorks(cv)) {
-      const year = itemEffectiveYear(item);
-      if (year === undefined || !inAnyWindow(year, windows)) continue;
-      // Only the OpenAlex build writes `workInstitutions` (and only for the
-      // owner's own authorship): a dataset, a conference paper or a claimed DOI
-      // can never carry it, so it is counted, not bucketed as missing data.
-      if (item.source !== "openalex") {
-        notChecked++;
-        continue;
-      }
-      consideredWorks++;
-      const row: WorklistRow = { itemId: item.id, title: cslTitle(item), year };
-      const rorIds = [...new Set((item.meta.workInstitutions ?? []).map(affiliationKey))];
-      if (rorIds.length === 0) noAffiliationData.push(row);
-      else if (!rorIds.some((r) => consented.has(r))) missing.push({ ...row, rorIds });
-    }
-  }
-  return {
-    positionsWithoutRor,
-    currentPositions: current.length,
-    missing,
-    noAffiliationData,
-    consideredWorks,
-    notChecked,
-  };
-}
-
-export interface RorGroup<Row extends { rorIds: string[] }> {
-  rorId: string;
-  rows: Row[];
-}
-
-/** Gap rows grouped under EACH affiliation they carry (a work with two prints
- *  appears under both), largest group first, then by id — so the owner reads
- *  "these N works printed X" rather than one flat list. */
-export function groupByRor<Row extends { rorIds: string[] }>(
-  rows: readonly Row[],
-): RorGroup<Row>[] {
-  const groups = new Map<string, Row[]>();
-  for (const row of rows) {
-    for (const rorId of row.rorIds) {
-      const list = groups.get(rorId) ?? [];
-      list.push(row);
-      groups.set(rorId, list);
-    }
-  }
-  return [...groups.entries()]
-    .map(([rorId, list]) => ({ rorId, rows: list }))
-    .sort((a, b) => b.rows.length - a.rows.length || a.rorId.localeCompare(b.rorId));
+  return { positionsWithoutRor, currentPositions: current.length };
 }
 
 // ── Open-access states ───────────────────────────────────────────────────────
@@ -334,24 +195,20 @@ export function policyFinderUrl(journalName: string | undefined): string | undef
 
 // ── Panel gate ───────────────────────────────────────────────────────────────
 
-/** Whether the panel has anything to show: a position without a ROR, a work in
- *  either affiliation bucket, a countable work with no open copy found, a
- *  work joined to one of the owner's own grants (`funders/join.ts`), or a
- *  ROR-linked current affiliation the CV is not yet listed under (the
- *  "Institution listing" status line — an open choice to put forward, never a
- *  gap; `cv/institutionPrompt.ts` decides it). The open / not-determined works
- *  alone are not a worklist, and neither is the count of works the list does
- *  not check. */
+/** Whether the panel has anything to show: a position without a ROR, a
+ *  countable work with no open copy found, a work joined to one of the owner's
+ *  own grants (`funders/join.ts`), or a ROR-linked current affiliation the CV is
+ *  not yet listed under (the "Institution listing" status line — an open choice
+ *  to put forward, never a gap; `cv/institutionPrompt.ts` decides it). The open /
+ *  not-determined works alone are not a worklist. */
 export function hasWorklistContent(
-  gaps: Pick<AffiliationGaps, "positionsWithoutRor" | "missing" | "noAffiliationData">,
+  gaps: Pick<AffiliationGaps, "positionsWithoutRor">,
   oa: Pick<OpenAccessStates, "counts">,
   joinedFunding = 0,
   unlistedAffiliation = false,
 ): boolean {
   return (
     gaps.positionsWithoutRor.length > 0 ||
-    gaps.missing.length > 0 ||
-    gaps.noAffiliationData.length > 0 ||
     oa.counts["no-open-copy-found"] > 0 ||
     joinedFunding > 0 ||
     unlistedAffiliation
