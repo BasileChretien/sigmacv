@@ -266,7 +266,7 @@ describe("WorklistPanel — wired into the editor (owner-only)", () => {
       [position("P-noror", { institution: "Some Hospital", startYear: 2021 })],
     );
 
-  it("lives in the Content region of the regions layout, and a row jump switches to Content", () => {
+  it("has its own Open access tab in the regions layout, opens at once, and a row jump switches to Content", () => {
     render(
       <CvEditor
         cv={cvWithClosedWork()}
@@ -277,16 +277,38 @@ describe("WorklistPanel — wired into the editor (owner-only)", () => {
         consentedRorIds={[]}
       />,
     );
-    const panel = document.querySelector("details.cv-worklist");
+    const panel = document.querySelector<HTMLDetailsElement>("details.cv-worklist");
     expect(panel).toBeTruthy();
-    expect(panel!.closest("#cv-part-panel-content")).toBeTruthy();
-    // The editor opens on Profile; activating a row routes to Content first so
-    // the target row is mounted before it scrolls.
+    // Not among the sections: in its own tabpanel, and open — the tab is the disclosure.
+    expect(panel!.closest("#cv-part-panel-content")).toBeNull();
+    expect(panel!.closest("#cv-part-panel-openAccess")).toBeTruthy();
+    expect(panel!.open).toBe(true);
+    const openAccessTab = screen.getByRole("tab", { name: "Open access" });
+    expect(openAccessTab.getAttribute("aria-controls")).toBe("cv-part-panel-openAccess");
+    // The editor opens on Profile; activating a row routes to Content (where the
+    // rows live) so the target row is mounted before it scrolls.
     const contentTab = screen.getByRole("tab", { name: "Content" });
     expect(contentTab.getAttribute("aria-selected")).toBe("false");
-    // (The Content tabpanel is `hidden` while Profile is active, so query it as such.)
+    // (The tabpanel is `hidden` while Profile is active, so query it as such.)
     fireEvent.click(screen.getByRole("button", { name: /Some Hospital/, hidden: true }));
     expect(contentTab.getAttribute("aria-selected")).toBe("true");
+  });
+
+  it("keeps the tab, with an empty state, when there is nothing to list", () => {
+    render(
+      <CvEditor
+        cv={makeCv([work("W-open", { year: 2021, oaIsOpen: true })], [])}
+        availableStyles={["apa"]}
+        uiLocale="en-US"
+        onChange={vi.fn()}
+        variant="regions"
+        consentedRorIds={[]}
+      />,
+    );
+    expect(screen.getByRole("tab", { name: "Open access" })).toBeTruthy();
+    expect(document.querySelector("details.cv-worklist")).toBeNull();
+    const tabpanel = document.querySelector("#cv-part-panel-openAccess")!;
+    expect(tabpanel.textContent).toContain("Nothing to show here yet.");
   });
 
   it("is present in the classic layout too", () => {
@@ -301,7 +323,7 @@ describe("WorklistPanel — wired into the editor (owner-only)", () => {
     expect(document.querySelector("details.cv-worklist")).toBeTruthy();
   });
 
-  it("is absent from the anonymous (no-login) preview — a visitor never sees another person's worklist", () => {
+  it("is absent from the anonymous (no-login) preview — no tab, no panel: a visitor never sees another person's worklist", () => {
     render(
       <CvEditor
         cv={cvWithClosedWork()}
@@ -313,5 +335,12 @@ describe("WorklistPanel — wired into the editor (owner-only)", () => {
       />,
     );
     expect(document.querySelector("details.cv-worklist")).toBeNull();
+    // The preview keeps its three tabs: no "Open access" tab and no fourth tabpanel.
+    expect(screen.getAllByRole("tab").map((t) => t.textContent)).toEqual([
+      "Profile",
+      "Design",
+      "Content",
+    ]);
+    expect(document.querySelector("#cv-part-panel-openAccess")).toBeNull();
   });
 });

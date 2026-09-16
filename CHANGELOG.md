@@ -433,6 +433,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The deposit worklist has its own editor tab.** "Affiliations & open access" sat at the top of the Content tab, above the CV's sections; opened, a long CV put dozens of rows of policy text before any section. It is help with depositing papers, not curation of the CV, so the editor now has a fourth tab, **Open access**, holding it — opened at once, with a short line when there is nothing to list — and the Content tab holds the sections alone. The no-login preview keeps its three tabs: the worklist stays the owner's.
+
 - **Per-work funder ids are now stored.** Each OpenAlex work's acknowledged
   funders (`awards[]`: funder id in canonical OpenAlex URL form, display name,
   award number) are kept on the citation item as `meta.funders` — deduped by

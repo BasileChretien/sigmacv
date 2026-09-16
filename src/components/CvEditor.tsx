@@ -21,9 +21,13 @@ import WorklistPanel from "./WorklistPanel";
 import type { InstitutionListing } from "./InstitutionListingRow";
 import type { FunderRow } from "@/lib/funders/join";
 
-/** The three task clusters of the subdivided ("regions") editor layout. */
-type EditorPart = "content" | "design" | "profile";
-const EDITOR_PARTS: readonly EditorPart[] = ["profile", "design", "content"];
+/** The task clusters of the subdivided ("regions") editor layout. The fourth,
+ *  "openAccess", holds the owner worklist — help with depositing closed papers,
+ *  not curation of the CV — and exists for the owner only: the anonymous preview
+ *  keeps the first three. */
+type EditorPart = "content" | "design" | "profile" | "openAccess";
+const EDITOR_PARTS: readonly EditorPart[] = ["profile", "design", "content", "openAccess"];
+const PREVIEW_PARTS: readonly EditorPart[] = EDITOR_PARTS.filter((p) => p !== "openAccess");
 
 /** A stable empty consent (a fresh `[]` per render would defeat the worklist's memo). */
 const NO_CONSENTED_ROR_IDS: readonly string[] = [];
@@ -151,11 +155,13 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   }, [publicStyleFocusTick, activePart]);
 
   const profilePanel = <ProfilePanel cv={cv} locale={locale} onChange={onChange} />;
-  // The owner worklist ("Affiliations & open access") sits with the sections
-  // list, where its rows jump to. OWNER-ONLY: the no-login preview shows a
-  // visitor someone else's public record, who must not see it — and it reads
-  // nothing an anonymous caller could consent to anyway. Renders nothing when
-  // there is nothing to show.
+  // The owner worklist ("Affiliations & open access"): its rows jump to the
+  // sections list. In the regions layout it has its own "Open access" tab — it
+  // is help with depositing papers, not curation of the CV — opened at once
+  // (the tab is the disclosure) and never blank; in the classic layout it sits
+  // collapsed above the sections and vanishes when empty, as before. OWNER-ONLY:
+  // the no-login preview shows a visitor someone else's public record, who must
+  // not see it — and it reads nothing an anonymous caller could consent to anyway.
   const worklistPanel = anonymous ? null : (
     <WorklistPanel
       cv={cv}
@@ -165,6 +171,12 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       currentAffiliationCountry={currentAffiliationCountry}
       onJump={jumpToItem}
       listing={institutionListing}
+      defaultOpen={variant === "regions"}
+      whenEmpty={
+        variant === "regions" ? (
+          <p className="muted cv-worklist-empty">{eu.openAccessEmpty}</p>
+        ) : undefined
+      }
     />
   );
   const sectionsList = (
@@ -204,7 +216,15 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
 
   // ── Regions layout ──────────────────────────────────────────────────────────
   const partLabel = (p: EditorPart): string =>
-    p === "content" ? eu.regionContent : p === "design" ? eu.regionDesign : eu.regionProfile;
+    p === "content"
+      ? eu.regionContent
+      : p === "design"
+        ? eu.regionDesign
+        : p === "openAccess"
+          ? eu.regionOpenAccess
+          : eu.regionProfile;
+  // The tabs on offer: the owner's four, or the preview's three (no worklist).
+  const parts = anonymous ? PREVIEW_PARTS : EDITOR_PARTS;
 
   /** A CV-health jump always lands in the Content part (where the rows live). */
   const jumpToHealth = (cat: CvHealthCategory) => {
@@ -215,16 +235,16 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // WAI-ARIA Tabs keyboard model: arrows move + activate (roving tabindex), with
   // Home/End to the ends. Focus follows selection so it's a single-tab-stop strip.
   const onTabKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
-    const idx = EDITOR_PARTS.indexOf(activePart);
+    const idx = parts.indexOf(activePart);
     let next = idx;
-    if (e.key === "ArrowRight" || e.key === "ArrowDown") next = (idx + 1) % EDITOR_PARTS.length;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") next = (idx + 1) % parts.length;
     else if (e.key === "ArrowLeft" || e.key === "ArrowUp")
-      next = (idx - 1 + EDITOR_PARTS.length) % EDITOR_PARTS.length;
+      next = (idx - 1 + parts.length) % parts.length;
     else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = EDITOR_PARTS.length - 1;
+    else if (e.key === "End") next = parts.length - 1;
     else return;
     e.preventDefault();
-    const target = EDITOR_PARTS[next]!;
+    const target = parts[next]!;
     setActivePart(target);
     tablistRef.current?.querySelector<HTMLButtonElement>(`#cv-part-tab-${target}`)?.focus();
   };
@@ -242,7 +262,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       />
 
       <div className="cv-part-tabs" role="tablist" aria-label={eu.regionsAria} ref={tablistRef}>
-        {EDITOR_PARTS.map((p) => {
+        {parts.map((p) => {
           const selected = activePart === p;
           // Pulse the Content tab when a funder-CV model has added narrative modules
           // that are still empty — but only while the user is elsewhere, to draw them
@@ -276,9 +296,19 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
         aria-labelledby="cv-part-tab-content"
         hidden={activePart !== "content"}
       >
-        {worklistPanel}
         {sectionsList}
       </div>
+      {anonymous ? null : (
+        <div
+          className="cv-region"
+          role="tabpanel"
+          id="cv-part-panel-openAccess"
+          aria-labelledby="cv-part-tab-openAccess"
+          hidden={activePart !== "openAccess"}
+        >
+          {worklistPanel}
+        </div>
+      )}
       <div
         className="cv-region"
         role="tabpanel"

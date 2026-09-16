@@ -107,6 +107,10 @@ export interface EditorExtraStrings {
   regionContent: string;
   regionDesign: string;
   regionProfile: string;
+  /** The fourth part, owner-only: the worklist of papers with no open copy found. */
+  regionOpenAccess: string;
+  /** Shown in that part when the worklist has nothing to list. */
+  openAccessEmpty: string;
   regionsAria: string;
   /** Design-panel toggle: show the CRediT contribution roles under each publication. */
   showCreditRoles: string;
@@ -233,6 +237,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "Content",
     regionDesign: "Design",
     regionProfile: "Profile",
+    regionOpenAccess: "Open access",
+    openAccessEmpty:
+      "Nothing to show here yet. Once a sync has checked your record, this tab lists what you can act on — mainly papers with no open copy found, with help to deposit one.",
     regionsAria: "Editor sections",
     showCreditRoles: "Show my CRediT contribution roles under each publication",
     creditRolesHeading: "Contribution roles (CRediT)",
@@ -348,6 +355,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "内容",
     regionDesign: "外观",
     regionProfile: "个人资料",
+    regionOpenAccess: "开放获取",
+    openAccessEmpty:
+      "目前这里没有内容。同步检查过您的记录后，此页会列出可处理的事项——主要是未找到开放版本的论文，并提供存缴帮助。",
     regionsAria: "编辑器区域",
     showCreditRoles: "在每篇论文下显示我的 CRediT 贡献角色",
     creditRolesHeading: "贡献角色（CRediT）",
@@ -467,6 +477,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "Contenido",
     regionDesign: "Diseño",
     regionProfile: "Perfil",
+    regionOpenAccess: "Acceso abierto",
+    openAccessEmpty:
+      "Aún no hay nada que mostrar. Cuando una sincronización haya comprobado tu registro, esta pestaña listará lo que puedes hacer: sobre todo artículos sin copia abierta encontrada, con ayuda para depositar una.",
     regionsAria: "Secciones del editor",
     showCreditRoles: "Mostrar mis roles de contribución CRediT bajo cada publicación",
     creditRolesHeading: "Roles de contribución (CRediT)",
@@ -588,6 +601,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "Contenu",
     regionDesign: "Apparence",
     regionProfile: "Profil",
+    regionOpenAccess: "Accès ouvert",
+    openAccessEmpty:
+      "Rien à afficher pour l’instant. Une fois votre dossier vérifié par une synchronisation, cet onglet liste ce que vous pouvez faire : surtout les articles sans copie ouverte trouvée, avec une aide pour en déposer une.",
     regionsAria: "Sections de l’éditeur",
     showCreditRoles: "Afficher mes rôles de contribution CRediT sous chaque publication",
     creditRolesHeading: "Rôles de contribution (CRediT)",
@@ -709,6 +725,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "Inhalt",
     regionDesign: "Design",
     regionProfile: "Profil",
+    regionOpenAccess: "Open Access",
+    openAccessEmpty:
+      "Hier gibt es noch nichts anzuzeigen. Sobald eine Synchronisierung Ihre Daten geprüft hat, listet dieser Reiter, was Sie tun können — vor allem Artikel ohne gefundene offene Kopie, mit Hilfe zum Ablegen einer Kopie.",
     regionsAria: "Editor-Bereiche",
     showCreditRoles: "Meine CRediT-Beitragsrollen unter jeder Publikation anzeigen",
     creditRolesHeading: "Beitragsrollen (CRediT)",
@@ -828,6 +847,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "内容",
     regionDesign: "デザイン",
     regionProfile: "プロフィール",
+    regionOpenAccess: "オープンアクセス",
+    openAccessEmpty:
+      "まだ表示するものはありません。同期で確認が済むと、このタブには対応できる項目、主にオープンな複製が見つからなかった論文と、その登録の手引きが表示されます。",
     regionsAria: "エディターのセクション",
     showCreditRoles: "各論文の下に自分の CRediT 貢献役割を表示",
     creditRolesHeading: "貢献役割（CRediT）",
@@ -947,6 +969,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "Conteúdo",
     regionDesign: "Aparência",
     regionProfile: "Perfil",
+    regionOpenAccess: "Acesso aberto",
+    openAccessEmpty:
+      "Nada a mostrar por enquanto. Depois que uma sincronização verificar seu registro, esta aba lista o que você pode fazer — principalmente artigos sem cópia aberta encontrada, com ajuda para depositar uma.",
     regionsAria: "Seções do editor",
     showCreditRoles: "Mostrar meus papéis de contribuição CRediT sob cada publicação",
     creditRolesHeading: "Papéis de contribuição (CRediT)",
@@ -1068,6 +1093,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "Contenuto",
     regionDesign: "Aspetto",
     regionProfile: "Profilo",
+    regionOpenAccess: "Accesso aperto",
+    openAccessEmpty:
+      "Per ora non c’è nulla da mostrare. Dopo che una sincronizzazione ha verificato il tuo profilo, questa scheda elenca ciò che puoi fare: soprattutto articoli senza copia aperta trovata, con l’aiuto per depositarne una.",
     regionsAria: "Sezioni dell’editor",
     showCreditRoles: "Mostra i miei ruoli di contributo CRediT sotto ogni pubblicazione",
     creditRolesHeading: "Ruoli di contributo (CRediT)",
@@ -1187,6 +1215,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "콘텐츠",
     regionDesign: "디자인",
     regionProfile: "프로필",
+    regionOpenAccess: "오픈 액세스",
+    openAccessEmpty:
+      "아직 표시할 내용이 없습니다. 동기화에서 확인이 끝나면 이 탭에 할 수 있는 일, 주로 공개 사본을 찾지 못한 논문과 기탁 안내가 표시됩니다.",
     regionsAria: "편집기 섹션",
     showCreditRoles: "각 논문 아래에 내 CRediT 기여 역할 표시",
     creditRolesHeading: "기여 역할 (CRediT)",
@@ -1305,6 +1336,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     regionContent: "Содержание",
     regionDesign: "Оформление",
     regionProfile: "Профиль",
+    regionOpenAccess: "Открытый доступ",
+    openAccessEmpty:
+      "Пока здесь нечего показать. Когда синхронизация проверит ваши данные, на этой вкладке появится то, с чем можно поработать, — прежде всего статьи без найденной открытой копии и помощь с её размещением.",
     regionsAria: "Разделы редактора",
     showCreditRoles: "Показывать мои роли вклада CRediT под каждой публикацией",
     creditRolesHeading: "Роли вклада (CRediT)",

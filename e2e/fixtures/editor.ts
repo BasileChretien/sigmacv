@@ -18,7 +18,7 @@ import { expect, type Locator, type Page } from "@playwright/test";
  * localized across ten locales, while `#cv-part-tab-*`, `#cv-part-panel-*`,
  * `.publish-trigger` and `.share-trigger` are not.
  */
-export type EditorPart = "profile" | "design" | "content";
+export type EditorPart = "profile" | "design" | "content" | "openAccess";
 
 /**
  * Click through until the assertion holds.

@@ -428,7 +428,7 @@ describe("CvEditor — subdivided regions layout (variant)", () => {
     expect(screen.getByRole("radiogroup", { name: "Template" })).toBeTruthy();
   });
 
-  it('variant="regions" renders Profile / Design / Content tabs, Profile active', () => {
+  it('variant="regions" renders Profile / Design / Content / Open access tabs, Profile active', () => {
     render(
       <CvEditor
         cv={makeCv()}
@@ -442,6 +442,7 @@ describe("CvEditor — subdivided regions layout (variant)", () => {
       "Profile",
       "Design",
       "Content",
+      "Open access",
     ]);
     // Only the active (Profile) panel is in the a11y tree; the Design panel — and
     // so its template-gallery radiogroup — is `hidden` until selected.

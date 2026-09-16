@@ -69,11 +69,11 @@ test("a closed work shows the publisher's recorded policy, the statutory rule an
     window.localStorage.setItem("sigmacv:coachmarkDismissed", "1");
   });
   await page.goto("/cv");
-  await openEditorPart(page, "content");
+  await openEditorPart(page, "openAccess");
 
+  // The worklist has its own tab and opens at once there: no summary to click.
   const worklist = page.locator('details[data-owner-only="worklist"]');
   await expect(worklist).toBeVisible({ timeout: 15_000 });
-  await worklist.locator("summary.cv-worklist-title").click();
   const rights = worklist.locator('[data-worklist="rights"]');
   await expect(rights).toBeVisible();
 
