@@ -1108,6 +1108,47 @@ const CvItemSchema = z.object({
      */
     selfArchivingTriedAt: z.string().optional(),
     /**
+     * Copies of this closed journal article that ALREADY sit in a repository —
+     * HAL, Europe PMC, an OpenAIRE-harvested repository, Zenodo — as the owner
+     * sync's repository-copies pass found them by DOI
+     * (`archiving/repositoryCopiesPass.ts`), because OpenAlex misses deposits
+     * routinely (2026-09-16: 17 of 51 closed articles of one CV had a HAL record
+     * it did not know). `hasFile` false = a metadata-only notice: the deposit then
+     * means adding the file to it, not creating a duplicate. Only what the owner
+     * worklist prints is kept. Carried across re-sync while the DOI is unchanged,
+     * refreshed when the work's turn comes round ({@link repositoryCopiesCheckedAt});
+     * a "nothing anywhere" answer clears it, a failed call keeps it. STRIPPED
+     * from every public surface like {@link selfArchiving}; a malformed stored
+     * value degrades to `undefined` rather than failing the CV read.
+     */
+    repositoryCopies: z
+      .array(
+        z.object({
+          source: z.enum(["hal", "europepmc", "openaire", "zenodo"]),
+          id: z.string().max(100),
+          url: z
+            .string()
+            .max(2048)
+            .regex(/^https:\/\//i),
+          hasFile: z.boolean(),
+          name: z.string().max(200).optional(),
+          recorded: z
+            .string()
+            .regex(/^\d{4}-\d{2}-\d{2}$/)
+            .optional(),
+          retrievedAt: z.string().max(64),
+        }),
+      )
+      .max(8)
+      .optional()
+      .catch(undefined),
+    /** ISO timestamp of the last repository-copies lookup that got an ANSWER; the
+     *  pass's refresh sentinel, same scheme as {@link selfArchivingCheckedAt}. Owner-only. */
+    repositoryCopiesCheckedAt: z.string().optional(),
+    /** ISO timestamp of the last repository-copies lookup ATTEMPT, a failed one
+     *  included — the rotation sentinel, same scheme as {@link selfArchivingTriedAt}. Owner-only. */
+    repositoryCopiesTriedAt: z.string().optional(),
+    /**
      * ISO-3166 alpha-2 codes of the account holder's OWN authorship of this work
      * (OpenAlex `authorships[].countries` on the self-matched authorship — the
      * affiliation country printed on the paper), upper-case, deduped, bounded at

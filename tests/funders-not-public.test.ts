@@ -97,6 +97,12 @@ describe("the self-archiving programme never reaches a public surface", () => {
     "src/lib/archiving/currentAffiliation.ts",
     "src/lib/openalex/repositories.ts",
     "src/components/WorklistDeposit.tsx",
+    "src/lib/archiving/repositoryCopiesPass.ts",
+    "src/lib/repositoryCopies/shared.ts",
+    "src/lib/repositoryCopies/hal.ts",
+    "src/lib/repositoryCopies/europepmc.ts",
+    "src/lib/repositoryCopies/openaire.ts",
+    "src/lib/repositoryCopies/zenodo.ts",
   ];
   const files = PUBLIC_SCOPES.flatMap(sourceFiles);
 
@@ -127,6 +133,8 @@ describe("the self-archiving programme never reaches a public surface", () => {
     expect(owner).toContain("enrichCvWithSelfArchiving(");
     expect(build).not.toContain("enrichCvWithDepositRepositories");
     expect(owner).toContain("enrichCvWithDepositRepositories(");
+    expect(build).not.toContain("enrichCvWithRepositoryCopies");
+    expect(owner).toContain("enrichCvWithRepositoryCopies(");
     // The preview builder reaches the sources through buildCvFromOrcid alone.
     const preview = readFileSync(join(ROOT, "src/lib/cv/previewFromOrcid.ts"), "utf8");
     expect(preview).not.toContain("syncCvForUser");

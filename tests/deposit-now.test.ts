@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   addMonths,
   depositElsewhereNow,
+  inRepositoryAlready,
   depositElsewhereRows,
   depositNow,
   depositReadyRows,
@@ -368,5 +369,42 @@ describe("depositElsewhereNow / depositElsewhereRows — papers open at the publ
         CTX,
       ),
     ).toEqual([]);
+  });
+});
+
+describe("repository copies the owner sync found", () => {
+  const halFile = {
+    source: "hal" as const,
+    id: "hal-03474586",
+    url: "https://hal.science/hal-03474586",
+    hasFile: true,
+    retrievedAt: "2026-09-16T00:00:00.000Z",
+  };
+  const halNotice = {
+    ...halFile,
+    id: "hal-05745947",
+    url: "https://hal.science/hal-05745947",
+    hasFile: false,
+  };
+
+  it("a copy with a file means the paper is open in a repository: out of both lists, whatever OpenAlex says", () => {
+    expect(inRepositoryAlready(work({ repositoryCopies: [halFile] }))).toBe(true);
+    expect(inRepositoryAlready(work({ repositoryCopies: [halNotice] }))).toBe(false);
+    expect(inRepositoryAlready(work())).toBe(false);
+    const cv = makeCv([
+      { ...work({ workCountries: ["FR"], repositoryCopies: [halFile] }), id: "W-in-hal" },
+      { ...work({ workCountries: ["FR"], repositoryCopies: [halNotice] }), id: "W-notice" },
+      {
+        ...work({
+          oaIsOpen: true,
+          oaStatus: "gold",
+          license: "cc-by",
+          repositoryCopies: [halFile],
+        }),
+        id: "W-gold-in-hal",
+      },
+    ]);
+    expect(depositReadyRows(cv, TODAY, CTX).map((r) => r.row.itemId)).toEqual(["W-notice"]);
+    expect(depositElsewhereRows(cv, TODAY, CTX)).toEqual([]);
   });
 });

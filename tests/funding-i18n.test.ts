@@ -220,6 +220,9 @@ const DEPOSIT_KEYS = Object.keys(workspaceUi("en-US")).filter((k) =>
 
 /** Every placeholder a deposit string carries — no more, no fewer. */
 const DEPOSIT_PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> = {
+  wlDepositHalNoticeAccepted: ["{id}"],
+  wlDepositHalNoticePublished: ["{id}"],
+  wlDepositHalNoticeSubmitted: ["{id}"],
   wlDepositAccepted: ["{destination}"],
   wlDepositPublished: ["{destination}"],
   wlDepositSubmitted: ["{destination}"],
@@ -248,7 +251,7 @@ const DEPOSIT_PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> 
  */
 describe("worklist deposit strings (workspaceUi wlDeposit*)", () => {
   it("exist, are translated and keep exactly their placeholders, in every locale", () => {
-    expect(DEPOSIT_KEYS).toHaveLength(27);
+    expect(DEPOSIT_KEYS).toHaveLength(31);
     const en = workspaceUi("en-US");
     for (const loc of SUPPORTED_LOCALES) {
       const s = workspaceUi(loc);

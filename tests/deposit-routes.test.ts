@@ -12,6 +12,7 @@ import {
   type DepositRoute,
 } from "@/lib/archiving/depositRoutes";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
+import { placeKindOf } from "@/lib/archiving/repositoryDirectory";
 import type { FunderRow } from "@/lib/funders/join";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
@@ -421,5 +422,46 @@ describe("shareYourPaperHref", () => {
     ]) {
       expect(shareYourPaperHref(doi), String(doi)).toBeUndefined();
     }
+  });
+});
+
+describe("a HAL notice without a file (the owner sync's repository copies)", () => {
+  const notice = {
+    source: "hal" as const,
+    id: "hal-05745947",
+    url: "https://hal.science/hal-05745947",
+    hasFile: false,
+    retrievedAt: "2026-09-16T00:00:00.000Z",
+  };
+  const item = work({ workCountries: ["FR"], repositoryCopies: [notice] });
+  const ctx: DepositContext = { basis: "paper", crosswalk: new Map() };
+
+  it("sends the HAL route to the notice, and the action says to add the file to it — the version the ground allows", () => {
+    const [hal] = depositRoutes(cvWith(), item, ctx);
+    expect(hal!.destination).toBe("HAL");
+    expect(hal!.href).toBe("https://hal.science/hal-05745947");
+    expect(hal!.notice).toEqual({ id: "hal-05745947", url: "https://hal.science/hal-05745947" });
+    expect(depositAction(item, hal!, EN, true)).toBe(
+      "Add the accepted manuscript to the HAL notice hal-05745947",
+    );
+    expect(
+      depositAction(item, hal!, EN, true, { basis: "licence", version: "publishedVersion" }),
+    ).toBe("Add the published version to the HAL notice hal-05745947");
+    // The notice page counts as HAL for the record's locations and the chips.
+    expect(placeKindOf(hal!.href)).toBe("hal");
+    // The form notes: the notice note instead of the paste-the-DOI one.
+    const notes = depositNotes(item, hal!, EN, "en-US", TODAY);
+    expect(notes).toContain(EN.wlDepositHalNoticeNote);
+    expect(notes).not.toContain(EN.wlDepositHalDoi);
+  });
+
+  it("leaves the other routes alone, and a notice WITH a file changes nothing here (the row is gone by then)", () => {
+    const routes = depositRoutes(cvWith(), item, ctx);
+    expect(routes.slice(1).every((r) => r.notice === undefined)).toBe(true);
+    const withFile = work({
+      workCountries: ["FR"],
+      repositoryCopies: [{ ...notice, hasFile: true }],
+    });
+    expect(depositRoutes(cvWith(), withFile, ctx)[0]!.href).toBe("https://hal.science/submit");
   });
 });
