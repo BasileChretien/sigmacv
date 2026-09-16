@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { CALL_TEXT_MAX } from "@/lib/ai/sections";
 import type { CvSection } from "@/lib/canonical/schema";
 import { narrativeAiStrings } from "@/lib/i18n/narrativeAi";
 
@@ -19,9 +20,12 @@ type Phase = "idle" | "config" | "loading" | "result" | "error";
 // state for this session only and is gone on reload, so there's no clear-text key
 // at rest for XSS or a shared browser to lift. Everything is sent per-request to
 // our stateless relay, which forwards it to the chosen endpoint and keeps nothing.
+// The pasted call text is remembered too: the same call serves every module of
+// the document, and it is the researcher's own copy of a document they have.
 const LS = {
   baseUrl: "sigmacv.ai.baseUrl",
   model: "sigmacv.ai.model",
+  callText: "sigmacv.ai.callText",
 } as const;
 
 // Editable starting defaults so a user only needs to paste a key for the common
@@ -43,6 +47,7 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
   const [baseUrl, setBaseUrl] = useState("");
   const [model, setModel] = useState("");
   const [apiKey, setApiKey] = useState("");
+  const [callText, setCallText] = useState("");
   const [draft, setDraft] = useState("");
   const [error, setError] = useState("");
 
@@ -53,6 +58,7 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
     try {
       setBaseUrl(localStorage.getItem(LS.baseUrl) || DEFAULT_BASE_URL);
       setModel(localStorage.getItem(LS.model) || DEFAULT_MODEL);
+      setCallText(localStorage.getItem(LS.callText) || "");
     } catch {
       // localStorage unavailable (private mode) — fall back to the editable defaults.
       setBaseUrl(DEFAULT_BASE_URL);
@@ -68,6 +74,8 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
     try {
       localStorage.setItem(LS.baseUrl, baseUrl.trim());
       localStorage.setItem(LS.model, model.trim());
+      if (callText.trim()) localStorage.setItem(LS.callText, callText.trim());
+      else localStorage.removeItem(LS.callText);
     } catch {
       /* ignore — a failed save just means the config isn't remembered. */
     }
@@ -94,6 +102,7 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
           baseUrl: baseUrl.trim(),
           model: model.trim(),
           apiKey: apiKey.trim(),
+          ...(callText.trim() ? { callText: callText.trim() } : {}),
         }),
       });
       const data = (await res.json().catch(() => ({}))) as { draft?: string; error?: string };
@@ -164,6 +173,20 @@ export default function NarrativeAiDraft({ section, locale, onInsert }: Narrativ
           </label>
           <p className="field-hint muted narrative-ai-stored">
             {s.storedNote} {s.keyHint}
+          </p>
+          <label className="field narrative-ai-field">
+            <span className="muted">{s.callLabel}</span>
+            <textarea
+              className="narrative-ai-call"
+              rows={5}
+              value={callText}
+              maxLength={CALL_TEXT_MAX}
+              aria-describedby="narrative-ai-call-hint"
+              onChange={(e) => setCallText(e.target.value.slice(0, CALL_TEXT_MAX))}
+            />
+          </label>
+          <p id="narrative-ai-call-hint" className="field-hint muted">
+            {s.callHint}
           </p>
           {phase === "error" ? (
             <p className="narrative-ai-error" role="alert">

@@ -2,7 +2,11 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
 import { AiConfigError, AiRequestError } from "@/lib/ai/provider";
-import { NARRATIVE_AI_SECTIONS, generateNarrativeDraft } from "@/lib/ai/narrativeDraft";
+import {
+  CALL_TEXT_MAX,
+  NARRATIVE_AI_SECTIONS,
+  generateNarrativeDraft,
+} from "@/lib/ai/narrativeDraft";
 import { getCvForUser } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
@@ -13,8 +17,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 // The body is a section id + consent + the caller's own provider config (base URL,
-// model, key). The key alone can be long; keep a generous-but-bounded cap.
-const MAX_BODY_BYTES = 8_000;
+// model, key) + optionally the pasted call text (CALL_TEXT_MAX characters, up to
+// four bytes each in UTF-8). Generous but bounded.
+const MAX_BODY_BYTES = 8_000 + CALL_TEXT_MAX * 4;
 const BodySchema = z.object({
   sectionType: z.enum(NARRATIVE_AI_SECTIONS),
   // Sent only after the user accepts the AI-drafting disclosure (what is sent, to
@@ -25,6 +30,9 @@ const BodySchema = z.object({
   baseUrl: z.url().max(2_000),
   model: z.string().min(1).max(200),
   apiKey: z.string().min(1).max(500),
+  // The call the user is answering, pasted by them; reference material for the
+  // draft, forwarded with the prompt and kept nowhere.
+  callText: z.string().max(CALL_TEXT_MAX).optional(),
 });
 // Relaying to a user's provider still costs THEM and is an outbound call from our
 // box, so cap it per user (also limits the SSRF-hardened relay's abuse surface).
@@ -74,9 +82,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "No CV to draft from yet." }, { status: 404 });
   }
 
-  const { sectionType, baseUrl, model, apiKey } = parsed.data;
+  const { sectionType, baseUrl, model, apiKey, callText } = parsed.data;
   try {
-    const draft = await generateNarrativeDraft(cv, sectionType, { baseUrl, model, apiKey });
+    const draft = await generateNarrativeDraft(
+      cv,
+      sectionType,
+      { baseUrl, model, apiKey },
+      { callText },
+    );
     return NextResponse.json({ draft });
   } catch (err) {
     if (err instanceof AiConfigError) {
