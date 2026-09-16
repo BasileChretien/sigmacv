@@ -215,7 +215,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "Sign in with ORCID and SigmaCV applies a one-click funder layout to your open research record — ERC, UKRI R4RI, NSF, NIH, SNSF and more — ready to curate and export.",
       bullets: [
-        "58 one-click funder, institution and industry layouts, including UKRI R4RI, Royal Society, SNSF, NIH, NSF and ERC — applied reversibly.",
+        "61 one-click funder, institution and industry layouts, including UKRI R4RI, Royal Society, SNSF, NIH, NSF and ERC — applied reversibly.",
         "Each layout fills from your ORCID and OpenAlex record, with consistent CSL citations throughout.",
         "Export to PDF, DOCX or LaTeX; free for individuals and open source, so you control exactly what appears.",
       ],
@@ -223,7 +223,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "Which funder CV formats does SigmaCV support?",
-          a: "SigmaCV offers 58 one-click layouts spanning funder, institution and industry formats — including UKRI R4RI, Royal Society, SNSF, NIH, NSF and ERC — each filled from your open research record.",
+          a: "SigmaCV offers 61 one-click layouts spanning funder, institution and industry formats — including UKRI R4RI, Royal Society, SNSF, NIH, NSF and ERC — each filled from your open research record.",
         },
         {
           q: "Can I switch layouts without losing my edits?",
@@ -399,7 +399,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "使用 ORCID 登录，SigmaCV 将一键式资助机构布局应用于您公开的学术记录——ERC、UKRI R4RI、NSF、NIH、SNSF 等，随时可整理和导出。",
       bullets: [
-        "58 种一键式资助机构、高校和行业布局，包括 UKRI R4RI、Royal Society、SNSF、NIH、NSF 和 ERC——可逆向应用。",
+        "61 种一键式资助机构、高校和行业布局，包括 UKRI R4RI、Royal Society、SNSF、NIH、NSF 和 ERC——可逆向应用。",
         "每种布局从您的 ORCID 和 OpenAlex 记录填充，并在全文保持一致的 CSL 引用。",
         "导出为 PDF、DOCX 或 LaTeX；对个人免费且开源，您可完全掌控显示内容。",
       ],
@@ -407,7 +407,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "SigmaCV 支持哪些资助机构简历格式？",
-          a: "SigmaCV 提供 58 种一键式布局，涵盖资助机构、高校和行业格式——包括 UKRI R4RI、Royal Society、SNSF、NIH、NSF 和 ERC——每种均从您的公开学术记录填充。",
+          a: "SigmaCV 提供 61 种一键式布局，涵盖资助机构、高校和行业格式——包括 UKRI R4RI、Royal Society、SNSF、NIH、NSF 和 ERC——每种均从您的公开学术记录填充。",
         },
         {
           q: "切换布局会丢失我的编辑内容吗？",
@@ -584,7 +584,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "Inicia sesión con ORCID y SigmaCV aplica con un clic una plantilla de financiador a tu registro científico abierto — ERC, UKRI R4RI, NSF, NIH, SNSF y más — lista para seleccionar y exportar.",
       bullets: [
-        "58 plantillas en un clic para financiadores, instituciones e industria, incluyendo UKRI R4RI, Royal Society, SNSF, NIH, NSF y ERC, aplicadas de forma reversible.",
+        "61 plantillas en un clic para financiadores, instituciones e industria, incluyendo UKRI R4RI, Royal Society, SNSF, NIH, NSF y ERC, aplicadas de forma reversible.",
         "Cada plantilla se rellena desde tu registro de ORCID y OpenAlex, con citas CSL coherentes a lo largo del documento.",
         "Exporta a PDF, DOCX o LaTeX; gratis para particulares y de código abierto, para que controles exactamente lo que aparece.",
       ],
@@ -592,7 +592,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "¿Qué formatos de CV para financiadores admite SigmaCV?",
-          a: "SigmaCV ofrece 58 plantillas en un clic que abarcan formatos de financiadores, instituciones e industria, incluidos UKRI R4RI, Royal Society, SNSF, NIH, NSF y ERC, cada una rellena desde tu registro científico abierto.",
+          a: "SigmaCV ofrece 61 plantillas en un clic que abarcan formatos de financiadores, instituciones e industria, incluidos UKRI R4RI, Royal Society, SNSF, NIH, NSF y ERC, cada una rellena desde tu registro científico abierto.",
         },
         {
           q: "¿Puedo cambiar de plantilla sin perder mis ediciones?",
@@ -768,7 +768,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "Connectez-vous avec ORCID et SigmaCV applique en un clic une mise en page de financeur à votre dossier scientifique ouvert — ERC, UKRI R4RI, NSF, NIH, SNSF et plus — prête à sélectionner et à exporter.",
       bullets: [
-        "58 mises en page en un clic pour financeurs, institutions et industrie, dont UKRI R4RI, Royal Society, SNSF, NIH, NSF et ERC — appliquées de manière réversible.",
+        "61 mises en page en un clic pour financeurs, institutions et industrie, dont UKRI R4RI, Royal Society, SNSF, NIH, NSF et ERC — appliquées de manière réversible.",
         "Chaque mise en page se remplit depuis votre dossier ORCID et OpenAlex, avec des citations CSL cohérentes tout au long.",
         "Exportez en PDF, DOCX ou LaTeX ; gratuit pour les particuliers et open source, vous contrôlez exactement ce qui apparaît.",
       ],
@@ -776,7 +776,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "Quels formats de CV pour financeurs SigmaCV prend-il en charge ?",
-          a: "SigmaCV propose 58 mises en page en un clic couvrant les formats de financeurs, d'institutions et d'industrie — dont UKRI R4RI, Royal Society, SNSF, NIH, NSF et ERC — chacune remplie depuis votre dossier scientifique ouvert.",
+          a: "SigmaCV propose 61 mises en page en un clic couvrant les formats de financeurs, d'institutions et d'industrie — dont UKRI R4RI, Royal Society, SNSF, NIH, NSF et ERC — chacune remplie depuis votre dossier scientifique ouvert.",
         },
         {
           q: "Puis-je changer de mise en page sans perdre mes modifications ?",
@@ -954,7 +954,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "Melden Sie sich mit ORCID an, und SigmaCV wendet ein Ein-Klick-Förderlayout auf Ihr offenes Forschungsverzeichnis an — ERC, UKRI R4RI, NSF, NIH, SNSF und weitere — bereit zum Auswählen und Exportieren.",
       bullets: [
-        "58 Ein-Klick-Layouts für Förderer, Institutionen und die Industrie, darunter UKRI R4RI, Royal Society, SNSF, NIH, NSF und ERC — reversibel angewendet.",
+        "61 Ein-Klick-Layouts für Förderer, Institutionen und die Industrie, darunter UKRI R4RI, Royal Society, SNSF, NIH, NSF und ERC — reversibel angewendet.",
         "Jedes Layout wird aus Ihrem ORCID- und OpenAlex-Verzeichnis befüllt, durchgehend mit einheitlichen CSL-Zitaten.",
         "Export als PDF, DOCX oder LaTeX; kostenlos für Einzelpersonen und quelloffen — Sie bestimmen genau, was erscheint.",
       ],
@@ -962,7 +962,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "Welche Förder-Lebenslaufformate unterstützt SigmaCV?",
-          a: "SigmaCV bietet 58 Ein-Klick-Layouts für Förderer, Institutionen und die Industrie — darunter UKRI R4RI, Royal Society, SNSF, NIH, NSF und ERC — jedes aus Ihrem offenen Forschungsverzeichnis befüllt.",
+          a: "SigmaCV bietet 61 Ein-Klick-Layouts für Förderer, Institutionen und die Industrie — darunter UKRI R4RI, Royal Society, SNSF, NIH, NSF und ERC — jedes aus Ihrem offenen Forschungsverzeichnis befüllt.",
         },
         {
           q: "Kann ich Layouts wechseln, ohne meine Bearbeitungen zu verlieren?",
@@ -1138,7 +1138,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "ORCID でサインインすると、SigmaCV があなたの公開された研究記録にワンクリックで助成機関レイアウトを適用します——ERC・UKRI R4RI・NSF・NIH・SNSF など。整理してそのまま書き出せます。",
       bullets: [
-        "UKRI R4RI・Royal Society・SNSF・NIH・NSF・ERC を含む 58 種のワンクリック助成機関・機関・業界レイアウトを可逆的に適用。",
+        "UKRI R4RI・Royal Society・SNSF・NIH・NSF・ERC を含む 61 種のワンクリック助成機関・機関・業界レイアウトを可逆的に適用。",
         "各レイアウトは ORCID と OpenAlex の記録から入力し、全体を通して一貫した CSL 引用を提供。",
         "PDF・DOCX・LaTeX に書き出し。個人には無料でオープンソース——表示内容を完全に管理できます。",
       ],
@@ -1146,7 +1146,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "SigmaCV はどの助成機関 CV フォーマットに対応していますか？",
-          a: "SigmaCV は UKRI R4RI・Royal Society・SNSF・NIH・NSF・ERC を含む、助成機関・機関・業界フォーマットにわたる 58 種のワンクリックレイアウトを提供します。それぞれ公開された研究記録から入力します。",
+          a: "SigmaCV は UKRI R4RI・Royal Society・SNSF・NIH・NSF・ERC を含む、助成機関・機関・業界フォーマットにわたる 61 種のワンクリックレイアウトを提供します。それぞれ公開された研究記録から入力します。",
         },
         {
           q: "レイアウトを切り替えても編集内容は保持されますか？",
@@ -1324,7 +1324,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "Entre com o ORCID e o SigmaCV aplica em um clique um layout de financiador ao seu registro científico aberto — ERC, UKRI R4RI, NSF, NIH, SNSF e mais — pronto para curar e exportar.",
       bullets: [
-        "58 layouts em um clique para financiadores, instituições e indústria, incluindo UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC — aplicados de forma reversível.",
+        "61 layouts em um clique para financiadores, instituições e indústria, incluindo UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC — aplicados de forma reversível.",
         "Cada layout é preenchido a partir do seu registro do ORCID e do OpenAlex, com citações CSL consistentes em todo o documento.",
         "Exporte para PDF, DOCX ou LaTeX; gratuito para indivíduos e de código aberto, para que você controle exatamente o que aparece.",
       ],
@@ -1332,7 +1332,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "Quais formatos de currículo para financiadores o SigmaCV suporta?",
-          a: "O SigmaCV oferece 58 layouts em um clique abrangendo formatos de financiadores, instituições e indústria — incluindo UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC — cada um preenchido a partir do seu registro científico aberto.",
+          a: "O SigmaCV oferece 61 layouts em um clique abrangendo formatos de financiadores, instituições e indústria — incluindo UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC — cada um preenchido a partir do seu registro científico aberto.",
         },
         {
           q: "Posso trocar de layout sem perder minhas edições?",
@@ -1508,7 +1508,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "Accedi con ORCID e SigmaCV applica in un clic una struttura di ente finanziatore al tuo registro scientifico aperto — ERC, UKRI R4RI, NSF, NIH, SNSF e altri — pronta da selezionare ed esportare.",
       bullets: [
-        "58 strutture in un clic per enti finanziatori, istituzioni e industria, tra cui UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC — applicate in modo reversibile.",
+        "61 strutture in un clic per enti finanziatori, istituzioni e industria, tra cui UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC — applicate in modo reversibile.",
         "Ogni struttura viene compilata dal tuo registro ORCID e OpenAlex, con citazioni CSL coerenti in tutto il documento.",
         "Esporta in PDF, DOCX o LaTeX; gratuito per i singoli individui e open source, così controlli esattamente cosa appare.",
       ],
@@ -1516,7 +1516,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "Quali formati di CV per enti finanziatori supporta SigmaCV?",
-          a: "SigmaCV offre 58 strutture in un clic che coprono formati per enti finanziatori, istituzioni e industria — tra cui UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC — ognuna compilata dal tuo registro scientifico aperto.",
+          a: "SigmaCV offre 61 strutture in un clic che coprono formati per enti finanziatori, istituzioni e industria — tra cui UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC — ognuna compilata dal tuo registro scientifico aperto.",
         },
         {
           q: "Posso cambiare struttura senza perdere le mie modifiche?",
@@ -1692,7 +1692,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "ORCID로 로그인하면 SigmaCV가 공개된 연구 기록에 원클릭 지원기관 레이아웃을 적용합니다 — ERC, UKRI R4RI, NSF, NIH, SNSF 등. 바로 정리하고 내보낼 수 있습니다.",
       bullets: [
-        "UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC를 포함한 58가지 원클릭 지원기관·기관·산업 레이아웃을 가역적으로 적용합니다.",
+        "UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC를 포함한 61가지 원클릭 지원기관·기관·산업 레이아웃을 가역적으로 적용합니다.",
         "각 레이아웃은 ORCID와 OpenAlex 기록을 채우며 전체에 걸쳐 일관된 CSL 인용을 제공합니다.",
         "PDF, DOCX, LaTeX으로 내보냅니다. 개인에게 무료이며 오픈 소스로, 표시 내용을 완전히 제어할 수 있습니다.",
       ],
@@ -1700,7 +1700,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "SigmaCV는 어떤 지원기관 CV 형식을 지원하나요?",
-          a: "SigmaCV는 UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC를 포함한 지원기관·기관·산업 형식의 58가지 원클릭 레이아웃을 제공하며, 각각 공개된 연구 기록에서 채워집니다.",
+          a: "SigmaCV는 UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC를 포함한 지원기관·기관·산업 형식의 61가지 원클릭 레이아웃을 제공하며, 각각 공개된 연구 기록에서 채워집니다.",
         },
         {
           q: "레이아웃을 전환해도 편집 내용이 유지되나요?",
@@ -1878,7 +1878,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       subhead:
         "Войдите через ORCID, и SigmaCV применит одним щелчком макет грантодателя к вашим открытым научным записям — ERC, UKRI R4RI, NSF, NIH, SNSF и другие — готово к отбору и экспорту.",
       bullets: [
-        "58 макетов одним щелчком для грантодателей, учреждений и индустрии, включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — применяются обратимо.",
+        "61 макетов одним щелчком для грантодателей, учреждений и индустрии, включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — применяются обратимо.",
         "Каждый макет заполняется из ваших записей в ORCID и OpenAlex с единообразными CSL-ссылками по всему документу.",
         "Экспорт в PDF, DOCX или LaTeX; бесплатно для частных лиц и с открытым исходным кодом — вы полностью контролируете содержание.",
       ],
@@ -1886,7 +1886,7 @@ const LANDING_PAGES_I18N: Record<Locale, Record<LandingPageId, LandingPageString
       faq: [
         {
           q: "Какие форматы резюме для грантодателей поддерживает SigmaCV?",
-          a: "SigmaCV предлагает 58 макетов одним щелчком для грантодателей, учреждений и индустрии — включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — каждый заполнен из ваших открытых научных записей.",
+          a: "SigmaCV предлагает 61 макетов одним щелчком для грантодателей, учреждений и индустрии — включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — каждый заполнен из ваших открытых научных записей.",
         },
         {
           q: "Можно ли переключать макеты, не теряя правки?",

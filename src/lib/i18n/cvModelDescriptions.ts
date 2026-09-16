@@ -4,7 +4,7 @@ import { asLocale, type Locale } from "./index";
 /**
  * Localized CV-model DESCRIPTIONS (issue #128).
  *
- * The 58 one-click CV models (`src/lib/canonical/cvModels.ts`) carry a plain-
+ * The one-click CV models (`src/lib/canonical/cvModels.ts`) carry a plain-
  * English `description`. The picker chrome is already localized, but the
  * descriptions rendered in English only. This module supplies native
  * translations for the other nine locales, keyed by model id.
@@ -283,23 +283,63 @@ const CV_MODEL_DESCRIPTIONS: Record<CvModelId, TranslatedDescriptions> = {
   // ─── GRANT — Canada / Australia / Japan / China ──────────────────────────────
   ccv: {
     "zh-CN":
-      "Canadian Common CV／Tri-agency 叙述式（CIHR · NSERC · SSHRC）：Personal statement、Most significant contributions & experiences、Supervisory & mentorship。最终通过 CCV 门户提交。",
+      "加拿大联邦 Tri-agency 叙述式简历，正逐项竞赛取代 Canadian Common CV（CCV）：Personal statement、Most significant contributions & experiences、Supervisory & mentorship。以 PDF 形式附于机构门户中的申请——请确认您的竞赛仍要求哪种简历。",
     "es-ES":
-      "Canadian Common CV / narrativa Tri-agency (CIHR · NSERC · SSHRC): Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Envío final a través del portal CCV.",
+      "CV narrativo federal Tri-agency de Canadá, que sustituye al Canadian Common CV (CCV) convocatoria a convocatoria: Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Se adjunta en PDF a la solicitud en el portal de la agencia; comprueba qué CV exige todavía tu convocatoria.",
     "fr-FR":
-      "Canadian Common CV / narratif Tri-agency (CIHR · NSERC · SSHRC) : Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Dépôt final via le portail CCV.",
+      "CV narratif fédéral des trois organismes canadiens (Tri-agency), qui remplace le CV commun canadien (CCV) concours par concours : Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Joint en PDF à la demande dans le portail de l'organisme — vérifiez quel CV votre concours exige encore.",
     "de-DE":
-      "Canadian Common CV / Tri-agency-Narrativ (CIHR · NSERC · SSHRC): Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Endgültige Einreichung über das CCV-Portal.",
+      "Kanadas föderaler Tri-agency-Lebenslauf in Erzählform, der den Canadian Common CV (CCV) Wettbewerb für Wettbewerb ersetzt: Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Als PDF dem Antrag im Portal der Förderorganisation beigefügt — prüfen Sie, welchen Lebenslauf Ihr Wettbewerb noch verlangt.",
     "ja-JP":
-      "Canadian Common CV／Tri-agency ナラティブ（CIHR · NSERC · SSHRC）：Personal statement、Most significant contributions & experiences、Supervisory & mentorship。最終提出は CCV ポータルから行います。",
+      "カナダ連邦の Tri-agency ナラティブ CV。Canadian Common CV（CCV）を公募ごとに置き換えつつあります：Personal statement、Most significant contributions & experiences、Supervisory & mentorship。各機関のポータルで申請書に PDF として添付します——応募先の公募がどの CV を求めているか確認してください。",
     "pt-BR":
-      "Canadian Common CV / narrativa Tri-agency (CIHR · NSERC · SSHRC): Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Envio final pelo portal CCV.",
+      "CV narrativo federal Tri-agency do Canadá, que substitui o Canadian Common CV (CCV) edital a edital: Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Anexado em PDF ao pedido no portal da agência — verifique qual CV o seu edital ainda exige.",
     "it-IT":
-      "Canadian Common CV / narrativa Tri-agency (CIHR · NSERC · SSHRC): Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Invio finale tramite il portale CCV.",
+      "CV narrativo federale Tri-agency del Canada, che sostituisce il Canadian Common CV (CCV) bando dopo bando: Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Allegato in PDF alla domanda nel portale dell'ente — verifica quale CV il tuo bando richiede ancora.",
     "ko-KR":
-      "Canadian Common CV / Tri-agency 내러티브(CIHR · NSERC · SSHRC): Personal statement, Most significant contributions & experiences, Supervisory & mentorship. 최종 제출은 CCV 포털을 통해 합니다.",
+      "캐나다 연방 Tri-agency 내러티브 CV로, Canadian Common CV(CCV)를 공모별로 대체하고 있습니다: Personal statement, Most significant contributions & experiences, Supervisory & mentorship. 기관 포털에서 신청서에 PDF로 첨부합니다 — 지원하는 공모가 아직 어떤 CV를 요구하는지 확인하세요.",
     "ru-RU":
-      "Canadian Common CV / нарратив Tri-agency (CIHR · NSERC · SSHRC): Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Окончательная подача через портал CCV.",
+      "Федеральное нарративное резюме Tri-agency Канады, конкурс за конкурсом заменяющее Canadian Common CV (CCV): Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Прилагается в PDF к заявке на портале агентства — проверьте, какое резюме ещё требует ваш конкурс.",
+  },
+  frq: {
+    "zh-CN":
+      "Fonds de recherche du Québec 的法文「CV descriptif」——三个部分，最多 6 页，不限字数：Parcours et compétences；最多十项 Contributions et expériences les plus importantes（每项注明时期、您的角色、影响与受众 A/B/C）；Activités de supervision et de mentorat。在 FRQ 的 Word 模板中撰写并以 PDF 附于 FRQnet 表单；学历、任职和语言由表单本身收集。",
+    "es-ES":
+      "«CV descriptif» del Fonds de recherche du Québec en francés: tres secciones, máximo 6 páginas, sin límite de palabras: Parcours et compétences; hasta diez Contributions et expériences les plus importantes (cada una con su periodo, tu papel, su impacto y su público A/B/C); Activités de supervision et de mentorat. Se redacta en la plantilla Word del FRQ y se adjunta en PDF al formulario FRQnet, que recoge por sí mismo formación, empleos e idiomas.",
+    "fr-FR":
+      "CV descriptif du Fonds de recherche du Québec, en français — trois sections, 6 pages au maximum, sans limite de mots : Parcours et compétences ; jusqu'à dix Contributions et expériences les plus importantes (chacune avec sa période, votre rôle, ses retombées et sa clientèle A/B/C) ; Activités de supervision et de mentorat. Rédigé dans le modèle Word du FRQ et joint en PDF au formulaire FRQnet, qui recueille lui-même formation, emplois et langues.",
+    "de-DE":
+      "Der „CV descriptif“ des Fonds de recherche du Québec auf Französisch — drei Abschnitte, höchstens 6 Seiten, ohne Wortlimit: Parcours et compétences; bis zu zehn Contributions et expériences les plus importantes (jeweils mit Zeitraum, Ihrer Rolle, Wirkung und Zielgruppe A/B/C); Activités de supervision et de mentorat. In der Word-Vorlage des FRQ verfasst und als PDF dem FRQnet-Formular beigefügt, das Ausbildung, Anstellungen und Sprachen selbst erhebt.",
+    "ja-JP":
+      "Fonds de recherche du Québec のフランス語「CV descriptif」——3 部構成、最大 6 ページ、語数制限なし：Parcours et compétences；最多 10 件の Contributions et expériences les plus importantes（各件に期間・自身の役割・成果・対象 A/B/C を記載）；Activités de supervision et de mentorat。FRQ の Word テンプレートで作成し、FRQnet フォームに PDF として添付します。学歴・職歴・言語はフォーム側で収集されます。",
+    "pt-BR":
+      "O «CV descriptif» do Fonds de recherche du Québec em francês — três seções, no máximo 6 páginas, sem limite de palavras: Parcours et compétences; até dez Contributions et expériences les plus importantes (cada uma com período, seu papel, impacto e público A/B/C); Activités de supervision et de mentorat. Redigido no modelo Word do FRQ e anexado em PDF ao formulário FRQnet, que recolhe por si formação, empregos e idiomas.",
+    "it-IT":
+      "Il «CV descriptif» del Fonds de recherche du Québec in francese — tre sezioni, massimo 6 pagine, senza limite di parole: Parcours et compétences; fino a dieci Contributions et expériences les plus importantes (ciascuna con periodo, tuo ruolo, impatto e pubblico A/B/C); Activités de supervision et de mentorat. Redatto nel modello Word del FRQ e allegato in PDF al modulo FRQnet, che raccoglie da sé formazione, impieghi e lingue.",
+    "ko-KR":
+      "Fonds de recherche du Québec의 프랑스어 «CV descriptif» — 세 부분, 최대 6쪽, 단어 수 제한 없음: Parcours et compétences; 최대 열 개의 Contributions et expériences les plus importantes(각각 기간, 본인의 역할, 영향, 대상 A/B/C 명시); Activités de supervision et de mentorat. FRQ의 Word 서식으로 작성해 FRQnet 양식에 PDF로 첨부하며, 학력·경력·언어는 양식 자체에서 수집합니다.",
+    "ru-RU":
+      "«CV descriptif» Fonds de recherche du Québec на французском — три раздела, не более 6 страниц, без лимита слов: Parcours et compétences; до десяти Contributions et expériences les plus importantes (каждая с периодом, вашей ролью, эффектом и аудиторией A/B/C); Activités de supervision et de mentorat. Составляется в шаблоне Word FRQ и прилагается в PDF к форме FRQnet, которая сама собирает образование, места работы и языки.",
+  },
+  "frq-en": {
+    "zh-CN":
+      "Fonds de recherche du Québec 的英文叙述式简历——三个部分，最多 5 页，不限字数：Background and skills；最多十项 Most significant contributions and experiences（每项注明时期、您的角色、影响与受众 A/B/C）；Supervisory and mentorship activities。在 FRQ 的 Word 模板中撰写并以 PDF 附于 FRQnet 表单；学历、任职和语言由表单本身收集。",
+    "es-ES":
+      "CV narrativo del Fonds de recherche du Québec en inglés: tres secciones, máximo 5 páginas, sin límite de palabras: Background and skills; hasta diez Most significant contributions and experiences (cada una con su periodo, tu papel, su impacto y su público A/B/C); Supervisory and mentorship activities. Se redacta en la plantilla Word del FRQ y se adjunta en PDF al formulario FRQnet, que recoge por sí mismo formación, empleos e idiomas.",
+    "fr-FR":
+      "CV descriptif du Fonds de recherche du Québec, en anglais — trois sections, 5 pages au maximum, sans limite de mots : Background and skills ; jusqu'à dix Most significant contributions and experiences (chacune avec sa période, votre rôle, ses retombées et sa clientèle A/B/C) ; Supervisory and mentorship activities. Rédigé dans le modèle Word du FRQ et joint en PDF au formulaire FRQnet, qui recueille lui-même formation, emplois et langues.",
+    "de-DE":
+      "Der narrative Lebenslauf des Fonds de recherche du Québec auf Englisch — drei Abschnitte, höchstens 5 Seiten, ohne Wortlimit: Background and skills; bis zu zehn Most significant contributions and experiences (jeweils mit Zeitraum, Ihrer Rolle, Wirkung und Zielgruppe A/B/C); Supervisory and mentorship activities. In der Word-Vorlage des FRQ verfasst und als PDF dem FRQnet-Formular beigefügt, das Ausbildung, Anstellungen und Sprachen selbst erhebt.",
+    "ja-JP":
+      "Fonds de recherche du Québec の英語ナラティブ CV——3 部構成、最大 5 ページ、語数制限なし：Background and skills；最多 10 件の Most significant contributions and experiences（各件に期間・自身の役割・成果・対象 A/B/C を記載）；Supervisory and mentorship activities。FRQ の Word テンプレートで作成し、FRQnet フォームに PDF として添付します。学歴・職歴・言語はフォーム側で収集されます。",
+    "pt-BR":
+      "O CV narrativo do Fonds de recherche du Québec em inglês — três seções, no máximo 5 páginas, sem limite de palavras: Background and skills; até dez Most significant contributions and experiences (cada uma com período, seu papel, impacto e público A/B/C); Supervisory and mentorship activities. Redigido no modelo Word do FRQ e anexado em PDF ao formulário FRQnet, que recolhe por si formação, empregos e idiomas.",
+    "it-IT":
+      "Il CV narrativo del Fonds de recherche du Québec in inglese — tre sezioni, massimo 5 pagine, senza limite di parole: Background and skills; fino a dieci Most significant contributions and experiences (ciascuna con periodo, tuo ruolo, impatto e pubblico A/B/C); Supervisory and mentorship activities. Redatto nel modello Word del FRQ e allegato in PDF al modulo FRQnet, che raccoglie da sé formazione, impieghi e lingue.",
+    "ko-KR":
+      "Fonds de recherche du Québec의 영어 내러티브 CV — 세 부분, 최대 5쪽, 단어 수 제한 없음: Background and skills; 최대 열 개의 Most significant contributions and experiences(각각 기간, 본인의 역할, 영향, 대상 A/B/C 명시); Supervisory and mentorship activities. FRQ의 Word 서식으로 작성해 FRQnet 양식에 PDF로 첨부하며, 학력·경력·언어는 양식 자체에서 수집합니다.",
+    "ru-RU":
+      "Нарративное резюме Fonds de recherche du Québec на английском — три раздела, не более 5 страниц, без лимита слов: Background and skills; до десяти Most significant contributions and experiences (каждая с периодом, вашей ролью, эффектом и аудиторией A/B/C); Supervisory and mentorship activities. Составляется в шаблоне Word FRQ и прилагается в PDF к форме FRQnet, которая сама собирает образование, места работы и языки.",
   },
   arc: {
     "zh-CN":

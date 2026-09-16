@@ -333,7 +333,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "Every funder wants its own CV format, and rebuilding your CV for each one is a chore. SigmaCV ships 58 one-click layouts for major funders, institutions and industry — including UKRI R4RI, the Royal Society, the Swiss SNSF, the US NIH and NSF, and the European ERC — applied reversibly to your open research record.",
+        "Every funder wants its own CV format, and rebuilding your CV for each one is a chore. SigmaCV ships 61 one-click layouts for major funders, institutions and industry — including UKRI R4RI, the Royal Society, the Swiss SNSF, the US NIH and NSF, and the European ERC — applied reversibly to your open research record.",
         "Sign in with ORCID, and a single click reshapes your canonical CV into the chosen funder's layout: the right sections, in the right order, with the right titles. Switch between formats freely — applying a layout selects and reorders sections, it never deletes your data.",
       ],
       stepsHeading: "How to use funder CV templates",
@@ -344,7 +344,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "Pick a funder layout",
-          body: "Choose from 58 one-click layouts — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society and more.",
+          body: "Choose from 61 one-click layouts — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society and more.",
         },
         {
           title: "Curate for the application",
@@ -363,7 +363,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "Which funder formats are supported?",
-          a: "58 one-click layouts spanning funder, institution and industry formats — including UKRI R4RI, the Royal Society, SNSF, NIH, NSF and ERC — each filled from your open research record.",
+          a: "61 one-click layouts spanning funder, institution and industry formats — including UKRI R4RI, the Royal Society, SNSF, NIH, NSF and ERC — each filled from your open research record.",
         },
         {
           q: "Will switching layouts lose my edits?",
@@ -650,7 +650,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "每家资助机构都想要自己专属的简历格式，而为每一家重新构建简历是件苦差事。SigmaCV 内置 58 种面向主要资助机构、高校和行业的一键式布局——包括 UKRI R4RI、Royal Society、瑞士 SNSF、美国 NIH 和 NSF，以及欧洲 ERC——可逆向应用于您公开的研究记录。",
+        "每家资助机构都想要自己专属的简历格式，而为每一家重新构建简历是件苦差事。SigmaCV 内置 61 种面向主要资助机构、高校和行业的一键式布局——包括 UKRI R4RI、Royal Society、瑞士 SNSF、美国 NIH 和 NSF，以及欧洲 ERC——可逆向应用于您公开的研究记录。",
         "使用 ORCID 登录，只需一键即可将您的规范简历重塑为所选资助机构的布局：正确的章节、正确的顺序、正确的标题。在各种格式之间自由切换——应用某种布局只是选择并重新排序章节，绝不会删除您的数据。",
       ],
       stepsHeading: "如何使用资助机构简历模板",
@@ -661,7 +661,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "挑选一种资助机构布局",
-          body: "从 58 种一键式布局中选择——ERC、UKRI R4RI、NSF、NIH、SNSF、Royal Society 等等。",
+          body: "从 61 种一键式布局中选择——ERC、UKRI R4RI、NSF、NIH、SNSF、Royal Society 等等。",
         },
         {
           title: "为申请进行整理",
@@ -680,7 +680,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "支持哪些资助机构格式？",
-          a: "58 种一键式布局，涵盖资助机构、高校和行业格式——包括 UKRI R4RI、Royal Society、SNSF、NIH、NSF 和 ERC——每一种都从您公开的研究记录中填充。",
+          a: "61 种一键式布局，涵盖资助机构、高校和行业格式——包括 UKRI R4RI、Royal Society、SNSF、NIH、NSF 和 ERC——每一种都从您公开的研究记录中填充。",
         },
         {
           q: "切换布局会丢失我的编辑吗？",
@@ -967,7 +967,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "Cada financiador quiere su propio formato de CV, y rehacer tu CV para cada uno es un fastidio. SigmaCV incluye 58 diseños de un clic para los principales financiadores, instituciones e industria —incluidos UKRI R4RI, la Royal Society, la suiza SNSF, el estadounidense NIH y la NSF, y la europea ERC—, aplicados de forma reversible a tu registro científico abierto.",
+        "Cada financiador quiere su propio formato de CV, y rehacer tu CV para cada uno es un fastidio. SigmaCV incluye 61 diseños de un clic para los principales financiadores, instituciones e industria —incluidos UKRI R4RI, la Royal Society, la suiza SNSF, el estadounidense NIH y la NSF, y la europea ERC—, aplicados de forma reversible a tu registro científico abierto.",
         "Inicia sesión con ORCID y, con un solo clic, tu CV canónico se reorganiza según el diseño del financiador elegido: las secciones adecuadas, en el orden adecuado, con los títulos adecuados. Cambia entre formatos libremente: aplicar un diseño selecciona y reordena secciones, nunca elimina tus datos.",
       ],
       stepsHeading: "Cómo usar las plantillas de CV para financiadores",
@@ -978,7 +978,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "Elige un diseño de financiador",
-          body: "Elige entre 58 diseños de un clic: ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society y más.",
+          body: "Elige entre 61 diseños de un clic: ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society y más.",
         },
         {
           title: "Selecciona para la solicitud",
@@ -997,7 +997,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "¿Qué formatos de financiadores admite?",
-          a: "58 diseños de un clic que abarcan formatos de financiadores, instituciones e industria —incluidos UKRI R4RI, la Royal Society, SNSF, NIH, NSF y ERC—, cada uno rellenado a partir de tu registro científico abierto.",
+          a: "61 diseños de un clic que abarcan formatos de financiadores, instituciones e industria —incluidos UKRI R4RI, la Royal Society, SNSF, NIH, NSF y ERC—, cada uno rellenado a partir de tu registro científico abierto.",
         },
         {
           q: "¿Cambiar de diseño hará que pierda mis ediciones?",
@@ -1284,7 +1284,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "Chaque financeur veut son propre format de CV, et reconstruire votre CV pour chacun est une corvée. SigmaCV propose 58 mises en page en un clic pour les grands financeurs, institutions et l'industrie — dont UKRI R4RI, la Royal Society, le SNSF suisse, les NIH et NSF américains et l'ERC européen — appliquées de manière réversible à votre dossier de recherche ouvert.",
+        "Chaque financeur veut son propre format de CV, et reconstruire votre CV pour chacun est une corvée. SigmaCV propose 61 mises en page en un clic pour les grands financeurs, institutions et l'industrie — dont UKRI R4RI, la Royal Society, le SNSF suisse, les NIH et NSF américains et l'ERC européen — appliquées de manière réversible à votre dossier de recherche ouvert.",
         "Connectez-vous avec ORCID, et un seul clic remodèle votre CV canonique selon la mise en page du financeur choisi : les bonnes sections, dans le bon ordre, avec les bons intitulés. Passez librement d'un format à l'autre — appliquer une mise en page sélectionne et réordonne les sections, elle ne supprime jamais vos données.",
       ],
       stepsHeading: "Comment utiliser les modèles de CV pour financeurs",
@@ -1295,7 +1295,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "Choisissez une mise en page de financeur",
-          body: "Choisissez parmi 58 mises en page en un clic — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society et plus encore.",
+          body: "Choisissez parmi 61 mises en page en un clic — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society et plus encore.",
         },
         {
           title: "Sélectionnez pour la candidature",
@@ -1314,7 +1314,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "Quels formats de financeurs sont pris en charge ?",
-          a: "58 mises en page en un clic couvrant les formats de financeurs, d'institutions et d'industrie — dont UKRI R4RI, la Royal Society, SNSF, NIH, NSF et ERC — chacune remplie depuis votre dossier de recherche ouvert.",
+          a: "61 mises en page en un clic couvrant les formats de financeurs, d'institutions et d'industrie — dont UKRI R4RI, la Royal Society, SNSF, NIH, NSF et ERC — chacune remplie depuis votre dossier de recherche ouvert.",
         },
         {
           q: "Changer de mise en page va-t-il perdre mes modifications ?",
@@ -1601,7 +1601,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "Jeder Förderer möchte sein eigenes Lebenslaufformat, und den Lebenslauf für jeden einzelnen neu aufzubauen, ist eine Plackerei. SigmaCV bringt 58 Ein-Klick-Layouts für große Förderer, Institutionen und die Industrie mit — darunter UKRI R4RI, die Royal Society, die Schweizer SNSF, die US-amerikanischen NIH und NSF sowie die europäische ERC — reversibel auf Ihr offenes Forschungsverzeichnis angewendet.",
+        "Jeder Förderer möchte sein eigenes Lebenslaufformat, und den Lebenslauf für jeden einzelnen neu aufzubauen, ist eine Plackerei. SigmaCV bringt 61 Ein-Klick-Layouts für große Förderer, Institutionen und die Industrie mit — darunter UKRI R4RI, die Royal Society, die Schweizer SNSF, die US-amerikanischen NIH und NSF sowie die europäische ERC — reversibel auf Ihr offenes Forschungsverzeichnis angewendet.",
         "Melden Sie sich mit ORCID an, und ein einziger Klick formt Ihren kanonischen Lebenslauf in das Layout des gewählten Förderers um: die richtigen Abschnitte, in der richtigen Reihenfolge, mit den richtigen Titeln. Wechseln Sie frei zwischen den Formaten — das Anwenden eines Layouts wählt Abschnitte aus und ordnet sie neu an, es löscht niemals Ihre Daten.",
       ],
       stepsHeading: "So nutzen Sie Förder-Lebenslaufvorlagen",
@@ -1612,7 +1612,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "Ein Förderlayout wählen",
-          body: "Wählen Sie aus 58 Ein-Klick-Layouts — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society und mehr.",
+          body: "Wählen Sie aus 61 Ein-Klick-Layouts — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society und mehr.",
         },
         {
           title: "Für den Antrag auswählen",
@@ -1631,7 +1631,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "Welche Fördererformate werden unterstützt?",
-          a: "58 Ein-Klick-Layouts für Förderer-, Institutions- und Industrieformate — darunter UKRI R4RI, die Royal Society, SNSF, NIH, NSF und ERC — jedes aus Ihrem offenen Forschungsverzeichnis befüllt.",
+          a: "61 Ein-Klick-Layouts für Förderer-, Institutions- und Industrieformate — darunter UKRI R4RI, die Royal Society, SNSF, NIH, NSF und ERC — jedes aus Ihrem offenen Forschungsverzeichnis befüllt.",
         },
         {
           q: "Gehen beim Wechsel der Layouts meine Bearbeitungen verloren?",
@@ -1918,7 +1918,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "どの助成機関も独自の CV 形式を求めるため、機関ごとに CV を作り直すのは骨の折れる作業です。SigmaCV は主要な助成機関・機関・業界向けの 58 種のワンクリックレイアウト——UKRI R4RI、Royal Society、スイスの SNSF、米国の NIH と NSF、欧州の ERC など——を備え、あなたの公開された研究記録に可逆的に適用します。",
+        "どの助成機関も独自の CV 形式を求めるため、機関ごとに CV を作り直すのは骨の折れる作業です。SigmaCV は主要な助成機関・機関・業界向けの 61 種のワンクリックレイアウト——UKRI R4RI、Royal Society、スイスの SNSF、米国の NIH と NSF、欧州の ERC など——を備え、あなたの公開された研究記録に可逆的に適用します。",
         "ORCID でサインインすると、ワンクリックであなたの正規 CV を選んだ助成機関のレイアウトに作り変えます——適切なセクションを、適切な順序で、適切な見出しで。形式間を自由に切り替えられます——レイアウトの適用はセクションを選んで並び替えるだけで、あなたのデータを削除することは決してありません。",
       ],
       stepsHeading: "助成機関 CV テンプレートの使い方",
@@ -1929,7 +1929,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "助成機関レイアウトを選ぶ",
-          body: "58 種のワンクリックレイアウト——ERC、UKRI R4RI、NSF、NIH、SNSF、Royal Society など——から選びます。",
+          body: "61 種のワンクリックレイアウト——ERC、UKRI R4RI、NSF、NIH、SNSF、Royal Society など——から選びます。",
         },
         {
           title: "申請に合わせて整理する",
@@ -1948,7 +1948,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "どの助成機関フォーマットに対応していますか？",
-          a: "助成機関・機関・業界の各フォーマットにわたる 58 種のワンクリックレイアウト——UKRI R4RI、Royal Society、SNSF、NIH、NSF、ERC を含む——で、それぞれあなたの公開された研究記録から入力されます。",
+          a: "助成機関・機関・業界の各フォーマットにわたる 61 種のワンクリックレイアウト——UKRI R4RI、Royal Society、SNSF、NIH、NSF、ERC を含む——で、それぞれあなたの公開された研究記録から入力されます。",
         },
         {
           q: "レイアウトを切り替えると編集内容は失われますか？",
@@ -2235,7 +2235,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "Cada financiador quer o seu próprio formato de currículo, e reconstruir o seu currículo para cada um é uma chatice. O SigmaCV vem com 58 layouts em um clique para os principais financiadores, instituições e a indústria — incluindo UKRI R4RI, Royal Society, a suíça SNSF, o NIH e a NSF dos EUA e o ERC europeu —, aplicados de forma reversível ao seu registro de pesquisa aberto.",
+        "Cada financiador quer o seu próprio formato de currículo, e reconstruir o seu currículo para cada um é uma chatice. O SigmaCV vem com 61 layouts em um clique para os principais financiadores, instituições e a indústria — incluindo UKRI R4RI, Royal Society, a suíça SNSF, o NIH e a NSF dos EUA e o ERC europeu —, aplicados de forma reversível ao seu registro de pesquisa aberto.",
         "Entre com o ORCID e, com um único clique, seu currículo canônico se reorganiza no layout do financiador escolhido: as seções certas, na ordem certa, com os títulos certos. Alterne entre formatos livremente — aplicar um layout seleciona e reordena seções, ele nunca exclui seus dados.",
       ],
       stepsHeading: "Como usar os modelos de currículo para financiadores",
@@ -2246,7 +2246,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "Escolha um layout de financiador",
-          body: "Escolha entre 58 layouts em um clique — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society e mais.",
+          body: "Escolha entre 61 layouts em um clique — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society e mais.",
         },
         {
           title: "Cure para a candidatura",
@@ -2265,7 +2265,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "Quais formatos de financiadores são suportados?",
-          a: "58 layouts em um clique abrangendo formatos de financiadores, instituições e da indústria — incluindo UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC —, cada um preenchido a partir do seu registro de pesquisa aberto.",
+          a: "61 layouts em um clique abrangendo formatos de financiadores, instituições e da indústria — incluindo UKRI R4RI, Royal Society, SNSF, NIH, NSF e ERC —, cada um preenchido a partir do seu registro de pesquisa aberto.",
         },
         {
           q: "Trocar de layout vai apagar minhas edições?",
@@ -2552,7 +2552,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "Ogni ente finanziatore vuole il proprio formato di CV, e ricostruire il CV per ciascuno è una scocciatura. SigmaCV include 58 strutture in un clic per i principali enti finanziatori, istituzioni e per l'industria — tra cui UKRI R4RI, la Royal Society, lo svizzero SNSF, gli statunitensi NIH e NSF e l'europeo ERC — applicate in modo reversibile al tuo registro di ricerca aperto.",
+        "Ogni ente finanziatore vuole il proprio formato di CV, e ricostruire il CV per ciascuno è una scocciatura. SigmaCV include 61 strutture in un clic per i principali enti finanziatori, istituzioni e per l'industria — tra cui UKRI R4RI, la Royal Society, lo svizzero SNSF, gli statunitensi NIH e NSF e l'europeo ERC — applicate in modo reversibile al tuo registro di ricerca aperto.",
         "Accedi con ORCID, e un solo clic rimodella il tuo CV canonico nella struttura dell'ente finanziatore scelto: le sezioni giuste, nell'ordine giusto, con i titoli giusti. Passa da un formato all'altro liberamente — applicare una struttura seleziona e riordina le sezioni, non elimina mai i tuoi dati.",
       ],
       stepsHeading: "Come usare i modelli di CV per enti finanziatori",
@@ -2563,7 +2563,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "Scegli una struttura di ente finanziatore",
-          body: "Scegli tra 58 strutture in un clic — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society e altre ancora.",
+          body: "Scegli tra 61 strutture in un clic — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society e altre ancora.",
         },
         {
           title: "Seleziona per la candidatura",
@@ -2582,7 +2582,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "Quali formati di enti finanziatori sono supportati?",
-          a: "58 strutture in un clic che coprono formati per enti finanziatori, istituzioni e industria — tra cui UKRI R4RI, la Royal Society, SNSF, NIH, NSF e ERC — ognuna compilata dal tuo registro di ricerca aperto.",
+          a: "61 strutture in un clic che coprono formati per enti finanziatori, istituzioni e industria — tra cui UKRI R4RI, la Royal Society, SNSF, NIH, NSF e ERC — ognuna compilata dal tuo registro di ricerca aperto.",
         },
         {
           q: "Cambiando struttura perderò le mie modifiche?",
@@ -2869,7 +2869,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "지원기관마다 고유한 CV 형식을 요구하며, 각 기관에 맞춰 CV를 다시 만드는 일은 번거롭습니다. SigmaCV는 주요 지원기관, 기관, 산업을 위한 58가지 원클릭 레이아웃을 제공합니다. UKRI R4RI, Royal Society, 스위스 SNSF, 미국 NIH와 NSF, 유럽 ERC 등이 포함되며, 공개된 연구 기록에 가역적으로 적용됩니다.",
+        "지원기관마다 고유한 CV 형식을 요구하며, 각 기관에 맞춰 CV를 다시 만드는 일은 번거롭습니다. SigmaCV는 주요 지원기관, 기관, 산업을 위한 61가지 원클릭 레이아웃을 제공합니다. UKRI R4RI, Royal Society, 스위스 SNSF, 미국 NIH와 NSF, 유럽 ERC 등이 포함되며, 공개된 연구 기록에 가역적으로 적용됩니다.",
         "ORCID로 로그인하면 클릭 한 번으로 정규 이력서가 선택한 지원기관의 레이아웃으로 재구성됩니다. 알맞은 섹션이 알맞은 순서로, 알맞은 제목과 함께 배치됩니다. 형식 사이를 자유롭게 전환하세요. 레이아웃 적용은 섹션을 선택하고 재배열할 뿐 회원님의 데이터를 삭제하지 않습니다.",
       ],
       stepsHeading: "지원기관 CV 템플릿 사용법",
@@ -2880,7 +2880,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "지원기관 레이아웃 선택",
-          body: "ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society 등 58가지 원클릭 레이아웃 중에서 고르세요.",
+          body: "ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society 등 61가지 원클릭 레이아웃 중에서 고르세요.",
         },
         {
           title: "지원에 맞춰 선별",
@@ -2899,7 +2899,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "어떤 지원기관 형식을 지원하나요?",
-          a: "UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC를 포함한 지원기관·기관·산업 형식을 아우르는 58가지 원클릭 레이아웃을 지원하며, 각각 공개된 연구 기록에서 채워집니다.",
+          a: "UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC를 포함한 지원기관·기관·산업 형식을 아우르는 61가지 원클릭 레이아웃을 지원하며, 각각 공개된 연구 기록에서 채워집니다.",
         },
         {
           q: "레이아웃을 전환하면 편집 내용이 사라지나요?",
@@ -3186,7 +3186,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
     },
     "funder-cv-templates": {
       intro: [
-        "Каждый грантодатель хочет собственный формат резюме, и пересобирать резюме под каждый из них — рутина. SigmaCV поставляется с 58 макетами «в один щелчок» для крупных грантодателей, учреждений и индустрии — включая UKRI R4RI, Royal Society, швейцарский SNSF, американские NIH и NSF и европейский ERC — применяемыми обратимо к вашим открытым научным записям.",
+        "Каждый грантодатель хочет собственный формат резюме, и пересобирать резюме под каждый из них — рутина. SigmaCV поставляется с 61 макетами «в один щелчок» для крупных грантодателей, учреждений и индустрии — включая UKRI R4RI, Royal Society, швейцарский SNSF, американские NIH и NSF и европейский ERC — применяемыми обратимо к вашим открытым научным записям.",
         "Войдите через ORCID, и один щелчок перестроит ваше каноническое резюме под выбранный макет грантодателя: нужные разделы, в нужном порядке, с нужными заголовками. Свободно переключайтесь между форматами — применение макета выбирает и переупорядочивает разделы, но никогда не удаляет ваши данные.",
       ],
       stepsHeading: "Как использовать шаблоны резюме для грантодателей",
@@ -3197,7 +3197,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
         },
         {
           title: "Выберите макет грантодателя",
-          body: "Выберите из 58 макетов «в один щелчок» — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society и другие.",
+          body: "Выберите из 61 макетов «в один щелчок» — ERC, UKRI R4RI, NSF, NIH, SNSF, Royal Society и другие.",
         },
         {
           title: "Отберите под заявку",
@@ -3216,7 +3216,7 @@ const LANDING_CONTENT_I18N: Record<Locale, Record<LandingPageId, LandingPageCont
       faqExtra: [
         {
           q: "Какие форматы грантодателей поддерживаются?",
-          a: "58 макетов «в один щелчок», охватывающих форматы грантодателей, учреждений и индустрии — включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — каждый заполняется из ваших открытых научных записей.",
+          a: "61 макетов «в один щелчок», охватывающих форматы грантодателей, учреждений и индустрии — включая UKRI R4RI, Royal Society, SNSF, NIH, NSF и ERC — каждый заполняется из ваших открытых научных записей.",
         },
         {
           q: "Потеряю ли я правки при переключении макетов?",

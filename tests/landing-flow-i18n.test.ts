@@ -40,7 +40,7 @@ describe("landingFlow", () => {
   it("keeps universal format/standard tokens in every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const blob = JSON.stringify(landingFlow(loc));
-      for (const token of ["58", "CSL", "DOI", "PDF", "DOCX", "LaTeX", "Markdown"]) {
+      for (const token of ["61", "CSL", "DOI", "PDF", "DOCX", "LaTeX", "Markdown"]) {
         expect(blob).toContain(token);
       }
     }

@@ -8,6 +8,7 @@ import {
   updateDisplay,
 } from "@/lib/canonical/curate";
 import {
+  PROSE_BODY_MAX,
   PROSE_SECTION_TYPES,
   isProseSectionType,
   migrateCanonicalDocument,
@@ -92,9 +93,11 @@ describe("prose-section curate ops (pure + immutable)", () => {
     const next = setSectionBody(cv, id, "second");
     expect(cv.sections.find((s) => s.id === id)!.body).toBe("first"); // input untouched
     expect(next.sections.find((s) => s.id === id)!.body).toBe("second");
-    // Over-long bodies are clamped to 8000 chars.
-    const huge = setSectionBody(cv, id, "x".repeat(9000));
-    expect(huge.sections.find((s) => s.id === id)!.body!.length).toBe(8000);
+    // Over-long bodies are clamped to the cap (sized for a six-page funder CV's
+    // longest section — the FRQ contributions section — so 8,000 was too small).
+    expect(PROSE_BODY_MAX).toBe(20_000);
+    const huge = setSectionBody(cv, id, "x".repeat(PROSE_BODY_MAX + 1000));
+    expect(huge.sections.find((s) => s.id === id)!.body!.length).toBe(PROSE_BODY_MAX);
   });
 });
 
