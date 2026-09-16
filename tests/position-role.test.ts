@@ -463,3 +463,97 @@ describe("editable department", () => {
     );
   });
 });
+
+/**
+ * Service & Memberships and Invited Talks come off the SAME builder branch as
+ * Education (`buildOrcidEntrySection`, the range branch): structured role /
+ * department / institution / dates, with the line derived from them. So the
+ * structured edits work there identically — which is what lets the editor offer
+ * them the same "Edit details" panel. Awards take the other branch (a
+ * point-in-time line) and are edited as one line of text instead.
+ */
+describe("structured editing on Service & Invited Talks", () => {
+  const membership: OrcidPosition = {
+    putCode: "svc1",
+    organization: "Physiopathology and Imaging of Neurological Disorders",
+    roleTitle: "Affiliated researcher",
+    department: "Neuropresage",
+  };
+  const invited: OrcidPosition = {
+    putCode: "inv1",
+    organization: "Karolinska Institutet",
+    roleTitle: "Visiting researcher",
+    startYear: 2023,
+    endYear: 2023,
+  };
+  const distinction: OrcidPosition = {
+    putCode: "dst1",
+    organization: "Royal Society",
+    roleTitle: "Fellowship",
+    startYear: 2019,
+  };
+
+  const withEntries = (): CanonicalCv =>
+    buildCanonicalCv({
+      id: "cv_entries",
+      resolved,
+      works: [],
+      now: "2026-09-16T00:00:00.000Z",
+      employments: [employment],
+      service: [membership],
+      invitedPositions: [invited],
+      distinctions: [distinction],
+    });
+
+  const sectionOf = (cv: CanonicalCv, type: CvSection["type"]): CvSection =>
+    cv.sections.find((s) => s.type === type)!;
+
+  it("builds a service entry with the same structured meta as a position", () => {
+    const item = sectionOf(withEntries(), "service").items[0]!;
+    expect(item.meta.roleTitle).toBe("Affiliated researcher");
+    expect(item.meta.department).toBe("Neuropresage");
+    expect(item.meta.institution).toBe("Physiopathology and Imaging of Neurological Disorders");
+    expect(item.displayText).toBe(
+      "Affiliated researcher, Neuropresage, Physiopathology and Imaging of Neurological Disorders",
+    );
+  });
+
+  it("re-derives a service line from an edited role, department and dates", () => {
+    let cv = withEntries();
+    const { id: sid } = sectionOf(cv, "service");
+    const itemId = sectionOf(cv, "service").items[0]!.id;
+    cv = setItemRoleTitle(cv, sid, itemId, "Associate member");
+    cv = setItemDepartment(cv, sid, itemId, "Neuropresage team");
+    cv = setItemDateRange(cv, sid, itemId, { startYear: 2021 });
+    const item = findItem(cv, sid, itemId);
+    expect(item.displayText).toBe(
+      "Associate member, Neuropresage team, Physiopathology and Imaging of Neurological Disorders (2021–present)",
+    );
+    // The source values keep their own copy, so each field still reverts.
+    expect(item.meta.roleTitle).toBe("Affiliated researcher");
+    expect(itemRoleTitle(findItem(setItemRoleTitle(cv, sid, itemId, ""), sid, itemId))).toBe(
+      "Affiliated researcher",
+    );
+  });
+
+  it("re-derives an invited-talk line from an edited institution", () => {
+    const cv = withEntries();
+    const { id: sid } = sectionOf(cv, "talks");
+    const itemId = sectionOf(cv, "talks").items[0]!.id;
+    const item = findItem(setItemInstitution(cv, sid, itemId, "Karolinska"), sid, itemId);
+    expect(itemInstitution(item)).toBe("Karolinska");
+    expect(item.displayText).toBe("Visiting researcher, Karolinska (2023–2023)");
+  });
+
+  it("leaves an award's point-in-time line alone — it is edited as text", () => {
+    // `formatAwardText`, not `formatEntryLine`: one year in parentheses and no
+    // "present". The award branch stores no structured role or range, so
+    // `rederiveEntryLine` must not be reachable for it (the editor offers the
+    // whole line plus the link instead).
+    const item = sectionOf(withEntries(), "awards").items[0]!;
+    expect(item.displayText).toBe("Fellowship, Royal Society (2019)");
+    expect(item.meta.roleTitle).toBeUndefined();
+    expect(item.meta.startYear).toBeUndefined();
+    expect(rederiveEntryLine(item)).toBe("Royal Society");
+  });
+});

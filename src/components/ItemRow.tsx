@@ -46,6 +46,34 @@ function parseYear(v: string): number | undefined {
   return Number.isFinite(n) ? n : undefined;
 }
 
+/**
+ * The sections whose entries are built from a live source (ORCID / OpenAlex) as
+ * a plain line the owner may refine — as opposed to citation sections, which
+ * render only through citeproc, and prose sections, which have no items.
+ */
+const ENTRY_SECTIONS = new Set<CvSectionType>([
+  "positions",
+  "education",
+  "service",
+  "talks",
+  "awards",
+]);
+
+/**
+ * The subset whose line `build.ts` DERIVES from structured meta (role /
+ * department / institution / dates) and `curate.ts` re-derives in place after
+ * each edit — so every piece is a field of its own. Awards are deliberately
+ * absent: their line is a point-in-time form built by the entry builder's other
+ * branch, so re-deriving it through {@link rederiveEntryLine} would rewrite it
+ * into the wrong shape.
+ */
+const STRUCTURED_ENTRY_SECTIONS = new Set<CvSectionType>([
+  "positions",
+  "education",
+  "service",
+  "talks",
+]);
+
 /** Proper-noun data-source names (not translated); "manual" is localized below. */
 const SOURCE_NAMES: Record<string, string> = {
   openalex: "OpenAlex",
@@ -540,16 +568,65 @@ export default function ItemRow({
     item.source === "openaire" ||
     item.source === "dblp" ||
     (sectionType === "positions" && !isManual);
-  // Source-derived Positions / Education lines (built from ORCID/OpenAlex) are
-  // free-text the user may refine: an editable title backed by `displayTextOverride`
-  // (the source value keeps refreshing underneath and is restored by clearing the
-  // field). Citation rows are excluded (they render only through citeproc); manual
-  // rows use the `onUpdateText` path below.
+  // Source-derived ENTRY lines (built from ORCID/OpenAlex) are free-text the
+  // user may refine, in every section that carries them: Positions, Education,
+  // Service & Memberships, Invited Talks and Awards. Citation rows are excluded
+  // (they render only through citeproc); manual rows use the `onUpdateText` path
+  // below.
   const canEditText =
-    !isCitation && !isManual && (sectionType === "positions" || sectionType === "education");
+    !isCitation && !isManual && sectionType !== undefined && ENTRY_SECTIONS.has(sectionType);
+  // Of those, the ones whose line is DERIVED from structured meta (role,
+  // department, institution, dates) and re-derived in place on every edit, so
+  // each piece can be a field of its own: `buildOrcidEntrySection` builds
+  // Service and Invited Talks exactly as it builds Education. Awards take its
+  // other branch — a point-in-time line ("Fellowship, Royal Society (2019)")
+  // with no structured role or range — so they are edited as one line of text
+  // (`displayTextOverride`) plus the link, never through fields that would
+  // re-derive the line into the wrong shape.
+  const canEditStructured =
+    canEditText && sectionType !== undefined && STRUCTURED_ENTRY_SECTIONS.has(sectionType);
   // Flatten any kept inline tags (<i>/<sub>/…) — these read the raw CSL title,
   // which only citeproc renders; here a tag would show as literal text.
   const title = stripInlineMarkup(item.csl?.title ?? itemDisplayText(item) ?? u.itemUntitled);
+  // The entry's own link — ORCID records one per activity (a team page, a
+  // society's member listing, an award announcement). Shown beside the entry on
+  // the CV; reverts to the source URL when cleared. It sits inside the
+  // structured "Edit details" panel where there is one, and in a panel of its
+  // own otherwise (Awards, and any entry whose whole line the owner rewrote).
+  const linkField = onSetEntryUrl ? (
+    <div className="cv-item-edit-wrap">
+      <input
+        className="cv-item-edit"
+        type="url"
+        inputMode="url"
+        maxLength={2048}
+        value={itemEntryUrl(item) ?? ""}
+        onChange={(e) => onSetEntryUrl(e.target.value)}
+        placeholder={u.entryUrlAria}
+        aria-label={u.entryUrlAria}
+      />
+      {item.meta.entryUrlOverride !== undefined ? (
+        <button
+          type="button"
+          className="icon-btn cv-item-revert"
+          onClick={() => onSetEntryUrl("")}
+          title={u.revertToSourceHint}
+          aria-label={u.revertToSource}
+        >
+          ↺
+        </button>
+      ) : null}
+    </div>
+  ) : null;
+  // Whether the structured panel above will render — i.e. whether `linkField` is
+  // already inside it. When it is not (Awards, or a line the owner rewrote
+  // wholesale), the link gets a small disclosure of its own below the row.
+  const structuredPanelShown =
+    canEditStructured &&
+    Boolean(onSetRole) &&
+    item.displayTextOverride === undefined &&
+    Boolean(onSetInstitution) &&
+    Boolean(onSetDateRange);
   // Derived: an explicit Confirm OR a review candidate the owner switched on.
   const reviewConfirmed = itemReviewState(item) === "confirmed";
   // Institution name (ROR-localized) shown as read-only context beside the
@@ -655,7 +732,7 @@ export default function ItemRow({
             placeholder={u.manualPlaceholder}
             aria-label={u.entryTextAria}
           />
-        ) : canEditText && onSetRole && item.displayTextOverride === undefined ? (
+        ) : canEditStructured && onSetRole && item.displayTextOverride === undefined ? (
           // Source-derived Positions/Education: a dedicated, fillable "Role / title"
           // field (the institution + dates come from ORCID/ROR and show as context
           // + in the preview). An empty field invites the missing role; the revert
@@ -756,34 +833,7 @@ export default function ItemRow({
                       </button>
                     ) : null}
                   </div>
-                  {/* The entry's own link — ORCID records one per activity (a
-                      team page, a society listing). Shown beside the entry on
-                      the CV; reverts to the source URL when cleared. */}
-                  {onSetEntryUrl ? (
-                    <div className="cv-item-edit-wrap">
-                      <input
-                        className="cv-item-edit"
-                        type="url"
-                        inputMode="url"
-                        maxLength={2048}
-                        value={itemEntryUrl(item) ?? ""}
-                        onChange={(e) => onSetEntryUrl(e.target.value)}
-                        placeholder={u.entryUrlAria}
-                        aria-label={u.entryUrlAria}
-                      />
-                      {item.meta.entryUrlOverride !== undefined ? (
-                        <button
-                          type="button"
-                          className="icon-btn cv-item-revert"
-                          onClick={() => onSetEntryUrl("")}
-                          title={u.revertToSourceHint}
-                          aria-label={u.revertToSource}
-                        >
-                          ↺
-                        </button>
-                      ) : null}
-                    </div>
-                  ) : null}
+                  {linkField}
                   {datesEditable ? (
                     <div className="cv-item-dates">
                       <input
@@ -872,6 +922,14 @@ export default function ItemRow({
         ) : (
           <div className="cv-item-title">{title}</div>
         )}
+        {/* Awards, and any entry whose whole line the owner rewrote, have no
+            structured panel to hold the link — give it one of its own. */}
+        {canEditText && !structuredPanelShown && linkField ? (
+          <details className="cv-item-details">
+            <summary>{u.editDetails}</summary>
+            <div className="cv-item-details-body">{linkField}</div>
+          </details>
+        ) : null}
         {isCitation ? (
           <div className="cv-item-meta">
             <span>{year}</span>
