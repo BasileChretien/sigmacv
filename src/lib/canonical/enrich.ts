@@ -575,24 +575,27 @@ async function lookupDataLinks(
  * concurrency-limited, fail-soft and immutable — new finds merge with the
  * carried links; a miss never removes one.
  *
- * Every work the pass EXAMINES is stamped `meta.dataLinksCheckedAt = now`,
- * whether the lookup found anything or not — a work Europe PMC never indexed
- * and Crossref has no relation for is still a checked work, not an unchecked
- * one. Without this a permanent miss stayed "unchecked" forever (no
- * `dataLinks`/`hasDataStatement` to show for it) and was re-queried every
- * sync, and a CV with more than {@link DATA_LINKS_MAX_CHECK} such works never
- * finished covering its tail. Never-checked works (no `dataLinksCheckedAt`)
- * go first; the remainder is ordered oldest-checked-first, so the budget
- * rotates through the whole CV over successive syncs instead of re-querying
- * the same head every time. Returns the original CV when nothing changed
- * (including the timestamp — i.e. there was nothing to check).
+ * Every work the pass EXAMINES is stamped `meta.dataLinksTriedAt = now`, and one
+ * whose lookups ALL completed is stamped `meta.dataLinksCheckedAt` as well —
+ * a work Europe PMC never indexed and Crossref has no relation for is a checked
+ * work, not an unchecked one. Without a stamp a permanent miss stayed
+ * "unchecked" forever (no `dataLinks`/`hasDataStatement` to show for it), was
+ * re-queried every sync, and a CV with more than {@link DATA_LINKS_MAX_CHECK}
+ * such works never finished covering its tail. Works never examined (neither
+ * stamp) go first; the remainder is ordered oldest-ATTEMPT-first, so the budget
+ * rotates through the whole CV over successive syncs instead of re-querying the
+ * same head every time. Returns the original CV only when there was nothing to
+ * examine: an examined work always carries at least a fresh attempt stamp.
  *
  * Two guards keep a dead upstream from stalling the sync (2026-09-07 incident):
  * the pass runs under {@link ENRICH_PASS_BUDGET_MS}, and Europe PMC's
  * data-links endpoint is circuit-broken for the rest of the pass after
  * {@link DATA_LINKS_BREAKER_THRESHOLD} consecutive failures. A work whose
- * data-links lookup failed or was skipped is NOT stamped (only fully-completed
- * lookups are), so the rotation retries it next sync.
+ * data-links lookup failed or was skipped is not CHECKED (only a fully-completed
+ * lookup is), so the rotation retries it next sync — but it IS stamped as tried
+ * (`meta.dataLinksTriedAt`), which is what the rotation orders on: without that,
+ * a work failing on every call would hold the head of the queue for ever and the
+ * tail would never be reached (the failure that stalled the OA.Works pass).
  */
 export async function enrichCvWithDataLinks(
   cv: CanonicalCv,
@@ -604,7 +607,15 @@ export async function enrichCvWithDataLinks(
     section.items.forEach((item, i) => {
       const doi = item.csl?.DOI;
       if (!doi || isHidden(item)) return;
-      candidates.push({ s, i, doi, pmid: item.meta.pmid, checkedAt: item.meta.dataLinksCheckedAt });
+      candidates.push({
+        s,
+        i,
+        doi,
+        pmid: item.meta.pmid,
+        // The rotation reads the last ATTEMPT, which is never older than the last
+        // completed check.
+        checkedAt: item.meta.dataLinksTriedAt ?? item.meta.dataLinksCheckedAt,
+      });
     });
   });
   const targets = rotationQueue(candidates, DATA_LINKS_MAX_CHECK);
@@ -635,9 +646,14 @@ export async function enrichCvWithDataLinks(
         next = { ...next, meta: { ...next.meta, hasDataStatement: find.hasData } };
       }
       if (find.pmid && !item.meta.pmid) next = { ...next, meta: { ...next.meta, pmid: find.pmid } };
-      // Only a work whose lookups ALL completed is stamped; one whose data-links
-      // call failed or was skipped by the open breaker stays "unchecked" so the
-      // rotation retries it next sync (its other finds are still kept).
+      // Every examined work is stamped as TRIED — a failed or breaker-skipped
+      // lookup included — because that is what the rotation orders on.
+      if (next.meta.dataLinksTriedAt !== now) {
+        next = { ...next, meta: { ...next.meta, dataLinksTriedAt: now } };
+      }
+      // Only a work whose lookups ALL completed is CHECKED; one whose data-links
+      // call failed or was skipped by the open breaker is asked again on a later
+      // sync (its other finds are still kept), just not before everything else.
       if (find.complete && next.meta.dataLinksCheckedAt !== now) {
         next = { ...next, meta: { ...next.meta, dataLinksCheckedAt: now } };
       }

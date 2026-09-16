@@ -1015,8 +1015,10 @@ describe("enrichCvWithDataLinks — Europe PMC data-links circuit breaker", () =
 
     const items = out.sections[0]!.items;
     for (const item of items.slice(0, 8)) {
-      // Nothing is known about their data links → NOT stamped (retried next sync)…
+      // Nothing is known about their data links → not CHECKED (retried next sync)…
       expect(item.meta.dataLinksCheckedAt).toBeUndefined();
+      // …but the attempt IS stamped, so they do not hold the head of the rotation.
+      expect(item.meta.dataLinksTriedAt).toBe(NOW);
       // …but what the other lookups found is kept.
       expect(item.meta.pmid).toMatch(/^1\d$/);
       expect(item.meta.hasDataStatement).toBe(true);
@@ -1051,19 +1053,56 @@ describe("enrichCvWithDataLinks — Europe PMC data-links circuit breaker", () =
     expect(mocks.fetchEuropePmcDataLinks).toHaveBeenCalledTimes(7);
     expect(logger.warn).not.toHaveBeenCalled();
     const stamped = out.sections[0]!.items.map((it) => it.meta.dataLinksCheckedAt === NOW);
-    // Only the works whose data-links call actually ANSWERED are stamped.
+    // Only the works whose data-links call actually ANSWERED are checked…
     expect(stamped).toEqual([false, false, true, false, false, true, true]);
+    // …while every examined work is stamped as tried.
+    expect(out.sections[0]!.items.map((it) => it.meta.dataLinksTriedAt === NOW)).toEqual(
+      Array.from({ length: 7 }, () => true),
+    );
   });
 
-  it("a single failed data-links call leaves that work unstamped and keeps the CV otherwise unchanged", async () => {
+  it("a single failed data-links call leaves that work unchecked, stamped as tried, and changes nothing else", async () => {
     mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
     mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
     mocks.fetchEuropePmcDataLinks.mockResolvedValue(null);
     const withPmid = { ...pub("W1", csl({ DOI: "10.1/x" })), meta: { pmid: "333" } };
     const cv = makeCv([withPmid]);
-    // Nothing found and nothing stamped → the very same CV object comes back.
-    expect(await enrichCvWithDataLinks(cv, "ci@example.org", NOW)).toBe(cv);
+    const out = await enrichCvWithDataLinks(cv, "ci@example.org", NOW);
+    const item = out.sections[0]!.items[0]!;
+    // Nothing was found and the lookup did not complete: not checked, but tried —
+    // the attempt is the only change, and it is what moves the work down the queue.
+    expect(item.meta.dataLinksCheckedAt).toBeUndefined();
+    expect(item.meta.dataLinksTriedAt).toBe(NOW);
+    expect(item.meta.dataLinks).toBeUndefined();
+    expect(item.meta.pmid).toBe("333");
     expect(logger.warn).not.toHaveBeenCalled();
+  });
+
+  it("orders by the last ATTEMPT, so a work answered long ago that now fails keeps moving back", async () => {
+    mocks.fetchCrossrefDataLinks.mockResolvedValue([]);
+    mocks.fetchEuropePmcByDoi.mockResolvedValue(null);
+    const cv = makeCv([
+      // Answered in 2020, tried again (and failed) in 2026: the stale ANSWER date
+      // must not put it ahead of a work waiting since 2021.
+      {
+        ...pub("W1", csl({ DOI: "10.1/failing" })),
+        meta: {
+          dataLinksCheckedAt: "2020-01-01T00:00:00.000Z",
+          dataLinksTriedAt: "2026-09-01T00:00:00.000Z",
+        },
+      },
+      {
+        ...pub("W2", csl({ DOI: "10.1/waiting" })),
+        meta: { dataLinksCheckedAt: "2021-01-01T00:00:00.000Z" },
+      },
+      { ...pub("W3", csl({ DOI: "10.1/never" })), meta: {} },
+    ]);
+    await enrichCvWithDataLinks(cv, "ci@example.org", NOW);
+    expect(mocks.fetchEuropePmcByDoi.mock.calls.map((c) => c[0])).toEqual([
+      "10.1/never",
+      "10.1/waiting",
+      "10.1/failing",
+    ]);
   });
 });
 
@@ -1088,9 +1127,11 @@ describe("per-pass time budget (ENRICH_PASS_BUDGET_MS)", () => {
     expect(mocks.fetchEuropePmcByDoi).toHaveBeenCalledTimes(1);
     const items = out.sections[0]!.items;
     expect(items[0]!.meta.dataLinksCheckedAt).toBe(NOW);
+    expect(items[0]!.meta.dataLinksTriedAt).toBe(NOW);
     for (const k of [1, 2, 3]) {
       expect(items[k]).toBe(cv.sections[0]!.items[k]);
       expect(items[k]!.meta.dataLinksCheckedAt).toBeUndefined();
+      expect(items[k]!.meta.dataLinksTriedAt).toBeUndefined();
     }
     expect(logger.info).toHaveBeenCalledTimes(1);
     expect(logger.info).toHaveBeenCalledWith("enrich.pass_budget_exhausted", {
