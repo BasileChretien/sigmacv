@@ -252,10 +252,6 @@ describe("Zenodo", () => {
               links: { self_html: "https://zenodo.org/records/123456" },
             },
             {
-              id: "7",
-              metadata: { access_right: "restricted", doi: "10.1111/BJH.17863", ...publication },
-            },
-            {
               id: 8,
               metadata: { access_right: "open", ...publication, ...same("isVersionOf") },
               files: [],
@@ -299,14 +295,6 @@ describe("Zenodo", () => {
         },
         {
           source: "zenodo",
-          id: "7",
-          url: "https://zenodo.org/records/7",
-          hasFile: false,
-          name: "Zenodo",
-          recorded: undefined,
-        },
-        {
-          source: "zenodo",
           id: "8",
           url: "https://zenodo.org/records/8",
           hasFile: false,
@@ -329,7 +317,32 @@ describe("Zenodo", () => {
     );
   });
 
-  it("answers none for a dataset alone, failed on a 429 or a shapeless body", async () => {
+  it("finds a restricted record by its own DOI as a copy without a file; none for a dataset alone; failed on a 429 or a shapeless body", async () => {
+    stub(
+      json({
+        hits: {
+          hits: [
+            {
+              id: "7",
+              metadata: { access_right: "restricted", doi: "10.1111/BJH.17863", ...publication },
+            },
+          ],
+        },
+      }),
+    );
+    expect(await lookupZenodoCopy(DOI)).toEqual({
+      status: "found",
+      copies: [
+        {
+          source: "zenodo",
+          id: "7",
+          url: "https://zenodo.org/records/7",
+          hasFile: false,
+          name: "Zenodo",
+          recorded: undefined,
+        },
+      ],
+    });
     stub(
       json({
         hits: {
