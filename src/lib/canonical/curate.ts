@@ -397,8 +397,17 @@ export function applyPreset(cv: CanonicalCv, id: string): CanonicalCv {
   const order = preset.sectionOrder ?? [];
   const hasSavedOrder = order.length > 0;
   const orderIndex = new Map(order.map((sid, i) => [sid, i]));
+  // A section the view never saw: a PROSE one was created by a layout applied
+  // after the view was saved (its heading is that layout's), so the view hides it;
+  // an ITEM section (a data section a later sync added) keeps its visibility.
+  const knowsAny = Object.keys(preset.sectionVisibility).length > 0;
   const sections = cv.sections.map((s) => {
-    const visible = s.id in preset.sectionVisibility ? preset.sectionVisibility[s.id]! : s.visible;
+    const visible =
+      s.id in preset.sectionVisibility
+        ? preset.sectionVisibility[s.id]!
+        : knowsAny && isProseSectionType(s.type)
+          ? false
+          : s.visible;
     if (!hasSavedOrder) return { ...s, visible };
     return { ...s, visible, order: orderIndex.get(s.id) ?? order.length + s.order };
   });
