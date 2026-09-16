@@ -26,6 +26,8 @@ export type GuideBlock =
   | { type: "h3"; text: string }
   | { type: "ul"; items: string[] }
   | { type: "ol"; items: string[] }
+  /** External references, e.g. a funder's official instructions and template. */
+  | { type: "links"; items: { label: string; href: string }[] }
   | { type: "cta"; label: string; href: string };
 
 export interface GuideFaqItem {
@@ -186,6 +188,8 @@ export function guideWordCount(guide: Guide): number {
       words += countWords(block.text);
     } else if (block.type === "ul" || block.type === "ol") {
       for (const item of block.items) words += countWords(item);
+    } else if (block.type === "links") {
+      for (const item of block.items) words += countWords(item.label);
     } else if (block.type === "cta") {
       words += countWords(block.label);
     }

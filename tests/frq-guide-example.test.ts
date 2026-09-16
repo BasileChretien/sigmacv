@@ -6,16 +6,27 @@ import { EXAMPLES_CHROME, examplesChrome, fillChrome } from "@/lib/i18n/examples
 import { localizeContentHref } from "@/lib/seo";
 
 /**
- * The Fonds de recherche du Québec "CV descriptif" — the guide and the French
+ * The Fonds de recherche du Québec "CV descriptif": the guide and the French
  * example. The FRQ's own headings (July 2025 FR instructions) are what an
  * applicant must reproduce, so they are held verbatim in every locale of the
- * guide and as the three section titles of the example.
+ * guide and as the three section titles of the example. Both pages link the
+ * official documents and are written without the usual machine tells (dashes).
  */
 const FRQ_HEADINGS = [
   "Première section : Parcours et compétences de la personne candidate",
   "Deuxième section : Contributions et expériences les plus importantes",
   "Troisième section : Activités de supervision et de mentorat",
 ] as const;
+
+/** Official hosts the two pages may link to. */
+const OFFICIAL_HOSTS = [
+  "frq.gouv.qc.ca",
+  "frqnet.frq.gouv.qc.ca",
+  "cihr-irsc.gc.ca",
+  "sshrc-crsh.canada.ca",
+];
+
+const DASHES = /[–—]/;
 
 describe("the CV-FRQ guide", () => {
   it("exists in every locale and quotes the FRQ's three headings verbatim", () => {
@@ -38,6 +49,32 @@ describe("the CV-FRQ guide", () => {
     }
   });
 
+  it("links the official FRQ and Tri-agency documents in every locale, French readers to the French ones", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const guide = getGuide("frq-narrative-cv", loc)!;
+      const links = guide.blocks.find((b) => b.type === "links");
+      expect(links, loc).toBeDefined();
+      if (!links || links.type !== "links") return;
+      expect(links.items.length).toBeGreaterThanOrEqual(5);
+      for (const { label, href } of links.items) {
+        expect(label.trim().length, loc).toBeGreaterThan(0);
+        const host = new URL(href).host;
+        expect(OFFICIAL_HOSTS, `${loc} ${href}`).toContain(host);
+      }
+      const hrefs = links.items.map((l) => l.href).join(" ");
+      expect(hrefs, loc).toContain("cv-frq_instructions");
+      expect(hrefs, loc).toMatch(/cihr-irsc\.gc\.ca|sshrc-crsh\.canada\.ca/);
+      if (loc === "fr-FR") {
+        expect(hrefs).toContain("https://frq.gouv.qc.ca/cv-frq/");
+        expect(hrefs).toContain("CV-FRQ_modele.docx");
+        expect(hrefs).toContain("cihr-irsc.gc.ca/f/");
+      } else {
+        expect(hrefs).toContain("https://frq.gouv.qc.ca/en/frq-cv/");
+        expect(hrefs).toContain("CV-FRQ_modele_EN.docx");
+      }
+    }
+  });
+
   it("states the two page limits and the ten-contribution cap, and never recommends a metric", () => {
     for (const loc of ["en-US", "fr-FR"] as const) {
       const guide = getGuide("frq-narrative-cv", loc)!;
@@ -49,6 +86,13 @@ describe("the CV-FRQ guide", () => {
       const metricsFaq = guide.faq!.find((f) => /h-index|indice h/i.test(f.q))!;
       expect(metricsFaq, loc).toBeDefined();
       expect(metricsFaq.a, loc).toMatch(/do not ask|ne les demandent pas/i);
+    }
+  });
+
+  it("is written without em or en dashes in any locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const guide = getGuide("frq-narrative-cv", loc)!;
+      expect(JSON.stringify(guide), loc).not.toMatch(DASHES);
     }
   });
 
@@ -70,8 +114,8 @@ describe("the French CV-FRQ example", () => {
     expect(contributions.length).toBeLessThanOrEqual(10);
     contributions.forEach((item, i) => {
       expect(item, `contribution ${i + 1}`).toMatch(new RegExp(`^${i + 1}\\. `));
-      // "(2021-2023 · clientèles A et B)" — a period and an A/B/C audience.
-      expect(item, `contribution ${i + 1} period`).toMatch(/\(20\d\d(-(20\d\d|en cours))?/);
+      // "(2021 à 2023 · clientèles A et B)": a period and an A/B/C audience.
+      expect(item, `contribution ${i + 1} period`).toMatch(/\(20\d\d( à (20\d\d|aujourd'hui))?/);
       expect(item, `contribution ${i + 1} audience`).toMatch(/clientèles? [ABC]/);
     });
   });
@@ -83,13 +127,26 @@ describe("the French CV-FRQ example", () => {
     expect(blob).toContain("Nguyen, T.-A.*");
   });
 
-  it("is entirely fabricated: every DOI uses the 10.0000 test prefix and the disclaimers say so", () => {
+  it("is entirely fabricated: every DOI uses the 10.0000 test prefix, regulatory events are tagged fictional", () => {
     const blob = JSON.stringify(example);
     const dois = blob.match(/10\.\d{4,}\/[^\s"),]+/g) ?? [];
     expect(dois.length).toBeGreaterThan(5);
     for (const doi of dois) expect(doi).toMatch(/^10\.0000\//);
     expect(example.person.affiliation).toContain("fictive");
     expect(example.intro.join(" ")).toContain("Aucun indicateur n'est inventé");
+    // Real regulators appear only next to an explicit fiction tag.
+    for (const item of example.sections.flatMap((s) => s.items)) {
+      if (/Santé Canada|FDA/.test(item)) expect(item).toMatch(/événements? fictifs?/);
+    }
+    expect(blob).not.toContain("Protégez-vous");
+  });
+
+  it("lists the official documents it follows, and is written without dashes", () => {
+    expect(example.sources!.length).toBeGreaterThanOrEqual(4);
+    const external = example.sources!.filter((s) => !s.href.startsWith("/"));
+    for (const { href } of external) expect(OFFICIAL_HOSTS).toContain(new URL(href).host);
+    expect(example.sources!.some((s) => s.href === "/fr/guides/frq-narrative-cv")).toBe(true);
+    expect(JSON.stringify(example)).not.toMatch(DASHES);
   });
 
   it("keeps one URL whatever the UI locale", () => {

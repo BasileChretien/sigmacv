@@ -86,6 +86,25 @@ export default function ExamplePage({ example }: { example: CvExample }) {
           </p>
         ))}
 
+        {example.sources && example.sources.length > 0 ? (
+          <section className="example-sources">
+            <h2>{chrome.sourcesHeading}</h2>
+            <ul className="guide-links">
+              {example.sources.map((s) => (
+                <li key={s.href}>
+                  {s.href.startsWith("/") ? (
+                    <Link href={s.href}>{s.label}</Link>
+                  ) : (
+                    <a href={s.href} target="_blank" rel="noopener noreferrer">
+                      {s.label}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
         <p className="example-disclaimer muted">
           <strong>{chrome.disclaimerLead}</strong>{" "}
           {fillChrome(chrome.disclaimerBody, { name: example.person.name })}

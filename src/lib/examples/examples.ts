@@ -57,6 +57,8 @@ export interface ExampleContent {
   /** Replaces the generated "field · stage · citations · template" byline when
    *  the example's language needs its own wording (the meta labels are English). */
   byline?: string;
+  /** Official documents the example follows (funder instructions, template), shown under the intro. */
+  sources?: readonly { label: string; href: string }[];
   sections: ExampleSection[];
 }
 

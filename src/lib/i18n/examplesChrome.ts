@@ -22,6 +22,8 @@ export interface ExamplesChrome {
   buildCta: string;
   relatedHeading: string;
   allExamples: string;
+  /** Heading of the official-documents list an example may carry. */
+  sourcesHeading: string;
 }
 
 export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
@@ -38,6 +40,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "Build your academic CV free",
     relatedHeading: "Related",
     allExamples: "All examples",
+    sourcesHeading: "Official documents this example follows",
   },
   "zh-CN": {
     disclaimerLead: "示例说明。",
@@ -52,6 +55,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "免费构建您的学术简历",
     relatedHeading: "相关内容",
     allExamples: "全部示例",
+    sourcesHeading: "本示例遵循的官方文件",
   },
   "es-ES": {
     disclaimerLead: "Ejemplo ilustrativo.",
@@ -66,6 +70,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "Construye tu CV académico gratis",
     relatedHeading: "Relacionado",
     allExamples: "Todos los ejemplos",
+    sourcesHeading: "Documentos oficiales que sigue este ejemplo",
   },
   "fr-FR": {
     disclaimerLead: "Exemple illustratif.",
@@ -80,6 +85,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "Bâtir votre CV académique gratuitement",
     relatedHeading: "Pour aller plus loin",
     allExamples: "Tous les exemples",
+    sourcesHeading: "Documents officiels suivis par cet exemple",
   },
   "de-DE": {
     disclaimerLead: "Anschauungsbeispiel.",
@@ -94,6 +100,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "Akademischen Lebenslauf kostenlos erstellen",
     relatedHeading: "Verwandt",
     allExamples: "Alle Beispiele",
+    sourcesHeading: "Offizielle Dokumente, denen dieses Beispiel folgt",
   },
   "ja-JP": {
     disclaimerLead: "説明用の例。",
@@ -108,6 +115,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "学術 CV を無料で作成",
     relatedHeading: "関連",
     allExamples: "すべての例",
+    sourcesHeading: "この例が従う公式文書",
   },
   "pt-BR": {
     disclaimerLead: "Exemplo ilustrativo.",
@@ -122,6 +130,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "Construa seu CV acadêmico grátis",
     relatedHeading: "Relacionado",
     allExamples: "Todos os exemplos",
+    sourcesHeading: "Documentos oficiais que este exemplo segue",
   },
   "it-IT": {
     disclaimerLead: "Esempio illustrativo.",
@@ -136,6 +145,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "Costruisci il tuo CV accademico gratis",
     relatedHeading: "Correlati",
     allExamples: "Tutti gli esempi",
+    sourcesHeading: "Documenti ufficiali seguiti da questo esempio",
   },
   "ko-KR": {
     disclaimerLead: "예시용 자료.",
@@ -150,6 +160,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "학술 CV 무료로 만들기",
     relatedHeading: "관련",
     allExamples: "모든 예시",
+    sourcesHeading: "이 예시가 따르는 공식 문서",
   },
   "ru-RU": {
     disclaimerLead: "Иллюстративный пример.",
@@ -164,6 +175,7 @@ export const EXAMPLES_CHROME: Record<Locale, ExamplesChrome> = {
     buildCta: "Собрать академическое резюме бесплатно",
     relatedHeading: "См. также",
     allExamples: "Все примеры",
+    sourcesHeading: "Официальные документы, которым следует этот пример",
   },
 };
 

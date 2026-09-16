@@ -40,6 +40,22 @@ export function renderContentBlock(block: GuideBlock, locale: string = "en-US"):
           ))}
         </ol>
       );
+    case "links":
+      return (
+        <ul key={block.items[0]?.href} className="guide-links">
+          {block.items.map((item) => (
+            <li key={item.href}>
+              {item.href.startsWith("/") ? (
+                <Link href={localizeContentHref(item.href, locale)}>{item.label}</Link>
+              ) : (
+                <a href={item.href} target="_blank" rel="noopener noreferrer">
+                  {item.label}
+                </a>
+              )}
+            </li>
+          ))}
+        </ul>
+      );
     case "cta":
       return (
         <p key={block.label}>
