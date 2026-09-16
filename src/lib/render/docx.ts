@@ -2,6 +2,7 @@ import {
   BookmarkEnd,
   BookmarkStart,
   Document,
+  ExternalHyperlink,
   HeadingLevel,
   ImageRun,
   InternalHyperlink,
@@ -20,6 +21,7 @@ import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { authorshipCounts } from "./authorship";
 import { cvChartSvgs } from "./charts";
 import { splitSelf } from "./emphasize";
+import { safeHref } from "./escape";
 import { proseEvidence } from "./evidenceRefs";
 import { labeledContact, textHeader } from "./headerText";
 import { cvSlug } from "./html";
@@ -86,8 +88,9 @@ function chartParagraphs(cv: CanonicalCv): Paragraph[] {
 /**
  * A prose paragraph's runs: its text, with each resolved evidence reference
  * (`[[id]]`) as a "(label)" run — an internal hyperlink to the referenced entry's
- * bookmark when that entry is in this document (`bookmarkOf`), else plain text.
- * An unresolved reference is omitted.
+ * bookmark when that entry is in this document (`bookmarkOf`), an outbound
+ * hyperlink to the entry's DOI / landing page when it is off the page but has
+ * one, else plain text. An unresolved reference is omitted.
  */
 function proseRuns(
   segments: ResolvedEvidenceSegment[],
@@ -102,13 +105,19 @@ function proseRuns(
     if (!seg.resolved) continue;
     const anchor = bookmarkOf(seg.id);
     const label = `(${seg.label})`;
+    const link = anchor ? "" : safeHref(seg.url);
     runs.push(
       anchor
         ? new InternalHyperlink({
             anchor,
             children: [new TextRun({ text: label, style: "Hyperlink" })],
           })
-        : new TextRun(label),
+        : link
+          ? new ExternalHyperlink({
+              link,
+              children: [new TextRun({ text: label, style: "Hyperlink" })],
+            })
+          : new TextRun(label),
     );
   }
   return runs;

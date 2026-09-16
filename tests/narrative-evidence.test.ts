@@ -52,6 +52,13 @@ describe("narrativeEvidence", () => {
     ]);
   });
 
+  it("counts a section the layout hides: the record feeds the prose, not the page", () => {
+    const c = cv([section("publications", [item("p1"), item("p2")], false)]);
+    expect(narrativeEvidence(c, "narrative-knowledge")).toEqual([
+      { type: "publications", count: 2 },
+    ]);
+  });
+
   it("maps each module to its own evidence sections", () => {
     const c = cv([
       section("supervision", [item("s1"), item("s2")]),
@@ -75,9 +82,9 @@ describe("narrativeEvidence", () => {
     ]);
   });
 
-  it("ignores hidden sections and returns [] for non-narrative types", () => {
-    const c = cv([section("patents", [item("pt1")], false)]); // whole section hidden
-    expect(narrativeEvidence(c, "narrative-society")).toEqual([]);
+  it("counts a hidden section (it is on the record) and returns [] for non-narrative types", () => {
+    const c = cv([section("patents", [item("pt1")], false)]); // whole section hidden by a layout
+    expect(narrativeEvidence(c, "narrative-society")).toEqual([{ type: "patents", count: 1 }]);
     expect(narrativeEvidence(c, "statement")).toEqual([]);
     expect(narrativeEvidence(c, "publications")).toEqual([]);
   });

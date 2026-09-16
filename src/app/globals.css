@@ -2125,6 +2125,12 @@ textarea.narrative-ai-draft {
 .section-block:hover {
   box-shadow: var(--shadow-sm);
 }
+/* The hidden overflow (for the rounded corners) would clip a popover opened
+   inside the card — the evidence picker sits at the bottom of a prose card and
+   its panel drops below the card's edge. Let the card overflow while one is open. */
+.section-block:has(.popover-panel) {
+  overflow: visible;
+}
 /* Reorderable section wrapper (Motion `Reorder.Item`). The held card lifts and
    tracks the pointer (scale + shadow via `whileDrag`) while the others spring
    into place; `position: relative` gives the lifted card its own stacking. */

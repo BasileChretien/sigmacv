@@ -4,7 +4,7 @@ import {
   superviseeNoun,
   supervisionRoleLabel,
 } from "@/lib/i18n/render";
-import { visibleItems, visibleSections } from "./curate";
+import { orderedSections, visibleItems } from "./curate";
 import {
   hasStructuredSupervision,
   itemInstitution,
@@ -57,7 +57,9 @@ export function narrativeEvidence(cv: CanonicalCv, type: CvSectionType): Narrati
   const relevant = EVIDENCE_SECTIONS[type];
   if (!relevant) return [];
   const counts = new Map<CvSectionType, number>();
-  for (const section of visibleSections(cv)) {
+  // Every list section of the record, shown or not: a narrative layout (FRQ, R4RI)
+  // hides the lists, and these counts are what the prose draws on.
+  for (const section of orderedSections(cv)) {
     if (relevant.includes(section.type)) {
       counts.set(section.type, (counts.get(section.type) ?? 0) + visibleItems(section).length);
     }
@@ -97,7 +99,7 @@ export function narrativeEvidenceEntries(
   const relevant = EVIDENCE_SECTIONS[type];
   if (!relevant) return [];
   const byType = new Map<CvSectionType, NarrativeEvidenceEntry[]>();
-  for (const section of visibleSections(cv)) {
+  for (const section of orderedSections(cv)) {
     if (!relevant.includes(section.type)) continue;
     const list = byType.get(section.type) ?? [];
     for (const it of visibleItems(section)) {

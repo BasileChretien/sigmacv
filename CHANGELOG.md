@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **"Cite one of my entries" had nothing to offer under the CV-FRQ layouts, and its panel was cut off.** A narrative layout hides the publication, dataset and supervision lists and keeps only the prose, and the picker only offered entries from sections on the page, so under CV-FRQ it showed "No matching entry" and a pasted reference would have been dropped at export. Your entries are now citable whether or not their list is on the page: a reference to an entry the document lists still links to it on the page; a reference to one it does not list prints the entry's short reference and links to its DOI or record page instead (HTML, PDF, DOCX and Markdown; LaTeX prints the label). The picker offers the whole record, the entries that fit the section first. The panel also opened inside a card that clips its overflow, so a long list was cut to its first line; the card lets it through now.
+
 ### Added
 
 - **SigmaCV now checks whether a closed paper is already in a repository — HAL, Europe PMC, an OpenAIRE-harvested repository, Zenodo.** OpenAlex, whose word "no open copy found" was, misses deposits routinely: on one CV, 17 of 51 closed articles had a HAL record it did not know — 3 with a file (one since 2021), 14 notices without one — and Unpaywall saw none of them either. The owner's sync now asks the repositories themselves, one article at a time (the closed ones first, then those open at the publisher only), in that order, stopping at the first file (capped, budgeted, fail-soft, retried behind the never-examined works, Zenodo paced at its guest limit). A copy with a file anywhere means the paper is open in a repository: it leaves both lists of the Open access tab. A HAL notice without a file changes the HAL action to "Add the accepted manuscript to your HAL notice hal-…", linking the notice, with a note — a fresh deposit would duplicate it. Owner-only, stripped from every public surface like the rest of the worklist's inputs.

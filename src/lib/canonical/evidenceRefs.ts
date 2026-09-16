@@ -1,8 +1,9 @@
-import { visibleItems, visibleSections } from "./curate";
+import { orderedSections, visibleItems } from "./curate";
 import { narrativeEvidenceSectionTypes } from "./narrativeEvidence";
 import {
   isProseSectionType,
   itemDisplayText,
+  itemEntryUrl,
   type CanonicalCv,
   type CvItem,
   type CvSection,
@@ -26,10 +27,19 @@ import { stripInlineMarkup } from "@/lib/text/markup";
  * `\cvevidence…` macro in LaTeX and `[label](#item-…)` in Markdown.
  *
  * Resolution respects curation: a reference resolves ONLY to an entry that is
- * actually on the rendered CV — in a visible section, not hidden, not "not mine",
- * not excluded from the current view. Otherwise it is UNRESOLVED: the evidence
- * was removed, so the claim must not link to it. Exports drop an unresolved
- * token silently (never show it raw); the editor + CV-health panel surface it.
+ * on the researcher's RECORD — included, not "not mine", not excluded from the
+ * current view. Otherwise it is UNRESOLVED: the evidence was removed, so the
+ * claim must not link to it. Exports drop an unresolved token silently (never
+ * show it raw); the editor + CV-health panel surface it.
+ *
+ * Whether the entry's SECTION is on the page is a separate question. A narrative
+ * layout such as the FRQ CV descriptif hides every list and keeps only the prose,
+ * yet its whole point is to cite one's own works from that prose. So a resolved
+ * reference is either LISTED (its entry is printed by this render, so the
+ * reference links to the entry on the page) or not (the entry is on the record
+ * but not on the page, so the reference prints the entry's short label and, when
+ * the entry has one, links to its DOI or landing page instead). Both are
+ * checkable by a reviewer; only an entry the researcher removed is not.
  */
 
 /** Max reference tokens honoured per body (the rest resolve as unresolved). */
@@ -101,35 +111,66 @@ export function evidenceRefIds(body: string): string[] {
 
 export type ResolvedEvidenceSegment =
   | { kind: "text"; text: string }
-  | { kind: "ref"; id: string; resolved: true; item: CvItem; section: CvSection; label: string }
+  | {
+      kind: "ref";
+      id: string;
+      resolved: true;
+      item: CvItem;
+      section: CvSection;
+      label: string;
+      /** The entry is printed by this render (see `EvidenceResolveOptions.listedIds`),
+       *  so the reference can link to it on the page. */
+      listed: boolean;
+      /** The entry's own link (DOI or landing page) for a reference whose entry is
+       *  not on the page; undefined when the entry carries none. Unvalidated —
+       *  renderers pass it through `safeHref`. */
+      url?: string;
+    }
   | { kind: "ref"; id: string; resolved: false };
 
 export interface EvidenceResolveOptions {
   /**
    * The ids a renderer actually lists (after its own selection — per-view
-   * exclusions, the "Selected publications" cap, peer-reviewed-only …). When
-   * given, a reference also has to be in this set to resolve, so an export never
-   * links to an anchor it did not emit.
+   * exclusions, the "Selected publications" cap, peer-reviewed-only …). A
+   * resolved reference is `listed` only when its id is in this set, so an export
+   * never links to an anchor it did not emit; a reference to an entry on the
+   * record but off the page still resolves, and prints the label instead.
+   * Omitted (the editor): every resolved reference counts as listed.
    */
   listedIds?: ReadonlySet<string>;
 }
 
-/** id → (item, section) for every entry currently ON the CV. */
-function evidenceIndex(
-  cv: CanonicalCv,
-  opts?: EvidenceResolveOptions,
-): Map<string, { item: CvItem; section: CvSection }> {
+/**
+ * id → (item, section) for every entry on the researcher's RECORD: the included,
+ * not-"not mine", not view-excluded items of every list section, whether or not
+ * that section is shown by the current layout (a hidden section is off the page,
+ * not off the record — see the module note).
+ */
+function evidenceIndex(cv: CanonicalCv): Map<string, { item: CvItem; section: CvSection }> {
   const index = new Map<string, { item: CvItem; section: CvSection }>();
-  for (const section of visibleSections(cv)) {
+  for (const section of orderedSections(cv)) {
     if (isProseSectionType(section.type)) continue;
     const excluded = new Set(cv.display.excludedItems?.[section.id] ?? []);
     for (const item of visibleItems(section)) {
       if (excluded.has(item.id)) continue;
-      if (opts?.listedIds && !opts.listedIds.has(item.id)) continue;
       index.set(item.id, { item, section });
     }
   }
   return index;
+}
+
+/**
+ * The link a reference prints when its entry is not on the page: the entry's own
+ * link (ORCID's URL for the record, or the owner's edit of it), else its DOI.
+ * A bare DOI ("10.…") becomes a doi.org URL; a DOI already stored as a URL is
+ * kept. Unvalidated here — the renderers pass it through `safeHref`.
+ */
+export function evidenceUrl(item: CvItem): string | undefined {
+  const own = itemEntryUrl(item)?.trim();
+  if (own) return own;
+  const doi = item.meta.doi?.trim().replace(/^doi:\s*/i, "");
+  if (!doi) return undefined;
+  return /^https?:\/\//i.test(doi) ? doi : `https://doi.org/${doi}`;
 }
 
 /**
@@ -140,16 +181,24 @@ export function evidenceResolver(
   cv: CanonicalCv,
   opts?: EvidenceResolveOptions,
 ): (body: string) => ResolvedEvidenceSegment[] {
-  const index = evidenceIndex(cv, opts);
+  const index = evidenceIndex(cv);
+  const listedIds = opts?.listedIds;
   return (body) => {
     let seen = 0;
     const segments = parseEvidenceRefs(body).map((seg): ResolvedEvidenceSegment => {
       if (seg.kind === "text") return seg;
       seen += 1;
       const hit = seen <= EVIDENCE_REF_MAX ? index.get(seg.id) : undefined;
-      return hit
-        ? { kind: "ref", id: seg.id, resolved: true, ...hit, label: evidenceRefLabel(hit.item) }
-        : { kind: "ref", id: seg.id, resolved: false };
+      if (!hit) return { kind: "ref", id: seg.id, resolved: false };
+      return {
+        kind: "ref",
+        id: seg.id,
+        resolved: true,
+        ...hit,
+        label: evidenceRefLabel(hit.item),
+        listed: !listedIds || listedIds.has(seg.id),
+        url: evidenceUrl(hit.item),
+      };
     });
     return compactUnresolved(segments);
   };
@@ -236,28 +285,35 @@ export interface EvidenceCandidate {
   title: string;
   sectionType: CvSectionType;
   sectionTitle: string;
+  /** From a section that supports this module (publications for "knowledge", …);
+   *  those come first, the rest of the record after them. */
+  relevant: boolean;
 }
 
 /**
- * The entries the editor's "Insert evidence" picker offers for a prose section:
- * the entries of the sections that support a narrative module (publications /
- * datasets for "contributions to knowledge", supervision / teaching for
- * "individuals", …), or EVERY listed entry for a free statement. Only what is
- * actually on the CV (visible + not hidden), so a picked reference always resolves.
+ * The entries the editor's "Cite one of my entries" picker offers for a prose
+ * section: every entry on the record (see `evidenceIndex` — a section the layout
+ * hides is still there to cite), the ones from the sections that support this
+ * module first (publications / datasets for "contributions to knowledge",
+ * supervision / teaching for "individuals", …), then everything else. A free
+ * statement has no preferred sections: everything is relevant. A picked reference
+ * always resolves.
  */
 export function evidenceCandidates(cv: CanonicalCv, type: CvSectionType): EvidenceCandidate[] {
-  const relevant = narrativeEvidenceSectionTypes(type);
-  const out: EvidenceCandidate[] = [];
+  const preferred = narrativeEvidenceSectionTypes(type);
+  const first: EvidenceCandidate[] = [];
+  const rest: EvidenceCandidate[] = [];
   for (const { item, section } of evidenceIndex(cv).values()) {
-    if (relevant && !relevant.includes(section.type)) continue;
+    const relevant = !preferred || preferred.includes(section.type);
     const raw = item.displayTextOverride ?? item.csl?.title ?? item.displayText ?? item.id;
-    out.push({
+    (relevant ? first : rest).push({
       id: item.id,
       label: evidenceRefLabel(item),
       title: stripInlineMarkup(raw).trim() || item.id,
       sectionType: section.type,
       sectionTitle: section.title,
+      relevant,
     });
   }
-  return out;
+  return [...first, ...rest];
 }
