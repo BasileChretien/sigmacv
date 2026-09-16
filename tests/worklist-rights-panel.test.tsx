@@ -106,7 +106,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     expect(text).not.toMatch(/%|\bof \d+\b/);
   });
 
-  it("prints a refusal without statement or link, and labels a rule read on a guidance page as guidance", () => {
+  it("prints a refusal without statement or link, and labels a policy document as policy text with its measures as guidance", () => {
     const cv = makeCv([
       work("W1", {
         oaIsOpen: false,
@@ -116,7 +116,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
           policyUrl: undefined,
           recordUpdated: undefined,
         },
-        // Japan's national policy is read on a guidance page (and starts with 2025).
+        // Japan's national policy is a Cabinet Office document, not a statute (and starts with 2025).
         workCountries: ["JP"],
         year: 2025,
       }),
@@ -132,10 +132,13 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     expect(screen.queryByRole("link", { name: EN.wlArchivingPolicyLink })).toBeNull();
     const statutory = rights.querySelector(".cv-worklist-rights-statutory")!;
     expect(statutory.textContent).toContain("(Japan)");
-    expect(statutory.textContent).toContain("Recorded on 2026-09-15.");
+    expect(statutory.textContent).toContain("Recorded on 2026-09-16.");
+    expect(screen.getByRole("link", { name: EN.wlStatutoryPolicyLink }).getAttribute("href")).toBe(
+      entry("JP").sourceUrl,
+    );
     expect(
       screen.getByRole("link", { name: EN.wlStatutoryGuidanceLink }).getAttribute("href"),
-    ).toBe(entry("JP").sourceUrl);
+    ).toBe(entry("JP").guidanceUrl);
     expect(screen.queryByRole("link", { name: EN.wlStatutorySourceLink })).toBeNull();
   });
 
