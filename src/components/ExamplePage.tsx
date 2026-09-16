@@ -6,7 +6,7 @@ import { examplesChrome, fillChrome } from "@/lib/i18n/examplesChrome";
 import { examplesNavLabel } from "@/lib/i18n/guidesNav";
 import { anyLandingPageStrings } from "@/lib/i18n/landingAll";
 import { serializeJsonLd } from "@/lib/jsonLd";
-import { localeHomePath, localeLandingPagePath } from "@/lib/seo";
+import { localeHomePath, localeLandingPagePath, localizeContentHref } from "@/lib/seo";
 import { absoluteUrl, SITE_URL } from "@/lib/siteUrl";
 import DocJsonLd from "./DocJsonLd";
 import SiteFooter from "./SiteFooter";
@@ -85,6 +85,25 @@ export default function ExamplePage({ example }: { example: CvExample }) {
             {para}
           </p>
         ))}
+
+        {example.sources && example.sources.length > 0 ? (
+          <section className="example-sources">
+            <h2>{chrome.sourcesHeading}</h2>
+            <ul className="guide-links">
+              {example.sources.map((s) => (
+                <li key={s.href}>
+                  {s.href.startsWith("/") ? (
+                    <Link href={localizeContentHref(s.href, locale)}>{s.label}</Link>
+                  ) : (
+                    <a href={s.href} target="_blank" rel="noopener noreferrer">
+                      {s.label}
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
         <p className="example-disclaimer muted">
           <strong>{chrome.disclaimerLead}</strong>{" "}

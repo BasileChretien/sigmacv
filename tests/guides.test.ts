@@ -25,7 +25,8 @@ function structure(blocks: GuideBlock[]): string[] {
   return blocks.map((b) => {
     if (b.type === "h2") return `h2#${b.id}`;
     if (b.type === "cta") return `cta>${b.href}`;
-    if (b.type === "ul" || b.type === "ol") return `${b.type}:${b.items.length}`;
+    if (b.type === "ul" || b.type === "ol" || b.type === "links")
+      return `${b.type}:${b.items.length}`;
     return b.type;
   });
 }
@@ -60,7 +61,9 @@ describe("guides content", () => {
           expect(b.href.length).toBeGreaterThan(0);
           expect(b.label.length).toBeGreaterThan(0);
         }
-        if (b.type === "ul" || b.type === "ol") expect(b.items.length).toBeGreaterThan(0);
+        if (b.type === "ul" || b.type === "ol" || b.type === "links") {
+          expect(b.items.length).toBeGreaterThan(0);
+        }
       }
       for (const f of g.faq ?? []) {
         expect(f.q.length).toBeGreaterThan(0);
