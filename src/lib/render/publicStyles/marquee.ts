@@ -18,6 +18,7 @@ import {
   sectionsHtml,
 } from "@/lib/render/templates/shared";
 import type { CvTemplate, TemplateTheme } from "@/lib/render/templates/types";
+import { headerSummary } from "@/lib/canonical/headerSummary";
 
 function marqueeCss(_t: TemplateTheme): string {
   return `
@@ -148,8 +149,9 @@ export const marqueeTemplate: CvTemplate = {
   key: "marquee",
   render(cv, sections, theme, opts) {
     const css = commonCss(theme) + marqueeCss(theme) + mascotBaseCss() + marqueeMascotSkin;
+    // The ribbon repeats the headline only when the header shows it.
     const tag = escapeHtml(
-      `${cv.owner.displayName || "Curriculum Vitæ"} — ${cv.owner.headline || "Curriculum Vitæ"}`,
+      `${cv.owner.displayName || "Curriculum Vitæ"} — ${headerSummary(cv).headline || "Curriculum Vitæ"}`,
     );
     const seq = Array(6).fill(`<span>${tag}</span><span class="mq-star">&#10022;</span>`).join("");
     const ribbon = `<div class="marquee" aria-hidden="true"><div class="mq-inner">${seq}${seq}</div></div>`;
