@@ -201,6 +201,8 @@ export interface UiStrings {
   departmentAria: string;
   /** Aria-label for the editable institution-name field. */
   institutionAria: string;
+  /** Aria-label + placeholder for the entry's own link (ORCID's url for the activity). */
+  entryUrlAria: string;
   editInstitutionHint: string;
   publicationYearAria: string;
   venueAria: string;
@@ -254,6 +256,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "Edit details",
     departmentAria: "Department",
     institutionAria: "Institution",
+    entryUrlAria: "Link (URL)",
     editInstitutionHint: "Edit the institution name",
     publicationYearAria: "Year",
     venueAria: "Journal / venue",
@@ -462,6 +465,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "编辑详情",
     departmentAria: "部门",
     institutionAria: "机构",
+    entryUrlAria: "链接（网址）",
     editInstitutionHint: "编辑机构名称",
     publicationYearAria: "年份",
     venueAria: "期刊 / 出处",
@@ -665,6 +669,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "Editar detalles",
     departmentAria: "Departamento",
     institutionAria: "Institución",
+    entryUrlAria: "Enlace (URL)",
     editInstitutionHint: "Editar el nombre de la institución",
     publicationYearAria: "Año",
     venueAria: "Revista / publicación",
@@ -876,6 +881,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "Modifier les détails",
     departmentAria: "Service / département",
     institutionAria: "Établissement",
+    entryUrlAria: "Lien (URL)",
     editInstitutionHint: "Modifier le nom de l'établissement",
     publicationYearAria: "Année",
     venueAria: "Revue / support",
@@ -1089,6 +1095,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "Details bearbeiten",
     departmentAria: "Abteilung",
     institutionAria: "Einrichtung",
+    entryUrlAria: "Link (URL)",
     editInstitutionHint: "Namen der Einrichtung bearbeiten",
     publicationYearAria: "Jahr",
     venueAria: "Zeitschrift / Publikationsort",
@@ -1302,6 +1309,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "詳細を編集",
     departmentAria: "部門",
     institutionAria: "所属機関",
+    entryUrlAria: "リンク（URL）",
     editInstitutionHint: "所属機関名を編集",
     publicationYearAria: "発行年",
     venueAria: "ジャーナル / 掲載媒体",
@@ -1511,6 +1519,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "Editar detalhes",
     departmentAria: "Departamento",
     institutionAria: "Instituição",
+    entryUrlAria: "Link (URL)",
     editInstitutionHint: "Editar o nome da instituição",
     publicationYearAria: "Ano",
     venueAria: "Revista / veículo",
@@ -1722,6 +1731,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "Modifica dettagli",
     departmentAria: "Dipartimento",
     institutionAria: "Istituzione",
+    entryUrlAria: "Link (URL)",
     editInstitutionHint: "Modifica il nome dell'istituzione",
     publicationYearAria: "Anno",
     venueAria: "Rivista / sede",
@@ -1934,6 +1944,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "세부 정보 편집",
     departmentAria: "부서",
     institutionAria: "기관",
+    entryUrlAria: "링크(URL)",
     editInstitutionHint: "기관 이름 편집",
     publicationYearAria: "연도",
     venueAria: "저널 / 게재처",
@@ -2143,6 +2154,7 @@ const UI_I18N: Record<Locale, UiStrings> = {
     editDetails: "Изменить детали",
     departmentAria: "Подразделение",
     institutionAria: "Организация",
+    entryUrlAria: "Ссылка (URL)",
     editInstitutionHint: "Изменить название организации",
     publicationYearAria: "Год",
     venueAria: "Журнал / издание",

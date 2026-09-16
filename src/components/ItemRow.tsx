@@ -11,6 +11,7 @@ import {
   itemDepartment,
   itemDisplayText,
   itemEffectiveYear,
+  itemEntryUrl,
   itemInstitution,
   itemRoleTitle,
   itemVenue,
@@ -206,6 +207,9 @@ interface ItemRowProps {
   /** Set/clear the institution-name override on a source-derived positions/
    *  education entry — the "Edit details" disclosure. Passing "" reverts to source. */
   onSetInstitution?: (name: string) => void;
+  /** Set/clear the entry's own LINK — the "Edit details" disclosure. Passing ""
+   *  reverts to the URL the source recorded (ORCID's url for that activity). */
+  onSetEntryUrl?: (url: string) => void;
   /** Set/replace the date-range override (an omitted `endYear` = ongoing), or
    *  clear it with `null` (revert to the source dates). */
   onSetDateRange?: (range: { startYear?: number; endYear?: number } | null) => void;
@@ -437,6 +441,7 @@ export default function ItemRow({
   onSetRole,
   onSetDepartment,
   onSetInstitution,
+  onSetEntryUrl,
   onSetDateRange,
   onSetYear,
   onSetVenue,
@@ -751,6 +756,34 @@ export default function ItemRow({
                       </button>
                     ) : null}
                   </div>
+                  {/* The entry's own link — ORCID records one per activity (a
+                      team page, a society listing). Shown beside the entry on
+                      the CV; reverts to the source URL when cleared. */}
+                  {onSetEntryUrl ? (
+                    <div className="cv-item-edit-wrap">
+                      <input
+                        className="cv-item-edit"
+                        type="url"
+                        inputMode="url"
+                        maxLength={2048}
+                        value={itemEntryUrl(item) ?? ""}
+                        onChange={(e) => onSetEntryUrl(e.target.value)}
+                        placeholder={u.entryUrlAria}
+                        aria-label={u.entryUrlAria}
+                      />
+                      {item.meta.entryUrlOverride !== undefined ? (
+                        <button
+                          type="button"
+                          className="icon-btn cv-item-revert"
+                          onClick={() => onSetEntryUrl("")}
+                          title={u.revertToSourceHint}
+                          aria-label={u.revertToSource}
+                        >
+                          ↺
+                        </button>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {datesEditable ? (
                     <div className="cv-item-dates">
                       <input

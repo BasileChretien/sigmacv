@@ -40,6 +40,7 @@ import {
   setSectionPageBreak,
   setItemDateRange,
   setItemDepartment,
+  setItemEntryUrl,
   setItemFeatured,
   setItemInView,
   setItemIncluded,
@@ -1151,6 +1152,9 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                   }
                                   onSetInstitution={(name) =>
                                     onChange(setItemInstitution(cv, section.id, item.id, name))
+                                  }
+                                  onSetEntryUrl={(url) =>
+                                    onChange(setItemEntryUrl(cv, section.id, item.id, url))
                                   }
                                   onSetDateRange={(range) =>
                                     onChange(setItemDateRange(cv, section.id, item.id, range))

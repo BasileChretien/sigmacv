@@ -1,4 +1,5 @@
 import { isHidden, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
+import { safeHref } from "@/lib/render/escape";
 
 /**
  * Project a canonical CV for PUBLIC display (the `/p/[slug]` living page).
@@ -30,6 +31,17 @@ import { isHidden, type CanonicalCv, type CvItem } from "@/lib/canonical/schema"
  * The owner's OWN data-export (`/api/account/export`) and editor preview keep the
  * full document — this projection applies only to the public page.
  */
+/**
+ * An entry link as it may be PUBLISHED: the `safeHref` form (http(s) only, any
+ * userinfo stripped), or undefined when the stored value is not a usable link.
+ * The renderers already apply `safeHref` before printing one, so this only
+ * makes the published document agree with the page it describes — the raw
+ * `.json` and every frozen snapshot included.
+ */
+function publicEntryUrl(url: string | undefined): string | undefined {
+  return safeHref(url) || undefined;
+}
+
 /** The public-facing contact block: keep only the opted-in email/phone/location
  *  (per `display.publicContact`) plus the always-public `website`, or `undefined`
  *  when nothing public-facing remains. Shared by the public projection AND the
@@ -73,6 +85,14 @@ function projectPublicContact(cv: CanonicalCv): CanonicalCv["owner"]["contact"] 
  *  - meta.coauthorOrcids: the raw co-author ORCID list, an internal JSON-LD
  *    resolution input (the public page surfaces only the resolved `knows`
  *    links, never this identifier set);
+ *  - meta.entryUrl / entryUrlOverride: not stripped but NORMALISED — see
+ *    {@link publicEntryUrl}. The stored value is free text (ORCID takes
+ *    whatever the record holder types; the editor stores the owner's field
+ *    raw so it can be typed a character at a time), and every renderer already
+ *    puts it through `safeHref`. The published document must say the same
+ *    thing the page does, so an unusable value (a `javascript:` scheme, a
+ *    half-typed string) is dropped here rather than published verbatim as part
+ *    of "the open canonical object";
  *  - meta.funders: the per-work funder ids from OpenAlex `awards[]`. Source
  *    data about the work, arguably public — but it is stored for a LATER
  *    funder join, and until that join decides what is shown nothing that could
@@ -98,6 +118,8 @@ export function stripInternalItemSignals(it: CvItem, hideSuperviseeName = false)
     reviewedAt: undefined,
     meta: {
       ...it.meta,
+      entryUrl: publicEntryUrl(it.meta.entryUrl),
+      entryUrlOverride: publicEntryUrl(it.meta.entryUrlOverride),
       reviewFlag: undefined,
       duplicateOf: undefined,
       misattribution: undefined,

@@ -789,3 +789,58 @@ describe("ItemRow — citation bibliographic overrides (year / venue)", () => {
     expect(screen.getAllByRole("button", { name: /revert/i }).length).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe("ItemRow — the entry's own Link field", () => {
+  function renderEntry(
+    over: Partial<CvItem["meta"]> = {},
+    onSetEntryUrl: (url: string) => void = noop,
+  ) {
+    render(
+      <ul>
+        <ItemRow
+          item={makeItem({
+            id: "position:orcid:1",
+            source: "orcid",
+            meta: { institution: "Nagoya University", roleTitle: "PhD candidate", ...over },
+          })}
+          locale="en-US"
+          sectionType="positions"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+          onSetRole={noop}
+          onSetInstitution={noop}
+          onSetDateRange={noop}
+          onSetEntryUrl={onSetEntryUrl}
+        />
+      </ul>,
+    );
+  }
+
+  it("shows the source link and reports edits", () => {
+    let url = "";
+    renderEntry({ entryUrl: "https://example.org/team" }, (v: string) => (url = v));
+    const field = screen.getByLabelText("Link (URL)") as HTMLInputElement;
+    expect(field.value).toBe("https://example.org/team");
+    fireEvent.change(field, { target: { value: "https://example.org/people/jane" } });
+    expect(url).toBe("https://example.org/people/jane");
+  });
+
+  it("shows the override in place of the source url, with a revert control", () => {
+    renderEntry({ entryUrl: "https://example.org/team", entryUrlOverride: "https://mine.example" });
+    expect((screen.getByLabelText("Link (URL)") as HTMLInputElement).value).toBe(
+      "https://mine.example",
+    );
+    expect(screen.getAllByRole("button", { name: /revert/i }).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("offers an empty field when the source recorded no link", () => {
+    renderEntry();
+    expect((screen.getByLabelText("Link (URL)") as HTMLInputElement).value).toBe("");
+    // Nothing to revert to yet.
+    expect(screen.queryByRole("button", { name: /revert/i })).toBeNull();
+  });
+});
