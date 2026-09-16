@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   addMonths,
+  depositElsewhereNow,
+  depositElsewhereRows,
   depositNow,
   depositReadyRows,
   isoToday,
@@ -292,5 +294,79 @@ describe("depositReadyRows", () => {
     expect(ready[0]!.row.statutory).toEqual(
       statutoryArchivingFor(["FR"], { year: 2023, type: "article-journal" }),
     );
+  });
+});
+
+describe("depositElsewhereNow / depositElsewhereRows — papers open at the publisher", () => {
+  it("takes the work's own licence as the ground for the published version, before the record or a right", () => {
+    const cc = work({ oaIsOpen: true, license: "cc-by", year: 2026 });
+    expect(depositElsewhereNow(cc, FR, TODAY)).toEqual({
+      basis: "licence",
+      version: "publishedVersion",
+    });
+    expect(
+      depositElsewhereNow({ ...cc, meta: { ...cc.meta, license: "CC-BY-NC-ND 4.0" } }, [], TODAY)
+        ?.basis,
+    ).toBe("licence");
+    // No licence: what a closed work would have — the record, or a right that has run.
+    const bronze = work({ oaIsOpen: true, oaStatus: "bronze", year: 2023 });
+    expect(depositElsewhereNow(bronze, FR, TODAY)?.basis).toBe("statute");
+    expect(depositElsewhereNow(bronze, [], TODAY)).toBeNull();
+    expect(
+      depositElsewhereNow(
+        { ...bronze, meta: { ...bronze.meta, selfArchiving: record() } },
+        [],
+        TODAY,
+      )?.basis,
+    ).toBe("publisher");
+  });
+
+  it("lists open journal articles at the publisher with a ground — never green ones, closed ones or a bronze one with nothing", () => {
+    const rows = depositElsewhereRows(
+      makeCv([
+        {
+          ...work({ oaIsOpen: true, oaStatus: "gold", license: "cc-by", workCountries: [] }),
+          id: "W-gold",
+        },
+        {
+          ...work({ oaIsOpen: true, oaStatus: "hybrid", license: "cc-by-nc", workCountries: [] }),
+          id: "W-hybrid",
+        },
+        {
+          ...work({ oaIsOpen: true, oaStatus: "green", license: "cc-by", workCountries: [] }),
+          id: "W-green",
+        },
+        {
+          ...work({ oaIsOpen: true, oaStatus: "bronze", workCountries: [] }),
+          id: "W-bronze-nothing",
+        },
+        {
+          ...work({ oaIsOpen: true, oaStatus: "bronze", workCountries: ["FR"], year: 2023 }),
+          id: "W-bronze-fr",
+        },
+        { ...work({ workCountries: ["FR"] }), id: "W-closed" },
+        // Open, but with no status saying where the copy is: not claimed as at the publisher.
+        { ...work({ oaIsOpen: true, license: "cc-by", workCountries: [] }), id: "W-open-unknown" },
+        {
+          ...work({ oaIsOpen: true, oaStatus: "gold", license: "cc-by" }, { type: "chapter" }),
+          id: "W-chapter",
+        },
+      ]),
+      TODAY,
+      CTX,
+    );
+    expect(rows.map((r) => [r.row.itemId, r.now.basis, r.now.version])).toEqual([
+      ["W-gold", "licence", "publishedVersion"],
+      ["W-hybrid", "licence", "publishedVersion"],
+      ["W-bronze-fr", "statute", "acceptedVersion"],
+    ]);
+    // The first list is untouched by them.
+    expect(
+      depositReadyRows(
+        makeCv([{ ...work({ oaIsOpen: true, license: "cc-by" }), id: "W-gold" }]),
+        TODAY,
+        CTX,
+      ),
+    ).toEqual([]);
   });
 });

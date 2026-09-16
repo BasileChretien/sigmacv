@@ -221,6 +221,13 @@ export interface WorkspaceUiStrings {
   wlWhyStatute: string;
   /** The same for a right that sets no delay. */
   wlWhyStatuteNoDelay: string;
+  /** … or the work's own licence: {licence} = its slug (cc-by, …). */
+  wlWhyLicence: string;
+  /** The second list: papers open at the publisher, to put in a repository too. */
+  wlElsewhereHeading: string;
+  wlElsewhereHelp: string;
+  /** The fold's label; the list is closed on every visit. */
+  wlElsewhereShow: string;
   /** The deposit chip on a publication row: `{destination}` = the route's name. */
   wlChipDeposit: string;
   /** The same when the publisher's record allows no deposit outright. */
@@ -407,6 +414,11 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Allowed by law — {instrument} ({country}): the accepted manuscript, {duration} after publication (since {date}), under the conditions in the record below.",
     wlWhyStatuteNoDelay:
       "Allowed by law — {instrument} ({country}): the accepted manuscript once the publisher has accepted it, under the conditions in the record below.",
+    wlWhyLicence: "Allowed by the work's licence ({licence}): the published version.",
+    wlElsewhereHeading: "Papers open at the publisher — put a copy in a repository too",
+    wlElsewhereHelp:
+      "Free to read at the publisher and not in a repository yet: the work's licence or the law lets you deposit a copy.",
+    wlElsewhereShow: "Show these papers",
     wlChipDeposit: "Deposit in {destination}",
     wlChipDepositIf: "Deposit in {destination} if allowed",
     wlChipHint: "Opens this work in the Open access tab",
@@ -563,6 +575,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "法律允许 — {instrument}（{country}）：接受稿，出版 {duration} 后（自 {date} 起），须符合下方记录中的条件。",
     wlWhyStatuteNoDelay:
       "法律允许 — {instrument}（{country}）：出版社接受后即可存入接受稿，须符合下方记录中的条件。",
+    wlWhyLicence: "作品许可允许（{licence}）：出版版本。",
+    wlElsewhereHeading: "在出版社处开放的论文 — 也在知识库中存一份",
+    wlElsewhereHelp: "在出版社处可免费阅读，但尚未进入知识库：作品的许可或法律允许您存入一份副本。",
+    wlElsewhereShow: "显示这些论文",
     wlChipDeposit: "存入 {destination}",
     wlChipDepositIf: "如获许可，存入 {destination}",
     wlChipHint: "在“开放获取”标签页中打开此作品",
@@ -735,6 +751,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Permitido por la ley — {instrument} ({country}): el manuscrito aceptado, {duration} después de la publicación (desde el {date}), en las condiciones del registro de abajo.",
     wlWhyStatuteNoDelay:
       "Permitido por la ley — {instrument} ({country}): el manuscrito aceptado en cuanto la editorial lo acepta, en las condiciones del registro de abajo.",
+    wlWhyLicence: "Permitido por la licencia de la obra ({licence}): la versión publicada.",
+    wlElsewhereHeading:
+      "Artículos abiertos en la editorial — deposite también una copia en un repositorio",
+    wlElsewhereHelp:
+      "De lectura libre en la editorial y aún no en un repositorio: la licencia de la obra o la ley le permiten depositar una copia.",
+    wlElsewhereShow: "Mostrar estos artículos",
     wlChipDeposit: "Depositar en {destination}",
     wlChipDepositIf: "Depositar en {destination} si está permitido",
     wlChipHint: "Abre este trabajo en la pestaña Acceso abierto",
@@ -911,6 +933,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Autorisé par la loi — {instrument} ({country}) : le manuscrit accepté, {duration} après la publication (depuis le {date}), aux conditions de la fiche ci-dessous.",
     wlWhyStatuteNoDelay:
       "Autorisé par la loi — {instrument} ({country}) : le manuscrit accepté dès son acceptation par l’éditeur, aux conditions de la fiche ci-dessous.",
+    wlWhyLicence: "Autorisé par la licence de l’œuvre ({licence}) : la version publiée.",
+    wlElsewhereHeading:
+      "Articles ouverts chez l’éditeur — déposez aussi une copie dans une archive",
+    wlElsewhereHelp:
+      "Lisibles gratuitement chez l’éditeur et pas encore dans une archive : la licence de l’œuvre ou la loi vous permettent d’en déposer une copie.",
+    wlElsewhereShow: "Afficher ces articles",
     wlChipDeposit: "Déposer dans {destination}",
     wlChipDepositIf: "Déposer dans {destination} si c’est permis",
     wlChipHint: "Ouvre ce travail dans l’onglet Accès ouvert",
@@ -1087,6 +1115,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Erlaubt durch Gesetz — {instrument} ({country}): das akzeptierte Manuskript, {duration} nach der Veröffentlichung (seit {date}), unter den Bedingungen im Eintrag unten.",
     wlWhyStatuteNoDelay:
       "Erlaubt durch Gesetz — {instrument} ({country}): das akzeptierte Manuskript, sobald der Verlag es angenommen hat, unter den Bedingungen im Eintrag unten.",
+    wlWhyLicence: "Erlaubt durch die Lizenz des Werks ({licence}): die veröffentlichte Fassung.",
+    wlElsewhereHeading:
+      "Beim Verlag offene Artikel — legen Sie auch eine Kopie in ein Repositorium",
+    wlElsewhereHelp:
+      "Beim Verlag frei lesbar und noch in keinem Repositorium: die Lizenz des Werks oder das Gesetz erlauben Ihnen, eine Kopie zu hinterlegen.",
+    wlElsewhereShow: "Diese Artikel anzeigen",
     wlChipDeposit: "In {destination} hinterlegen",
     wlChipDepositIf: "In {destination} hinterlegen, falls erlaubt",
     wlChipHint: "Öffnet diese Arbeit im Tab „Open Access“",
@@ -1257,6 +1291,11 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "法律で許可 — {instrument}（{country}）：受理原稿を出版から {duration} 後（{date} 以降）、下記の記録の条件のもとで。",
     wlWhyStatuteNoDelay:
       "法律で許可 — {instrument}（{country}）：出版社の受理後すぐに受理原稿を、下記の記録の条件のもとで。",
+    wlWhyLicence: "著作物のライセンス（{licence}）で許可：出版版。",
+    wlElsewhereHeading: "出版社側で公開済みの論文 — リポジトリにも一部登録する",
+    wlElsewhereHelp:
+      "出版社側では無料で読めるが、まだリポジトリにはない論文：著作物のライセンスまたは法律により、複製を登録できます。",
+    wlElsewhereShow: "これらの論文を表示",
     wlChipDeposit: "{destination} に登録",
     wlChipDepositIf: "許可されていれば {destination} に登録",
     wlChipHint: "この論文を「オープンアクセス」タブで開きます",
@@ -1431,6 +1470,11 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Permitido por lei — {instrument} ({country}): o manuscrito aceito, {duration} após a publicação (desde {date}), nas condições do registro abaixo.",
     wlWhyStatuteNoDelay:
       "Permitido por lei — {instrument} ({country}): o manuscrito aceito assim que a editora o aceita, nas condições do registro abaixo.",
+    wlWhyLicence: "Permitido pela licença da obra ({licence}): a versão publicada.",
+    wlElsewhereHeading: "Artigos abertos na editora — deposite também uma cópia em um repositório",
+    wlElsewhereHelp:
+      "De leitura livre na editora e ainda fora de um repositório: a licença da obra ou a lei permitem depositar uma cópia.",
+    wlElsewhereShow: "Mostrar estes artigos",
     wlChipDeposit: "Depositar em {destination}",
     wlChipDepositIf: "Depositar em {destination} se permitido",
     wlChipHint: "Abre este trabalho na aba Acesso aberto",
@@ -1606,6 +1650,12 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Consentito dalla legge — {instrument} ({country}): il manoscritto accettato, {duration} dopo la pubblicazione (dal {date}), alle condizioni della scheda qui sotto.",
     wlWhyStatuteNoDelay:
       "Consentito dalla legge — {instrument} ({country}): il manoscritto accettato appena l’editore lo accetta, alle condizioni della scheda qui sotto.",
+    wlWhyLicence: "Consentito dalla licenza dell’opera ({licence}): la versione pubblicata.",
+    wlElsewhereHeading:
+      "Articoli aperti presso l’editore — depositane una copia anche in un archivio",
+    wlElsewhereHelp:
+      "Leggibili gratuitamente presso l’editore e non ancora in un archivio: la licenza dell’opera o la legge ti permettono di depositarne una copia.",
+    wlElsewhereShow: "Mostra questi articoli",
     wlChipDeposit: "Depositare in {destination}",
     wlChipDepositIf: "Depositare in {destination} se consentito",
     wlChipHint: "Apre questo lavoro nella scheda Accesso aperto",
@@ -1774,6 +1824,11 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "법률로 허용 — {instrument}({country}): 게재 후 {duration}이 지난 수락 원고({date}부터), 아래 기록의 조건에 따라.",
     wlWhyStatuteNoDelay:
       "법률로 허용 — {instrument}({country}): 출판사가 수락한 즉시 수락 원고를, 아래 기록의 조건에 따라.",
+    wlWhyLicence: "저작물의 라이선스({licence})로 허용: 출판본.",
+    wlElsewhereHeading: "출판사에서 공개된 논문 — 리포지터리에도 사본을 기탁",
+    wlElsewhereHelp:
+      "출판사에서 무료로 읽을 수 있지만 아직 리포지터리에는 없는 논문: 저작물의 라이선스나 법률에 따라 사본을 기탁할 수 있습니다.",
+    wlElsewhereShow: "이 논문 표시",
     wlChipDeposit: "{destination}에 기탁",
     wlChipDepositIf: "허용되는 경우 {destination}에 기탁",
     wlChipHint: "이 저작물을 오픈 액세스 탭에서 엽니다",
@@ -1947,6 +2002,11 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Разрешено законом — {instrument} ({country}): принятая рукопись через {duration} после публикации (с {date}), на условиях записи ниже.",
     wlWhyStatuteNoDelay:
       "Разрешено законом — {instrument} ({country}): принятая рукопись сразу после принятия издателем, на условиях записи ниже.",
+    wlWhyLicence: "Разрешено лицензией работы ({licence}): опубликованная версия.",
+    wlElsewhereHeading: "Статьи, открытые у издателя — разместите копию и в репозитории",
+    wlElsewhereHelp:
+      "Свободно читаются у издателя, но ещё не в репозитории: лицензия работы или закон позволяют разместить копию.",
+    wlElsewhereShow: "Показать эти статьи",
     wlChipDeposit: "Разместить в {destination}",
     wlChipDepositIf: "Разместить в {destination}, если это разрешено",
     wlChipHint: "Открывает эту работу на вкладке «Открытый доступ»",

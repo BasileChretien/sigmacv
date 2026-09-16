@@ -205,6 +205,12 @@ export function hasWorklistContent(
   gaps: Pick<AffiliationGaps, "positionsWithoutRor">,
   readyDeposits: number,
   joinedFunding = 0,
+  elsewhereDeposits = 0,
 ): boolean {
-  return gaps.positionsWithoutRor.length > 0 || readyDeposits > 0 || joinedFunding > 0;
+  return (
+    gaps.positionsWithoutRor.length > 0 ||
+    readyDeposits > 0 ||
+    joinedFunding > 0 ||
+    elsewhereDeposits > 0
+  );
 }

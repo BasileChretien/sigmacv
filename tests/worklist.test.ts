@@ -259,5 +259,7 @@ describe("hasWorklistContent", () => {
     // A grant join is a reason.
     expect(hasWorklistContent(empty, 0, 1)).toBe(true);
     expect(hasWorklistContent(empty, 0, 0)).toBe(false);
+    // So is a paper open at the publisher that can go in a repository too.
+    expect(hasWorklistContent(empty, 0, 0, 1)).toBe(true);
   });
 });

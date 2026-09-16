@@ -224,6 +224,10 @@ export function depositAction(
   if (now?.basis === "statute" && route.kind !== "funder") {
     return fill(wu.wlDepositAccepted, { destination });
   }
+  // A work under its own open licence goes in as published, anywhere.
+  if (now?.basis === "licence" && route.kind !== "funder") {
+    return fill(wu.wlDepositPublished, { destination });
+  }
   const kind = depositActionKind(item, route);
   if (kind === "conditional") {
     return fill(hasStatutoryRight ? wu.wlDepositIfRightOrAgreement : wu.wlDepositIfAgreement, {
@@ -257,8 +261,17 @@ export function depositNotes(
   const notes: string[] = [];
   const record = item.meta.selfArchiving;
   // Under a statutory right the publisher's licence and embargo do not bind the
-  // deposit: the record's form notes stay out; the DOI notes still apply.
-  if (route.kind !== "funder" && record?.canArchive && now?.basis !== "statute") {
+  // deposit: the record's form notes stay out; the DOI notes still apply. Under
+  // the work's own licence, that licence is what the form takes.
+  if (route.kind !== "funder" && now?.basis === "licence" && item.meta.license) {
+    notes.push(fill(wu.wlDepositFormLicence, { licence: item.meta.license }));
+  }
+  if (
+    route.kind !== "funder" &&
+    record?.canArchive &&
+    now?.basis !== "statute" &&
+    now?.basis !== "licence"
+  ) {
     if (record.licence) notes.push(fill(wu.wlDepositFormLicence, { licence: record.licence }));
     if (record.embargoEnd) {
       if (record.embargoEnd > today) {
