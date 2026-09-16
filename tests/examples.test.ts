@@ -7,8 +7,8 @@ import { isLandingPageId } from "@/lib/i18n/landingAll";
 describe("examples gallery", () => {
   const examples = listExamples();
 
-  it("has 8 examples with unique slugs", () => {
-    expect(examples).toHaveLength(8);
+  it("has 9 examples with unique slugs", () => {
+    expect(examples).toHaveLength(9);
     expect(new Set(EXAMPLE_SLUGS).size).toBe(EXAMPLE_SLUGS.length);
     expect(EXAMPLE_SLUGS).toContain("phd-cv-computer-science");
   });

@@ -309,6 +309,8 @@ export function localizeContentHref(href: string, locale: string): string {
   if (!href.startsWith("/")) return href; // external, anchor, mailto, …
   if (href === "/") return localeHomePath(locale);
   if (href.startsWith("/guides/")) return localeGuidePath(href.slice("/guides/".length), locale);
+  // The example CVs live at one URL each, in the language of the CV itself.
+  if (href.startsWith("/examples/")) return href;
   if (href.startsWith("/glossary/")) {
     return localeGlossaryTermPath(href.slice("/glossary/".length), locale);
   }

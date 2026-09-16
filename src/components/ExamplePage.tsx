@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import type { CvExample } from "@/lib/examples/examples";
+import { localeLanguageCode } from "@/lib/i18n";
+import { examplesChrome, fillChrome } from "@/lib/i18n/examplesChrome";
+import { examplesNavLabel } from "@/lib/i18n/guidesNav";
 import { anyLandingPageStrings } from "@/lib/i18n/landingAll";
 import { serializeJsonLd } from "@/lib/jsonLd";
 import { localeLandingPagePath } from "@/lib/seo";
@@ -14,9 +17,10 @@ import SiteHeader from "./SiteHeader";
  * so the page literally contains a formatted academic CV — the strongest "academic
  * CV example" signal) inside the `doc-page` chrome, with a clear illustrative
  * disclaimer, a build CTA, and hub-and-spoke links to the relevant persona/landing
- * pages. Emits WebPage (DocJsonLd) + BreadcrumbList JSON-LD. English-only.
+ * pages. Emits WebPage (DocJsonLd) + BreadcrumbList JSON-LD. The page speaks the
+ * example's language (`ExampleMeta.locale`, English by default): the CV content
+ * is written in it and the chrome around it follows (`examplesChrome`).
  */
-const LOCALE = "en-US";
 
 /** Bold the researcher's surname wherever it appears (the self-name highlight). */
 function withName(text: string, surname: string): ReactNode {
@@ -29,28 +33,39 @@ function withName(text: string, surname: string): ReactNode {
 }
 
 export default function ExamplePage({ example }: { example: CvExample }) {
+  const locale = example.locale ?? "en-US";
+  const chrome = examplesChrome(locale);
+  const examplesLabel = examplesNavLabel(locale);
   const surname = example.person.name.trim().split(/\s+/).pop() ?? "";
   const url = absoluteUrl(`examples/${example.slug}`);
+  const byline =
+    example.byline ??
+    [
+      example.field,
+      example.stage,
+      fillChrome(chrome.citations, { style: example.citationStyle }),
+      fillChrome(chrome.template, { template: example.templateLabel }),
+    ].join(" · ");
 
   const breadcrumbJsonLd = serializeJsonLd({
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
     itemListElement: [
       { "@type": "ListItem", position: 1, name: "SigmaCV", item: `${SITE_URL}/` },
-      { "@type": "ListItem", position: 2, name: "Examples", item: absoluteUrl("examples") },
+      { "@type": "ListItem", position: 2, name: examplesLabel, item: absoluteUrl("examples") },
       { "@type": "ListItem", position: 3, name: example.navLabel, item: url },
     ],
   });
 
   return (
-    <div className="site-shell" lang="en">
-      <SiteHeader locale="en-US" />
+    <div className="site-shell" lang={localeLanguageCode(locale)}>
+      <SiteHeader locale={locale} />
       <main className="doc-page" id="site-main">
         <DocJsonLd
           path={`examples/${example.slug}`}
           name={example.heading}
           description={example.metaDescription}
-          locale={LOCALE}
+          locale={locale}
         />
         <script
           type="application/ld+json"
@@ -60,14 +75,11 @@ export default function ExamplePage({ example }: { example: CvExample }) {
 
         <nav className="breadcrumbs" aria-label="Breadcrumb">
           <Link href="/">SigmaCV</Link> <span aria-hidden="true">›</span>{" "}
-          <Link href="/examples">Examples</Link>
+          <Link href="/examples">{examplesLabel}</Link>
         </nav>
 
         <h1>{example.heading}</h1>
-        <p className="guide-byline muted">
-          {example.field} · {example.stage} · {example.citationStyle} citations ·{" "}
-          {example.templateLabel} template
-        </p>
+        <p className="guide-byline muted">{byline}</p>
         {example.intro.map((para) => (
           <p key={para} className="doc-lede">
             {para}
@@ -75,12 +87,14 @@ export default function ExamplePage({ example }: { example: CvExample }) {
         ))}
 
         <p className="example-disclaimer muted">
-          <strong>Illustrative example.</strong> {example.person.name} is a fictional researcher and
-          the publications below are fabricated for demonstration — any resemblance to a real person
-          or work is coincidental.
+          <strong>{chrome.disclaimerLead}</strong>{" "}
+          {fillChrome(chrome.disclaimerBody, { name: example.person.name })}
         </p>
 
-        <article className="cv-example" aria-label={`Example CV: ${example.navLabel}`}>
+        <article
+          className="cv-example"
+          aria-label={fillChrome(chrome.exampleAria, { label: example.navLabel })}
+        >
           <header className="cv-example-head">
             <h2 className="cv-example-name">
               {example.person.name}
@@ -106,26 +120,22 @@ export default function ExamplePage({ example }: { example: CvExample }) {
         </article>
 
         <section className="example-cta">
-          <h2>Build your own academic CV</h2>
-          <p>
-            SigmaCV builds a clean, citation-formatted CV like this from your ORCID and OpenAlex
-            record — free and open source. You curate what appears and export to PDF, DOCX, LaTeX or
-            Markdown.
-          </p>
+          <h2>{chrome.buildHeading}</h2>
+          <p>{chrome.buildBody}</p>
           <p>
             <Link className="btn btn-primary" href="/">
-              Build your academic CV free
+              {chrome.buildCta}
             </Link>
           </p>
         </section>
 
         <section className="landing-related">
-          <h2>Related</h2>
+          <h2>{chrome.relatedHeading}</h2>
           <ul>
             {example.related.map((id) => (
               <li key={id}>
-                <Link href={localeLandingPagePath(id, LOCALE)}>
-                  {anyLandingPageStrings(id, LOCALE).navLabel}
+                <Link href={localeLandingPagePath(id, locale)}>
+                  {anyLandingPageStrings(id, locale).navLabel}
                 </Link>
               </li>
             ))}
@@ -133,10 +143,10 @@ export default function ExamplePage({ example }: { example: CvExample }) {
         </section>
 
         <p className="doc-back muted">
-          <Link href="/examples">← All examples</Link>
+          <Link href="/examples">← {chrome.allExamples}</Link>
         </p>
       </main>
-      <SiteFooter locale="en-US" />
+      <SiteFooter locale={locale} />
     </div>
   );
 }

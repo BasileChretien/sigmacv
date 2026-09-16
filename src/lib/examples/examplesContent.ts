@@ -2,8 +2,10 @@
 // Made-up researchers + fabricated publications (no real people/papers/DOIs); each
 // page carries a visible "illustrative example" disclaimer. English-first.
 import type { ExampleContent, ExampleSlug } from "./examples";
+import { FRQ_EXAMPLE } from "./examplesContentFrq";
 
 export const EXAMPLE_CONTENT: Record<ExampleSlug, ExampleContent> = {
+  "cv-frq-pharmacologie": FRQ_EXAMPLE,
   "grad-school-cv-biology": {
     metaTitle: "Academic CV example — Biology Master's/PhD applicant",
     metaDescription:

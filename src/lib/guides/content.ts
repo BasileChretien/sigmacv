@@ -6,9 +6,11 @@
 // per-locale native-speaker review pass (same convention as `landingContent.ts`).
 import type { Locale } from "@/lib/i18n";
 import type { GuideContent, GuideSlug } from "./guides";
+import { FRQ_GUIDE } from "./contentFrq";
 
 export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
   "en-US": {
+    "frq-narrative-cv": FRQ_GUIDE["en-US"],
     "how-to-write-an-academic-cv": {
       title: "How to write an academic CV",
       description:
@@ -668,6 +670,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "zh-CN": {
+    "frq-narrative-cv": FRQ_GUIDE["zh-CN"],
     "how-to-write-an-academic-cv": {
       title: "如何撰写学术简历",
       description:
@@ -1327,6 +1330,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "es-ES": {
+    "frq-narrative-cv": FRQ_GUIDE["es-ES"],
     "how-to-write-an-academic-cv": {
       title: "Cómo redactar un currículum vítae académico",
       description:
@@ -1987,6 +1991,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "fr-FR": {
+    "frq-narrative-cv": FRQ_GUIDE["fr-FR"],
     "how-to-write-an-academic-cv": {
       title: "Comment rédiger un CV académique",
       description:
@@ -2646,6 +2651,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "de-DE": {
+    "frq-narrative-cv": FRQ_GUIDE["de-DE"],
     "how-to-write-an-academic-cv": {
       title: "Wie man einen akademischen Lebenslauf schreibt",
       description:
@@ -3306,6 +3312,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "ja-JP": {
+    "frq-narrative-cv": FRQ_GUIDE["ja-JP"],
     "how-to-write-an-academic-cv": {
       title: "アカデミックCVの書き方",
       description:
@@ -3965,6 +3972,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "pt-BR": {
+    "frq-narrative-cv": FRQ_GUIDE["pt-BR"],
     "how-to-write-an-academic-cv": {
       title: "Como elaborar um currículo acadêmico",
       description:
@@ -4624,6 +4632,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "it-IT": {
+    "frq-narrative-cv": FRQ_GUIDE["it-IT"],
     "how-to-write-an-academic-cv": {
       title: "Come redigere un curriculum vitae accademico",
       description:
@@ -5284,6 +5293,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "ko-KR": {
+    "frq-narrative-cv": FRQ_GUIDE["ko-KR"],
     "how-to-write-an-academic-cv": {
       title: "학술 CV 작성 방법",
       description:
@@ -5943,6 +5953,7 @@ export const GUIDE_CONTENT: Record<Locale, Record<GuideSlug, GuideContent>> = {
     },
   },
   "ru-RU": {
+    "frq-narrative-cv": FRQ_GUIDE["ru-RU"],
     "how-to-write-an-academic-cv": {
       title: "Как написать академическое резюме",
       description:
