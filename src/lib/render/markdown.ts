@@ -1,7 +1,7 @@
 import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { renderStrings } from "@/lib/i18n/render";
 import { wrapSelf } from "./emphasize";
-import { escapeMarkdown } from "./escape";
+import { escapeMarkdown, escapeMarkdownEntry } from "./escape";
 import { textHeader } from "./headerText";
 import { evidenceMarkdown, listedItemIds, proseEvidence } from "./evidenceRefs";
 import { cvSlug } from "./html";
@@ -60,7 +60,9 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
       }
       if (items.length === 0) return "";
       const lines = items.map(({ item, entry }, i) => {
-        let text = escapeMarkdown(entry);
+        // Entry-aware escaping: a URL printed in full inside the line stays raw
+        // so it can be copied out of the .md (see escapeMarkdownEntry).
+        let text = escapeMarkdownEntry(entry);
         if (cv.display.highlightSelf && item.selfNameVariants.length > 0) {
           text = wrapSelf(text, item.selfNameVariants.map(escapeMarkdown), (s) => `**${s}**`);
         }

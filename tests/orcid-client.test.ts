@@ -36,6 +36,7 @@ const EMPLOYMENTS = {
             "role-title": "Assistant Professor",
             "department-name": "Pharmacology",
             organization: { name: "Nagoya University" },
+            url: { value: "https://med.nagoya-u.ac.jp/team/" },
             "start-date": { year: { value: "2024" } },
             "end-date": null,
           },
@@ -115,8 +116,41 @@ describe("fetchOrcidPositions", () => {
       roleTitle: "Assistant Professor",
       department: "Pharmacology",
       startYear: 2024,
+      // ORCID records a URL per activity — the page documenting THAT role.
+      url: "https://med.nagoya-u.ac.jp/team/",
     });
     expect(positions[0]?.endYear).toBeUndefined();
+  });
+
+  it("keeps only a plain http(s) activity url, within the schema's 2048-char cap", async () => {
+    const summary = (url: unknown) => ({
+      "affiliation-group": [
+        {
+          summaries: [
+            { "employment-summary": { "put-code": 1, organization: { name: "Org" }, url } },
+          ],
+        },
+      ],
+    });
+    const urlOf = async (url: unknown) => {
+      vi.stubGlobal("fetch", routedFetch({ emp: res(summary(url)) }));
+      const { fetchOrcidPositions } = await freshClient();
+      return (await fetchOrcidPositions("0000-0002-7483-2489"))[0]?.url;
+    };
+    expect(await urlOf({ value: "http://example.org/a" })).toBe("http://example.org/a");
+    // ORCID takes whatever the record holder types, so the scheme gate lives here.
+    expect(await urlOf({ value: "javascript:alert(1)" })).toBeUndefined();
+    expect(await urlOf({ value: "example.org" })).toBeUndefined();
+    expect(await urlOf({ value: "   " })).toBeUndefined();
+    expect(await urlOf(null)).toBeUndefined();
+    // Over the cap it is DROPPED, not clipped — half a URL is a broken link.
+    expect(await urlOf({ value: `https://example.org/${"a".repeat(2048)}` })).toBeUndefined();
+    // A credential in the authority is dropped whole, never stored and scrubbed
+    // later: it must not reach the owner's export or the public .json either.
+    expect(await urlOf({ value: "https://alice:hunter2@example.org/team" })).toBeUndefined();
+    expect(await urlOf({ value: "https://alice@example.org/team" })).toBeUndefined();
+    // An @ in the PATH is not userinfo and stays.
+    expect(await urlOf({ value: "https://example.org/@alice" })).toBe("https://example.org/@alice");
   });
 
   it("marks org-asserted (Member-API) affiliations verified, self-entered ones not", async () => {

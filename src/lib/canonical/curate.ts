@@ -1299,6 +1299,38 @@ export function setItemDepartment(
 }
 
 /**
+ * Set (or clear) the USER link for an entry — the editor's "Link" field. Stored
+ * in `meta.entryUrlOverride` (wins over the source `meta.entryUrl`, carried
+ * across re-sync); a BLANK value, or one equal to the source URL, CLEARS it
+ * (revert to the URL the source recorded). The raw value is stored (not
+ * trimmed) so a trailing space survives mid-typing, and it is NOT validated
+ * here — a URL is typed a character at a time, so rejecting an incomplete one
+ * would make the field unusable. Every renderer puts it through `safeHref`
+ * instead, which drops anything that is not an http(s) link. The entry LINE is
+ * not re-derived: the link is attached to the entry, never part of its text.
+ * Pure + immutable; a no-op for an unknown id, or for a value over the schema's
+ * 2048-char cap (which would be stored and then fail the save).
+ */
+export function setItemEntryUrl(
+  cv: CanonicalCv,
+  sectionId: string,
+  itemId: string,
+  url: string,
+): CanonicalCv {
+  if (url.length > 2048) return cv;
+  return mapSection(cv, sectionId, (s) => ({
+    ...s,
+    items: s.items.map((it) => {
+      if (it.id !== itemId) return it;
+      const trimmed = url.trim();
+      const override =
+        trimmed.length === 0 || trimmed === (it.meta.entryUrl ?? "").trim() ? undefined : url;
+      return { ...it, meta: { ...it.meta, entryUrlOverride: override } };
+    }),
+  }));
+}
+
+/**
  * Set (or clear) the USER date range for a source-derived positions/education
  * entry — the editor's start/end year + "Ongoing" controls. A `range` object is
  * stored in `meta.dateRangeOverride` (replacing the source dates; an absent

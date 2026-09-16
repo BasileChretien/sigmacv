@@ -1207,6 +1207,14 @@
                       "type": "string",
                       "maxLength": 500
                     },
+                    "entryUrl": {
+                      "type": "string",
+                      "maxLength": 2048
+                    },
+                    "entryUrlOverride": {
+                      "type": "string",
+                      "maxLength": 2048
+                    },
                     "verified": {
                       "type": "boolean"
                     },

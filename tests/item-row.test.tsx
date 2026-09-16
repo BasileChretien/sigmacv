@@ -789,3 +789,164 @@ describe("ItemRow — citation bibliographic overrides (year / venue)", () => {
     expect(screen.getAllByRole("button", { name: /revert/i }).length).toBeGreaterThanOrEqual(2);
   });
 });
+
+describe("ItemRow — the entry's own Link field", () => {
+  function renderEntry(
+    over: Partial<CvItem["meta"]> = {},
+    onSetEntryUrl: (url: string) => void = noop,
+  ) {
+    render(
+      <ul>
+        <ItemRow
+          item={makeItem({
+            id: "position:orcid:1",
+            source: "orcid",
+            meta: { institution: "Nagoya University", roleTitle: "PhD candidate", ...over },
+          })}
+          locale="en-US"
+          sectionType="positions"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+          onSetRole={noop}
+          onSetInstitution={noop}
+          onSetDateRange={noop}
+          onSetEntryUrl={onSetEntryUrl}
+        />
+      </ul>,
+    );
+  }
+
+  it("shows the source link and reports edits", () => {
+    let url = "";
+    renderEntry({ entryUrl: "https://example.org/team" }, (v: string) => (url = v));
+    const field = screen.getByLabelText("Link (URL)") as HTMLInputElement;
+    expect(field.value).toBe("https://example.org/team");
+    fireEvent.change(field, { target: { value: "https://example.org/people/jane" } });
+    expect(url).toBe("https://example.org/people/jane");
+  });
+
+  it("shows the override in place of the source url, with a revert control", () => {
+    renderEntry({ entryUrl: "https://example.org/team", entryUrlOverride: "https://mine.example" });
+    expect((screen.getByLabelText("Link (URL)") as HTMLInputElement).value).toBe(
+      "https://mine.example",
+    );
+    expect(screen.getAllByRole("button", { name: /revert/i }).length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("offers an empty field when the source recorded no link", () => {
+    renderEntry();
+    expect((screen.getByLabelText("Link (URL)") as HTMLInputElement).value).toBe("");
+    // Nothing to revert to yet.
+    expect(screen.queryByRole("button", { name: /revert/i })).toBeNull();
+  });
+});
+
+/**
+ * The "Edit details" panel reaches every section whose entries come from a
+ * live source, not just Positions and Education. Service & Memberships and
+ * Invited Talks are built exactly as Education is (structured role /
+ * department / institution / dates), so they get the same fields; Awards are a
+ * point-in-time line with no structured parts, so they get the line itself plus
+ * the link.
+ */
+describe("ItemRow — details panel across the entry sections", () => {
+  function renderEntry(sectionType: CvSectionType, meta: CvItem["meta"] = {}) {
+    render(
+      <ul>
+        <ItemRow
+          item={makeItem({
+            id: `${sectionType}:orcid:1`,
+            source: "orcid",
+            displayText: "Affiliated researcher, Neuropresage, PhIND",
+            meta: { institution: "PhIND", roleTitle: "Affiliated researcher", ...meta },
+          })}
+          locale="en-US"
+          sectionType={sectionType}
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+          onSetRole={noop}
+          onSetTextOverride={noop}
+          onSetDepartment={noop}
+          onSetInstitution={noop}
+          onSetDateRange={noop}
+          onSetEntryUrl={noop}
+        />
+      </ul>,
+    );
+  }
+
+  for (const sectionType of ["service", "talks"] as const) {
+    it(`gives a ${sectionType} entry the same structured fields as a position`, () => {
+      renderEntry(sectionType);
+      expect(screen.getByLabelText("Role or title")).toBeTruthy();
+      expect(screen.getByLabelText("Department")).toBeTruthy();
+      expect(screen.getByLabelText("Institution")).toBeTruthy();
+      expect(screen.getByLabelText("Link (URL)")).toBeTruthy();
+      expect(screen.getByLabelText("Start year")).toBeTruthy();
+    });
+  }
+
+  it("gives an award the line itself plus the link, and no structured fields", () => {
+    // An award's line ("Fellowship, Royal Society (2019)") is not derived from
+    // structured meta, so offering a role / department / dates field would
+    // re-derive it into the wrong shape.
+    renderEntry("awards");
+    expect((screen.getByLabelText("Entry text") as HTMLInputElement).value).toBe(
+      "Affiliated researcher, Neuropresage, PhIND",
+    );
+    expect(screen.getByLabelText("Link (URL)")).toBeTruthy();
+    expect(screen.queryByLabelText("Role or title")).toBeNull();
+    expect(screen.queryByLabelText("Department")).toBeNull();
+    expect(screen.queryByLabelText("Start year")).toBeNull();
+  });
+
+  it("keeps the link reachable when the owner has rewritten the whole line", () => {
+    // The whole-line override replaces the structured row (and its panel), so
+    // the link needs its own disclosure or it would vanish with them.
+    render(
+      <ul>
+        <ItemRow
+          item={makeItem({
+            id: "position:orcid:2",
+            source: "orcid",
+            displayText: "Assistant Professor, Nagoya University",
+            displayTextOverride: "Assistant Professor",
+            meta: { institution: "Nagoya University", entryUrl: "https://example.org/x" },
+          })}
+          locale="en-US"
+          sectionType="positions"
+          isFirst
+          isLast
+          onToggleIncluded={noop}
+          onToggleNotMine={noop}
+          onMoveUp={noop}
+          onMoveDown={noop}
+          onSetRole={noop}
+          onSetTextOverride={noop}
+          onSetDepartment={noop}
+          onSetInstitution={noop}
+          onSetDateRange={noop}
+          onSetEntryUrl={noop}
+        />
+      </ul>,
+    );
+    expect((screen.getByLabelText("Link (URL)") as HTMLInputElement).value).toBe(
+      "https://example.org/x",
+    );
+    expect(screen.queryByLabelText("Role or title")).toBeNull();
+  });
+
+  it("leaves a grants entry alone (its line is not a source-derived entry line)", () => {
+    renderEntry("grants");
+    expect(screen.queryByLabelText("Link (URL)")).toBeNull();
+    expect(screen.queryByLabelText("Entry text")).toBeNull();
+  });
+});

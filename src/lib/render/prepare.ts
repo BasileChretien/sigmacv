@@ -14,6 +14,7 @@ import { renderStrings } from "@/lib/i18n/render";
 import type { CslItem } from "@/types/csl";
 import { selectSections } from "./citationItems";
 import { cslForRender } from "./cslOverride";
+import { entryLink } from "./entryLink";
 import { escapeHtml } from "./escape";
 import { withSelfAuthorTail } from "./selfTail";
 import { supervisionEntry, supervisionEntryHtml, supervisionEntryText } from "./supervision";
@@ -172,10 +173,15 @@ export function prepareSections(
  * ONCE here so DOCX / Markdown / LaTeX can never disagree (the biosketch / grant
  * CV build their position / award lists from the raw display text instead, and
  * append the same `verifiedSuffix` themselves): the plain "(verified by <org>)" suffix on an
- * institution-asserted entry, and a Software entry's " · "-joined details
- * (repository, version, licence, opt-in archive link). The HTML path renders the
- * same data as badges and links itself (html.ts), so this is text output only.
- * Per-item marks — nothing here counts or summarises.
+ * institution-asserted entry, the entry's own link, and a Software entry's
+ * " · "-joined details (repository, version, licence, opt-in archive link). The
+ * HTML path renders the same data as badges and links itself (html.ts), so this
+ * is text output only. Per-item marks — nothing here counts or summarises.
+ *
+ * The link is printed in FULL — "… (https://example.org/team/jane)" — where the
+ * HTML shows only its host: a printed CV cannot be clicked, so the whole URL has
+ * to be on the page. That is the convention the supervision and dataset entries
+ * already follow, and the LaTeX renderer picks a bare URL back up into \url{}.
  */
 function withTextMarks(
   entry: string,
@@ -183,7 +189,8 @@ function withTextMarks(
   section: CvSection,
   display: DisplayChoices,
 ): string {
-  const marked = entry + verifiedSuffix(item, display);
+  const link = entryLink(item);
+  const marked = entry + verifiedSuffix(item, display) + (link ? ` (${link.href})` : "");
   if (section.type !== "software") return marked;
   const details = softwareDetailsText(item, display);
   return details.length ? `${marked} · ${details.join(" · ")}` : marked;

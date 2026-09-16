@@ -685,6 +685,30 @@ const CvItemSchema = z.object({
     /** Source department/sub-unit for a positions/education entry (ORCID `department-name`). */
     department: z.string().max(500).optional(),
     /**
+     * The ENTRY's own link, as recorded at the source (ORCID's `url` on an
+     * affiliation: employment, education, distinction, membership, service,
+     * invited position) — the page that documents THIS record: a team page, a
+     * society's member listing, an award announcement. Refreshed from the source
+     * on every build, like {@link roleTitle}.
+     *
+     * NOT {@link institutionUrl}: that is the ORGANISATION's homepage resolved
+     * from ROR, shared by every entry at that institution. The two are rendered
+     * in different places for that reason — the institution name links to its
+     * homepage, this link sits beside the entry.
+     *
+     * Only an http(s) URL the source carried (gated in `orcid/client.ts`),
+     * re-validated at render through `safeHref`. Undefined when the record
+     * carries none — which is the common case.
+     */
+    entryUrl: z.string().max(2048).optional(),
+    /**
+     * USER edit of {@link entryUrl} for an entry — the editor's "Link" field.
+     * Carried across re-sync (like {@link roleTitleOverride}) and wins over the
+     * source value; a blank value, or one equal to the source URL, clears it
+     * (revert to source). The effective link is {@link itemEntryUrl}.
+     */
+    entryUrlOverride: z.string().max(2048).optional(),
+    /**
      * True when a positions/education/distinction entry was asserted on the ORCID
      * record by a TRUSTED ORGANIZATION (ORCID Member API) rather than self-entered
      * by the account holder — surfaced as a "verified" signal so an
@@ -1133,6 +1157,16 @@ export function itemDisplayText(
  */
 export function itemRoleTitle(item: Pick<CvItem, "meta">): string | undefined {
   return item.meta.roleTitleOverride ?? item.meta.roleTitle;
+}
+
+/**
+ * The effective LINK for an entry item: the user's `meta.entryUrlOverride` when
+ * set, otherwise the source `meta.entryUrl` (ORCID's URL for that activity).
+ * Every renderer reads the link through this, and re-validates it via
+ * `safeHref` — a stored value is source- or user-supplied, never trusted markup.
+ */
+export function itemEntryUrl(item: Pick<CvItem, "meta">): string | undefined {
+  return item.meta.entryUrlOverride ?? item.meta.entryUrl;
 }
 
 /**

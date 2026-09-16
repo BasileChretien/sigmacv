@@ -85,14 +85,17 @@ export function photoHtml(cv: CanonicalCv): string {
 }
 
 /**
- * User-typed URLs (the free-text website + extra profile links) are the only
- * anchors on a published CV whose target the account holder fully controls, so
- * they carry `nofollow ugc` — a spam CV must not pass link equity from our
- * domain. Identifier-derived links (DOI, ORCID, ROR, license) stay plain
- * `noopener noreferrer`, appended by `externalizeLinks`, which skips anchors
- * that already declare a rel — hence the full rel is spelled out here.
+ * User-chosen URLs — the free-text website + extra profile links, and an
+ * ENTRY's own link (ORCID's `url` for an affiliation, or the owner's override;
+ * see `entryLink.ts`) — are the anchors on a published CV whose target the
+ * account holder fully controls, so they carry `nofollow ugc`: a spam CV must
+ * not pass link equity from our domain. Identifier-derived links (DOI, ORCID,
+ * ROR, license) stay plain `noopener noreferrer`, appended by
+ * `externalizeLinks`, which skips anchors that already declare a rel — hence
+ * the full rel is spelled out here. Exported so `html.ts` marks the entry
+ * links with the SAME rel rather than a second copy of it.
  */
-const UGC_REL = ' rel="nofollow ugc noopener noreferrer"';
+export const UGC_REL = ' rel="nofollow ugc noopener noreferrer"';
 
 /** The contact line: location · email · phone · website (+ extra links). Each item
  *  gains a small decorative icon (the link icon auto-detected from its host) EXCEPT
@@ -394,6 +397,7 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-entry-dates { flex: 0 0 auto; margin-inline-start: auto; color: var(--cv-muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
   .cv-entry-sub { color: var(--cv-muted); font-size: 0.92em; line-height: 1.4; margin-top: 0.1rem; }
   .cv-entry-lead .cv-ror-link, .cv-entry-sub .cv-ror-link { color: inherit; }
+  .cv-entry-sub .cv-entry-url { color: inherit; }
   /* Supervision records reuse the two-line entry; their sub-line links (thesis,
      institution) stay quiet, and an "ongoing" status reads as a small pill. */
   .cv-entry-sub .cv-entry-link { color: inherit; }
@@ -435,6 +439,14 @@ export function commonCss(theme: TemplateTheme): string {
      dotting so the line reads clean (the PDF anchor still resolves). */
   .cv-ror-link { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--cv-rule-strong); }
   .cv-ror-link:hover { color: var(--cv-accent); border-bottom-color: var(--cv-accent); }
+  /* The ENTRY's own link (ORCID's url for that role), shown as its host beside
+     the entry. Styled exactly like the ROR link above, so the two links on one
+     line read as the same kind of thing: color:inherit leaves it muted on the
+     two-line record's sub-line and lets it take the accent inside a flat
+     bibliography line (the ol.cv-bib > li a rule above), which is where the ROR
+     and DOI links already land too. */
+  .cv-entry-url { color: inherit; text-decoration: none; border-bottom: 1px dotted var(--cv-rule-strong); }
+  .cv-entry-url:hover { color: var(--cv-accent); border-bottom-color: var(--cv-accent); }
 
   /* The publications/year chart and the authorship table are grouped into ONE
      row, sitting side by side when the column is wide enough and wrapping to a
@@ -643,7 +655,7 @@ export function commonCss(theme: TemplateTheme): string {
     /* Keep in-text profile / contact / ID links underlined in the PDF so the
        link affordance survives print (WCAG 1.4.1 — not signalled by colour). */
     .cv-ids a, .cv-contact a, .cv-links a { text-decoration: underline; text-underline-offset: 0.15em; }
-    .cv-ror-link { border-bottom: none; }
+    .cv-ror-link, .cv-entry-url { border-bottom: none; }
     /* Interactive web-only affordances never belong in the printed/PDF CV. The
        reader banner is NOT one of them: its recipient notice + legend are what
        make the provenance marks and badges legible on paper, so it prints — only

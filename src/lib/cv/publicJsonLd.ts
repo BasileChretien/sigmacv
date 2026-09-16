@@ -1,6 +1,7 @@
 import { METADATA_LICENSE_URL, licenseInfo } from "@/lib/canonical/license";
 import {
   itemDisplayText,
+  itemEntryUrl,
   type CanonicalCv,
   type CvItem,
   type CvSection,
@@ -130,10 +131,15 @@ export function fundingEntities(cv: CanonicalCv): Record<string, unknown>[] {
 
 /** schema.org entities (one `@type` per item) from a section's visible item labels. */
 function labelledEntities(cv: CanonicalCv, type: CvSection["type"], schemaType: string) {
-  return visibleSectionItems(cv, type)
-    .map((it) => itemDisplayText(it)?.trim())
-    .filter((n): n is string => Boolean(n))
-    .map((name) => ({ "@type": schemaType, name }));
+  return (
+    visibleSectionItems(cv, type)
+      .map((it) => ({ name: itemDisplayText(it)?.trim(), url: safeHref(itemEntryUrl(it)) }))
+      .filter((e): e is { name: string; url: string } => Boolean(e.name))
+      // schema.org `url` for the entry, when the record carries one (ORCID's url
+      // for that activity) — the same link the rendered CV shows, so the machine
+      // graph and the page agree. Validated like every other href we publish.
+      .map((e) => ({ "@type": schemaType, name: e.name, ...(e.url ? { url: e.url } : {}) }))
+  );
 }
 
 /**

@@ -23,6 +23,15 @@ export interface OrcidPosition {
   department?: string;
   startYear?: number;
   endYear?: number;
+  /**
+   * The activity's OWN link, as the record holder recorded it on ORCID
+   * (`url.value` on the affiliation summary) — the page that documents THIS
+   * role: a team page, a society's member listing, an award announcement.
+   * Distinct from {@link institutionUrl}, which is the ORGANISATION's homepage
+   * resolved from ROR. Only a plain http(s) URL within the schema's bound (see
+   * {@link activityUrl}); undefined when the record carries none.
+   */
+  url?: string;
   /** ROR id of the canonicalized organization, set during ROR enrichment. */
   rorId?: string;
   /** Localized org names by language subtag (from ROR), set during ROR enrichment. */
@@ -148,6 +157,31 @@ function boundedText(s: unknown): string | undefined {
 }
 
 /**
+ * Upper bound of the canonical schema's URL fields (`z.string().max(2048)`),
+ * the URL counterpart of {@link MAX_META_TEXT}. An oversized value is DROPPED
+ * rather than clipped: half a URL is not a link, it is a broken one.
+ */
+const MAX_URL = 2048;
+
+/**
+ * An ORCID activity's own `url.value`, kept only when it is a plain http(s) URL
+ * within {@link MAX_URL} AND carries no userinfo. ORCID accepts any string the
+ * record holder types there, so this is where a `javascript:` / `data:` value
+ * is kept OUT of the stored document — the renderers re-validate through
+ * `safeHref` as well (defence in depth, not instead of this).
+ *
+ * A `https://user:pass@host/…` URL is DROPPED rather than stripped: it is
+ * almost always a mistake, and a credential should never be written into the
+ * document at all — not into the owner's own export, and not into the public
+ * `.json` — rather than be scrubbed again at each surface that prints it.
+ */
+function activityUrl(s: unknown): string | undefined {
+  const v = nonEmpty(s);
+  if (!v || v.length > MAX_URL || !/^https?:\/\/\S+$/i.test(v)) return undefined;
+  return /^https?:\/\/[^/?#@]*@/i.test(v) ? undefined : v;
+}
+
+/**
  * Whether an ORCID activity's `source` block means a TRUSTED ORGANISATION asserted
  * it through the Member API — the only case that earns a "verified" mark.
  *
@@ -211,6 +245,7 @@ async function fetchOrcidAffiliations(
           organization: org,
           roleTitle: boundedText(e?.["role-title"]),
           department: boundedText(e?.["department-name"]),
+          url: activityUrl(e?.url?.value),
           startYear: yearOf(e?.["start-date"]),
           endYear: yearOf(e?.["end-date"]),
           ...verifiedFields(e?.source),

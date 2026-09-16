@@ -567,6 +567,8 @@ function makeEntryItem(
     /** Source role/title + department + date range for positions/education entries. */
     roleTitle?: string;
     department?: string;
+    /** The entry's own link at the source (ORCID's `url` on an affiliation). */
+    entryUrl?: string;
     startYear?: number;
     endYear?: number;
     /** Institution-asserted via the ORCID Member API (a "verified" signal). */
@@ -587,6 +589,7 @@ function makeEntryItem(
   if (extraMeta?.awardId) meta.awardId = extraMeta.awardId;
   if (extraMeta?.roleTitle) meta.roleTitle = extraMeta.roleTitle;
   if (extraMeta?.department) meta.department = extraMeta.department;
+  if (extraMeta?.entryUrl) meta.entryUrl = extraMeta.entryUrl;
   // `!= null` (not truthiness) so a structured year is stored faithfully — the
   // line re-derive in `curate.ts` reads these back and must agree with the build.
   if (extraMeta?.startYear != null) meta.startYear = extraMeta.startYear;
@@ -602,6 +605,7 @@ function makeEntryItem(
   if (prev?.meta.departmentOverride) meta.departmentOverride = prev.meta.departmentOverride;
   if (prev?.meta.institutionOverride) meta.institutionOverride = prev.meta.institutionOverride;
   if (prev?.meta.dateRangeOverride) meta.dateRangeOverride = prev.meta.dateRangeOverride;
+  if (prev?.meta.entryUrlOverride) meta.entryUrlOverride = prev.meta.entryUrlOverride;
   // Results of the bounded post-build enrichment passes that can reach an entry
   // item (no CSL, so only the passes keyed by `meta.doi` / `meta.repositoryUrl`):
   // FORRT replication evidence and Software Heritage archival status, with their
@@ -717,6 +721,7 @@ function buildPositionsSection(
             institutionUrl: e.institutionUrl,
             roleTitle: e.roleTitle,
             department: e.department,
+            entryUrl: e.url,
             startYear: e.startYear,
             endYear: e.endYear,
             lastVerifiedAt: now,
@@ -816,6 +821,7 @@ function buildOrcidEntrySection(
           institution: e.organization,
           institutionNames: e.institutionNames,
           institutionUrl: e.institutionUrl,
+          entryUrl: e.url,
           lastVerifiedAt: opts.now,
           ...verifiedMeta(e),
         }),
@@ -832,6 +838,7 @@ function buildOrcidEntrySection(
             institutionUrl: e.institutionUrl,
             roleTitle: e.roleTitle,
             department: e.department,
+            entryUrl: e.url,
             startYear: e.startYear,
             endYear: e.endYear,
             lastVerifiedAt: opts.now,

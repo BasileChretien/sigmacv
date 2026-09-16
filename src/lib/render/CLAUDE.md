@@ -9,6 +9,7 @@ The renderer family. **Every format derives entirely from the canonical object**
 - `pdf.ts` is **not** a separate pipeline: it runs the HTML renderer and prints the result with Playwright. (Excluded from coverage — real Chromium.) **PDF is the only template-faithful export** — it IS the live template.
 - `docx.ts` is deliberately **plain / template-agnostic**: a clean single-column, black-on-white, editable document (header, data tables, sections with the self-name bolded). No accent colour, sidebar, centring or photo — Word can't faithfully reproduce the templates and a clean editable doc is more useful. (An HTML→DOCX route was tried and reverted; conversion fidelity wasn't worth the cost.)
 - Shared helpers, used by every text format so output stays consistent: `prepare.ts` (orders/filters sections + items, runs citeproc to text), `emphasize.ts` (`splitSelf`/`wrapSelf` — bold the account holder's name on their own works only), `headerText.ts` (format-agnostic header fields), `metrics.ts`, `authorship.ts`, `charts.ts`, `escape.ts`/`slug.ts`.
+- `entryLink.ts` — the ENTRY's own link (ORCID's `url` for an affiliation, or the owner's override), prepared once for every format: `safeHref`-validated, labelled with its host. HTML shows the host beside the entry; the text formats print the whole URL (`prepare.ts`), because a printed CV can't be clicked. Distinct from the institution link behind the institution name (`meta.institutionUrl`/ROR) — the two sit side by side, never nested.
 
 ## Template styling (LaTeX only)
 

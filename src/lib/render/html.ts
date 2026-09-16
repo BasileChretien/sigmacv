@@ -16,10 +16,12 @@ import { escapeHtml, safeHref } from "./escape";
 import { coinsSpan } from "./coins";
 import { creditRolesHtml } from "./creditRoles";
 import { dataLinksHtml } from "./dataLinksHtml";
+import { entryLink, type EntryLink } from "./entryLink";
 import { itemProvenanceHtml } from "./itemProvenance";
 import { prepareSections } from "./prepare";
 import { cvSlug } from "./slug";
 import { getTemplate, resolveTheme } from "./templates";
+import { UGC_REL } from "./templates/shared";
 import { verifiedAsserter, verifiedSuffix } from "./textMarks";
 import { workIndicators } from "./workIndicators";
 import type { RenderedSection } from "./templates/types";
@@ -323,11 +325,42 @@ function positionEntryHtml(item: CvItem, display: DisplayChoices): string {
     : verifiedPlainHtml(item, display);
   // Role leads when known; otherwise the institution becomes the lead line.
   const lead = (role ? escapeHtml(role) : inst) + badges;
-  const subParts = role ? [dept ? escapeHtml(dept) : "", inst] : [dept ? escapeHtml(dept) : ""];
+  // The entry's own link (ORCID's `url` for the activity) joins the muted
+  // sub-line as its own part — the institution name is already a link (to the
+  // ORGANISATION's site / ROR record), so the two never nest.
+  const link = entryLink(item);
+  const linkHtml = link ? entryUrlAnchor(link) : "";
+  const subParts = role
+    ? [dept ? escapeHtml(dept) : "", inst, linkHtml]
+    : [dept ? escapeHtml(dept) : "", linkHtml];
   const sub = subParts.filter(Boolean).join(" · ");
   const head = `<div class="cv-entry-head"><span class="cv-entry-lead">${lead}</span>${datesHtml}</div>`;
   const subLine = sub ? `<div class="cv-entry-sub">${sub}</div>` : "";
   return `<div class="cv-entry">${head}${subLine}</div>`;
+}
+
+/**
+ * The entry's OWN link ("· neuropresage.fr") as a quiet inline anchor, for a
+ * FLAT entry line (Service, Awards, Invited Talks, and any history entry that
+ * fell back to its flat line). The structured two-line record places the same
+ * link on its sub-line instead — see {@link positionEntryHtml}. "" when the
+ * entry carries no usable link.
+ */
+function entryUrlHtml(item: CvItem): string {
+  const link = entryLink(item);
+  return link ? ` · ${entryUrlAnchor(link)}` : "";
+}
+
+/**
+ * The anchor itself. Carries {@link UGC_REL} because the destination is chosen
+ * by the record holder (ORCID takes any URL they type) or by the owner's own
+ * override — the same reason the free-text website + profile links carry it. A
+ * declared rel also makes `externalizeLinks` leave it alone.
+ */
+function entryUrlAnchor(link: EntryLink): string {
+  return `<a class="cv-entry-url" href="${escapeHtml(link.href)}"${UGC_REL}>${escapeHtml(
+    link.label,
+  )}</a>`;
 }
 
 /**
@@ -543,6 +576,12 @@ export function buildRenderedSections(cv: CanonicalCv, opts?: RenderOpts): Rende
         // render OPTION, never a display toggle, so exports can't carry it.
         if (opts?.readerMode && !isHistory) html += itemProvenanceHtml(item, cv.display.locale);
         if (isHistory) html = withRorLink(html, item, cv.display.locale);
+        // The entry's own link, appended AFTER the ROR pass for the same reason
+        // the verified clause is: `withRorLink` locates the institution name by
+        // `lastIndexOf` over the whole accumulated html, and must not scan text
+        // this added. (A structured history entry never reaches here — it
+        // returned its two-line record above, link included.)
+        html += entryUrlHtml(item);
         // ATS only: the verified clause as plain text (the badge family is hidden
         // there) — appended AFTER the ROR link, whose `lastIndexOf` lookup of the
         // institution name would otherwise wrap the name INSIDE the clause.
