@@ -304,6 +304,31 @@ describe("entry link in the text formats", () => {
     expect(renderCvMarkdown(makeCv())).toContain("(https://neuropresage.fr/team/basile-chretien/)");
   });
 
+  it("prints a URL with an underscore unmangled (it must be copyable out of the file)", () => {
+    // `escapeMarkdown` backslash-escapes `_` everywhere, which used to reach
+    // inside the URL: "…/team\_page" renders right but does not copy right.
+    const cv = makeCv({
+      service: [{ ...MEMBERSHIP, url: "https://example.org/team_page/[a]*b*" }],
+    });
+    const md = renderCvMarkdown(cv);
+    expect(md).toContain("(https://example.org/team_page/[a]*b*)");
+    expect(md).not.toContain("team\\_page");
+  });
+
+  it("still escapes the entry TEXT around the URL", () => {
+    const cv = makeCv({
+      service: [{ ...MEMBERSHIP, organization: "A_B [lab]", url: "https://example.org/x_y" }],
+    });
+    const md = renderCvMarkdown(cv);
+    expect(md).toContain("A\\_B \\[lab\\]");
+    expect(md).toContain("https://example.org/x_y");
+  });
+
+  it("drops from the URL only what would break the surrounding Markdown", () => {
+    const cv = makeCv({ service: [{ ...MEMBERSHIP, url: "https://example.org/a`b<c>d" }] });
+    expect(renderCvMarkdown(cv)).toContain("(https://example.org/abcd)");
+  });
+
   it("hands LaTeX a bare URL, which it wraps in \\url{}", () => {
     expect(renderCvLatex(makeCv())).toContain(
       "\\url{https://neuropresage.fr/team/basile-chretien/}",

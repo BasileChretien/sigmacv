@@ -35,6 +35,37 @@ export function escapeMarkdown(s: string): string {
   );
 }
 
+/** A bare http(s) run inside an entry line — the same shape `latex.ts` looks for. */
+const MD_URL_RE = /(https?:\/\/\S+)/g;
+
+/**
+ * {@link escapeMarkdown} for an ENTRY LINE, which may carry a URL printed in
+ * full (an entry's own link, a dataset's DOI, a software repository) — those
+ * runs are left RAW.
+ *
+ * Escaping the whole line corrupts them: `_` is escaped everywhere, so
+ * `https://example.org/team_page` was exported as `…/team\_page`. It RENDERS
+ * correctly (a Markdown processor turns `\_` back into `_`), but the point of
+ * printing a URL in a text export is that it can be read and copied out of the
+ * file itself, and a backslash in the middle of it breaks that. Underscores are
+ * ordinary in team-page and CMS URLs, so this is the common case, not an edge.
+ *
+ * The URL run keeps every character a URL legitimately carries (`_ * [ ]` and
+ * the rest) and loses only the four that would break the surrounding structure
+ * and never appear unencoded in a real URL: a backtick (it would open a code
+ * span and swallow the rest of the line), a backslash, and `<` `>`. That is the
+ * same trade `sanitizeUrlForLatex` makes against what would close a LaTeX
+ * `\url{}` argument early.
+ */
+export function escapeMarkdownEntry(s: string): string {
+  return s
+    .split(MD_URL_RE)
+    .map((part) =>
+      /^https?:\/\//.test(part) ? part.replace(/[`\\<>]/g, "") : escapeMarkdown(part),
+    )
+    .join("");
+}
+
 /**
  * Sanitize a user-supplied URL for use in an `href`. Only http(s) and mailto
  * are allowed; everything else (notably `javascript:` / `data:` / `vbscript:`)
