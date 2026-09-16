@@ -122,8 +122,10 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
     sourceKind: "legal-text",
     guidanceUrl:
       "https://irights.info/artikel/kein-durchbruch-5-jahre-zweitveroeffentlichungsrecht-fuer-wissenschaftliche-zeitschriftenbeitraege/29822",
+    appliesFrom: "2014-01-01",
     workTypes: JOURNAL_ARTICLES,
     statements: [
+      "in force since 1 January 2014",
       "a scientific contribution from research at least half funded by public money",
       "published in a collection appearing periodically at least twice a year",
       "even after granting the publisher an exclusive right of use",
@@ -133,7 +135,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
       "the legislative reasoning limits it to publicly funded projects and non-university institutes, not basic-funded university research",
     ],
     verifiedBy: "maintainer",
-    lastVerified: "2026-09-15",
+    lastVerified: "2026-09-16",
   },
   {
     countryCode: "AT",
@@ -141,8 +143,10 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
     instrument: "Urheberrechtsgesetz (UrhG) § 37a",
     sourceUrl: "https://www.jusline.at/gesetz/urhg/paragraf/37a",
     sourceKind: "legal-text",
+    appliesFrom: "2015-10-01",
     workTypes: JOURNAL_ARTICLES,
     statements: [
+      "in force since 1 October 2015",
       "a scientific contribution written as a member of the academic staff of a research institution at least half funded by public money",
       "published in a collection appearing periodically at least twice a year",
       "even after granting the publisher a right of use",
@@ -151,7 +155,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
       "an agreement to the author's disadvantage is ineffective",
     ],
     verifiedBy: "maintainer",
-    lastVerified: "2026-09-15",
+    lastVerified: "2026-09-16",
   },
   {
     countryCode: "NL",
