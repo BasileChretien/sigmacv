@@ -8,14 +8,13 @@ import { OPEN_POLICY_FINDER_URL } from "@/lib/cv/worklist";
 
 /**
  * The owner-only "Affiliations & open access" panel: lists (a) current positions
- * without a ROR record, (b) works whose printed affiliation lacks a consented
- * institution (grouped by the ROR they DO carry), (c) works with no open copy
- * found, with the state chip + policy-finder link; every row jumps to the item;
- * hidden entirely when there is nothing to show.
+ * without a ROR record and (b) works with no open copy found, with the state
+ * chip + policy-finder link; every row jumps to the item; hidden entirely when
+ * there is nothing to show. There is no list of works by printed affiliation:
+ * nothing in the editor can act on one.
  */
 
 const NAGOYA = "04chrp450";
-const OTHER = "02kpeqv85";
 
 function work(id: string, meta: CvItem["meta"], over: Partial<CvItem> = {}): CvItem {
   return {
@@ -84,19 +83,18 @@ describe("WorklistPanel (component)", () => {
       [work("W1", { year: 2022, oaIsOpen: true, license: "cc-by", workInstitutions: [NAGOYA] })],
       [position("P1", { institution: "Nagoya University", rorId: NAGOYA, startYear: 2020 })],
     );
-    const { container } = render(
-      <WorklistPanel cv={cv} locale="en-US" consentedRorIds={[NAGOYA]} onJump={vi.fn()} />,
-    );
+    const { container } = render(<WorklistPanel cv={cv} locale="en-US" onJump={vi.fn()} />);
     expect(container.innerHTML).toBe("");
   });
 
-  it("lists the three groups under plain headings (no count, no open-access breakdown), the state chip, the funder names and the policy link, and jumps on activation", () => {
+  it("lists the two groups under plain headings (no count, no open-access breakdown), the state chip, the funder names and the policy link, and jumps on activation — and never a work by its printed affiliation", () => {
     const cv = makeCv(
       [
-        work("W-gap", {
+        // Printed affiliation elsewhere, and none at all: neither is a row.
+        work("W-elsewhere", {
           year: 2022,
           oaIsOpen: true,
-          workInstitutions: [`https://ror.org/${OTHER}`],
+          workInstitutions: ["https://ror.org/02kpeqv85"],
         }),
         work("W-nodata", { year: 2022, oaIsOpen: true, license: "cc-by" }),
         work("W-closed", {
@@ -113,7 +111,7 @@ describe("WorklistPanel (component)", () => {
       ],
     );
     const onJump = vi.fn();
-    render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[NAGOYA]} onJump={onJump} />);
+    render(<WorklistPanel cv={cv} locale="en-US" onJump={onJump} />);
 
     // Owner-only framing + collapsible.
     const details = screen.getByText("Affiliations & open access").closest("details");
@@ -125,18 +123,15 @@ describe("WorklistPanel (component)", () => {
     fireEvent.click(screen.getByRole("button", { name: /Some Hospital/ }));
     expect(onJump).toHaveBeenLastCalledWith("P-noror");
 
-    // (b) gaps grouped by the ROR they DO carry.
-    expect(screen.getByText("Works whose printed affiliation lacks your institution")).toBeTruthy();
-    expect(screen.getByText(new RegExp(`ROR ${OTHER}`))).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /Work W-gap/ }));
-    expect(onJump).toHaveBeenLastCalledWith("W-gap");
+    // No list by printed affiliation, no "no affiliation data" bucket, no ROR id.
+    expect(screen.queryByText(/printed affiliation/)).toBeNull();
+    expect(screen.queryByText(/no affiliation data/)).toBeNull();
+    expect(screen.queryByText(/Affiliation on the paper/)).toBeNull();
+    expect(screen.queryByText(/02kpeqv85/)).toBeNull();
+    expect(screen.queryByRole("button", { name: /Work W-elsewhere/ })).toBeNull();
+    expect(screen.queryByRole("button", { name: /Work W-nodata/ })).toBeNull();
 
-    // No-affiliation-data bucket, separate from "missing".
-    expect(screen.getByText("Works with no affiliation data")).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /Work W-nodata/ }));
-    expect(onJump).toHaveBeenLastCalledWith("W-nodata");
-
-    // (c) closed works: chip; funders; policy link.
+    // (b) closed works: chip; funders; policy link.
     expect(screen.getByText("Works with no open copy found")).toBeTruthy();
     expect(screen.getByText(/Funders named on the work: Wellcome Trust/)).toBeTruthy();
     const link = screen.getByRole("link", { name: /Open Policy Finder/ }) as HTMLAnchorElement;
@@ -155,69 +150,21 @@ describe("WorklistPanel (component)", () => {
     );
   });
 
-  const dataset = (): CvItem => ({
-    ...work("D1", { year: 2022 }),
-    source: "datacite",
-    sourceId: "10.5281/zenodo.1",
-    csl: { id: "D1", type: "dataset", title: "A dataset" },
-  });
-  const conferencePaper = (): CvItem => ({
-    ...work("C1", { year: 2022 }),
-    source: "dblp",
-    sourceId: "conf/x/1",
-    csl: { id: "C1", type: "paper-conference", title: "A talk" },
-  });
   const nagoyaNow = () =>
     position("P1", { institution: "Nagoya University", rorId: NAGOYA, startYear: 2020 });
-
-  it("hides entirely when the only works in the window come from sources that never carry affiliation data", () => {
-    const { container } = render(
-      <WorklistPanel
-        cv={makeCv([dataset(), conferencePaper()], [nagoyaNow()])}
-        locale="en-US"
-        consentedRorIds={[NAGOYA]}
-        onJump={vi.fn()}
-      />,
-    );
-    expect(container.innerHTML).toBe("");
-  });
-
-  it("counts the works it does not check on one line — no verdict — and lists none of them", () => {
-    const cv = makeCv(
-      [work("W-nodata", { year: 2022, oaIsOpen: true }), dataset(), conferencePaper()],
-      [nagoyaNow()],
-    );
-    render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[NAGOYA]} />);
-    expect(screen.getByText("Works with no affiliation data")).toBeTruthy();
-    expect(screen.getByText(/OpenAlex recorded no institution/)).toBeTruthy();
-    expect(
-      screen.getByText(/^2 further works in this period come from other sources/),
-    ).toBeTruthy();
-    expect(screen.queryByText(/A dataset/)).toBeNull();
-    expect(screen.queryByText(/A talk/)).toBeNull();
-  });
 
   it("names a current position with neither an institution nor a line as untitled — never an empty button", () => {
     const empty: CvItem = { ...position("P-empty", { startYear: 2021 }), displayText: undefined };
     const onJump = vi.fn();
-    render(
-      <WorklistPanel
-        cv={makeCv([], [empty])}
-        locale="en-US"
-        consentedRorIds={[]}
-        onJump={onJump}
-      />,
-    );
+    render(<WorklistPanel cv={makeCv([], [empty])} locale="en-US" onJump={onJump} />);
     fireEvent.click(screen.getByRole("button", { name: "(untitled)" }));
     expect(onJump).toHaveBeenCalledWith("P-empty");
   });
 
-  it("substitutes source values literally — a replacement pattern in a ROR key or a funder name never corrupts the copy", () => {
-    const rorKey = "https://example.org/$'";
+  it("substitutes source values literally — a replacement pattern in a funder name never corrupts the copy", () => {
     const funder = "Fund $& Co $` Ltd";
     const cv = makeCv(
       [
-        work("W-gap", { year: 2022, oaIsOpen: true, workInstitutions: [rorKey] }),
         work("W-closed", {
           year: 2022,
           oaIsOpen: false,
@@ -227,15 +174,14 @@ describe("WorklistPanel (component)", () => {
       ],
       [nagoyaNow()],
     );
-    render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[NAGOYA]} />);
-    expect(screen.getByText(`Affiliation on the paper: ROR ${rorKey} — 1`)).toBeTruthy();
+    render(<WorklistPanel cv={cv} locale="en-US" />);
     expect(screen.getByText(`Funders named on the work: ${funder}`)).toBeTruthy();
   });
 
   it("renders rows as plain text without a jump callback, and omits the policy link without a venue", () => {
     const closed = work("W-closed", { year: 2021, oaIsOpen: false });
     const cv = makeCv([{ ...closed, csl: { id: "W-closed", type: "article-journal" } }], []);
-    render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} />);
+    render(<WorklistPanel cv={cv} locale="en-US" />);
     expect(screen.queryByRole("button")).toBeNull();
     // The only links are the deposit places under the closed work (no DOI here, so
     // no Copy DOI button): the row itself and the journal policy stay plain.
@@ -248,7 +194,7 @@ describe("WorklistPanel (component)", () => {
 
   it("localizes the panel", () => {
     const cv = makeCv([work("W-closed", { year: 2021, oaIsOpen: false })], []);
-    render(<WorklistPanel cv={cv} locale="fr-FR" consentedRorIds={[]} />);
+    render(<WorklistPanel cv={cv} locale="fr-FR" />);
     expect(screen.getByText("Affiliations et accès ouvert")).toBeTruthy();
   });
 });
@@ -274,7 +220,6 @@ describe("WorklistPanel — wired into the editor (owner-only)", () => {
         uiLocale="en-US"
         onChange={vi.fn()}
         variant="regions"
-        consentedRorIds={[]}
       />,
     );
     const panel = document.querySelector<HTMLDetailsElement>("details.cv-worklist");
@@ -302,7 +247,6 @@ describe("WorklistPanel — wired into the editor (owner-only)", () => {
         uiLocale="en-US"
         onChange={vi.fn()}
         variant="regions"
-        consentedRorIds={[]}
       />,
     );
     expect(screen.getByRole("tab", { name: "Open access" })).toBeTruthy();

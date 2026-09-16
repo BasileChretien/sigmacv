@@ -499,7 +499,7 @@ describe("joinOwnerFunding — selection and order", () => {
 });
 
 describe("hasWorklistContent with the funding join", () => {
-  const noGaps = { positionsWithoutRor: [], missing: [], noAffiliationData: [] };
+  const noGaps = { positionsWithoutRor: [] };
   const noClosed = {
     counts: { "open-cc": 0, "open-other": 0, "no-open-copy-found": 0, "not-determined": 0 },
   };

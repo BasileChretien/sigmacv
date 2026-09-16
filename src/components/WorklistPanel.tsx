@@ -5,7 +5,6 @@ import { basisChangesPrimary, regionName, type DepositBasis } from "@/lib/archiv
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
 import {
   affiliationGaps,
-  groupByRor,
   hasWorklistContent,
   openAccessStates,
   policyFinderUrl,
@@ -29,10 +28,6 @@ const NO_FUNDER_CROSSWALK: readonly FunderRow[] = [];
 interface WorklistPanelProps {
   cv: CanonicalCv;
   locale: Locale;
-  /** The ROR ids the owner consented to on the institution page (bare ids).
-   *  With none, the affiliation buckets are empty; positions and open access
-   *  are still listed. */
-  consentedRorIds: readonly string[];
   /** The OpenAlex funder crosswalk rows for the funders printed on the owner's
    *  works (owner-only, loaded by the page). With none, the owner's grants
    *  still join by award number. */
@@ -65,31 +60,27 @@ const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
 // which a string replacement would read as a pattern and corrupt the copy with.
 
 /**
- * The owner's "Affiliations & open access" worklist — the researcher-first half
- * of reconciliation with an institution's record, shown ONLY in the editor (in
- * the regions layout, in its own "Open access" tab, never among the sections): (a)
- * current positions without a ROR record, (b) works dated during a consented
- * position whose printed affiliation lacks that institution, grouped by the
- * ROR they DO carry, plus the OpenAlex works with no affiliation data (works
- * from other sources never carry it: counted on one line, not checked), (c) the
+ * The owner's "Affiliations & open access" worklist, shown ONLY in the editor (in
+ * the regions layout, in its own "Open access" tab, never among the sections) —
+ * what the owner can act on, never a state: (a) current positions without a ROR
+ * record (the organisation, added on ORCID, resolves at the next sync), (b) the
  * countable works with no open copy found, each with its four-state label, a
  * link to the journal's policy and — when the owner's sync stored them — the
  * publisher's self-archiving policy as OA.Works recorded it and the statutory
  * rule that may also apply (`WorklistRights`, one disclaimer under the list) and,
  * for a journal article, one place to deposit it (`WorklistDeposit`) — the
- * journal-policy search link shows whenever OA.Works gives no policy link, (d) the works that acknowledge one of the
- * owner's OWN grants (`funders/join.ts`), each beside the funder's recorded
- * open-access policy — dated, linked — and what SigmaCV found. No heading
- * carries a count or a share — no "N of M", no open-access breakdown (actions,
- * never states); the only numbers are a ROR group's size and the note on works
- * not checked. Every row jumps to the entry. It is help, not judgement — no compliance state exists (the i18n tests
- * ban the vocabulary) — and nothing here reaches the CV, the public page or an
- * export. Renders nothing when there is nothing to show.
+ * journal-policy search link shows whenever OA.Works gives no policy link, (c) the
+ * works that acknowledge one of the owner's OWN grants (`funders/join.ts`), each
+ * beside the funder's recorded open-access policy — dated, linked — and what
+ * SigmaCV found. No heading carries a count or a share — no "N of M", no
+ * open-access breakdown (actions, never states). Every row jumps to the entry.
+ * It is help, not judgement — no compliance state exists (the i18n tests ban the
+ * vocabulary) — and nothing here reaches the CV, the public page or an export.
+ * Renders nothing (or `whenEmpty`) when there is nothing to show.
  */
 export default function WorklistPanel({
   cv,
   locale,
-  consentedRorIds,
   funderCrosswalk = NO_FUNDER_CROSSWALK,
   onJump,
   listing,
@@ -98,7 +89,7 @@ export default function WorklistPanel({
   whenEmpty = null,
 }: WorklistPanelProps) {
   const wu = workspaceUi(locale);
-  const gaps = useMemo(() => affiliationGaps(cv, consentedRorIds), [cv, consentedRorIds]);
+  const gaps = useMemo(() => affiliationGaps(cv), [cv]);
   const oa = useMemo(() => openAccessStates(cv), [cv]);
   const crosswalk = useMemo(() => toCrosswalk(funderCrosswalk), [funderCrosswalk]);
   const funding = useMemo(() => joinOwnerFunding(cv, crosswalk), [cv, crosswalk]);
@@ -123,7 +114,6 @@ export default function WorklistPanel({
   }
 
   const closed = oa.rows.filter((r) => r.state === "no-open-copy-found");
-  const groups = groupByRor(gaps.missing);
 
   // The deposit action is for journal articles: the works OA.Works records a
   // publisher policy for, and the ones repositories take as manuscripts.
@@ -203,45 +193,6 @@ export default function WorklistPanel({
             ))}
           </ul>
         </section>
-      ) : null}
-
-      {gaps.missing.length > 0 ? (
-        <section className="cv-worklist-group">
-          <h4>{wu.wlGapsHeading}</h4>
-          <p className="muted">{wu.wlGapsHelp}</p>
-          {groups.map((g) => (
-            <div key={g.rorId} className="cv-worklist-subgroup">
-              <h5>
-                {wu.wlGapsGroup
-                  .replace("{ror}", () => g.rorId)
-                  .replace("{n}", () => String(g.rows.length))}
-              </h5>
-              <ul>
-                {g.rows.map((r) => (
-                  <li key={r.itemId}>{jump(r.itemId, rowText(r))}</li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </section>
-      ) : null}
-
-      {gaps.noAffiliationData.length > 0 ? (
-        <section className="cv-worklist-group">
-          <h4>{wu.wlNoAffiliationHeading}</h4>
-          <p className="muted">{wu.wlNoAffiliationHelp}</p>
-          <ul>
-            {gaps.noAffiliationData.map((r) => (
-              <li key={r.itemId}>{jump(r.itemId, rowText(r))}</li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
-      {gaps.notChecked > 0 ? (
-        <p className="muted cv-worklist-note">
-          {wu.wlNotCheckedNote.replace("{n}", () => String(gaps.notChecked))}
-        </p>
       ) : null}
 
       {closed.length > 0 ? (

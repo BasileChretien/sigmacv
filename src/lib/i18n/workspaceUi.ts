@@ -90,20 +90,10 @@ export interface WorkspaceUiStrings {
   wlIntro: string;
   /** Group (a): current positions without a ROR record. No count: the list is below. */
   wlPositionsHeading: string;
+  /** The one thing that resolves it: the organisation added to the position on
+   *  ORCID, picked up at the next sync. No picker exists in the editor — say so. */
   wlPositionsHelp: string;
-  /** Group (b): works whose printed affiliation lacks a consented id. No count. */
-  wlGapsHeading: string;
-  wlGapsHelp: string;
-  /** Sub-group label: the ROR the works DO carry; {ror}, {n}. */
-  wlGapsGroup: string;
-  /** OpenAlex works with EMPTY affiliation data (no institution on the owner's
-   *  authorship, or none with a ROR id — missing data, not a missing affiliation). */
-  wlNoAffiliationHeading: string;
-  wlNoAffiliationHelp: string;
-  /** One line under that bucket: works in the period from OTHER sources, which
-   *  never carry affiliation data and are not checked; {n}. Counts only. */
-  wlNotCheckedNote: string;
-  /** Group (c): countable works with no open copy found. No count, no share. */
+  /** Group (b): countable works with no open copy found. No count, no share. */
   wlClosedHeading: string;
   /** Help under the closed works — a deposit MAY be possible; never a verdict. */
   wlClosedHelp: string;
@@ -333,16 +323,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "For you only — help with the record, not a verdict. Nothing here appears on your CV or your public page.",
     wlPositionsHeading: "Current positions without an institution record",
     wlPositionsHelp:
-      "The ROR record was not resolved. Add the organisation on ORCID, or pick it in the editor, so the position links to its institution.",
-    wlGapsHeading: "Works whose printed affiliation lacks your institution",
-    wlGapsHelp:
-      "Dated during a position you are listed under, but the affiliation on the paper — as OpenAlex indexes it — names another organisation. Often the paper printed a different unit, or the affiliation was not captured; nothing here is wrong by itself.",
-    wlGapsGroup: "Affiliation on the paper: ROR {ror} — {n}",
-    wlNoAffiliationHeading: "Works with no affiliation data",
-    wlNoAffiliationHelp:
-      "OpenAlex recorded no institution — or none with a ROR id — on your authorship of these works. That is missing data, not a missing affiliation.",
-    wlNotCheckedNote:
-      "{n} further works in this period come from other sources (datasets, conference papers, claimed DOIs) and are not checked here.",
+      "No ROR record was matched. Add the organisation to this position on ORCID, then sync again.",
     wlClosedHeading: "Works with no open copy found",
     wlClosedHelp:
       "No open copy was found by OpenAlex; a repository deposit may be possible — check the journal's policy.",
@@ -511,17 +492,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlIntro:
       "仅供您本人查看——这是对您记录的帮助，不是评判。这里的内容不会出现在您的简历或公开页面上。",
     wlPositionsHeading: "没有机构记录的当前职位",
-    wlPositionsHelp:
-      "未能解析 ROR 记录。请在 ORCID 上添加该组织，或在编辑器中选择它，使该职位关联到其机构。",
-    wlGapsHeading: "印刷署名机构中不含您所在机构的作品",
-    wlGapsHelp:
-      "这些作品的日期落在您被列入的职位期间，但论文上的署名机构（按 OpenAlex 的索引）是另一个组织。通常是论文印了不同的单位，或署名机构未被采集；这本身并不是错误。",
-    wlGapsGroup: "论文上的署名机构：ROR {ror} — {n}",
-    wlNoAffiliationHeading: "没有署名机构数据的作品",
-    wlNoAffiliationHelp:
-      "OpenAlex 没有为您在这些作品中的署名记录任何机构，或记录的机构没有 ROR 标识。这是数据缺失，不是署名机构缺失。",
-    wlNotCheckedNote:
-      "此期间另有 {n} 篇作品来自其他来源（数据集、会议论文、认领的 DOI），此处不做检查。",
+    wlPositionsHelp: "未匹配到 ROR 记录。请在 ORCID 上为该职位添加所属组织，然后重新同步。",
     wlClosedHeading: "未找到开放副本的作品",
     wlClosedHelp: "OpenAlex 未找到开放副本；也许可以在知识库中存缴——请查看该期刊的政策。",
     wlStateOpenCc: "开放，知识共享（CC）许可",
@@ -683,16 +654,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Solo para ti: una ayuda para tu registro, no un veredicto. Nada de esto aparece en tu CV ni en tu página pública.",
     wlPositionsHeading: "Puestos actuales sin registro de institución",
     wlPositionsHelp:
-      "No se resolvió el registro ROR. Añade la organización en ORCID, o elígela en el editor, para que el puesto quede enlazado con su institución.",
-    wlGapsHeading: "Trabajos cuya afiliación impresa no incluye tu institución",
-    wlGapsHelp:
-      "Fechados durante un puesto bajo el que apareces listado, pero la afiliación en el artículo, tal como la indexa OpenAlex, nombra otra organización. A menudo el artículo imprimió otra unidad, o la afiliación no se recogió; nada de esto es un error por sí mismo.",
-    wlGapsGroup: "Afiliación en el artículo: ROR {ror} — {n}",
-    wlNoAffiliationHeading: "Trabajos sin datos de afiliación",
-    wlNoAffiliationHelp:
-      "OpenAlex no registró ninguna institución —o ninguna con identificador ROR— en tu autoría de estos trabajos. Es un dato ausente, no una afiliación ausente.",
-    wlNotCheckedNote:
-      "Otros {n} trabajos de este periodo proceden de otras fuentes (conjuntos de datos, artículos de congreso, DOI reclamados) y no se comprueban aquí.",
+      "No se encontró un registro ROR. Añade la organización a este puesto en ORCID y vuelve a sincronizar.",
     wlClosedHeading: "Trabajos sin copia abierta encontrada",
     wlClosedHelp:
       "OpenAlex no encontró ninguna copia abierta; quizá sea posible un depósito en repositorio: consulta la política de la revista.",
@@ -869,16 +831,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Pour vous seulement — une aide pour votre dossier, pas un verdict. Rien de ceci n’apparaît sur votre CV ni sur votre page publique.",
     wlPositionsHeading: "Postes actuels sans fiche d’institution",
     wlPositionsHelp:
-      "La fiche ROR n’a pas été résolue. Ajoutez l’organisation sur ORCID, ou choisissez-la dans l’éditeur, pour que le poste soit relié à son institution.",
-    wlGapsHeading: "Travaux dont l’affiliation imprimée ne mentionne pas votre institution",
-    wlGapsHelp:
-      "Datés pendant un poste sous lequel vous êtes listé·e, mais l’affiliation sur l’article — telle qu’OpenAlex l’indexe — nomme une autre organisation. Souvent l’article a imprimé une autre unité, ou l’affiliation n’a pas été relevée ; rien ici n’est faux en soi.",
-    wlGapsGroup: "Affiliation sur l’article : ROR {ror} — {n}",
-    wlNoAffiliationHeading: "Travaux sans donnée d’affiliation",
-    wlNoAffiliationHelp:
-      "OpenAlex n’a relevé aucune institution — ou aucune dotée d’un identifiant ROR — sur votre signature de ces travaux. C’est une donnée manquante, pas une affiliation manquante.",
-    wlNotCheckedNote:
-      "{n} autres travaux de cette période proviennent d’autres sources (jeux de données, communications de conférence, DOI revendiqués) et ne sont pas vérifiés ici.",
+      "Aucune fiche ROR n’a été trouvée. Ajoutez l’organisation à ce poste sur ORCID, puis synchronisez de nouveau.",
     wlClosedHeading: "Travaux sans copie ouverte trouvée",
     wlClosedHelp:
       "OpenAlex n’a trouvé aucune copie ouverte ; un dépôt en archive ouverte est peut-être possible — consultez la politique de la revue.",
@@ -1061,16 +1014,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Nur für Sie — eine Hilfe für Ihren Datensatz, kein Urteil. Nichts davon erscheint in Ihrem Lebenslauf oder auf Ihrer öffentlichen Seite.",
     wlPositionsHeading: "Aktuelle Positionen ohne Institutionsdatensatz",
     wlPositionsHelp:
-      "Der ROR-Datensatz wurde nicht aufgelöst. Ergänzen Sie die Organisation auf ORCID oder wählen Sie sie im Editor, damit die Position mit ihrer Institution verknüpft ist.",
-    wlGapsHeading: "Arbeiten, deren gedruckte Affiliation Ihre Institution nicht nennt",
-    wlGapsHelp:
-      "Datiert während einer Position, unter der Sie gelistet sind, aber die Affiliation auf der Arbeit — wie OpenAlex sie indexiert — nennt eine andere Organisation. Oft stand auf der Arbeit eine andere Einheit, oder die Affiliation wurde nicht erfasst; nichts hiervon ist für sich genommen falsch.",
-    wlGapsGroup: "Affiliation auf der Arbeit: ROR {ror} — {n}",
-    wlNoAffiliationHeading: "Arbeiten ohne Affiliationsdaten",
-    wlNoAffiliationHelp:
-      "OpenAlex hat zu Ihrer Autorschaft dieser Arbeiten keine Institution erfasst — oder keine mit ROR-Kennung. Das sind fehlende Daten, keine fehlende Affiliation.",
-    wlNotCheckedNote:
-      "{n} weitere Arbeiten aus diesem Zeitraum stammen aus anderen Quellen (Datensätze, Konferenzbeiträge, beanspruchte DOIs) und werden hier nicht geprüft.",
+      "Es wurde kein ROR-Datensatz zugeordnet. Ergänzen Sie die Organisation bei dieser Position auf ORCID und synchronisieren Sie erneut.",
     wlClosedHeading: "Arbeiten ohne gefundene offene Kopie",
     wlClosedHelp:
       "OpenAlex hat keine offene Kopie gefunden; eine Ablage in einem Repositorium ist womöglich möglich — prüfen Sie die Richtlinie der Zeitschrift.",
@@ -1246,16 +1190,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "あなただけに表示 — 記録を整えるための手助けであり、評価ではありません。ここの内容は CV にも公開ページにも表示されません。",
     wlPositionsHeading: "機関レコードのない現在の職位",
     wlPositionsHelp:
-      "ROR レコードを解決できませんでした。ORCID に組織を追加するか、エディタで選択すると、職位がその機関に結び付きます。",
-    wlGapsHeading: "掲載された所属にあなたの機関が含まれない業績",
-    wlGapsHelp:
-      "あなたが掲載されている職位の期間に発表されていますが、論文上の所属（OpenAlex の索引による）は別の組織です。論文に別の部局が印刷されていたり、所属が取り込まれていなかったりすることがよくあります。それ自体は誤りではありません。",
-    wlGapsGroup: "論文上の所属：ROR {ror} — {n} 件",
-    wlNoAffiliationHeading: "所属データのない業績",
-    wlNoAffiliationHelp:
-      "OpenAlex はこれらの業績におけるあなたの著者情報に機関を記録していないか、ROR 識別子のない機関のみを記録しています。これはデータの欠落であり、所属の欠落ではありません。",
-    wlNotCheckedNote:
-      "この期間の他の {n} 件の業績は他のソース（データセット、会議論文、申請した DOI）に由来し、ここでは確認されません。",
+      "ROR レコードが見つかりませんでした。ORCID でこの職位に組織を追加し、もう一度同期してください。",
     wlClosedHeading: "オープンな複製が見つからなかった業績",
     wlClosedHelp:
       "OpenAlex はオープンな複製を見つけられませんでした。リポジトリへの登録が可能かもしれません — 学術誌のポリシーを確認してください。",
@@ -1431,16 +1366,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Somente para você: uma ajuda para o seu registro, não um veredito. Nada disto aparece no seu CV nem na sua página pública.",
     wlPositionsHeading: "Cargos atuais sem registro de instituição",
     wlPositionsHelp:
-      "O registro ROR não foi resolvido. Adicione a organização no ORCID, ou escolha-a no editor, para que o cargo fique vinculado à sua instituição.",
-    wlGapsHeading: "Trabalhos cuja afiliação impressa não inclui a sua instituição",
-    wlGapsHelp:
-      "Datados durante um cargo sob o qual você está listado, mas a afiliação no artigo, tal como o OpenAlex a indexa, nomeia outra organização. Muitas vezes o artigo imprimiu outra unidade, ou a afiliação não foi captada; nada aqui é um erro por si só.",
-    wlGapsGroup: "Afiliação no artigo: ROR {ror} — {n}",
-    wlNoAffiliationHeading: "Trabalhos sem dados de afiliação",
-    wlNoAffiliationHelp:
-      "O OpenAlex não registrou nenhuma instituição — ou nenhuma com identificador ROR — na sua autoria destes trabalhos. É um dado ausente, não uma afiliação ausente.",
-    wlNotCheckedNote:
-      "Outros {n} trabalhos deste período vêm de outras fontes (conjuntos de dados, artigos de conferência, DOIs reivindicados) e não são verificados aqui.",
+      "Nenhum registro ROR foi encontrado. Adicione a organização a este cargo no ORCID e sincronize novamente.",
     wlClosedHeading: "Trabalhos sem cópia aberta encontrada",
     wlClosedHelp:
       "O OpenAlex não encontrou nenhuma cópia aberta; um depósito em repositório pode ser possível: consulte a política da revista.",
@@ -1619,16 +1545,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Solo per te: un aiuto per il tuo profilo, non un verdetto. Nulla di questo compare nel tuo CV né nella tua pagina pubblica.",
     wlPositionsHeading: "Posizioni attuali senza scheda dell’istituzione",
     wlPositionsHelp:
-      "La scheda ROR non è stata risolta. Aggiungi l’organizzazione su ORCID, o sceglila nell’editor, così la posizione è collegata alla sua istituzione.",
-    wlGapsHeading: "Lavori la cui affiliazione stampata non riporta la tua istituzione",
-    wlGapsHelp:
-      "Datati durante una posizione sotto cui sei elencato, ma l’affiliazione sull’articolo, come la indicizza OpenAlex, nomina un’altra organizzazione. Spesso l’articolo riportava un’altra unità, o l’affiliazione non è stata rilevata; nulla qui è sbagliato di per sé.",
-    wlGapsGroup: "Affiliazione sull’articolo: ROR {ror} — {n}",
-    wlNoAffiliationHeading: "Lavori senza dati di affiliazione",
-    wlNoAffiliationHelp:
-      "OpenAlex non ha registrato alcuna istituzione — o nessuna con identificativo ROR — sulla tua paternità di questi lavori. È un dato mancante, non un’affiliazione mancante.",
-    wlNotCheckedNote:
-      "Altri {n} lavori di questo periodo provengono da altre fonti (set di dati, articoli di conferenza, DOI rivendicati) e non sono controllati qui.",
+      "Nessuna scheda ROR è stata trovata. Aggiungi l’organizzazione a questa posizione su ORCID, poi sincronizza di nuovo.",
     wlClosedHeading: "Lavori senza copia aperta trovata",
     wlClosedHelp:
       "OpenAlex non ha trovato alcuna copia aperta; un deposito in un repository potrebbe essere possibile: verifica la politica della rivista.",
@@ -1807,16 +1724,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "본인에게만 표시 — 기록을 정리하는 데 도움을 주는 것이지 판정이 아닙니다. 여기의 내용은 CV나 공개 페이지에 나타나지 않습니다.",
     wlPositionsHeading: "기관 레코드가 없는 현재 직위",
     wlPositionsHelp:
-      "ROR 레코드를 찾지 못했습니다. ORCID에 기관을 추가하거나 편집기에서 선택하면 직위가 해당 기관과 연결됩니다.",
-    wlGapsHeading: "게재된 소속에 내 기관이 없는 연구물",
-    wlGapsHelp:
-      "내가 등재된 직위 기간에 발표되었지만, 논문에 인쇄된 소속(OpenAlex 색인 기준)은 다른 기관입니다. 논문에 다른 부서가 인쇄되었거나 소속이 수집되지 않은 경우가 많습니다. 이것 자체는 오류가 아닙니다.",
-    wlGapsGroup: "논문상의 소속: ROR {ror} — {n}건",
-    wlNoAffiliationHeading: "소속 데이터가 없는 연구물",
-    wlNoAffiliationHelp:
-      "OpenAlex가 이 연구물의 내 저자 정보에 기관을 기록하지 않았거나, ROR 식별자가 없는 기관만 기록했습니다. 데이터가 없는 것이지 소속이 없는 것이 아닙니다.",
-    wlNotCheckedNote:
-      "이 기간의 다른 연구물 {n}건은 다른 출처(데이터셋, 학술대회 논문, 직접 등록한 DOI)에서 왔으며 여기서는 확인하지 않습니다.",
+      "일치하는 ROR 레코드가 없습니다. ORCID에서 이 직위에 기관을 추가한 뒤 다시 동기화하세요.",
     wlClosedHeading: "공개 사본을 찾지 못한 연구물",
     wlClosedHelp:
       "OpenAlex가 공개 사본을 찾지 못했습니다. 리포지터리 기탁이 가능할 수 있습니다 — 학술지의 정책을 확인하세요.",
@@ -1990,16 +1898,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Только для вас — помощь с вашей записью, а не вердикт. Ничего из этого не появляется в вашем CV или на публичной странице.",
     wlPositionsHeading: "Текущие должности без записи об организации",
     wlPositionsHelp:
-      "Запись ROR не была определена. Добавьте организацию в ORCID или выберите её в редакторе, чтобы должность была связана со своей организацией.",
-    wlGapsHeading: "Работы, в напечатанной аффилиации которых нет вашей организации",
-    wlGapsHelp:
-      "Датированы периодом должности, под которой вы указаны, но аффилиация в статье — как её индексирует OpenAlex — называет другую организацию. Часто в статье напечатано другое подразделение или аффилиация не была собрана; само по себе это не ошибка.",
-    wlGapsGroup: "Аффилиация в статье: ROR {ror} — {n}",
-    wlNoAffiliationHeading: "Работы без данных об аффилиации",
-    wlNoAffiliationHelp:
-      "OpenAlex не зафиксировал организацию в вашем авторстве этих работ — или зафиксировал только организацию без идентификатора ROR. Это отсутствующие данные, а не отсутствующая аффилиация.",
-    wlNotCheckedNote:
-      "Ещё {n} работ этого периода поступили из других источников (наборы данных, доклады конференций, заявленные DOI) и здесь не проверяются.",
+      "Запись ROR не найдена. Добавьте организацию к этой должности в ORCID и синхронизируйте снова.",
     wlClosedHeading: "Работы, для которых не найдена открытая копия",
     wlClosedHelp:
       "OpenAlex не нашёл открытой копии; возможно, доступно размещение в репозитории — проверьте политику журнала.",

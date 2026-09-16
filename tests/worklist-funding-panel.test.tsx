@@ -131,15 +131,7 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
       ],
       [grant("G1", { funderId: ANR_FUNDREF, funderName: "ANR", awardId: "ANR-21-CE17-0001" })],
     );
-    render(
-      <WorklistPanel
-        cv={cv}
-        locale="en-US"
-        consentedRorIds={[]}
-        funderCrosswalk={CROSSWALK}
-        onJump={onJump}
-      />,
-    );
+    render(<WorklistPanel cv={cv} locale="en-US" funderCrosswalk={CROSSWALK} onJump={onJump} />);
     expect(screen.getByText("Your grants and their open-access policies")).toBeTruthy();
     expect(screen.getByText(/acknowledges award ANR-21-CE17-0001 from ANR/)).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: /Work W-anr \(2024\)/ }));
@@ -184,9 +176,7 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
       [work("W-anr", [{ id: ANR_URL, awardId: "ANR-21-CE17-0001" }], { oaIsOpen: true })],
       [grant("G1", { funderId: ANR_FUNDREF, funderName: "ANR", awardId: "ANR-21-CE17-0001" })],
     );
-    render(
-      <WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} funderCrosswalk={CROSSWALK} />,
-    );
+    render(<WorklistPanel cv={cv} locale="en-US" funderCrosswalk={CROSSWALK} />);
     expect(
       screen.getByText(
         "ANR's open-access policy, as recorded on 2026-10-01: deposit of the full text in HAL; CC BY licence",
@@ -205,9 +195,7 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
       [work("W-amed", [{ id: AMED_URL }], { oaIsOpen: false })],
       [grant("G1", { funderId: `FUNDREF:http://dx.doi.org/${AMED_FUNDREF}`, funderName: "AMED" })],
     );
-    render(
-      <WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} funderCrosswalk={CROSSWALK} />,
-    );
+    render(<WorklistPanel cv={cv} locale="en-US" funderCrosswalk={CROSSWALK} />);
     expect(screen.getByText(/names your funder AMED; no award number on the work/)).toBeTruthy();
     expect(screen.getByText("SigmaCV has no policy record for AMED.")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /policy page/ })).toBeNull();
@@ -223,7 +211,7 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
       [work("W1", [{ id: "https://openalex.org/F777" }])],
       [grant("G1", { funderId: "https://openalex.org/F777" })],
     );
-    render(<WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} funderCrosswalk={[]} />);
+    render(<WorklistPanel cv={cv} locale="en-US" funderCrosswalk={[]} />);
     expect(
       screen.getByText(/names your funder a funder; no award number on the work/),
     ).toBeTruthy();
@@ -236,7 +224,7 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
       [grant("G1", { funderId: AMED_FUNDREF, funderName: "AMED", awardId: "OTHER-1" })],
     );
     const { container } = render(
-      <WorklistPanel cv={cv} locale="en-US" consentedRorIds={[]} funderCrosswalk={CROSSWALK} />,
+      <WorklistPanel cv={cv} locale="en-US" funderCrosswalk={CROSSWALK} />,
     );
     expect(container.innerHTML).toBe("");
   });
@@ -246,9 +234,7 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
       [work("W1", [{ id: ANR_URL, awardId: "ANR-21-CE17-0001" }], { oaIsOpen: false })],
       [grant("G1", { funderId: ANR_FUNDREF, funderName: "ANR", awardId: "ANR-21-CE17-0001" })],
     );
-    render(
-      <WorklistPanel cv={cv} locale="fr-FR" consentedRorIds={[]} funderCrosswalk={CROSSWALK} />,
-    );
+    render(<WorklistPanel cv={cv} locale="fr-FR" funderCrosswalk={CROSSWALK} />);
     expect(screen.getByText(/Vos financements et leurs politiques/)).toBeTruthy();
     expect(screen.getByText(/ANR-21-CE17-0001/)).toBeTruthy();
     expect(document.body.textContent).not.toMatch(

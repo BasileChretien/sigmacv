@@ -84,7 +84,6 @@ describe("WorklistPanel — the deposit action", () => {
       <WorklistPanel
         cv={makeCv(work({ selfArchiving: ACCEPTED, workCountries: ["FR"] }))}
         locale="en-US"
-        consentedRorIds={[]}
       />,
     );
     const block = deposit(container);
@@ -118,7 +117,6 @@ describe("WorklistPanel — the deposit action", () => {
       <WorklistPanel
         cv={makeCv(work({ selfArchiving: refused, workCountries: ["FR"] }))}
         locale="en-US"
-        consentedRorIds={[]}
       />,
     );
     expect(primaryText(container)).toContain(
@@ -126,11 +124,7 @@ describe("WorklistPanel — the deposit action", () => {
     );
     unmount();
     const rendered = render(
-      <WorklistPanel
-        cv={makeCv(work({ selfArchiving: refused }))}
-        locale="en-US"
-        consentedRorIds={[]}
-      />,
+      <WorklistPanel cv={makeCv(work({ selfArchiving: refused }))} locale="en-US" />,
     );
     expect(primaryText(rendered.container)).toContain(
       "Deposit in Zenodo only if your publishing agreement allows it",
@@ -142,7 +136,6 @@ describe("WorklistPanel — the deposit action", () => {
       <WorklistPanel
         cv={makeCv(work({ selfArchiving: refused, workCountries: ["ES"] }))}
         locale="en-US"
-        consentedRorIds={[]}
       />,
     );
     expect(spain.container.querySelector('[data-worklist="rights"]')!.textContent).toContain(
@@ -155,11 +148,7 @@ describe("WorklistPanel — the deposit action", () => {
 
   it("sends one analytics event per click, carrying the route's kind only", () => {
     const { container } = render(
-      <WorklistPanel
-        cv={makeCv(work({ workCountries: ["FR"] }))}
-        locale="en-US"
-        consentedRorIds={[]}
-      />,
+      <WorklistPanel cv={makeCv(work({ workCountries: ["FR"] }))} locale="en-US" />,
     );
     const block = deposit(container);
     fireEvent.click(
@@ -178,11 +167,7 @@ describe("WorklistPanel — the deposit action", () => {
     const writeText = vi.fn().mockResolvedValue(undefined);
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     const { container } = render(
-      <WorklistPanel
-        cv={makeCv(work({ workCountries: ["FR"] }))}
-        locale="en-US"
-        consentedRorIds={[]}
-      />,
+      <WorklistPanel cv={makeCv(work({ workCountries: ["FR"] }))} locale="en-US" />,
     );
     fireEvent.click(within(deposit(container)).getByRole("button", { name: EN.wlDepositCopyDoi }));
     expect(writeText).toHaveBeenCalledWith("10.1234/w1");
@@ -193,11 +178,7 @@ describe("WorklistPanel — the deposit action", () => {
     const writeText = vi.fn().mockRejectedValue(new Error("denied"));
     Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
     const { container } = render(
-      <WorklistPanel
-        cv={makeCv(work({ workCountries: ["FR"] }))}
-        locale="en-US"
-        consentedRorIds={[]}
-      />,
+      <WorklistPanel cv={makeCv(work({ workCountries: ["FR"] }))} locale="en-US" />,
     );
     const button = within(deposit(container)).getByRole("button", { name: EN.wlDepositCopyDoi });
     fireEvent.click(button);
@@ -210,7 +191,6 @@ describe("WorklistPanel — the deposit action", () => {
       <WorklistPanel
         cv={makeCv(work({ workCountries: ["FR"] }))}
         locale="en-US"
-        consentedRorIds={[]}
         currentAffiliationCountry="JP"
       />,
     );
@@ -238,7 +218,6 @@ describe("WorklistPanel — the deposit action", () => {
         <WorklistPanel
           cv={makeCv(work({ workCountries: [...countries] }))}
           locale="en-US"
-          consentedRorIds={[]}
           currentAffiliationCountry={currentAffiliationCountry}
         />,
       );
@@ -257,7 +236,6 @@ describe("WorklistPanel — the deposit action", () => {
       <WorklistPanel
         cv={makeCv(work({ workCountries: ["FR"] }), { depositRepositories: [own] })}
         locale="en-US"
-        consentedRorIds={[]}
       />,
     );
     expect(primaryText(container)).toContain("in HAL");
@@ -273,7 +251,6 @@ describe("WorklistPanel — the deposit action", () => {
       <WorklistPanel
         cv={makeCv(funded)}
         locale="en-US"
-        consentedRorIds={[]}
         funderCrosswalk={[
           {
             openalexId: "F100",
@@ -294,16 +271,13 @@ describe("WorklistPanel — the deposit action", () => {
       <WorklistPanel
         cv={makeCv(work({ workCountries: ["FR"] }, { type: "book" }))}
         locale="en-US"
-        consentedRorIds={[]}
       />,
     );
     expect(book.container.querySelector('[data-worklist="deposit"]')).toBeNull();
     expect(book.container.textContent).not.toContain(EN.wlDepositHelp);
     book.unmount();
 
-    const unrecorded = render(
-      <WorklistPanel cv={makeCv(work({}, venue))} locale="en-US" consentedRorIds={[]} />,
-    );
+    const unrecorded = render(<WorklistPanel cv={makeCv(work({}, venue))} locale="en-US" />);
     expect(unrecorded.queryByRole("link", { name: EN.wlPolicyLink })).not.toBeNull();
     unrecorded.unmount();
     const recorded = (policy: Partial<typeof ACCEPTED> & { policyUrl?: string }) =>
@@ -311,7 +285,6 @@ describe("WorklistPanel — the deposit action", () => {
         <WorklistPanel
           cv={makeCv(work({ selfArchiving: { ...ACCEPTED, ...policy } }, venue))}
           locale="en-US"
-          consentedRorIds={[]}
         />,
       );
     const linked = recorded({ policyUrl: "https://perma.cc/J5MA-H2EJ" });
@@ -328,7 +301,6 @@ describe("WorklistPanel — the deposit action", () => {
       <WorklistPanel
         cv={makeCv(work({ workCountries: ["FR"], selfArchiving: ACCEPTED }, { DOI: undefined }))}
         locale="fr-FR"
-        consentedRorIds={[]}
       />,
     );
     const block = deposit(container);

@@ -433,6 +433,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **The worklist no longer lists works by the affiliation printed on them.** "Works whose printed affiliation lacks your institution" listed, under bare ROR ids, every paper dated during a listed position that named another organisation — which is every paper that came out after a move, and every hospital ROR records as related to its university rather than part of it. Nothing in the editor can change what a paper printed, and nothing counts it: the institution page counts every listed work of a researcher who consented, and the reconciliation export matches by ORCID. A list with no action is gone, with the "no affiliation data" bucket and the note on works not checked. Positions without an institution record stay — that one has an action — and their help now says what resolves it: add the organisation to the position on ORCID, then sync again (the editor has no picker, and the old text said it did).
+
 - **The deposit worklist has its own editor tab.** "Affiliations & open access" sat at the top of the Content tab, above the CV's sections; opened, a long CV put dozens of rows of policy text before any section. It is help with depositing papers, not curation of the CV, so the editor now has a fourth tab, **Open access**, holding it — opened at once, with a short line when there is nothing to list — and the Content tab holds the sections alone. The no-login preview keeps its three tabs: the worklist stays the owner's.
 
 - **Per-work funder ids are now stored.** Each OpenAlex work's acknowledged
