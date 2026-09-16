@@ -36,6 +36,8 @@ import {
 } from "@/lib/i18n/render";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
+import { fill } from "@/lib/i18n/fill";
+import { useDepositChips } from "./depositChipContext";
 import { localePrivacyPath } from "@/lib/seo";
 import { itemReviewState, needsReview } from "@/lib/canonical/review";
 
@@ -454,6 +456,11 @@ export default function ItemRow({
 }: ItemRowProps) {
   const u = ui(locale);
   const wu = workspaceUi(locale);
+  // The deposit chip — owner only: with no provider (the anonymous preview)
+  // there is no chip. The one action's destination, jumping to the work's
+  // row in the Open access tab.
+  const depositChips = useDepositChips();
+  const depositChip = depositChips?.chips.get(item.id);
   const ds = dupStrings(locale);
   // The compare panel is open when the editor focuses this duplicate (controlled
   // via `dupOpen`), or when the user clicks the badge (uncontrolled fallback).
@@ -898,6 +905,18 @@ export default function ItemRow({
             ) : null}
             {dupBadge}
             {sourceBadge}
+            {depositChip && depositChips ? (
+              <button
+                type="button"
+                className="cv-deposit-chip"
+                title={wu.wlChipHint}
+                onClick={() => depositChips.jumpToWorklist(item.id)}
+              >
+                {fill(depositChip.kind === "conditional" ? wu.wlChipDepositIf : wu.wlChipDeposit, {
+                  destination: depositChip.destination,
+                })}
+              </button>
+            ) : null}
           </div>
         ) : (
           <div className="cv-item-meta">

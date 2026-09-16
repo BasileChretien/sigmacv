@@ -54,6 +54,10 @@ interface WorklistPanelProps {
   /** Rendered instead of nothing when there is nothing to list — a tab must not
    *  go blank. Omitted (the classic layout), the panel vanishes as before. */
   whenEmpty?: ReactNode;
+  /** The deposit routes' basis, when the editor owns the choice (it also shows
+   *  chips on the publication rows that must agree). Alone, the panel keeps it. */
+  depositBasis?: DepositBasis;
+  onDepositBasisChange?: (basis: DepositBasis) => void;
 }
 
 const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
@@ -100,6 +104,8 @@ export default function WorklistPanel({
   currentAffiliationCountry,
   defaultOpen = false,
   whenEmpty = null,
+  depositBasis: basisProp,
+  onDepositBasisChange,
 }: WorklistPanelProps) {
   const wu = workspaceUi(locale);
   const gaps = useMemo(() => affiliationGaps(cv), [cv]);
@@ -108,7 +114,9 @@ export default function WorklistPanel({
   const funding = useMemo(() => joinOwnerFunding(cv, crosswalk), [cv, crosswalk]);
   // Which affiliation the deposit routes follow: the one printed on each paper by
   // default, the owner's current one when they choose it.
-  const [depositBasis, setDepositBasis] = useState<DepositBasis>("paper");
+  const [localBasis, setLocalBasis] = useState<DepositBasis>("paper");
+  const depositBasis = basisProp ?? localBasis;
+  const setDepositBasis = onDepositBasisChange ?? setLocalBasis;
   // One hidden note each for the jump buttons and the external links, and ONE
   // polite status region for "DOI copied". A live region speaks only when its
   // text MUTATES, and React skips a same-value render — so a second copy within
@@ -320,7 +328,13 @@ export default function WorklistPanel({
                 const more =
                   hasRights || finder !== null || r.funderNames.length > 0 || depositDetails;
                 return (
-                  <li key={r.itemId} className="cv-worklist-row">
+                  <li
+                    key={r.itemId}
+                    className="cv-worklist-row"
+                    // The chip on the publication row jumps here (CvEditor).
+                    data-worklist-item={r.itemId}
+                    tabIndex={-1}
+                  >
                     <p className="cv-worklist-row-head">
                       {jump(r.itemId, rowText(r))} {stateChip(r.state)}
                       {r.venue ? <span className="muted"> · {r.venue}</span> : null}
