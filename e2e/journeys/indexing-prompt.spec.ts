@@ -37,8 +37,6 @@ test("publish → the indexing question → Not now is remembered → Yes switch
   expect(row?.publicIndexable).toBe(false);
   await page.reload();
   await expect(page.getByTestId("indexing-prompt")).toHaveCount(0);
-  // The worklist keeps the open choice visible.
-  await expect(page.getByTestId("worklist-indexing")).toContainText(/Off/);
 
   // Forget the answer (a fresh page would): the question comes back, "Yes" works.
   await page.evaluate(() => {

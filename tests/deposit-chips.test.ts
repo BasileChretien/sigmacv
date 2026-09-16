@@ -48,6 +48,7 @@ function makeCv(items: CvItem[]): CanonicalCv {
 }
 
 const CTX: DepositContext = { basis: "paper", crosswalk: new Map() };
+const TODAY = "2026-09-16";
 
 describe("depositChips", () => {
   it("gives a closed journal article the worklist's first route, and says how far the record lets it go", () => {
@@ -55,13 +56,42 @@ describe("depositChips", () => {
       makeCv([
         work("W-unrecorded"),
         work("W-version", { selfArchiving: record() }),
-        work("W-conditional", { selfArchiving: record({ canArchive: false }) }),
+        work("W-refused", { selfArchiving: record({ canArchive: false }) }),
+        // A place the record does not name, with the right not yet run (2026).
+        work("W-conditional", {
+          year: 2026,
+          selfArchiving: record({ locations: ["Preprint Server"] }),
+        }),
       ]),
       CTX,
+      TODAY,
     );
-    expect(chips.get("W-unrecorded")).toEqual({ destination: "HAL", kind: "unrecorded" });
+    // No record, but the French right has run for a 2023 paper: the law is the ground.
+    expect(chips.get("W-unrecorded")).toEqual({ destination: "HAL", kind: "version" });
     expect(chips.get("W-version")).toEqual({ destination: "HAL", kind: "version" });
+    // A refusal on record, but the French right has run: the law is the ground.
+    expect(chips.get("W-refused")).toEqual({ destination: "HAL", kind: "version" });
     expect(chips.get("W-conditional")).toEqual({ destination: "HAL", kind: "conditional" });
+  });
+
+  it("gives no chip to a work with no ground today: under a running embargo, a refusal with no right, a right not yet run", () => {
+    const chips = depositChips(
+      makeCv([
+        work("W-embargo", {
+          workCountries: [],
+          selfArchiving: record({ embargoEnd: "2031-01-01" }),
+        }),
+        work("W-refused-nowhere", {
+          workCountries: [],
+          selfArchiving: record({ canArchive: false }),
+        }),
+        work("W-too-new", { year: 2026 }),
+        work("W-nothing", { workCountries: [] }),
+      ]),
+      CTX,
+      TODAY,
+    );
+    expect(chips.size).toBe(0);
   });
 
   it("gives no chip to an open work, a non-article, a hidden work or one marked not mine", () => {
@@ -74,16 +104,18 @@ describe("depositChips", () => {
         work("W-closed"),
       ]),
       CTX,
+      TODAY,
     );
     expect([...chips.keys()]).toEqual(["W-closed"]);
   });
 
   it("follows the deposit basis: the owner's current affiliation changes the destination", () => {
     const cv = makeCv([work("W1")]);
-    expect(depositChips(cv, CTX).get("W1")?.destination).toBe("HAL");
+    expect(depositChips(cv, CTX, TODAY).get("W1")?.destination).toBe("HAL");
     expect(
-      depositChips(cv, { basis: "current", currentCountry: "JP", crosswalk: new Map() }).get("W1")
-        ?.destination,
+      depositChips(cv, { basis: "current", currentCountry: "JP", crosswalk: new Map() }, TODAY).get(
+        "W1",
+      )?.destination,
     ).toBe("Zenodo");
   });
 

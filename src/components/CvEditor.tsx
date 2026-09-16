@@ -22,8 +22,8 @@ import StyleControls from "./StyleControls";
 import WorklistPanel from "./WorklistPanel";
 import { DepositChipsContext, type DepositChips } from "./depositChipContext";
 import { depositChips } from "@/lib/archiving/depositChips";
+import { isoToday } from "@/lib/archiving/depositNow";
 import type { DepositBasis } from "@/lib/archiving/depositRoutes";
-import type { InstitutionListing } from "./InstitutionListingRow";
 import { toCrosswalk, type FunderRow } from "@/lib/funders/join";
 
 /** The task clusters of the subdivided ("regions") editor layout. The fourth,
@@ -64,9 +64,6 @@ interface CvEditorProps {
   /** ISO-3166 code of the owner's current affiliation (owner-only, loaded by the
    *  page) — the worklist's deposit routes can follow it instead of each paper's. */
   currentAffiliationCountry?: string;
-  /** The publish state + setter for the worklist's "Institution listing"
-   *  status line (owner-only; ignored when `anonymous`). */
-  institutionListing?: InstitutionListing;
 }
 
 /** Imperative surface CvWorkspace uses to drive the sync banner's "jump to item". */
@@ -88,7 +85,6 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     anonymous = false,
     funderCrosswalk = NO_FUNDER_CROSSWALK,
     currentAffiliationCountry,
-    institutionListing,
   },
   ref,
 ) {
@@ -122,16 +118,19 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // can show one (`depositChipContext.ts`).
   const [depositBasis, setDepositBasis] = useState<DepositBasis>("paper");
   const crosswalk = useMemo(() => toCrosswalk(funderCrosswalk), [funderCrosswalk]);
+  // One date for the chips and the worklist's rows, fixed for the mount: the
+  // two must never disagree, and a day rolling over mid-session is a reload away.
+  const [today] = useState(isoToday);
   const chips = useMemo(
     () =>
       anonymous
         ? null
-        : depositChips(cv, {
-            basis: depositBasis,
-            currentCountry: currentAffiliationCountry,
-            crosswalk,
-          }),
-    [anonymous, cv, depositBasis, currentAffiliationCountry, crosswalk],
+        : depositChips(
+            cv,
+            { basis: depositBasis, currentCountry: currentAffiliationCountry, crosswalk },
+            today,
+          ),
+    [anonymous, cv, depositBasis, currentAffiliationCountry, crosswalk, today],
   );
   // The reverse jump: a chip opens the Open access tab at that work's worklist
   // row. The panel is always mounted (only hidden), so one frame after the tab
@@ -216,8 +215,8 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       currentAffiliationCountry={currentAffiliationCountry}
       depositBasis={depositBasis}
       onDepositBasisChange={setDepositBasis}
+      today={today}
       onJump={jumpToItem}
-      listing={institutionListing}
       defaultOpen={variant === "regions"}
       whenEmpty={
         variant === "regions" ? (

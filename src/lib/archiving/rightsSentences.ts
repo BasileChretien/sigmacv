@@ -1,6 +1,7 @@
 import type { CvItem } from "@/lib/canonical/schema";
 import { fill } from "@/lib/i18n/fill";
 import type { WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
+import type { DepositNow } from "./depositNow";
 import type { StatutoryArchivingEntry, StatutoryKind } from "./statutoryRights";
 
 /**
@@ -140,4 +141,42 @@ export function statutoryLine(
           : wu.wlStatutoryGuidanceLink,
     guidanceUrl: entry.guidanceUrl,
   };
+}
+
+/**
+ * Why the deposit is allowed today, in one sentence: the publisher's recorded
+ * permission (the version, the record's date, the embargo's end or its absence)
+ * or the statutory right (its instrument, country and delay). The conditions
+ * stay in the record below the row; this line names the ground, not a verdict.
+ */
+export function depositNowLine(
+  now: DepositNow,
+  item: Pick<CvItem, "meta">,
+  wu: WorkspaceUiStrings,
+  locale: string,
+): string {
+  if (now.basis === "publisher") {
+    const record = item.meta.selfArchiving!;
+    const head = fill(wu.wlWhyPublisher, {
+      version: wu[VERSION_KEY[now.version]],
+      date: record.recordUpdated ?? record.retrievedAt.slice(0, 10),
+    });
+    const tail = now.since ? fill(wu.wlWhyEmbargoEnded, { date: now.since }) : wu.wlWhyNoEmbargo;
+    return `${head} ${tail}`;
+  }
+  const entry = now.entry!;
+  const params = {
+    instrument: entry.instrument,
+    /* v8 ignore next -- DisplayNames answers every ISO code the table holds */
+    country:
+      new Intl.DisplayNames([locale], { type: "region" }).of(entry.countryCode) ??
+      entry.countryCode,
+  };
+  return now.since
+    ? fill(wu.wlWhyStatute, {
+        ...params,
+        duration: monthsLong(entry.delayMonths!, locale),
+        date: now.since,
+      })
+    : fill(wu.wlWhyStatuteNoDelay, params);
 }

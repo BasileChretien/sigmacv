@@ -98,9 +98,9 @@ describe("worklist strings (workspaceUi wl*)", () => {
 
   it("says, in English, that no open copy was found and a deposit may be possible — help, not a verdict", () => {
     const s = workspaceUi("en-US");
-    expect(s.wlClosedHelp).toMatch(/No open copy was found by OpenAlex/);
-    expect(s.wlClosedHelp).toMatch(/repository deposit may be possible/);
-    expect(s.wlClosedHelp).toMatch(/check the journal.s policy/i);
+    expect(s.wlClosedHeading).toBe("Papers you can deposit now");
+    expect(s.wlClosedHelp).toMatch(/found no open copy/);
+    expect(s.wlClosedHelp).toMatch(/deposit a version today/);
   });
 
   it("says, in English, what resolves a position without a record — ORCID, then a sync — and promises no picker", () => {

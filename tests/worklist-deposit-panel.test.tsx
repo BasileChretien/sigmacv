@@ -22,7 +22,7 @@ const ACCEPTED = {
   locations: ["Institutional Repository"],
   licence: "cc-by-nc-nd",
   embargoMonths: 12,
-  embargoEnd: "2999-01-01",
+  embargoEnd: "2021-01-23",
   retrievedAt: "2026-09-15T08:00:00.000Z",
 };
 
@@ -117,7 +117,7 @@ describe("WorklistPanel — the deposit action", () => {
     expect(block.contains(details)).toBe(false);
     expect(details.closest("details.cv-worklist-row-more")).not.toBeNull();
     expect(details.querySelector(".cv-worklist-deposit-notes")!.textContent).toBe(
-      `In the form, set the licence to cc-by-nc-nd. Keep the file under embargo until 2999-01-01. ${EN.wlDepositHalDoi}`,
+      `In the form, set the licence to cc-by-nc-nd. ${EN.wlDepositHalDoi}`,
     );
     const others = details.querySelector("details")!;
     expect(others.querySelector("summary")!.textContent).toBe(EN.wlDepositOtherPlaces);
@@ -128,16 +128,21 @@ describe("WorklistPanel — the deposit action", () => {
     expect(within(others).getByRole("link", { name: "ShareYourPaper" }).getAttribute("href")).toBe(
       "https://shareyourpaper.org/10.1234/w1",
     );
-    expect(container.textContent).toContain(EN.wlDepositHelp);
     // Actions, never states: no count anywhere in the block.
     expect(block.textContent).not.toMatch(/\d+ (of|works)|%/);
   });
 
-  it("says “only if” — naming a statutory right only when an author's right is shown — when the record allows no deposit", () => {
-    const refused = { ...ACCEPTED, canArchive: false, versions: [], locations: [] };
+  it("says “only if” for a place the record does not name — naming a statutory right only when one is shown — and lists nothing with no ground", () => {
+    // The record names another place, and the French right has not run (2026).
+    const elsewhere = {
+      ...ACCEPTED,
+      locations: ["Preprint Server"],
+      embargoMonths: 0,
+      embargoEnd: undefined,
+    };
     const { container, unmount } = render(
       <WorklistPanel
-        cv={makeCv(work({ selfArchiving: refused, workCountries: ["FR"] }))}
+        cv={makeCv(work({ year: 2026, selfArchiving: elsewhere, workCountries: ["FR"] }))}
         locale="en-US"
       />,
     );
@@ -146,26 +151,49 @@ describe("WorklistPanel — the deposit action", () => {
     );
     unmount();
     const rendered = render(
-      <WorklistPanel cv={makeCv(work({ selfArchiving: refused }))} locale="en-US" />,
+      <WorklistPanel cv={makeCv(work({ selfArchiving: elsewhere }))} locale="en-US" />,
     );
     expect(primaryText(rendered.container)).toContain(
       "Deposit in Zenodo only if your publishing agreement allows it",
     );
     rendered.unmount();
-    // Spain's rule is a deposit requirement, not a right over the publisher's terms:
-    // shown above the work, but never offered as what allows the deposit.
+    // The record names another place, and the French right HAS run (2023): the law
+    // is the ground for HAL, and the action names the accepted manuscript outright.
+    const covered = render(
+      <WorklistPanel
+        cv={makeCv(work({ selfArchiving: elsewhere, workCountries: ["FR"] }))}
+        locale="en-US"
+      />,
+    );
+    expect(primaryText(covered.container)).toContain("Deposit the accepted manuscript in HAL");
+    expect(covered.container.querySelector('[data-worklist="why"]')!.textContent).toContain(
+      "Allowed by law",
+    );
+    covered.unmount();
+    // A refusal on record, but the French right has run: the law is the ground,
+    // and the action names the accepted manuscript outright.
+    const refused = { ...ACCEPTED, canArchive: false, versions: [], locations: [] };
+    const byLaw = render(
+      <WorklistPanel
+        cv={makeCv(work({ selfArchiving: refused, workCountries: ["FR"] }))}
+        locale="en-US"
+      />,
+    );
+    expect(primaryText(byLaw.container)).toContain("Deposit the accepted manuscript in HAL");
+    expect(byLaw.container.querySelector('[data-worklist="why"]')!.textContent).toBe(
+      "Allowed by law — Code de la recherche, art. L533-4 (loi n° 2016-1321, art. 30) (France): the accepted manuscript, 12 months after publication (since 2024-12-31), under the conditions in the record below.",
+    );
+    byLaw.unmount();
+    // Spain's rule is a deposit requirement, not a right over the publisher's
+    // terms: with a refusal on record there is no ground today, so no row.
     const spain = render(
       <WorklistPanel
         cv={makeCv(work({ selfArchiving: refused, workCountries: ["ES"] }))}
         locale="en-US"
       />,
     );
-    expect(spain.container.querySelector('[data-worklist="rights"]')!.textContent).toContain(
-      "(Spain)",
-    );
-    expect(primaryText(spain.container)).toContain(
-      "Deposit in Zenodo only if your publishing agreement allows it",
-    );
+    expect(spain.container.querySelector('[data-worklist="deposit"]')).toBeNull();
+    expect(spain.container.textContent).not.toContain("(Spain)");
   });
 
   it("sends one analytics event per click, carrying the route's kind only", () => {
@@ -174,7 +202,7 @@ describe("WorklistPanel — the deposit action", () => {
     );
     const block = deposit(container);
     fireEvent.click(
-      within(block).getByRole("link", { name: /in HAL if the journal's policy allows it$/ }),
+      within(block).getByRole("link", { name: "Deposit the accepted manuscript in HAL" }),
     );
     openRows(container);
     fireEvent.click(
@@ -222,7 +250,7 @@ describe("WorklistPanel — the deposit action", () => {
     const fieldset = container.querySelector<HTMLElement>("fieldset.cv-worklist-deposit-basis")!;
     expect(fieldset.textContent).toContain("your current affiliation (Japan)");
     fireEvent.click(within(fieldset).getByLabelText(/your current affiliation/));
-    expect(primaryText(container)).toContain("in Zenodo if the journal's policy allows it");
+    expect(primaryText(container)).toContain("Deposit the accepted manuscript in Zenodo");
     expect(primaryText(container)).toContain(
       "because SigmaCV doesn't know of a national repository for your current affiliation (Japan)",
     );
@@ -302,13 +330,17 @@ describe("WorklistPanel — the deposit action", () => {
     expect(book.container.textContent).not.toContain(EN.wlDepositHelp);
     book.unmount();
 
-    const unrecorded = render(<WorklistPanel cv={makeCv(work({}, venue))} locale="en-US" />);
+    const unrecorded = render(
+      <WorklistPanel cv={makeCv(work({ workCountries: ["FR"] }, venue))} locale="en-US" />,
+    );
     expect(unrecorded.queryByRole("link", { name: EN.wlPolicyLink })).not.toBeNull();
     unrecorded.unmount();
     const recorded = (policy: Partial<typeof ACCEPTED> & { policyUrl?: string }) =>
       render(
         <WorklistPanel
-          cv={makeCv(work({ selfArchiving: { ...ACCEPTED, ...policy } }, venue))}
+          cv={makeCv(
+            work({ selfArchiving: { ...ACCEPTED, ...policy }, workCountries: ["FR"] }, venue),
+          )}
           locale="en-US"
         />,
       );
@@ -337,28 +369,38 @@ describe("WorklistPanel — the deposit action", () => {
     expect(block.textContent).toContain("Déposer le manuscrit accepté dans HAL");
   });
 
-  it("renders no disclosure when nothing is behind it — no record, no rule, no note, no other place", () => {
+  it("measures today against the panel's one clock: the same paper is listed or not by the date given", () => {
+    const cv = makeCv(work({ workCountries: ["FR"] })); // 2023: the right runs to 2024-12-31
+    const early = render(<WorklistPanel cv={cv} locale="en-US" today="2024-06-01" />);
+    expect(early.container.querySelector('[data-worklist="deposit"]')).toBeNull();
+    early.unmount();
+    const later = render(<WorklistPanel cv={cv} locale="en-US" today="2025-01-01" />);
+    expect(later.container.querySelector('[data-worklist="why"]')!.textContent).toContain(
+      "(since 2024-12-31)",
+    );
+  });
+
+  it("lists nothing for a work with no ground today — no record, no right — even if closed", () => {
     const { container } = render(
       <WorklistPanel cv={makeCv(work({}, { DOI: undefined }))} locale="en-US" />,
     );
-    expect(deposit(container)).toBeTruthy();
-    expect(container.querySelector("details.cv-worklist-row-more")).toBeNull();
+    expect(container.querySelector('[data-worklist="deposit"]')).toBeNull();
+    expect(container.querySelector(".cv-worklist-row")).toBeNull();
   });
 
-  it("orders closed works by what the owner can do now: a named version, then no record, then only-if, then no action", () => {
-    const base = work({ workCountries: ["FR"] });
+  it("orders the rows by what the owner can do now: a named version or a statutory ground first, then only-if; a book is never listed", () => {
+    // French papers of 2026: the right has not run, so the record decides —
+    // except for the 2023 paper with no record, where the right is the ground.
+    const base = work({ year: 2026, workCountries: ["FR"] });
     const conditional = withId(
       {
         ...base,
-        meta: {
-          ...base.meta,
-          selfArchiving: { ...ACCEPTED, canArchive: false, versions: [], locations: [] },
-        },
+        meta: { ...base.meta, selfArchiving: { ...ACCEPTED, locations: ["Preprint Server"] } },
       },
       "W-cond",
       "Only if",
     );
-    const unrecorded = withId(base, "W-none", "No record");
+    const byLaw = withId({ ...base, meta: { ...base.meta, year: 2023 } }, "W-law", "By law");
     const named = withId(
       { ...base, meta: { ...base.meta, selfArchiving: ACCEPTED } },
       "W-named",
@@ -369,12 +411,12 @@ describe("WorklistPanel — the deposit action", () => {
       csl: { ...base.csl!, id: "W-book", title: "A book", type: "book" },
     };
     const { container } = render(
-      <WorklistPanel cv={makeCv([conditional, unrecorded, book, named])} locale="en-US" />,
+      <WorklistPanel cv={makeCv([conditional, byLaw, book, named])} locale="en-US" />,
     );
     const heads = [...container.querySelectorAll(".cv-worklist-row-head")].map((h) =>
-      h.textContent?.replace(/\s*\(2023\).*$/, "").trim(),
+      h.textContent?.replace(/\s*\(20\d\d\).*$/, "").trim(),
     );
-    expect(heads).toEqual(["Named", "No record", "Only if", "A book"]);
+    expect(heads).toEqual(["By law", "Named", "Only if"]);
   });
 
   it("shows two lines per work and keeps the rest behind one disclosure; the title is the h2 and the group an h3", () => {
