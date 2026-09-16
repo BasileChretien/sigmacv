@@ -28,20 +28,34 @@ interface WorklistDepositProps {
   currentCountry?: string;
   /** The owner's funder crosswalk keyed by short OpenAlex funder id. */
   crosswalk: ReadonlyMap<string, FunderRow>;
-  /** Whether a statutory rule is shown above this work (the "only if" wording names it). */
+  /** Whether a statutory rule is shown for this work (the "only if" wording names it). */
   hasStatutoryRight: boolean;
+  /**
+   * Which half to render. "action": the one line the owner sees at once — verb,
+   * destination link, one-clause reason, Copy DOI. "details": what the record asks
+   * of the form and the other places, behind the row's disclosure. The panel
+   * renders both, around the rights lines; each half computes the routes itself
+   * (pure and cheap) rather than passing them through.
+   */
+  part: "action" | "details";
+  /** After the DOI is copied: the panel announces it once, in its single status
+   *  region — not a live region per button. */
+  onCopied?: (message: string) => void;
+  /** id of the panel's hidden "opens in a new tab" note, described-by every link. */
+  newTabDescribedBy?: string;
 }
 
 /**
  * The deposit action under one closed journal article: ONE place — verb,
- * destination link, one-clause reason — with what the recorded policy asks of the
- * form (licence, a running embargo), then the other places and ShareYourPaper
- * behind a disclosure, and a "Copy DOI" button for the form. Routes and wording
- * come from `lib/archiving/depositRoutes.ts` (the order is the rule; the words
- * never go beyond the publisher's record). A click sends one cookieless analytics
- * event carrying the route's kind only; Plausible's own outbound-link event for
- * the same click keeps the destination's origin alone, never a path that carries
- * a DOI (`lib/analytics/plausibleInit.ts`).
+ * destination link, one-clause reason — with a "Copy DOI" button (the "action"
+ * half, always visible), and what the recorded policy asks of the form plus the
+ * other places and ShareYourPaper (the "details" half, behind the row's
+ * disclosure with the rights lines). Routes and wording come from
+ * `lib/archiving/depositRoutes.ts` (the order is the rule; the words never go
+ * beyond the publisher's record). A click sends one cookieless analytics event
+ * carrying the route's kind only; Plausible's own outbound-link event for the
+ * same click keeps the destination's origin alone, never a path that carries a
+ * DOI (`lib/analytics/plausibleInit.ts`).
  */
 export default function WorklistDeposit({
   locale,
@@ -51,6 +65,9 @@ export default function WorklistDeposit({
   currentCountry,
   crosswalk,
   hasStatutoryRight,
+  part,
+  onCopied,
+  newTabDescribedBy,
 }: WorklistDepositProps) {
   const wu = workspaceUi(locale);
   const [copied, setCopied] = useState(false);
@@ -58,7 +75,6 @@ export default function WorklistDeposit({
   if (!primary) return null;
   const doi = item.csl?.DOI?.trim() || undefined;
   const shareYourPaper = shareYourPaperHref(doi);
-  const notes = depositNotes(item, primary, wu, locale, new Date().toISOString().slice(0, 10));
   const [before = "", after = ""] = wu.wlDepositLine.split("{action}");
 
   const link = (kind: string, href: string, text: string) => (
@@ -66,6 +82,7 @@ export default function WorklistDeposit({
       href={href}
       target="_blank"
       rel="noopener noreferrer"
+      aria-describedby={newTabDescribedBy}
       onClick={() => trackEvent("Deposit route", { kind })}
     >
       {text}
@@ -78,35 +95,47 @@ export default function WorklistDeposit({
       {fill(after, { reason: depositReason(route, wu, locale) })}
     </>
   );
-  const copyDoi = async (value: string) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(true);
-      // Back to "Copy DOI", like the other copy buttons, so a later copy is announced.
-      window.setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  };
 
+  if (part === "action") {
+    const copyDoi = async (value: string) => {
+      try {
+        await navigator.clipboard.writeText(value);
+        setCopied(true);
+        onCopied?.(wu.wlDepositDoiCopied);
+        // Back to "Copy DOI", like the other copy buttons, so a later copy shows again.
+        window.setTimeout(() => setCopied(false), 2000);
+      } catch {
+        setCopied(false);
+      }
+    };
+    return (
+      <div className="cv-worklist-deposit" data-worklist="deposit">
+        <p className="cv-worklist-deposit-primary">
+          {line(primary, depositAction(item, primary, wu, hasStatutoryRight))}
+          {doi ? (
+            <>
+              {" "}
+              <button
+                type="button"
+                className="cv-worklist-deposit-copy"
+                onClick={() => void copyDoi(doi)}
+              >
+                {copied ? wu.wlDepositDoiCopied : wu.wlDepositCopyDoi}
+              </button>
+            </>
+          ) : null}
+        </p>
+      </div>
+    );
+  }
+
+  const notes = depositNotes(item, primary, wu, locale, today());
+  if (!hasDepositDetails(item, [primary, ...others], locale)) return null;
   return (
-    <div className="cv-worklist-deposit" data-worklist="deposit">
-      <p className="cv-worklist-deposit-primary">
-        {line(primary, depositAction(item, primary, wu, hasStatutoryRight))}
-        {doi ? (
-          <>
-            {" "}
-            <button
-              type="button"
-              className="cv-worklist-deposit-copy"
-              aria-live="polite"
-              onClick={() => void copyDoi(doi)}
-            >
-              {copied ? wu.wlDepositDoiCopied : wu.wlDepositCopyDoi}
-            </button>
-          </>
-        ) : null}
-      </p>
+    <div
+      className="cv-worklist-deposit cv-worklist-deposit-details"
+      data-worklist="deposit-details"
+    >
       {notes.length > 0 ? (
         <p className="muted cv-worklist-deposit-notes">{notes.join(" ")}</p>
       ) : null}
@@ -129,4 +158,22 @@ export default function WorklistDeposit({
       ) : null}
     </div>
   );
+}
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * Whether the details half has anything to show for these routes — form notes,
+ * other places, or ShareYourPaper. The panel asks before rendering a row's
+ * disclosure, so the owner never opens an empty one.
+ */
+export function hasDepositDetails(
+  item: CvItem,
+  routes: readonly DepositRoute[],
+  locale: Locale,
+): boolean {
+  const [primary, ...others] = routes;
+  if (!primary) return false;
+  if (others.length > 0 || shareYourPaperHref(item.csl?.DOI?.trim() || undefined)) return true;
+  return depositNotes(item, primary, workspaceUi(locale), locale, today()).length > 0;
 }

@@ -19,6 +19,8 @@ interface IndexingRowProps {
   locale: string;
   state: PublishSnapshot;
   onPublishStateChange: (next: PublishSnapshot) => void;
+  /** Id of the panel's "Opens in a new tab" note, for the privacy link. */
+  newTabDescribedBy?: string;
 }
 
 /**
@@ -29,7 +31,12 @@ interface IndexingRowProps {
  * "Change" link into the Publish menu. The choice stays visible here after a
  * "Not now" so silence never becomes the answer by default.
  */
-export default function IndexingRow({ locale, state, onPublishStateChange }: IndexingRowProps) {
+export default function IndexingRow({
+  locale,
+  state,
+  onPublishStateChange,
+  newTabDescribedBy,
+}: IndexingRowProps) {
   const s = indexingPromptStrings(locale);
   const u = ui(locale);
   const wu = workspaceUi(locale);
@@ -67,7 +74,7 @@ export default function IndexingRow({ locale, state, onPublishStateChange }: Ind
       data-testid="worklist-indexing"
       data-state={kind}
     >
-      <h4>{wu.wlIndexingHeading}</h4>
+      <h3>{wu.wlIndexingHeading}</h3>
       <p className="muted">{wu.wlIndexingHelp}</p>
       <p className="cv-worklist-listing-status">
         {status}{" "}
@@ -84,7 +91,12 @@ export default function IndexingRow({ locale, state, onPublishStateChange }: Ind
         <div className="cv-worklist-listing-status">
           <p className="muted">
             {s.what}{" "}
-            <a href={localePrivacyPath(locale)} target="_blank" rel="noopener noreferrer">
+            <a
+              href={localePrivacyPath(locale)}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-describedby={newTabDescribedBy}
+            >
               {s.learnMore}
             </a>
           </p>

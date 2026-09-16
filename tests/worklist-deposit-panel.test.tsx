@@ -6,11 +6,12 @@ import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonica
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 
 /**
- * The deposit action under a closed journal article: one place with its reason
- * and what the recorded policy asks of the form, the other places and
- * ShareYourPaper behind a disclosure, a Copy-DOI button, the choice of affiliation
- * when it would change the action, and one analytics event per click carrying the
- * route's kind only.
+ * The deposit action under a closed journal article: one visible line — place,
+ * reason, Copy DOI — and, behind the row's disclosure, what the recorded policy
+ * asks of the form, the other places and ShareYourPaper; the choice of
+ * affiliation when it would change the action; one analytics event per click
+ * carrying the route's kind only; closed works ordered by what the owner can do
+ * now; and the accessibility contract (one status region, described-by notes).
  */
 
 const EN = workspaceUi("en-US");
@@ -40,7 +41,7 @@ function work(meta: CvItem["meta"], csl: Record<string, unknown> = {}): CvItem {
   };
 }
 
-function makeCv(item: CvItem, owner: Record<string, unknown> = {}): CanonicalCv {
+function makeCv(item: CvItem | CvItem[], owner: Record<string, unknown> = {}): CanonicalCv {
   return CanonicalCvSchema.parse({
     schemaVersion: 2,
     id: "wdp",
@@ -58,7 +59,7 @@ function makeCv(item: CvItem, owner: Record<string, unknown> = {}): CanonicalCv 
         title: "Publications",
         visible: true,
         order: 0,
-        items: [item],
+        items: Array.isArray(item) ? item : [item],
       },
     ],
     provenance: { generatedAt: "2026-09-15T00:00:00.000Z", sources: ["openalex"] },
@@ -67,8 +68,23 @@ function makeCv(item: CvItem, owner: Record<string, unknown> = {}): CanonicalCv 
 
 const deposit = (container: HTMLElement) =>
   container.querySelector<HTMLElement>('[data-worklist="deposit"]')!;
+/** The notes and the other places: behind the row's disclosure. */
+const depositDetails = (container: HTMLElement) =>
+  container.querySelector<HTMLElement>('[data-worklist="deposit-details"]')!;
 const primaryText = (container: HTMLElement) =>
   deposit(container).querySelector(".cv-worklist-deposit-primary")!.textContent;
+/** Open every row's disclosure, as the owner would, so role queries reach inside. */
+const openRows = (container: HTMLElement) =>
+  container
+    .querySelectorAll<HTMLDetailsElement>("details.cv-worklist-row-more")
+    .forEach((d) => (d.open = true));
+/** Rebuild a work under another id (the fixture's id is fixed). */
+const withId = (item: CvItem, id: string, title: string): CvItem => ({
+  ...item,
+  id,
+  sourceId: `https://openalex.org/${id}`,
+  csl: { ...item.csl!, id, title, DOI: `10.1234/${id}` },
+});
 
 beforeEach(() => {
   window.plausible = vi.fn() as unknown as typeof window.plausible;
@@ -94,10 +110,16 @@ describe("WorklistPanel — the deposit action", () => {
     expect(link.getAttribute("href")).toBe("https://hal.science/submit");
     expect(link.getAttribute("target")).toBe("_blank");
     expect(primary.textContent).toContain("— because of your affiliation on this paper (France)");
-    expect(block.querySelector(".cv-worklist-deposit-notes")!.textContent).toBe(
+    // The form notes and the other places sit behind the row's disclosure, not on
+    // the visible line.
+    openRows(container);
+    const details = depositDetails(container);
+    expect(block.contains(details)).toBe(false);
+    expect(details.closest("details.cv-worklist-row-more")).not.toBeNull();
+    expect(details.querySelector(".cv-worklist-deposit-notes")!.textContent).toBe(
       `In the form, set the licence to cc-by-nc-nd. Keep the file under embargo until 2999-01-01. ${EN.wlDepositHalDoi}`,
     );
-    const others = block.querySelector("details")!;
+    const others = details.querySelector("details")!;
     expect(others.querySelector("summary")!.textContent).toBe(EN.wlDepositOtherPlaces);
     expect(within(others).getByRole("link", { name: "Zenodo" }).getAttribute("href")).toBe(
       "https://zenodo.org/uploads/new",
@@ -154,7 +176,10 @@ describe("WorklistPanel — the deposit action", () => {
     fireEvent.click(
       within(block).getByRole("link", { name: /in HAL if the journal's policy allows it$/ }),
     );
-    fireEvent.click(within(block).getByRole("link", { name: "ShareYourPaper" }));
+    openRows(container);
+    fireEvent.click(
+      within(depositDetails(container)).getByRole("link", { name: "ShareYourPaper" }),
+    );
     expect(window.plausible).toHaveBeenNthCalledWith(1, "Deposit route", {
       props: { kind: "national" },
     });
@@ -201,7 +226,7 @@ describe("WorklistPanel — the deposit action", () => {
     expect(primaryText(container)).toContain(
       "because SigmaCV doesn't know of a national repository for your current affiliation (Japan)",
     );
-    expect(deposit(container).querySelector(".cv-worklist-deposit-notes")!.textContent).toBe(
+    expect(depositDetails(container).querySelector(".cv-worklist-deposit-notes")!.textContent).toBe(
       EN.wlDepositZenodoDoi,
     );
     fireEvent.click(within(fieldset).getByLabelText(EN.wlDepositBasisPaper));
@@ -239,7 +264,7 @@ describe("WorklistPanel — the deposit action", () => {
       />,
     );
     expect(primaryText(container)).toContain("in HAL");
-    expect(deposit(container).querySelector("details")!.textContent).toContain(
+    expect(depositDetails(container).textContent).toContain(
       "Kyoto Repository — because OpenAlex lists some of your works in Kyoto Repository",
     );
     unmount();
@@ -305,7 +330,111 @@ describe("WorklistPanel — the deposit action", () => {
     );
     const block = deposit(container);
     expect(within(block).queryByRole("button")).toBeNull();
-    expect(within(block).queryByRole("link", { name: "ShareYourPaper" })).toBeNull();
+    openRows(container);
+    expect(
+      within(depositDetails(container)).queryByRole("link", { name: "ShareYourPaper" }),
+    ).toBeNull();
     expect(block.textContent).toContain("Déposer le manuscrit accepté dans HAL");
+  });
+
+  it("renders no disclosure when nothing is behind it — no record, no rule, no note, no other place", () => {
+    const { container } = render(
+      <WorklistPanel cv={makeCv(work({}, { DOI: undefined }))} locale="en-US" />,
+    );
+    expect(deposit(container)).toBeTruthy();
+    expect(container.querySelector("details.cv-worklist-row-more")).toBeNull();
+  });
+
+  it("orders closed works by what the owner can do now: a named version, then no record, then only-if, then no action", () => {
+    const base = work({ workCountries: ["FR"] });
+    const conditional = withId(
+      {
+        ...base,
+        meta: {
+          ...base.meta,
+          selfArchiving: { ...ACCEPTED, canArchive: false, versions: [], locations: [] },
+        },
+      },
+      "W-cond",
+      "Only if",
+    );
+    const unrecorded = withId(base, "W-none", "No record");
+    const named = withId(
+      { ...base, meta: { ...base.meta, selfArchiving: ACCEPTED } },
+      "W-named",
+      "Named",
+    );
+    const book = {
+      ...withId(base, "W-book", "A book"),
+      csl: { ...base.csl!, id: "W-book", title: "A book", type: "book" },
+    };
+    const { container } = render(
+      <WorklistPanel cv={makeCv([conditional, unrecorded, book, named])} locale="en-US" />,
+    );
+    const heads = [...container.querySelectorAll(".cv-worklist-row-head")].map((h) =>
+      h.textContent?.replace(/\s*\(2023\).*$/, "").trim(),
+    );
+    expect(heads).toEqual(["Named", "No record", "Only if", "A book"]);
+  });
+
+  it("shows two lines per work and keeps the rest behind one disclosure; the title is the h2 and the group an h3", () => {
+    const { container } = render(
+      <WorklistPanel
+        cv={makeCv(work({ selfArchiving: ACCEPTED, workCountries: ["FR"] }))}
+        locale="en-US"
+      />,
+    );
+    const row = container.querySelector(".cv-worklist-row")!;
+    expect(row.querySelector(".cv-worklist-row-head")!.textContent).toContain("Work W1 (2023)");
+    // The action line is visible, outside the disclosure.
+    expect(
+      row.querySelector('[data-worklist="deposit"]')!.closest("details.cv-worklist-row-more"),
+    ).toBeNull();
+    // The rights and the deposit details are inside it, under one summary.
+    const more = row.querySelector<HTMLDetailsElement>("details.cv-worklist-row-more")!;
+    expect(more.open).toBe(false);
+    expect(more.querySelector("summary")!.textContent).toBe(EN.wlRowDetails);
+    expect(more.querySelector('[data-worklist="rights"]')).not.toBeNull();
+    expect(more.querySelector('[data-worklist="deposit-details"]')).not.toBeNull();
+    // Heading levels inside the tabpanel.
+    expect(screen.getByRole("heading", { level: 2, name: EN.wlTitle })).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 3, name: EN.wlClosedHeading })).toBeTruthy();
+  });
+
+  it("announces DOI copied once, in one status region, and describes every external link and jump button by a hidden note", async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+    const { container } = render(
+      <WorklistPanel
+        cv={makeCv(work({ selfArchiving: ACCEPTED, workCountries: ["FR"] }))}
+        locale="en-US"
+        onJump={vi.fn()}
+      />,
+    );
+    const status = screen.getByTestId("worklist-status");
+    expect(status.getAttribute("role")).toBe("status");
+    expect(status.textContent).toBe("");
+    const copy = within(deposit(container)).getByRole("button", { name: EN.wlDepositCopyDoi });
+    expect(copy.getAttribute("aria-live")).toBeNull();
+    fireEvent.click(copy);
+    await vi.waitFor(() => expect(status.textContent).toBe(EN.wlDepositDoiCopied));
+    // A second copy within the clearing delay is announced too: the same words,
+    // but a different text node (a zero-width space no reader voices).
+    fireEvent.click(copy);
+    await vi.waitFor(() => expect(status.textContent).not.toBe(EN.wlDepositDoiCopied));
+    expect(status.textContent!.replace(/\u200b/g, "")).toBe(EN.wlDepositDoiCopied);
+    expect(container.querySelectorAll("[aria-live]")).toHaveLength(1);
+    // Described-by: the notes exist once and every external link points at the same one.
+    openRows(container);
+    const external = [...container.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]')];
+    expect(external.length).toBeGreaterThan(2);
+    const noteIds = new Set(external.map((a) => a.getAttribute("aria-describedby")));
+    expect(noteIds.size).toBe(1);
+    const note = document.getElementById([...noteIds][0]!)!;
+    expect(note.textContent).toBe(EN.wlOpensNewTab);
+    const jumpButton = screen.getByRole("button", { name: /Work W1/ });
+    expect(document.getElementById(jumpButton.getAttribute("aria-describedby")!)!.textContent).toBe(
+      EN.wlJump,
+    );
   });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   basisChangesPrimary,
   depositAction,
+  depositActionKind,
   depositNotes,
   depositReason,
   depositRoutes,
@@ -239,6 +240,27 @@ describe("depositAction — never beyond the publisher's record", () => {
   const [nih] = depositRoutes(cvWith(), work(NIH_WORK), ctx());
   const action = (meta: CvItem["meta"], route: DepositRoute | undefined, statutory = false) =>
     depositAction(work(meta), route!, EN, statutory);
+
+  it("names the kind of action — what the worklist orders closed works by", () => {
+    expect(depositActionKind(work(), hal!)).toBe("unrecorded");
+    expect(depositActionKind(work({ selfArchiving: record({ versions: [] }) }), hal!)).toBe(
+      "unrecorded",
+    );
+    expect(depositActionKind(work({ selfArchiving: record() }), hal!)).toBe("version");
+    expect(
+      depositActionKind(work({ selfArchiving: record({ canArchive: false, versions: [] }) }), hal!),
+    ).toBe("conditional");
+    expect(
+      depositActionKind(
+        work({ selfArchiving: record({ locations: ["Institutional Repository"] }) }),
+        zenodo!,
+      ),
+    ).toBe("conditional");
+    // A funder's repository takes the accepted manuscript whatever the record says.
+    expect(
+      depositActionKind(work({ ...NIH_WORK, selfArchiving: record({ canArchive: false }) }), nih!),
+    ).toBe("version");
+  });
 
   it("asks for the accepted manuscript, not the publisher's PDF, when no policy is recorded", () => {
     expect(action({}, hal)).toBe(

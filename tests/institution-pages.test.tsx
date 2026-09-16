@@ -686,7 +686,7 @@ describe("/i/[ror] — figures from researchers who chose to be counted here", (
       "Open, Creative Commons licence",
       "Open, other or unknown licence",
       "No open copy found",
-      "Not determined",
+      "Unknown",
     ]) {
       expect(section).toContain(label);
     }

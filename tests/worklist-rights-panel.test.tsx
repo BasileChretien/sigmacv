@@ -67,12 +67,20 @@ function makeCv(works: CvItem[]): CanonicalCv {
 
 afterEach(cleanup);
 
+/** The rights lines sit behind each row's disclosure: open them, as the owner would. */
+function openRows(container: HTMLElement): void {
+  container
+    .querySelectorAll<HTMLDetailsElement>("details.cv-worklist-row-more")
+    .forEach((d) => (d.open = true));
+}
+
 describe("WorklistPanel — the rights lines under a closed work", () => {
   it("prints the publisher's policy with both dates, the quoted statement and the archived policy, then the statutory rule and the disclaimer", () => {
     const cv = makeCv([
       work("W1", { oaIsOpen: false, selfArchiving: RECORD, workCountries: ["FR"] }),
     ]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
+    openRows(container);
     const rights = container.querySelector('[data-worklist="rights"]')!;
     expect(rights).not.toBeNull();
     const text = rights.textContent ?? "";
@@ -114,6 +122,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
       }),
     ]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
+    openRows(container);
     const rights = container.querySelector('[data-worklist="rights"]')!;
     expect(rights.textContent).toContain(EN.wlArchivingNotAllowed);
     expect(rights.textContent).toContain(
@@ -133,6 +142,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
   it("leaves out a rule the work's year rules out, and with nothing else shows no rights block", () => {
     const cv = makeCv([work("W1", { oaIsOpen: false, year: 2021, workCountries: ["ES", "JP"] })]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
+    openRows(container);
     expect(container.querySelector('[data-worklist="rights"]')).toBeNull();
     expect(container.textContent).not.toContain(EN.wlArchivingDisclaimer);
   });
@@ -140,6 +150,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
   it("prints the statutory rule alone when OA.Works holds nothing for the work", () => {
     const cv = makeCv([work("W1", { oaIsOpen: false, year: 2023, workCountries: ["ES"] })]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
+    openRows(container);
     const rights = container.querySelector('[data-worklist="rights"]')!;
     expect(rights.querySelector(".cv-worklist-rights-publisher")).toBeNull();
     expect(rights.textContent).toContain(
@@ -154,6 +165,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
       work("W2", { oaIsOpen: true, selfArchiving: RECORD, workCountries: ["FR"] }),
     ]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
+    openRows(container);
     expect(container.querySelector('[data-worklist="rights"]')).toBeNull();
     expect(container.textContent).not.toContain(EN.wlArchivingDisclaimer);
   });
@@ -163,6 +175,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
       work("W1", { oaIsOpen: false, selfArchiving: RECORD, workCountries: ["DE"] }),
     ]);
     const { container } = render(<WorklistPanel cv={cv} locale="fr-FR" />);
+    openRows(container);
     const text = container.querySelector('[data-worklist="rights"]')!.textContent ?? "";
     expect(text).toContain("auto-archivage autorisé — manuscrit accepté");
     expect(text).toContain("(Allemagne)");
