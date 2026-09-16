@@ -46,6 +46,11 @@ interface WorklistPanelProps {
   /** ISO-3166 code of the owner's current affiliation (the Institution table, loaded
    *  by the page), for the deposit routes' "current affiliation" choice. */
   currentAffiliationCountry?: string;
+  /** Open the panel at once: in its own editor tab the tab is the disclosure. */
+  defaultOpen?: boolean;
+  /** Rendered instead of nothing when there is nothing to list — a tab must not
+   *  go blank. Omitted (the classic layout), the panel vanishes as before. */
+  whenEmpty?: ReactNode;
 }
 
 const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
@@ -61,7 +66,8 @@ const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
 
 /**
  * The owner's "Affiliations & open access" worklist — the researcher-first half
- * of reconciliation with an institution's record, shown ONLY in the editor: (a)
+ * of reconciliation with an institution's record, shown ONLY in the editor (in
+ * the regions layout, in its own "Open access" tab, never among the sections): (a)
  * current positions without a ROR record, (b) works dated during a consented
  * position whose printed affiliation lacks that institution, grouped by the
  * ROR they DO carry, plus the OpenAlex works with no affiliation data (works
@@ -88,6 +94,8 @@ export default function WorklistPanel({
   onJump,
   listing,
   currentAffiliationCountry,
+  defaultOpen = false,
+  whenEmpty = null,
 }: WorklistPanelProps) {
   const wu = workspaceUi(locale);
   const gaps = useMemo(() => affiliationGaps(cv, consentedRorIds), [cv, consentedRorIds]);
@@ -110,7 +118,9 @@ export default function WorklistPanel({
   const indexingOpen = listing
     ? listing.state.published && listing.state.slug !== null && !listing.state.indexable
     : false;
-  if (!hasWorklistContent(gaps, oa, funding.length, unlisted) && !indexingOpen) return null;
+  if (!hasWorklistContent(gaps, oa, funding.length, unlisted) && !indexingOpen) {
+    return whenEmpty;
+  }
 
   const closed = oa.rows.filter((r) => r.state === "no-open-copy-found");
   const groups = groupByRor(gaps.missing);
@@ -159,7 +169,12 @@ export default function WorklistPanel({
   const [foundBefore, foundAfter] = wu.wlFundingFound.split("{state}");
 
   return (
-    <details className="cv-worklist" data-owner-only="worklist">
+    <details
+      className="cv-worklist"
+      data-owner-only="worklist"
+      // Uncontrolled after the first render: the owner may still fold it.
+      open={defaultOpen ? true : undefined}
+    >
       <summary className="cv-worklist-title">{wu.wlTitle}</summary>
       <p className="muted cv-worklist-intro">{wu.wlIntro}</p>
 

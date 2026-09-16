@@ -2699,6 +2699,21 @@ button.cv-review-badge.is-duplicate[aria-expanded="true"] {
     background var(--dur) var(--ease),
     color var(--dur) var(--ease);
 }
+/* Four tabs at phone width (the owner's "Open access" is the fourth): compact
+   type, no mid-label wrapping, and the strip scrolls sideways if a locale's
+   labels still do not fit — rather than four tabs of uneven height. */
+@media (max-width: 480px) {
+  .cv-part-tabs {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .cv-part-tab {
+    flex: 1 0 auto;
+    padding: var(--space-2) var(--space-2);
+    font-size: var(--text-xs);
+    white-space: nowrap;
+  }
+}
 .cv-part-tab:hover {
   color: var(--text);
 }
