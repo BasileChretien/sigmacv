@@ -608,6 +608,28 @@
           "type": "string",
           "enum": ["a4", "letter"]
         },
+        "hideHeaderSummary": {
+          "default": false,
+          "type": "boolean"
+        },
+        "pageLimit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 50
+        },
+        "layoutStyleRestore": {
+          "type": "object",
+          "properties": {
+            "summaryBlockPosition": {
+              "type": "string",
+              "enum": ["header", "top", "bottom", "hidden"]
+            },
+            "pageFormat": {
+              "type": "string",
+              "enum": ["a4", "letter"]
+            }
+          }
+        },
         "publicContact": {
           "default": {},
           "type": "object",
@@ -1875,6 +1897,28 @@
                 "default": "a4",
                 "type": "string",
                 "enum": ["a4", "letter"]
+              },
+              "hideHeaderSummary": {
+                "default": false,
+                "type": "boolean"
+              },
+              "pageLimit": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 50
+              },
+              "layoutStyleRestore": {
+                "type": "object",
+                "properties": {
+                  "summaryBlockPosition": {
+                    "type": "string",
+                    "enum": ["header", "top", "bottom", "hidden"]
+                  },
+                  "pageFormat": {
+                    "type": "string",
+                    "enum": ["a4", "letter"]
+                  }
+                }
               },
               "publicContact": {
                 "default": {},

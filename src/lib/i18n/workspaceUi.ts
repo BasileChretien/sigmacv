@@ -35,6 +35,10 @@ export interface WorkspaceUiStrings {
   hpInfoTitle: string;
   /** Owner-only self-referencing notice; "{pct}" and "{n}" substituted. */
   hpSelfRef: string;
+  /** Page estimate of the narrative sections against the layout's limit;
+   *  "{pages}" and "{limit}" substituted. The second when over the limit. */
+  hpPages: string;
+  hpPagesOver: string;
   /** Announced (politely) after a checklist jump so the walk is perceptible
    *  without sight. {n} / {total} = position in the category; {title} = the row. */
   hpWalkPosition: string;
@@ -150,6 +154,8 @@ export interface WorkspaceUiStrings {
   wlStatutoryPending: string;
   /** Link text: the legal text. */
   wlStatutorySourceLink: string;
+  /** Link text: a policy document where no statute exists (Japan). */
+  wlStatutoryPolicyLink: string;
   /** Link text: the guidance page quoting or explaining the text. */
   wlStatutoryGuidanceLink: string;
   /** Action: deposit the accepted manuscript; {destination}. */
@@ -205,6 +211,12 @@ export interface WorkspaceUiStrings {
   wlRowDetails: string;
   /** Hidden note every external link is described by (WCAG: a new tab is a change of context). */
   wlOpensNewTab: string;
+  /** The deposit chip on a publication row: `{destination}` = the route's name. */
+  wlChipDeposit: string;
+  /** The same when the publisher's record allows no deposit outright. */
+  wlChipDepositIf: string;
+  /** The chip's hint: it opens the Open access tab at this work. */
+  wlChipHint: string;
   /** Legend of the choice between the two affiliations. */
   wlDepositBasisLabel: string;
   /** Choice: route by the affiliation printed on each paper (default). */
@@ -367,6 +379,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Recorded on {date}.",
     wlStatutoryPending: "Drafted and not yet confirmed against the legal text.",
     wlStatutorySourceLink: "legal text",
+    wlStatutoryPolicyLink: "policy text",
     wlStatutoryGuidanceLink: "guidance",
     wlDepositAccepted: "Deposit the accepted manuscript in {destination}",
     wlDepositPublished: "Deposit the published version in {destination}",
@@ -403,6 +416,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copied",
     wlRowDetails: "Policy record, rights and form notes",
     wlOpensNewTab: "Opens in a new tab",
+    wlChipDeposit: "Deposit in {destination}",
+    wlChipDepositIf: "Deposit in {destination} if allowed",
+    wlChipHint: "Opens this work in the Open access tab",
     wlDepositBasisLabel: "Suggest places by",
     wlDepositBasisPaper: "the affiliation on each paper",
     wlDepositBasisCurrent: "your current affiliation ({country})",
@@ -440,6 +456,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Listing needs a published page with search indexing on — both are in the Publish menu.",
     hpInfoTitle: "For your eyes only",
+    hpPages: "Narrative sections: ≈ {pages} of {limit} pages in the funder's template.",
+    hpPagesOver: "Narrative sections: ≈ {pages} pages, over the funder's limit of {limit}.",
     hpSelfRef:
       "About {pct} of the references in your papers point to your own work (n = {n}). Some panels look at this; nothing on your CV shows it.",
   },
@@ -534,6 +552,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "记录日期 {date}。",
     wlStatutoryPending: "已起草，尚未与法律文本核对。",
     wlStatutorySourceLink: "法律文本",
+    wlStatutoryPolicyLink: "政策文本",
     wlStatutoryGuidanceLink: "指南",
     wlDepositAccepted: "将最终审定稿存缴至 {destination}",
     wlDepositPublished: "将出版版本存缴至 {destination}",
@@ -565,6 +584,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "已复制 DOI",
     wlRowDetails: "政策记录、权利与表单说明",
     wlOpensNewTab: "在新标签页中打开",
+    wlChipDeposit: "存入 {destination}",
+    wlChipDepositIf: "如获许可，存入 {destination}",
+    wlChipHint: "在“开放获取”标签页中打开此作品",
     wlDepositBasisLabel: "推荐依据",
     wlDepositBasisPaper: "各篇论文上的署名单位",
     wlDepositBasisCurrent: "您目前的单位（{country}）",
@@ -600,6 +622,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingChange: "更改",
     wlListingNeedsPage: "列入需要已发布且开启搜索索引的页面——两者都在“发布”菜单中。",
     hpInfoTitle: "仅供您本人查看",
+    hpPages: "叙述部分：按资助机构模板约 {pages} / {limit} 页。",
+    hpPagesOver: "叙述部分：约 {pages} 页，超出资助机构 {limit} 页的限制。",
     hpSelfRef:
       "您论文中约 {pct} 的参考文献指向您自己的作品（n = {n}）。部分评审会关注这一点；您的简历中不会显示它。",
   },
@@ -703,6 +727,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Registrado el {date}.",
     wlStatutoryPending: "Redactado y aún sin contrastar con el texto legal.",
     wlStatutorySourceLink: "texto legal",
+    wlStatutoryPolicyLink: "texto de la política",
     wlStatutoryGuidanceLink: "guía",
     wlDepositAccepted: "Deposita el manuscrito aceptado en {destination}",
     wlDepositPublished: "Deposita la versión publicada en {destination}",
@@ -740,6 +765,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiado",
     wlRowDetails: "Registro de la política, derechos y notas para el formulario",
     wlOpensNewTab: "Se abre en una pestaña nueva",
+    wlChipDeposit: "Depositar en {destination}",
+    wlChipDepositIf: "Depositar en {destination} si está permitido",
+    wlChipHint: "Abre este trabajo en la pestaña Acceso abierto",
     wlDepositBasisLabel: "Sugerir lugares según",
     wlDepositBasisPaper: "la afiliación de cada artículo",
     wlDepositBasisCurrent: "tu afiliación actual ({country})",
@@ -778,6 +806,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Para figurar hace falta una página publicada con la indexación activada; ambas cosas están en el menú Publicar.",
     hpInfoTitle: "Solo para ti",
+    hpPages: "Secciones narrativas: ≈ {pages} de {limit} páginas en la plantilla del financiador.",
+    hpPagesOver:
+      "Secciones narrativas: ≈ {pages} páginas, por encima del límite de {limit} del financiador.",
     hpSelfRef:
       "Alrededor del {pct} de las referencias de tus artículos remiten a tu propio trabajo (n = {n}). Algunos comités se fijan en esto; nada en tu CV lo muestra.",
   },
@@ -882,6 +913,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Enregistré le {date}.",
     wlStatutoryPending: "Rédigé, pas encore vérifié au regard du texte de loi.",
     wlStatutorySourceLink: "texte de loi",
+    wlStatutoryPolicyLink: "texte de la politique",
     wlStatutoryGuidanceLink: "guide",
     wlDepositAccepted: "Déposer le manuscrit accepté dans {destination}",
     wlDepositPublished: "Déposer la version éditeur dans {destination}",
@@ -921,6 +953,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copié",
     wlRowDetails: "Politique enregistrée, droits et notes pour le formulaire",
     wlOpensNewTab: "S’ouvre dans un nouvel onglet",
+    wlChipDeposit: "Déposer dans {destination}",
+    wlChipDepositIf: "Déposer dans {destination} si c’est permis",
+    wlChipHint: "Ouvre ce travail dans l’onglet Accès ouvert",
     wlDepositBasisLabel: "Proposer des lieux selon",
     wlDepositBasisPaper: "l'affiliation de chaque article",
     wlDepositBasisCurrent: "votre affiliation actuelle ({country})",
@@ -963,6 +998,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Figurer suppose une page publiée avec l'indexation activée — les deux se trouvent dans le menu Publier.",
     hpInfoTitle: "Pour vous seulement",
+    hpPages: "Sections narratives : ≈ {pages} pages sur {limit} dans le modèle du financeur.",
+    hpPagesOver:
+      "Sections narratives : ≈ {pages} pages, au-delà de la limite de {limit} du financeur.",
     hpSelfRef:
       "Environ {pct} des références de vos articles renvoient à vos propres travaux (n = {n}). Certains comités y prêtent attention ; rien sur votre CV ne l'affiche.",
   },
@@ -1066,6 +1104,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Stand: {date}.",
     wlStatutoryPending: "Entwurf, noch nicht mit dem Gesetzestext abgeglichen.",
     wlStatutorySourceLink: "Gesetzestext",
+    wlStatutoryPolicyLink: "Richtlinientext",
     wlStatutoryGuidanceLink: "Erläuterungen",
     wlDepositAccepted: "Akzeptierte Manuskriptversion in {destination} ablegen",
     wlDepositPublished: "Verlagsversion in {destination} ablegen",
@@ -1104,6 +1143,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI kopiert",
     wlRowDetails: "Aufgezeichnete Policy, Rechte und Hinweise zum Formular",
     wlOpensNewTab: "Öffnet sich in einem neuen Tab",
+    wlChipDeposit: "In {destination} hinterlegen",
+    wlChipDepositIf: "In {destination} hinterlegen, falls erlaubt",
+    wlChipHint: "Öffnet diese Arbeit im Tab „Open Access“",
     wlDepositBasisLabel: "Ablageorte vorschlagen nach",
     wlDepositBasisPaper: "der Affiliation auf dem jeweiligen Artikel",
     wlDepositBasisCurrent: "Ihrer aktuellen Affiliation ({country})",
@@ -1142,6 +1184,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Die Auflistung setzt eine veröffentlichte Seite mit eingeschalteter Suchindexierung voraus – beides im Menü Veröffentlichen.",
     hpInfoTitle: "Nur für Sie",
+    hpPages: "Narrative Abschnitte: ≈ {pages} von {limit} Seiten in der Vorlage des Förderers.",
+    hpPagesOver:
+      "Narrative Abschnitte: ≈ {pages} Seiten, über der Grenze des Förderers von {limit}.",
     hpSelfRef:
       "Etwa {pct} der Literaturangaben in Ihren Arbeiten verweisen auf Ihre eigenen Arbeiten (n = {n}). Manche Gutachtergremien achten darauf; in Ihrem Lebenslauf erscheint es nirgends.",
   },
@@ -1243,6 +1288,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "{date} 時点の記録。",
     wlStatutoryPending: "草案段階で、法令本文との照合はまだ済んでいません。",
     wlStatutorySourceLink: "法令本文",
+    wlStatutoryPolicyLink: "方針本文",
     wlStatutoryGuidanceLink: "解説",
     wlDepositAccepted: "著者最終稿を {destination} に登録する",
     wlDepositPublished: "出版社版を {destination} に登録する",
@@ -1280,6 +1326,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI をコピーしました",
     wlRowDetails: "ポリシーの記録、権利、フォームの注記",
     wlOpensNewTab: "新しいタブで開きます",
+    wlChipDeposit: "{destination} に登録",
+    wlChipDepositIf: "許可されていれば {destination} に登録",
+    wlChipHint: "この論文を「オープンアクセス」タブで開きます",
     wlDepositBasisLabel: "登録先の提案基準",
     wlDepositBasisPaper: "各論文での所属",
     wlDepositBasisCurrent: "現在の所属（{country}）",
@@ -1319,6 +1368,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "掲載には、検索インデックスを有効にした公開済みページが必要です。どちらも「公開」メニューにあります。",
     hpInfoTitle: "あなただけに表示",
+    hpPages: "ナラティブのセクション：助成機関のテンプレートで約 {pages} / {limit} ページ。",
+    hpPagesOver:
+      "ナラティブのセクション：約 {pages} ページ、助成機関の上限 {limit} ページを超えています。",
     hpSelfRef:
       "あなたの論文の参考文献のうち約 {pct} が自身の業績を引用しています（n = {n}）。審査委員会がこれを見ることがありますが、CV には一切表示されません。",
   },
@@ -1423,6 +1475,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Registrado em {date}.",
     wlStatutoryPending: "Redigido e ainda não conferido com o texto legal.",
     wlStatutorySourceLink: "texto legal",
+    wlStatutoryPolicyLink: "texto da política",
     wlStatutoryGuidanceLink: "guia",
     wlDepositAccepted: "Deposite o manuscrito aceito em {destination}",
     wlDepositPublished: "Deposite a versão publicada em {destination}",
@@ -1460,6 +1513,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiado",
     wlRowDetails: "Registro da política, direitos e notas para o formulário",
     wlOpensNewTab: "Abre em uma nova aba",
+    wlChipDeposit: "Depositar em {destination}",
+    wlChipDepositIf: "Depositar em {destination} se permitido",
+    wlChipHint: "Abre este trabalho na aba Acesso aberto",
     wlDepositBasisLabel: "Sugerir lugares com base em",
     wlDepositBasisPaper: "a afiliação de cada artigo",
     wlDepositBasisCurrent: "sua afiliação atual ({country})",
@@ -1500,6 +1556,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "A listagem exige uma página publicada com a indexação de busca ativada — ambas estão no menu Publicar.",
     hpInfoTitle: "Somente para você",
+    hpPages: "Seções narrativas: ≈ {pages} de {limit} páginas no modelo do financiador.",
+    hpPagesOver: "Seções narrativas: ≈ {pages} páginas, acima do limite de {limit} do financiador.",
     hpSelfRef:
       "Cerca de {pct} das referências dos seus artigos apontam para o seu próprio trabalho (n = {n}). Alguns comitês observam isso; nada no seu CV o mostra.",
   },
@@ -1604,6 +1662,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Registrato il {date}.",
     wlStatutoryPending: "Bozza, non ancora confrontata con il testo di legge.",
     wlStatutorySourceLink: "testo di legge",
+    wlStatutoryPolicyLink: "testo della politica",
     wlStatutoryGuidanceLink: "guida",
     wlDepositAccepted: "Deposita il manoscritto accettato in {destination}",
     wlDepositPublished: "Deposita la versione editoriale in {destination}",
@@ -1642,6 +1701,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiato",
     wlRowDetails: "Politica registrata, diritti e note per il modulo",
     wlOpensNewTab: "Si apre in una nuova scheda",
+    wlChipDeposit: "Depositare in {destination}",
+    wlChipDepositIf: "Depositare in {destination} se consentito",
+    wlChipHint: "Apre questo lavoro nella scheda Accesso aperto",
     wlDepositBasisLabel: "Suggerisci archivi in base a",
     wlDepositBasisPaper: "l'affiliazione di ciascun articolo",
     wlDepositBasisCurrent: "la tua affiliazione attuale ({country})",
@@ -1682,6 +1744,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Per comparire serve una pagina pubblicata con l'indicizzazione attiva — entrambe nel menu Pubblica.",
     hpInfoTitle: "Solo per te",
+    hpPages: "Sezioni narrative: ≈ {pages} di {limit} pagine nel modello del finanziatore.",
+    hpPagesOver:
+      "Sezioni narrative: ≈ {pages} pagine, oltre il limite di {limit} del finanziatore.",
     hpSelfRef:
       "Circa il {pct} dei riferimenti nei tuoi articoli rimanda ai tuoi stessi lavori (n = {n}). Alcune commissioni lo guardano; nulla nel tuo CV lo mostra.",
   },
@@ -1783,6 +1848,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "{date} 기준 기록.",
     wlStatutoryPending: "초안이며 아직 법령 원문과 대조하지 않았습니다.",
     wlStatutorySourceLink: "법령 원문",
+    wlStatutoryPolicyLink: "정책 원문",
     wlStatutoryGuidanceLink: "안내",
     wlDepositAccepted: "게재 승인 원고를 {destination}에 기탁하기",
     wlDepositPublished: "출판사 최종본을 {destination}에 기탁하기",
@@ -1817,6 +1883,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI 복사됨",
     wlRowDetails: "정책 기록, 권리, 양식 안내",
     wlOpensNewTab: "새 탭에서 열립니다",
+    wlChipDeposit: "{destination}에 기탁",
+    wlChipDepositIf: "허용되는 경우 {destination}에 기탁",
+    wlChipHint: "이 저작물을 오픈 액세스 탭에서 엽니다",
     wlDepositBasisLabel: "기탁처 추천 기준",
     wlDepositBasisPaper: "각 논문의 소속",
     wlDepositBasisCurrent: "현재 소속({country})",
@@ -1856,6 +1925,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "등재하려면 검색 색인이 켜진 게시된 페이지가 필요합니다. 둘 다 게시 메뉴에 있습니다.",
     hpInfoTitle: "본인에게만 표시",
+    hpPages: "내러티브 부분: 지원기관 서식 기준 약 {pages} / {limit}쪽.",
+    hpPagesOver: "내러티브 부분: 약 {pages}쪽, 지원기관 제한 {limit}쪽 초과.",
     hpSelfRef:
       "논문의 참고문헌 중 약 {pct}가 본인의 연구를 가리킵니다 (n = {n}). 일부 심사 위원회는 이를 살펴보지만 CV에는 전혀 표시되지 않습니다.",
   },
@@ -1961,6 +2032,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStatutoryRecorded: "Запись от {date}.",
     wlStatutoryPending: "Черновик, ещё не сверен с текстом закона.",
     wlStatutorySourceLink: "текст закона",
+    wlStatutoryPolicyLink: "текст политики",
     wlStatutoryGuidanceLink: "разъяснения",
     wlDepositAccepted: "Разместить принятую к публикации рукопись в {destination}",
     wlDepositPublished: "Разместить опубликованную версию в {destination}",
@@ -1998,6 +2070,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI скопирован",
     wlRowDetails: "Запись о политике, права и заметки к форме",
     wlOpensNewTab: "Откроется в новой вкладке",
+    wlChipDeposit: "Разместить в {destination}",
+    wlChipDepositIf: "Разместить в {destination}, если это разрешено",
+    wlChipHint: "Открывает эту работу на вкладке «Открытый доступ»",
     wlDepositBasisLabel: "Предлагать места по",
     wlDepositBasisPaper: "аффилиации в каждой статье",
     wlDepositBasisCurrent: "вашей текущей аффилиации ({country})",
@@ -2037,6 +2112,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Для указания нужна опубликованная страница с включённой индексацией — и то и другое в меню «Публикация».",
     hpInfoTitle: "Только для вас",
+    hpPages: "Нарративные разделы: ≈ {pages} из {limit} страниц в шаблоне фонда.",
+    hpPagesOver: "Нарративные разделы: ≈ {pages} страниц, сверх лимита фонда в {limit}.",
     hpSelfRef:
       "Около {pct} ссылок в ваших статьях указывают на ваши собственные работы (n = {n}). Некоторые комиссии обращают на это внимание; в вашем резюме это нигде не отображается.",
   },

@@ -73,7 +73,13 @@ export interface EditorExtraStrings {
   // Prose sections (narrative contribution / statement) — free-text body editor.
   proseBody: string;
   proseBodyHint: string;
+  /** Button + hint of the on-demand starter draft for an EMPTY prose section. */
+  proseStarterInsert: string;
+  proseStarterHint: string;
   proseCharsLeft: string;
+  /** "≈ {n} pages" beside the counter, and its title explaining the basis. */
+  prosePagesApprox: string;
+  prosePagesHint: string;
   // Evidence references in prose sections ([[id]] → a link to the entry).
   evInsert: string;
   evPanel: string;
@@ -149,6 +155,9 @@ export interface EditorExtraStrings {
 
 const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
   "en-US": {
+    proseStarterInsert: "Insert a starter draft from my record",
+    proseStarterHint:
+      "A scaffold built from your entries: keep what serves the call, rewrite the rest.",
     coverageNote:
       "Open sources under-represent books, non-English and Global-South research, so your CV may be missing work. Add anything missing by its DOI here.",
     grpPublicStyle: "Public page style",
@@ -212,6 +221,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Body",
     proseBodyHint: "Blank line = new paragraph; lines starting with “- ” become a list.",
     proseCharsLeft: "{n} characters left",
+    prosePagesApprox: "≈ {n} pages",
+    prosePagesHint:
+      "Estimate for the funder's own template: letter paper, 2 cm margins, 12-point Times, single spacing (the FRQnet presentation standards).",
     evInsert: "Insert evidence",
     evPanel: "Insert an entry as evidence",
     evSearch: "Search your entries…",
@@ -270,6 +282,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Shows “PhD student” instead of the person's name on the public page and in every export (structured entries only); the name stays in the editor.",
   },
   "zh-CN": {
+    proseStarterInsert: "根据我的记录插入起始草稿",
+    proseStarterHint: "由您的条目生成的框架：保留对申请有用的内容，改写其余部分。",
     coverageNote:
       "开放数据源对图书、非英语及全球南方地区的研究覆盖不足，你的简历可能有所遗漏。可在此通过 DOI 添加缺失的成果。",
     grpPublicStyle: "公开页面样式",
@@ -332,6 +346,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "正文",
     proseBodyHint: "空行＝新段落；以“- ”开头的行会变成列表。",
     proseCharsLeft: "还剩 {n} 个字符",
+    prosePagesApprox: "≈ {n} 页",
+    prosePagesHint:
+      "按资助机构模板估算：Letter 纸张、2 cm 页边距、12 磅 Times、单倍行距（FRQnet 排版规范）。",
     evInsert: "插入证据",
     evPanel: "将一个条目作为证据插入",
     evSearch: "搜索您的条目…",
@@ -388,6 +405,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "在公开页面和所有导出中以“博士生”等代替姓名（仅限结构化条目）；编辑器中仍保留姓名。",
   },
   "es-ES": {
+    proseStarterInsert: "Insertar un borrador inicial desde mi registro",
+    proseStarterHint:
+      "Un esquema construido con tus entradas: conserva lo que sirva a la convocatoria y reescribe el resto.",
     coverageNote:
       "Las fuentes abiertas subrepresentan los libros y la investigación en lenguas distintas del inglés y del Sur Global, por lo que tu CV podría estar incompleto. Añade aquí lo que falte mediante su DOI.",
     grpPublicStyle: "Estilo de la página pública",
@@ -452,6 +472,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Línea en blanco = párrafo nuevo; las líneas que empiezan por «- » forman una lista.",
     proseCharsLeft: "Quedan {n} caracteres",
+    prosePagesApprox: "≈ {n} páginas",
+    prosePagesHint:
+      "Estimación para la plantilla del financiador: papel carta, márgenes de 2 cm, Times de 12 puntos, interlineado sencillo (normas de presentación de FRQnet).",
     evInsert: "Insertar evidencia",
     evPanel: "Insertar una entrada como evidencia",
     evSearch: "Buscar en tus entradas…",
@@ -510,6 +533,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Muestra «Doctorando/a» en lugar del nombre en la página pública y en todas las exportaciones (solo entradas estructuradas); el nombre se conserva en el editor.",
   },
   "fr-FR": {
+    proseStarterInsert: "Insérer un brouillon de départ à partir de mon dossier",
+    proseStarterHint:
+      "Une trame bâtie avec vos entrées : gardez ce qui sert au concours, réécrivez le reste.",
     coverageNote:
       "Les sources ouvertes sous-représentent les livres et la recherche non anglophone et des Suds ; votre CV peut donc être incomplet. Ajoutez ici ce qui manque via son DOI.",
     grpPublicStyle: "Style de la page publique",
@@ -576,6 +602,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Ligne vide = nouveau paragraphe ; les lignes commençant par « - » forment une liste.",
     proseCharsLeft: "{n} caractères restants",
+    prosePagesApprox: "≈ {n} pages",
+    prosePagesHint:
+      "Estimation pour le modèle du financeur : papier lettre, marges de 2 cm, Times 12 points, interligne simple (normes de présentation FRQnet).",
     evInsert: "Insérer une preuve",
     evPanel: "Insérer une entrée comme preuve",
     evSearch: "Rechercher dans vos entrées…",
@@ -634,6 +663,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Affiche « Doctorant·e » à la place du nom sur la page publique et dans tous les exports (entrées structurées uniquement) ; le nom reste dans l’éditeur.",
   },
   "de-DE": {
+    proseStarterInsert: "Startentwurf aus meinem Verzeichnis einfügen",
+    proseStarterHint:
+      "Ein Gerüst aus Ihren Einträgen: behalten Sie, was der Ausschreibung dient, und schreiben Sie den Rest um.",
     coverageNote:
       "Offene Quellen unterrepräsentieren Bücher sowie nicht-englische Forschung und Forschung aus dem Globalen Süden, daher ist Ihr Lebenslauf womöglich unvollständig. Fügen Sie Fehlendes hier per DOI hinzu.",
     grpPublicStyle: "Stil der öffentlichen Seite",
@@ -699,6 +731,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Text",
     proseBodyHint: "Leerzeile = neuer Absatz; Zeilen mit „- “ am Anfang werden zur Liste.",
     proseCharsLeft: "{n} Zeichen übrig",
+    prosePagesApprox: "≈ {n} Seiten",
+    prosePagesHint:
+      "Schätzung für die Vorlage des Förderers: Letter-Papier, 2 cm Rand, Times 12 Punkt, einzeiliger Abstand (FRQnet-Darstellungsstandards).",
     evInsert: "Beleg einfügen",
     evPanel: "Einen Eintrag als Beleg einfügen",
     evSearch: "Deine Einträge durchsuchen …",
@@ -758,6 +793,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Zeigt auf der öffentlichen Seite und in allen Exporten „Doktorand·in“ statt des Namens (nur strukturierte Einträge); im Editor bleibt der Name erhalten.",
   },
   "ja-JP": {
+    proseStarterInsert: "記録から下書きを挿入",
+    proseStarterHint:
+      "あなたの項目から組んだ骨組みです。公募に役立つものを残し、残りを書き直してください。",
     coverageNote:
       "オープンな情報源は書籍・非英語・グローバルサウスの研究を十分に収録できておらず、CV に抜けがある可能性があります。不足分は DOI でここから追加できます。",
     grpPublicStyle: "公開ページのスタイル",
@@ -822,6 +860,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "本文",
     proseBodyHint: "空行＝段落の区切り。「- 」で始まる行は箇条書きになります。",
     proseCharsLeft: "残り{n}文字",
+    prosePagesApprox: "≈ {n} ページ",
+    prosePagesHint:
+      "助成機関のテンプレート基準の概算：レター用紙、余白 2 cm、Times 12 ポイント、シングルスペース（FRQnet の表記基準）。",
     evInsert: "根拠を挿入",
     evPanel: "項目を根拠として挿入",
     evSearch: "項目を検索…",
@@ -880,6 +921,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "公開ページとすべてのエクスポートで氏名の代わりに「博士課程学生」などを表示します（構造化された項目のみ）。エディター内では氏名は保持されます。",
   },
   "pt-BR": {
+    proseStarterInsert: "Inserir um rascunho inicial a partir do meu registro",
+    proseStarterHint:
+      "Um esqueleto construído com suas entradas: mantenha o que serve ao edital e reescreva o resto.",
     coverageNote:
       "As fontes abertas sub-representam livros e pesquisas em línguas não inglesas e do Sul Global, então seu currículo pode estar incompleto. Adicione aqui o que faltar pelo DOI.",
     grpPublicStyle: "Estilo da página pública",
@@ -944,6 +988,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Texto",
     proseBodyHint: "Linha em branco = novo parágrafo; linhas iniciadas por “- ” viram uma lista.",
     proseCharsLeft: "Faltam {n} caracteres",
+    prosePagesApprox: "≈ {n} páginas",
+    prosePagesHint:
+      "Estimativa para o modelo do financiador: papel carta, margens de 2 cm, Times 12 pontos, espaçamento simples (normas de apresentação do FRQnet).",
     evInsert: "Inserir evidência",
     evPanel: "Inserir uma entrada como evidência",
     evSearch: "Buscar nas suas entradas…",
@@ -1002,6 +1049,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Mostra “Doutorando(a)” em vez do nome na página pública e em todas as exportações (apenas entradas estruturadas); o nome permanece no editor.",
   },
   "it-IT": {
+    proseStarterInsert: "Inserisci una bozza iniziale dal mio registro",
+    proseStarterHint:
+      "Una struttura costruita con le tue voci: tieni ciò che serve al bando e riscrivi il resto.",
     coverageNote:
       "Le fonti aperte sottorappresentano i libri e la ricerca non anglofona e del Sud globale, quindi il tuo CV potrebbe essere incompleto. Aggiungi qui ciò che manca tramite il suo DOI.",
     grpPublicStyle: "Stile della pagina pubblica",
@@ -1068,6 +1118,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBodyHint:
       "Riga vuota = nuovo paragrafo; le righe che iniziano con «- » diventano un elenco.",
     proseCharsLeft: "{n} caratteri rimasti",
+    prosePagesApprox: "≈ {n} pagine",
+    prosePagesHint:
+      "Stima per il modello del finanziatore: carta letter, margini di 2 cm, Times 12 punti, interlinea singola (standard di presentazione FRQnet).",
     evInsert: "Inserisci evidenza",
     evPanel: "Inserisci una voce come evidenza",
     evSearch: "Cerca tra le tue voci…",
@@ -1126,6 +1179,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "Mostra «Dottorando/a» al posto del nome nella pagina pubblica e in tutte le esportazioni (solo voci strutturate); il nome resta nell’editor.",
   },
   "ko-KR": {
+    proseStarterInsert: "내 기록으로 초안 삽입",
+    proseStarterHint:
+      "본인 항목으로 만든 뼈대입니다. 공모에 도움이 되는 것은 남기고 나머지는 다시 쓰세요.",
     coverageNote:
       "공개 데이터 출처는 도서와 비영어권·글로벌 사우스 연구를 충분히 수록하지 못하므로 이력서에 누락이 있을 수 있습니다. 누락된 항목은 여기서 DOI로 추가하세요.",
     grpPublicStyle: "공개 페이지 스타일",
@@ -1190,6 +1246,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "본문",
     proseBodyHint: "빈 줄 = 새 문단, “- ”로 시작하는 줄은 목록이 됩니다.",
     proseCharsLeft: "{n}자 남음",
+    prosePagesApprox: "≈ {n}쪽",
+    prosePagesHint:
+      "지원기관 서식 기준 추정: 레터 용지, 여백 2 cm, Times 12포인트, 1줄 간격(FRQnet 표기 기준).",
     evInsert: "근거 삽입",
     evPanel: "항목을 근거로 삽입",
     evSearch: "내 항목 검색…",
@@ -1248,6 +1307,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
       "공개 페이지와 모든 내보내기에서 이름 대신 “박사과정생”을 표시합니다(구조화된 항목만). 편집기에는 이름이 유지됩니다.",
   },
   "ru-RU": {
+    proseStarterInsert: "Вставить черновик из моей записи",
+    proseStarterHint:
+      "Каркас из ваших записей: оставьте то, что служит конкурсу, остальное перепишите.",
     coverageNote:
       "Открытые источники недостаточно охватывают книги, а также неанглоязычные исследования и работы Глобального Юга, поэтому в вашем резюме могут быть пропуски. Добавьте недостающее по DOI здесь.",
     grpPublicStyle: "Стиль публичной страницы",
@@ -1311,6 +1373,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     proseBody: "Текст",
     proseBodyHint: "Пустая строка = новый абзац; строки, начинающиеся с «- », образуют список.",
     proseCharsLeft: "Осталось символов: {n}",
+    prosePagesApprox: "≈ {n} стр.",
+    prosePagesHint:
+      "Оценка для шаблона фонда: формат Letter, поля 2 см, Times 12 пунктов, одинарный интервал (стандарты оформления FRQnet).",
     evInsert: "Вставить подтверждение",
     evPanel: "Вставить запись как подтверждение",
     evSearch: "Поиск по вашим записям…",

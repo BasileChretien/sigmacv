@@ -119,6 +119,7 @@ describe("DisplayChoicesSchema", () => {
       density: "comfortable",
       fontScale: 1,
       pageFormat: "a4",
+      hideHeaderSummary: false,
       publicContact: { email: false, phone: false, location: false },
       publicAttribution: true,
       showCoauthorLinks: false,

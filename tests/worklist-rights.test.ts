@@ -118,8 +118,21 @@ describe("statutoryLine", () => {
     expect(line.guidanceUrl).toBe(fr.guidanceUrl);
   });
 
-  it("labels a guidance page as guidance, never as legal text", () => {
+  it("labels Japan's policy document as policy text, with its implementation measures as guidance — never as legal text", () => {
     const line = statutoryLine(entry("JP"), EN, "en-US");
+    expect(line.sourceLabel).toBe(EN.wlStatutoryPolicyLink);
+    expect(line.sourceLabel).not.toBe(EN.wlStatutorySourceLink);
+    expect(line.guidanceUrl).toBe(entry("JP").guidanceUrl);
+  });
+
+  it("labels a guidance page as guidance, never as legal text", () => {
+    const guided: StatutoryArchivingEntry = {
+      ...entry("JP"),
+      sourceUrl: "https://example.org/explained",
+      sourceKind: "guidance",
+      guidanceUrl: undefined,
+    };
+    const line = statutoryLine(guided, EN, "en-US");
     expect(line.sourceLabel).toBe(EN.wlStatutoryGuidanceLink);
     expect(line.guidanceUrl).toBeUndefined();
   });

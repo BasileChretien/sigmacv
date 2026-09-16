@@ -38,13 +38,14 @@ const SOURCE: Record<string, { domain: string; kind: string }> = {
   BE: { domain: "ejustice.just.fgov.be", kind: "legal-text" },
   BG: { domain: "dv.parliament.bg", kind: "legal-text" },
   ES: { domain: "boe.es", kind: "legal-text" },
-  JP: { domain: "kyushu-u.ac.jp", kind: "guidance" },
+  JP: { domain: "cao.go.jp", kind: "policy-text" },
 };
 const GUIDANCE_DOMAIN: Record<string, string> = {
   FR: "ouvrirlascience.fr",
   DE: "irights.info",
   NL: "openaccess.nl",
   BE: "kuleuven.be",
+  JP: "cao.go.jp",
 };
 
 const NOTE = readFileSync(join(__dirname, "..", "docs", "STATUTORY-ARCHIVING-RIGHTS.md"), "utf8");
@@ -151,6 +152,11 @@ describe("STATUTORY_ARCHIVING", () => {
     const bg = entry("BG");
     expect(bg.kind).toBe("author-right");
     expect(bg.appliesFrom).toBe("2021-06-07");
+    // Germany and Austria: the right exists from its entry into force; whether it
+    // reaches earlier works is disputed (DE) or unaddressed (AT), so the line is
+    // not printed under them.
+    expect(entry("DE").appliesFrom).toBe("2014-01-01");
+    expect(entry("AT").appliesFrom).toBe("2015-10-01");
     expect(bg.workTypes).toContain("chapter");
     expect(bg.workTypes).not.toContain("dataset");
     expect(bg.statements.join(" ")).toMatch(/not to contracts concluded or rights acquired before/);

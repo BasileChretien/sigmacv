@@ -2500,6 +2500,30 @@ textarea.narrative-ai-draft {
   border-color: var(--border);
   font-weight: var(--weight-medium);
 }
+/* The deposit chip on a publication row (owner only): the one deposit action's
+   destination, jumping to the work's row in the Open access tab. A button, so a
+   pointer cursor; semantic tokens so it holds in dark mode; 24 px target. */
+.cv-deposit-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  margin-left: var(--space-2);
+  padding: 0.1rem 0.55rem;
+  font: inherit;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+  color: var(--accent);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  cursor: pointer;
+}
+.cv-deposit-chip:hover,
+.cv-deposit-chip:focus-visible {
+  border-color: var(--accent);
+}
 /* The "possible duplicate" badge is a button (toggles the explainer), so it
    gets a pointer cursor rather than the `help` cursor used by the static ones. */
 button.cv-review-badge.is-duplicate {
@@ -4873,4 +4897,10 @@ button.src-prov-chip.is-actionable:focus-visible {
 }
 .digest-email-status {
   font-size: var(--text-xs);
+}
+
+/* CV-health: the narrative page estimate past the funder layout's limit. */
+.cv-health-over {
+  color: var(--warn-text);
+  font-weight: 600;
 }

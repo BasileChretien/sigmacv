@@ -133,7 +133,11 @@ export function statutoryLine(
         : wu.wlStatutoryPending,
     sourceUrl: entry.sourceUrl,
     sourceLabel:
-      entry.sourceKind === "legal-text" ? wu.wlStatutorySourceLink : wu.wlStatutoryGuidanceLink,
+      entry.sourceKind === "legal-text"
+        ? wu.wlStatutorySourceLink
+        : entry.sourceKind === "policy-text"
+          ? wu.wlStatutoryPolicyLink
+          : wu.wlStatutoryGuidanceLink,
     guidanceUrl: entry.guidanceUrl,
   };
 }

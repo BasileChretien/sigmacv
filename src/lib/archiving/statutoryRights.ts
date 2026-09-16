@@ -28,8 +28,9 @@
  *                            repository (Spain): an obligation, and said so;
  *  - `funding-policy`      — no statute; a national policy tied to public grants.
  *
- * `sourceKind` says what `sourceUrl` is — the legal text itself, or a named
- * guidance page explaining it — and the worklist labels the link accordingly.
+ * `sourceKind` says what `sourceUrl` is — the legal text itself, a policy
+ * document where no statute exists, or a named guidance page explaining it —
+ * and the worklist labels the link accordingly.
  *
  * Verification works exactly as in the funder table: `"maintainer"` entries were
  * read against `sourceUrl` (or, where that site refuses automated reading, a
@@ -42,7 +43,7 @@
 export const STATUTORY_KINDS = ["author-right", "deposit-requirement", "funding-policy"] as const;
 export type StatutoryKind = (typeof STATUTORY_KINDS)[number];
 
-export const STATUTORY_SOURCE_KINDS = ["legal-text", "guidance"] as const;
+export const STATUTORY_SOURCE_KINDS = ["legal-text", "policy-text", "guidance"] as const;
 export type StatutorySourceKind = (typeof STATUTORY_SOURCE_KINDS)[number];
 
 interface StatutoryEntryBase {
@@ -121,8 +122,10 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
     sourceKind: "legal-text",
     guidanceUrl:
       "https://irights.info/artikel/kein-durchbruch-5-jahre-zweitveroeffentlichungsrecht-fuer-wissenschaftliche-zeitschriftenbeitraege/29822",
+    appliesFrom: "2014-01-01",
     workTypes: JOURNAL_ARTICLES,
     statements: [
+      "in force since 1 January 2014",
       "a scientific contribution from research at least half funded by public money",
       "published in a collection appearing periodically at least twice a year",
       "even after granting the publisher an exclusive right of use",
@@ -132,7 +135,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
       "the legislative reasoning limits it to publicly funded projects and non-university institutes, not basic-funded university research",
     ],
     verifiedBy: "maintainer",
-    lastVerified: "2026-09-15",
+    lastVerified: "2026-09-16",
   },
   {
     countryCode: "AT",
@@ -140,8 +143,10 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
     instrument: "Urheberrechtsgesetz (UrhG) § 37a",
     sourceUrl: "https://www.jusline.at/gesetz/urhg/paragraf/37a",
     sourceKind: "legal-text",
+    appliesFrom: "2015-10-01",
     workTypes: JOURNAL_ARTICLES,
     statements: [
+      "in force since 1 October 2015",
       "a scientific contribution written as a member of the academic staff of a research institution at least half funded by public money",
       "published in a collection appearing periodically at least twice a year",
       "even after granting the publisher a right of use",
@@ -150,7 +155,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
       "an agreement to the author's disadvantage is ineffective",
     ],
     verifiedBy: "maintainer",
-    lastVerified: "2026-09-15",
+    lastVerified: "2026-09-16",
   },
   {
     countryCode: "NL",
@@ -233,19 +238,22 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
     countryCode: "JP",
     kind: "funding-policy",
     instrument:
-      "Cabinet Office, national policy on open access to publicly funded scholarly publications and scientific data (February 2024)",
-    sourceUrl: "https://www.lib.kyushu-u.ac.jp/en/services/open/mandate",
-    sourceKind: "guidance",
+      "Basic policy on immediate open access (Integrated Innovation Strategy Promotion Council, 2024-02-16) and the ministries' measures (2024-02-21, rev. 2024-10-08)",
+    sourceUrl: "https://www8.cao.go.jp/cstp/oa_240216.pdf",
+    sourceKind: "policy-text",
+    guidanceUrl: "https://www8.cao.go.jp/cstp/openscience/r6_0221/hosaku.pdf",
     appliesFrom: "2025-04-01",
+    workTypes: JOURNAL_ARTICLES,
     statements: [
-      "no statute: a government policy for publicly funded research",
-      "immediate open access in the institution's repository to peer-reviewed papers published in e-journals, accepted manuscripts included",
-      "and to the underlying data the journal requires to be published, such as supplementary data",
-      "for grants from the FY2025 calls: JSPS KAKENHI, JST Strategic Basic Research Programs (some excluded), AMED Strategic Basic Research Programs, JST FOREST",
-      "grants adopted before FY2024 are excluded even if awarded in FY2025",
+      "no statute: a policy of the Integrated Innovation Strategy Promotion Council for research under public competitive funding, with the ministries' measures",
+      "peer-reviewed papers in e-journals — the publisher's version or the accepted manuscript — and the data the journal's rules already require to be published",
+      "posted immediately after journal publication, with no embargo (online-first counts); no fixed period is set, but public within about three months is the guide",
+      "in the institution's repository where it has one, or another platform findable through NII Research Data Cloud",
+      "for projects from calls newly opened from FY2025: JSPS KAKENHI, JST Strategic Basic Research (except ALCA-Next, CRONOS), AMED advanced R&D support, JST FOREST",
+      "where a journal's embargo prevents it, the reason is reported to the funder with the year's results, and the deposit made promptly once it lifts",
     ],
     verifiedBy: "maintainer",
-    lastVerified: "2026-09-15",
+    lastVerified: "2026-09-16",
   },
 ];
 
