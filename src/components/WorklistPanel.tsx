@@ -27,7 +27,7 @@ import { fill } from "@/lib/i18n/fill";
 import { workspaceUi, type WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
 import InstitutionListingRow, { type InstitutionListing } from "./InstitutionListingRow";
 import IndexingRow from "./IndexingRow";
-import WorklistDeposit from "./WorklistDeposit";
+import WorklistDeposit, { hasDepositDetails } from "./WorklistDeposit";
 import WorklistRights from "./WorklistRights";
 
 /** A stable empty crosswalk (a fresh `[]` per render would defeat the memo). */
@@ -141,26 +141,29 @@ export default function WorklistPanel({
   );
   // Closed works in the order of what the owner can do now: a named version
   // first, then no record, then "only if", then works with no deposit action —
-  // document order within each. The rank reads the same route the action shows;
-  // memoised so a copy's announcement does not re-route sixty works.
-  const closedSorted = useMemo(() => {
+  // document order within each. The rank reads the same routes the action
+  // shows, computed once per row here, which also answers whether the deposit
+  // details half has anything to show (a disclosure is never empty). Memoised
+  // so a copy's announcement does not re-route sixty works.
+  const closedRows = useMemo(() => {
     const RANK: Record<DepositActionKind, number> = { version: 0, unrecorded: 1, conditional: 2 };
-    const rankOf = (r: OpenAccessRow): number => {
-      const item = depositItem(r.itemId);
-      if (!item) return 3;
-      const [primary] = depositRoutes(cv, item, {
-        basis: depositBasis,
-        currentCountry: currentAffiliationCountry,
-        crosswalk,
-      });
-      return RANK[depositActionKind(item, primary!)];
-    };
+    const ctx = { basis: depositBasis, currentCountry: currentAffiliationCountry, crosswalk };
     return oa.rows
       .filter((r) => r.state === "no-open-copy-found")
-      .map((r, i) => ({ r, i, rank: rankOf(r) }))
-      .sort((a, b) => a.rank - b.rank || a.i - b.i)
-      .map((x) => x.r);
-  }, [oa, depositItem, cv, depositBasis, currentAffiliationCountry, crosswalk]);
+      .map((r: OpenAccessRow, i) => {
+        const item = depositItem(r.itemId);
+        if (!item) return { r, i, item, rank: 3, depositDetails: false };
+        const routes = depositRoutes(cv, item, ctx);
+        return {
+          r,
+          i,
+          item,
+          rank: RANK[depositActionKind(item, routes[0]!)],
+          depositDetails: hasDepositDetails(item, routes, locale),
+        };
+      })
+      .sort((a, b) => a.rank - b.rank || a.i - b.i);
+  }, [oa, depositItem, cv, depositBasis, currentAffiliationCountry, crosswalk, locale]);
   // The status line is a reason to show the panel only while a choice is open
   // (an unlisted ROR-linked current affiliation) — never counted anywhere.
   const unlisted = listing ? unlistedAffiliations(listing.state).length > 0 : false;
@@ -174,7 +177,7 @@ export default function WorklistPanel({
     return whenEmpty;
   }
 
-  const closed = closedSorted;
+  const closed = closedRows.map((x) => x.r);
 
   const rowText = (row: WorklistRow): string => {
     const title = row.title ?? wu.srNoTitle;
@@ -246,11 +249,13 @@ export default function WorklistPanel({
               locale={locale}
               state={listing.state}
               onPublishStateChange={listing.onPublishStateChange}
+              newTabDescribedBy={newTabNoteId}
             />
             <InstitutionListingRow
               locale={locale}
               state={listing.state}
               onPublishStateChange={listing.onPublishStateChange}
+              newTabDescribedBy={newTabNoteId}
             />
           </>
         ) : null}
@@ -309,12 +314,11 @@ export default function WorklistPanel({
               </fieldset>
             ) : null}
             <ul>
-              {closedSorted.map((r) => {
-                const item = depositItem(r.itemId);
+              {closedRows.map(({ r, item, depositDetails }) => {
                 const hasRights = r.selfArchiving !== undefined || r.statutory.length > 0;
                 const finder = r.selfArchiving?.policyUrl ? null : finderLink(r.venue);
                 const more =
-                  hasRights || finder !== null || r.funderNames.length > 0 || item !== undefined;
+                  hasRights || finder !== null || r.funderNames.length > 0 || depositDetails;
                 return (
                   <li key={r.itemId} className="cv-worklist-row">
                     <p className="cv-worklist-row-head">

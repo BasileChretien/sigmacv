@@ -129,8 +129,8 @@ export default function WorklistDeposit({
     );
   }
 
-  const notes = depositNotes(item, primary, wu, locale, new Date().toISOString().slice(0, 10));
-  if (notes.length === 0 && others.length === 0 && !shareYourPaper) return null;
+  const notes = depositNotes(item, primary, wu, locale, today());
+  if (!hasDepositDetails(item, [primary, ...others], locale)) return null;
   return (
     <div
       className="cv-worklist-deposit cv-worklist-deposit-details"
@@ -158,4 +158,22 @@ export default function WorklistDeposit({
       ) : null}
     </div>
   );
+}
+
+const today = () => new Date().toISOString().slice(0, 10);
+
+/**
+ * Whether the details half has anything to show for these routes — form notes,
+ * other places, or ShareYourPaper. The panel asks before rendering a row's
+ * disclosure, so the owner never opens an empty one.
+ */
+export function hasDepositDetails(
+  item: CvItem,
+  routes: readonly DepositRoute[],
+  locale: Locale,
+): boolean {
+  const [primary, ...others] = routes;
+  if (!primary) return false;
+  if (others.length > 0 || shareYourPaperHref(item.csl?.DOI?.trim() || undefined)) return true;
+  return depositNotes(item, primary, workspaceUi(locale), locale, today()).length > 0;
 }

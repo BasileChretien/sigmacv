@@ -471,3 +471,18 @@ describe("InstitutionListingRow — never for an anonymous viewer", () => {
     expect(row()).toBeTruthy();
   });
 });
+
+describe("Consent rows — the privacy links", () => {
+  it("are described by the panel's one 'opens in a new tab' note, whichever row shows them", () => {
+    for (const state of [snapshot(), snapshot({ indexable: false })]) {
+      const { container } = renderPanel(quietCv(), state);
+      const external = [...container.querySelectorAll<HTMLAnchorElement>('a[target="_blank"]')];
+      expect(external.length).toBeGreaterThan(0);
+      for (const a of external) {
+        const note = document.getElementById(a.getAttribute("aria-describedby") ?? "");
+        expect(note?.textContent).toBe(wu.wlOpensNewTab);
+      }
+      cleanup();
+    }
+  });
+});

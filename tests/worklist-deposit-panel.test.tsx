@@ -337,6 +337,14 @@ describe("WorklistPanel — the deposit action", () => {
     expect(block.textContent).toContain("Déposer le manuscrit accepté dans HAL");
   });
 
+  it("renders no disclosure when nothing is behind it — no record, no rule, no note, no other place", () => {
+    const { container } = render(
+      <WorklistPanel cv={makeCv(work({}, { DOI: undefined }))} locale="en-US" />,
+    );
+    expect(deposit(container)).toBeTruthy();
+    expect(container.querySelector("details.cv-worklist-row-more")).toBeNull();
+  });
+
   it("orders closed works by what the owner can do now: a named version, then no record, then only-if, then no action", () => {
     const base = work({ workCountries: ["FR"] });
     const conditional = withId(

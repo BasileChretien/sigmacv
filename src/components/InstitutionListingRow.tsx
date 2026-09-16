@@ -23,6 +23,8 @@ export interface InstitutionListing {
 
 interface InstitutionListingRowProps extends InstitutionListing {
   locale: string;
+  /** Id of the panel's "Opens in a new tab" note, for the privacy link. */
+  newTabDescribedBy?: string;
 }
 
 /**
@@ -44,6 +46,7 @@ export default function InstitutionListingRow({
   locale,
   state,
   onPublishStateChange,
+  newTabDescribedBy,
 }: InstitutionListingRowProps) {
   const u = ui(locale);
   const wu = workspaceUi(locale);
@@ -118,7 +121,12 @@ export default function InstitutionListingRow({
                   position the server picked, exactly as the prompt does. */}
               <p className="muted">
                 {fill(s.what, unlisted.length > 1 ? (oaiName ?? names(unlisted)) : names(unlisted))}{" "}
-                <a href={localePrivacyPath(locale)} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={localePrivacyPath(locale)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-describedby={newTabDescribedBy}
+                >
                   {s.learnMore}
                 </a>
               </p>
