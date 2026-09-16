@@ -80,7 +80,16 @@ afterEach(cleanup);
 describe("WorklistPanel (component)", () => {
   it("renders nothing when there is nothing to show", () => {
     const cv = makeCv(
-      [work("W1", { year: 2022, oaIsOpen: true, license: "cc-by", workInstitutions: [NAGOYA] })],
+      // Open, and already in a repository (green): nothing to deposit anywhere.
+      [
+        work("W1", {
+          year: 2022,
+          oaIsOpen: true,
+          oaStatus: "green",
+          license: "cc-by",
+          workInstitutions: [NAGOYA],
+        }),
+      ],
       [position("P1", { institution: "Nagoya University", rorId: NAGOYA, startYear: 2020 })],
     );
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" onJump={vi.fn()} />);
@@ -96,7 +105,9 @@ describe("WorklistPanel (component)", () => {
           oaIsOpen: true,
           workInstitutions: ["https://ror.org/02kpeqv85"],
         }),
-        work("W-nodata", { year: 2022, oaIsOpen: true, license: "cc-by" }),
+        // Open and already in a repository: a row nowhere (an open paper still at
+        // the publisher would be one of the second list).
+        work("W-nodata", { year: 2022, oaIsOpen: true, oaStatus: "green", license: "cc-by" }),
         work("W-closed", {
           year: 2021,
           oaIsOpen: false,

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 
 // The policy table is real data; one test below swaps in a maintainer-confirmed
 // entry to exercise the "as recorded on <date>" wording, which no committed
@@ -134,7 +134,15 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
     render(<WorklistPanel cv={cv} locale="en-US" funderCrosswalk={CROSSWALK} onJump={onJump} />);
     expect(screen.getByText("Your grants and their open-access policies")).toBeTruthy();
     expect(screen.getByText(/acknowledges award ANR-21-CE17-0001 from ANR/)).toBeTruthy();
-    fireEvent.click(screen.getByRole("button", { name: /Work W-anr \(2024\)/ }));
+    // The open, CC-licensed paper is also a row of the second list: click the funding row's.
+    fireEvent.click(
+      within(document.querySelector<HTMLElement>('[data-worklist="funding"]')!).getByRole(
+        "button",
+        {
+          name: /Work W-anr \(2024\)/,
+        },
+      ),
+    );
     expect(onJump).toHaveBeenCalledWith("W-anr");
 
     const policy = screen.getByText(
@@ -149,7 +157,9 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
     expect(screen.getByText(/SigmaCV found:/).textContent).toContain(
       "Open, Creative Commons licence",
     );
-    const finder = screen.getByRole("link", { name: /Open Policy Finder/ }) as HTMLAnchorElement;
+    const finder = within(
+      document.querySelector<HTMLElement>('[data-worklist="funding"]')!,
+    ).getByRole("link", { name: /Open Policy Finder/ }) as HTMLAnchorElement;
     expect(finder.href).toBe(`${OPEN_POLICY_FINDER_URL}?q=Journal%20%26%20Co`);
 
     // Help, not a verdict — and no count of works "needing action" in the heading.

@@ -105,8 +105,9 @@ describe("Deposit chip on a publication row", () => {
     // On the closed row, after its badges; the open work's row has none.
     const closedRow = chips()[0]!.closest("li")!;
     expect(closedRow.textContent).toContain("Work W-closed");
+    // (The open work is also a row of the worklist's second list, so scope to Content.)
     expect(
-      screen
+      within(document.querySelector<HTMLElement>("#cv-part-panel-content")!)
         .getByText("Work W-open", { exact: false })
         .closest("li")!
         .querySelector(".cv-deposit-chip"),

@@ -174,7 +174,13 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
   it("prints no rights block and no disclaimer when the owner's sync stored nothing", () => {
     const cv = makeCv([
       work("W1", { oaIsOpen: false, workCountries: ["US"] }),
-      work("W2", { oaIsOpen: true, selfArchiving: RECORD, workCountries: ["FR"] }),
+      // Open and already in a repository: its record is not a row anywhere.
+      work("W2", {
+        oaIsOpen: true,
+        oaStatus: "green",
+        selfArchiving: RECORD,
+        workCountries: ["FR"],
+      }),
     ]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
     openRows(container);

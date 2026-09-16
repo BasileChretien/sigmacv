@@ -479,3 +479,70 @@ describe("WorklistPanel — the deposit action", () => {
     );
   });
 });
+
+describe("WorklistPanel — papers open at the publisher, to put in a repository too", () => {
+  it("lists them under a fold closed by default, with the licence as the ground and the published version as the action", () => {
+    const gold = work({
+      oaIsOpen: true,
+      oaStatus: "gold",
+      license: "cc-by",
+      workCountries: ["FR"],
+    });
+    const { container } = render(<WorklistPanel cv={makeCv(gold)} locale="en-US" />);
+    // No first list: the paper is open. The second list is there, folded.
+    expect(container.querySelector('[data-worklist="deposit"]')).not.toBeNull();
+    expect(screen.queryByText(EN.wlClosedHeading)).toBeNull();
+    expect(screen.getByText(EN.wlElsewhereHeading)).toBeTruthy();
+    const fold = container.querySelector<HTMLDetailsElement>("details.cv-worklist-elsewhere")!;
+    expect(fold.open).toBe(false);
+    expect(fold.querySelector("summary")!.textContent).toBe(EN.wlElsewhereShow);
+    const row = fold.querySelector(".cv-worklist-row")!;
+    expect(row.querySelector(".cv-worklist-deposit-primary")!.textContent).toContain(
+      "Deposit the published version in HAL",
+    );
+    expect(row.querySelector('[data-worklist="why"]')!.textContent).toBe(
+      "Allowed by the work's licence (cc-by): the published version.",
+    );
+    openRows(container);
+    expect(depositDetails(container).querySelector(".cv-worklist-deposit-notes")!.textContent).toBe(
+      `In the form, set the licence to cc-by. ${EN.wlDepositHalDoi}`,
+    );
+    expect(container.textContent).toContain(EN.wlArchivingDisclaimer);
+  });
+
+  it("offers the routes' basis choice for the second list too", () => {
+    const gold = work({
+      oaIsOpen: true,
+      oaStatus: "gold",
+      license: "cc-by",
+      workCountries: ["FR"],
+    });
+    const { container } = render(
+      <WorklistPanel cv={makeCv(gold)} locale="en-US" currentAffiliationCountry="JP" />,
+    );
+    const fieldset = container.querySelector<HTMLElement>("fieldset.cv-worklist-deposit-basis")!;
+    expect(fieldset).not.toBeNull();
+    fireEvent.click(within(fieldset).getAllByRole("radio")[1]!);
+    expect(
+      container.querySelector("details.cv-worklist-elsewhere .cv-worklist-deposit-primary")!
+        .textContent,
+    ).toContain("Deposit the published version in Zenodo");
+  });
+
+  it("keeps a green paper and a bronze paper with no ground out, and the chips out of the second list", () => {
+    const { container } = render(
+      <WorklistPanel
+        cv={makeCv([
+          withId(work({ oaIsOpen: true, oaStatus: "green", license: "cc-by" }), "W-green", "Green"),
+          withId(
+            work({ oaIsOpen: true, oaStatus: "bronze", workCountries: [] }),
+            "W-bronze",
+            "Bronze",
+          ),
+        ])}
+        locale="en-US"
+      />,
+    );
+    expect(container.querySelector("details.cv-worklist")).toBeNull();
+  });
+});

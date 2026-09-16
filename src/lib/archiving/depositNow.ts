@@ -30,7 +30,8 @@ type SelfArchivingRecord = NonNullable<CvItem["meta"]["selfArchiving"]>;
 export type DepositVersion = SelfArchivingRecord["versions"][number];
 
 export interface DepositNow {
-  basis: "publisher" | "statute";
+  /** The publisher's recorded permission, a statutory right, or the work's own licence. */
+  basis: "publisher" | "statute" | "licence";
   /** The version the ground allows — the best the record names, or the accepted manuscript. */
   version: DepositVersion;
   /** The ISO date the embargo or the statutory delay ended; absent when there was none. */
@@ -143,6 +144,15 @@ function byStatute(
   return null;
 }
 
+/** The open-access statuses whose free copy sits AT THE PUBLISHER (green = in a repository). */
+const AT_PUBLISHER = new Set(["gold", "hybrid", "bronze", "diamond"]);
+
+/** A work under a Creative Commons licence may be deposited as published, anywhere. */
+function byLicence(item: CvItem): DepositNow | null {
+  const licence = item.meta.license?.trim().toLowerCase() ?? "";
+  return licence.startsWith("cc") ? { basis: "licence", version: "publishedVersion" } : null;
+}
+
 /**
  * The ground on which `item` can be deposited today, or null. `place` is where
  * the action would deposit: a recorded permission that does not cover that
@@ -172,33 +182,85 @@ export function depositNow(
   return publisher;
 }
 
+/**
+ * The ground for a work already open at the publisher, to put in a repository
+ * too: its own licence first (the published version, anywhere), else what a
+ * closed work would have — the record, or a right that has run.
+ */
+export function depositElsewhereNow(
+  item: CvItem,
+  statutory: readonly StatutoryArchivingEntry[],
+  today: string,
+  place?: PlaceKind,
+): DepositNow | null {
+  return byLicence(item) ?? depositNow(item, statutory, today, place);
+}
+
 /** Today as an ISO date, in UTC. */
 export const isoToday = (): string => new Date().toISOString().slice(0, 10);
 
-/**
- * The worklist's rows: every countable journal article with no open copy found
- * that can be deposited today, in document order, with its routes — the ground
- * is judged for the action's place. The chips on the publication rows read the
- * same list, so the two never disagree.
- */
-export function depositReadyRows(
+type Ground = (
+  item: CvItem,
+  statutory: readonly StatutoryArchivingEntry[],
+  today: string,
+  place?: PlaceKind,
+) => DepositNow | null;
+
+function collectRows(
   cv: CanonicalCv,
   today: string,
   ctx: DepositContext,
+  wanted: (row: OpenAccessRow, item: CvItem) => boolean,
+  ground: Ground,
 ): DepositReadyRow[] {
   const itemsById = new Map<string, CvItem>(
     cv.sections.flatMap((s) => s.items).map((it) => [it.id, it]),
   );
   const ready: DepositReadyRow[] = [];
   for (const row of openAccessStates(cv).rows) {
-    if (row.state !== "no-open-copy-found") continue;
     const item = depositCandidate(itemsById.get(row.itemId));
-    if (!item) continue;
+    if (!item || !wanted(row, item)) continue;
     const routes = depositRoutes(cv, item, ctx);
     /* v8 ignore next -- Zenodo closes every route list; kept for the type. */
     if (!routes[0]) continue;
-    const now = depositNow(item, row.statutory, today, placeKindOf(routes[0].href));
+    const now = ground(item, row.statutory, today, placeKindOf(routes[0].href));
     if (now) ready.push({ row, item, now, routes });
   }
   return ready;
+}
+
+/**
+ * The worklist's first list: every countable journal article with no open copy
+ * found that can be deposited today, in document order, with its routes — the
+ * ground is judged for the action's place. The chips on the publication rows
+ * read the same list, so the two never disagree.
+ */
+export function depositReadyRows(
+  cv: CanonicalCv,
+  today: string,
+  ctx: DepositContext,
+): DepositReadyRow[] {
+  return collectRows(cv, today, ctx, (row) => row.state === "no-open-copy-found", depositNow);
+}
+
+/**
+ * The second list, folded by default: journal articles already open at the
+ * publisher (gold, hybrid, diamond, bronze — a status that SAYS so; green is in a
+ * repository already) that a licence, the record or a right lets the owner put
+ * in a repository too. No chip on the publication rows for these.
+ */
+export function depositElsewhereRows(
+  cv: CanonicalCv,
+  today: string,
+  ctx: DepositContext,
+): DepositReadyRow[] {
+  return collectRows(
+    cv,
+    today,
+    ctx,
+    (row, item) =>
+      (row.state === "open-cc" || row.state === "open-other") &&
+      AT_PUBLISHER.has(item.meta.oaStatus ?? ""),
+    depositElsewhereNow,
+  );
 }

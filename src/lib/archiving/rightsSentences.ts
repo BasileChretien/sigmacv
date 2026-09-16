@@ -144,9 +144,10 @@ export function statutoryLine(
 }
 
 /**
- * Why the deposit is allowed today, in one sentence: the publisher's recorded
- * permission (the version, the record's date, the embargo's end or its absence)
- * or the statutory right (its instrument, country and delay). The conditions
+ * Why the deposit is allowed today, in one sentence: the work's own licence (the
+ * published version), the publisher's recorded permission (the version, the
+ * record's date, the embargo's end or its absence) or the statutory right (its
+ * instrument, country and delay). The conditions
  * stay in the record below the row; this line names the ground, not a verdict.
  */
 export function depositNowLine(
@@ -155,6 +156,9 @@ export function depositNowLine(
   wu: WorkspaceUiStrings,
   locale: string,
 ): string {
+  if (now.basis === "licence") {
+    return fill(wu.wlWhyLicence, { licence: item.meta.license! });
+  }
   if (now.basis === "publisher") {
     const record = item.meta.selfArchiving!;
     const head = fill(wu.wlWhyPublisher, {

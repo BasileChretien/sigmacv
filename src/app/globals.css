@@ -4775,6 +4775,12 @@ button.src-prov-chip.is-actionable:focus-visible {
 .cv-worklist-row-head {
   margin: 0;
 }
+/* The second list's fold: closed on every visit. */
+.cv-worklist-elsewhere > summary {
+  cursor: pointer;
+  font-weight: var(--weight-medium);
+  margin: 0.25rem 0;
+}
 /* The ground, in one sentence, under the action. */
 .cv-worklist-why {
   margin: 0.15rem 0 0;

@@ -9,7 +9,12 @@ import {
   type DepositActionKind,
   type DepositBasis,
 } from "@/lib/archiving/depositRoutes";
-import { depositReadyRows, isoToday } from "@/lib/archiving/depositNow";
+import {
+  depositElsewhereRows,
+  depositReadyRows,
+  isoToday,
+  type DepositReadyRow,
+} from "@/lib/archiving/depositNow";
 import { depositNowLine } from "@/lib/archiving/rightsSentences";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import {
@@ -63,6 +68,34 @@ const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
   "not-determined": "wlStateUnknown",
 };
 
+interface RankedRow extends DepositReadyRow {
+  i: number;
+  rank: number;
+  depositDetails: boolean;
+  /** The worklist row (alias of `row`, as the JSX reads it). */
+  r: DepositReadyRow["row"];
+}
+
+/**
+ * Rows in the order of what the owner can do now: a licence, a statutory ground
+ * or a named version first, then no record, then "only if" — document order
+ * within each. The rank reads the same routes the action shows, which also
+ * answer whether the deposit details half has anything to show (a disclosure is
+ * never empty). Called inside memos: a copy's announcement re-routes nothing.
+ */
+function rankRows(rows: DepositReadyRow[], locale: Locale, today: string): RankedRow[] {
+  const RANK: Record<DepositActionKind, number> = { version: 0, unrecorded: 1, conditional: 2 };
+  return rows
+    .map((row, i) => ({
+      ...row,
+      r: row.row,
+      i,
+      rank: row.now.basis === "publisher" ? RANK[depositActionKind(row.item, row.routes[0]!)] : 0,
+      depositDetails: hasDepositDetails(row.item, row.routes, locale, row.now, today),
+    }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i);
+}
+
 // Every substitution below uses a FUNCTION replacer: a source value (a ROR
 // key, a funder name, an award number) may contain `$'`, `$&` or `` $` ``,
 // which a string replacement would read as a pattern and corrupt the copy with.
@@ -79,7 +112,9 @@ const STATE_LABEL: Record<OpenAccessState, keyof WorkspaceUiStrings> = {
  * with the statutory rule that may also apply (`WorklistRights`), the form notes
  * and the other places; ordered by what the owner can do now (a named version,
  * then no record, then "only if", then works with no deposit action), the one
- * disclaimer under the list; (c) the
+ * disclaimer under both lists; then, folded on every visit, the papers already
+ * open AT the publisher that a licence, the record or a right lets the owner put
+ * in a repository too (`depositElsewhereRows`, no chip); (c) the
  * works that acknowledge one of the owner's OWN grants (`funders/join.ts`), each
  * beside the funder's recorded open-access policy — dated, linked — and what
  * SigmaCV found. No heading carries a count or a share — no "N of M", no
@@ -140,32 +175,94 @@ export default function WorklistPanel({
       }),
     [cv, today, depositBasis, currentAffiliationCountry, crosswalk],
   );
-  // Rows in the order of what the owner can do now: a statutory ground or a
-  // named version first, then no record, then "only if" — document order within
-  // each. The rank reads the same routes the action shows, computed once per
-  // row here, which also answers whether the deposit details half has anything
-  // to show (a disclosure is never empty). Memoised so a copy's announcement
-  // does not re-route sixty works.
-  const closedRows = useMemo(() => {
-    const RANK: Record<DepositActionKind, number> = { version: 0, unrecorded: 1, conditional: 2 };
-    return readyRows
-      .map(({ row: r, item, now, routes }, i) => {
-        return {
-          r,
-          i,
-          item,
-          now,
-          rank: now.basis === "statute" ? 0 : RANK[depositActionKind(item, routes[0]!)],
-          depositDetails: hasDepositDetails(item, routes, locale, now, today),
-        };
-      })
-      .sort((a, b) => a.rank - b.rank || a.i - b.i);
-  }, [readyRows, locale, today]);
-  if (!hasWorklistContent(gaps, closedRows.length, funding.length)) {
+  const closedRows = useMemo(() => rankRows(readyRows, locale, today), [readyRows, locale, today]);
+  // The second list: papers open at the publisher, to put in a repository too.
+  const elsewhereRows = useMemo(
+    () =>
+      rankRows(
+        depositElsewhereRows(cv, today, {
+          basis: depositBasis,
+          currentCountry: currentAffiliationCountry,
+          crosswalk,
+        }),
+        locale,
+        today,
+      ),
+    [cv, today, depositBasis, currentAffiliationCountry, crosswalk, locale],
+  );
+  if (!hasWorklistContent(gaps, closedRows.length, funding.length, elsewhereRows.length)) {
     return whenEmpty;
   }
 
   const closed = closedRows.map((x) => x.r);
+  // One row for both lists: title · venue, the action, the ground, the disclosure.
+  const renderRow = ({ r, item, now, depositDetails }: RankedRow): ReactNode => {
+    const hasRights = r.selfArchiving !== undefined || r.statutory.length > 0;
+    const finder = r.selfArchiving?.policyUrl ? null : finderLink(r.venue);
+    const more = hasRights || finder !== null || r.funderNames.length > 0 || depositDetails;
+    return (
+      <li
+        key={r.itemId}
+        className="cv-worklist-row"
+        // The chip on the publication row jumps here (CvEditor).
+        data-worklist-item={r.itemId}
+        tabIndex={-1}
+      >
+        <p className="cv-worklist-row-head">
+          {jump(r.itemId, rowText(r))}
+          {r.venue ? <span className="muted"> · {r.venue}</span> : null}
+        </p>
+        <WorklistDeposit
+          part="action"
+          locale={locale}
+          cv={cv}
+          item={item}
+          hasStatutoryRight={r.statutory.some((entry) => entry.kind === "author-right")}
+          basis={depositBasis}
+          currentCountry={currentAffiliationCountry}
+          crosswalk={crosswalk}
+          now={now}
+          today={today}
+          onCopied={onCopied}
+          newTabDescribedBy={newTabNoteId}
+        />
+        {/* Why it is allowed today: the ground, in one sentence. */}
+        <p className="muted cv-worklist-why" data-worklist="why">
+          {depositNowLine(now, item, wu, locale)}
+        </p>
+        {more ? (
+          <details className="cv-worklist-row-more">
+            <summary>{wu.wlRowDetails}</summary>
+            {finder ? <p className="muted cv-worklist-finder">{finder}</p> : null}
+            {r.funderNames.length > 0 ? (
+              <div className="muted cv-worklist-funders">
+                {wu.wlFunders.replace("{names}", () => r.funderNames.join(", "))}
+              </div>
+            ) : null}
+            <WorklistRights
+              locale={locale}
+              selfArchiving={r.selfArchiving}
+              statutory={r.statutory}
+              newTabDescribedBy={newTabNoteId}
+            />
+            <WorklistDeposit
+              part="details"
+              locale={locale}
+              cv={cv}
+              item={item}
+              hasStatutoryRight={r.statutory.some((entry) => entry.kind === "author-right")}
+              basis={depositBasis}
+              currentCountry={currentAffiliationCountry}
+              crosswalk={crosswalk}
+              now={now}
+              today={today}
+              newTabDescribedBy={newTabNoteId}
+            />
+          </details>
+        ) : null}
+      </li>
+    );
+  };
 
   const rowText = (row: WorklistRow): string => {
     const title = row.title ?? wu.srNoTitle;
@@ -243,115 +340,59 @@ export default function WorklistPanel({
           </section>
         ) : null}
 
+        {/* The routes' basis, for both lists: shown only while it would change an action. */}
+        {currentAffiliationCountry &&
+        [...closedRows, ...elsewhereRows].some(({ item }) =>
+          basisChangesPrimary(cv, item, {
+            currentCountry: currentAffiliationCountry,
+            crosswalk,
+          }),
+        ) ? (
+          <fieldset className="cv-worklist-deposit-basis">
+            <legend>{wu.wlDepositBasisLabel}</legend>
+            <label>
+              <input
+                type="radio"
+                name="cv-worklist-deposit-basis"
+                checked={depositBasis === "paper"}
+                onChange={() => setDepositBasis("paper")}
+              />{" "}
+              {wu.wlDepositBasisPaper}
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="cv-worklist-deposit-basis"
+                checked={depositBasis === "current"}
+                onChange={() => setDepositBasis("current")}
+              />{" "}
+              {fill(wu.wlDepositBasisCurrent, {
+                country: regionName(currentAffiliationCountry, locale),
+              })}
+            </label>
+          </fieldset>
+        ) : null}
         {closed.length > 0 ? (
           <section className="cv-worklist-group">
             <h3>{wu.wlClosedHeading}</h3>
             <p className="muted">{wu.wlClosedHelp}</p>
-            {currentAffiliationCountry &&
-            closedRows.some(({ item }) =>
-              basisChangesPrimary(cv, item, {
-                currentCountry: currentAffiliationCountry,
-                crosswalk,
-              }),
-            ) ? (
-              <fieldset className="cv-worklist-deposit-basis">
-                <legend>{wu.wlDepositBasisLabel}</legend>
-                <label>
-                  <input
-                    type="radio"
-                    name="cv-worklist-deposit-basis"
-                    checked={depositBasis === "paper"}
-                    onChange={() => setDepositBasis("paper")}
-                  />{" "}
-                  {wu.wlDepositBasisPaper}
-                </label>
-                <label>
-                  <input
-                    type="radio"
-                    name="cv-worklist-deposit-basis"
-                    checked={depositBasis === "current"}
-                    onChange={() => setDepositBasis("current")}
-                  />{" "}
-                  {fill(wu.wlDepositBasisCurrent, {
-                    country: regionName(currentAffiliationCountry, locale),
-                  })}
-                </label>
-              </fieldset>
-            ) : null}
-            <ul>
-              {closedRows.map(({ r, item, now, depositDetails }) => {
-                const hasRights = r.selfArchiving !== undefined || r.statutory.length > 0;
-                const finder = r.selfArchiving?.policyUrl ? null : finderLink(r.venue);
-                const more =
-                  hasRights || finder !== null || r.funderNames.length > 0 || depositDetails;
-                return (
-                  <li
-                    key={r.itemId}
-                    className="cv-worklist-row"
-                    // The chip on the publication row jumps here (CvEditor).
-                    data-worklist-item={r.itemId}
-                    tabIndex={-1}
-                  >
-                    <p className="cv-worklist-row-head">
-                      {jump(r.itemId, rowText(r))}
-                      {r.venue ? <span className="muted"> · {r.venue}</span> : null}
-                    </p>
-                    <WorklistDeposit
-                      part="action"
-                      locale={locale}
-                      cv={cv}
-                      item={item}
-                      hasStatutoryRight={r.statutory.some((entry) => entry.kind === "author-right")}
-                      basis={depositBasis}
-                      currentCountry={currentAffiliationCountry}
-                      crosswalk={crosswalk}
-                      now={now}
-                      today={today}
-                      onCopied={onCopied}
-                      newTabDescribedBy={newTabNoteId}
-                    />
-                    {/* Why it is allowed today: the ground, in one sentence. */}
-                    <p className="muted cv-worklist-why" data-worklist="why">
-                      {depositNowLine(now, item, wu, locale)}
-                    </p>
-                    {more ? (
-                      <details className="cv-worklist-row-more">
-                        <summary>{wu.wlRowDetails}</summary>
-                        {finder ? <p className="muted cv-worklist-finder">{finder}</p> : null}
-                        {r.funderNames.length > 0 ? (
-                          <div className="muted cv-worklist-funders">
-                            {wu.wlFunders.replace("{names}", () => r.funderNames.join(", "))}
-                          </div>
-                        ) : null}
-                        <WorklistRights
-                          locale={locale}
-                          selfArchiving={r.selfArchiving}
-                          statutory={r.statutory}
-                          newTabDescribedBy={newTabNoteId}
-                        />
-                        <WorklistDeposit
-                          part="details"
-                          locale={locale}
-                          cv={cv}
-                          item={item}
-                          hasStatutoryRight={r.statutory.some(
-                            (entry) => entry.kind === "author-right",
-                          )}
-                          basis={depositBasis}
-                          currentCountry={currentAffiliationCountry}
-                          crosswalk={crosswalk}
-                          now={now}
-                          today={today}
-                          newTabDescribedBy={newTabNoteId}
-                        />
-                      </details>
-                    ) : null}
-                  </li>
-                );
-              })}
-            </ul>
-            <p className="muted cv-worklist-note">{wu.wlArchivingDisclaimer}</p>
+            <ul>{closedRows.map(renderRow)}</ul>
           </section>
+        ) : null}
+
+        {elsewhereRows.length > 0 ? (
+          <section className="cv-worklist-group" data-worklist="elsewhere">
+            <h3>{wu.wlElsewhereHeading}</h3>
+            <p className="muted">{wu.wlElsewhereHelp}</p>
+            {/* Folded on every visit: for whoever goes looking. */}
+            <details className="cv-worklist-elsewhere">
+              <summary>{wu.wlElsewhereShow}</summary>
+              <ul>{elsewhereRows.map(renderRow)}</ul>
+            </details>
+          </section>
+        ) : null}
+        {closed.length > 0 || elsewhereRows.length > 0 ? (
+          <p className="muted cv-worklist-note">{wu.wlArchivingDisclaimer}</p>
         ) : null}
 
         {funding.length > 0 ? (
