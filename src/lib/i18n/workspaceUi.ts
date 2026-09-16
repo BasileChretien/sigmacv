@@ -35,6 +35,10 @@ export interface WorkspaceUiStrings {
   hpInfoTitle: string;
   /** Owner-only self-referencing notice; "{pct}" and "{n}" substituted. */
   hpSelfRef: string;
+  /** Page estimate of the narrative sections against the layout's limit;
+   *  "{pages}" and "{limit}" substituted. The second when over the limit. */
+  hpPages: string;
+  hpPagesOver: string;
   /** Announced (politely) after a checklist jump so the walk is perceptible
    *  without sight. {n} / {total} = position in the category; {title} = the row. */
   hpWalkPosition: string;
@@ -452,6 +456,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Listing needs a published page with search indexing on — both are in the Publish menu.",
     hpInfoTitle: "For your eyes only",
+    hpPages: "Narrative sections: ≈ {pages} of {limit} pages in the funder's template.",
+    hpPagesOver: "Narrative sections: ≈ {pages} pages, over the funder's limit of {limit}.",
     hpSelfRef:
       "About {pct} of the references in your papers point to your own work (n = {n}). Some panels look at this; nothing on your CV shows it.",
   },
@@ -616,6 +622,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingChange: "更改",
     wlListingNeedsPage: "列入需要已发布且开启搜索索引的页面——两者都在“发布”菜单中。",
     hpInfoTitle: "仅供您本人查看",
+    hpPages: "叙述部分：按资助机构模板约 {pages} / {limit} 页。",
+    hpPagesOver: "叙述部分：约 {pages} 页，超出资助机构 {limit} 页的限制。",
     hpSelfRef:
       "您论文中约 {pct} 的参考文献指向您自己的作品（n = {n}）。部分评审会关注这一点；您的简历中不会显示它。",
   },
@@ -798,6 +806,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Para figurar hace falta una página publicada con la indexación activada; ambas cosas están en el menú Publicar.",
     hpInfoTitle: "Solo para ti",
+    hpPages: "Secciones narrativas: ≈ {pages} de {limit} páginas en la plantilla del financiador.",
+    hpPagesOver:
+      "Secciones narrativas: ≈ {pages} páginas, por encima del límite de {limit} del financiador.",
     hpSelfRef:
       "Alrededor del {pct} de las referencias de tus artículos remiten a tu propio trabajo (n = {n}). Algunos comités se fijan en esto; nada en tu CV lo muestra.",
   },
@@ -987,6 +998,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Figurer suppose une page publiée avec l'indexation activée — les deux se trouvent dans le menu Publier.",
     hpInfoTitle: "Pour vous seulement",
+    hpPages: "Sections narratives : ≈ {pages} pages sur {limit} dans le modèle du financeur.",
+    hpPagesOver:
+      "Sections narratives : ≈ {pages} pages, au-delà de la limite de {limit} du financeur.",
     hpSelfRef:
       "Environ {pct} des références de vos articles renvoient à vos propres travaux (n = {n}). Certains comités y prêtent attention ; rien sur votre CV ne l'affiche.",
   },
@@ -1170,6 +1184,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Die Auflistung setzt eine veröffentlichte Seite mit eingeschalteter Suchindexierung voraus – beides im Menü Veröffentlichen.",
     hpInfoTitle: "Nur für Sie",
+    hpPages: "Narrative Abschnitte: ≈ {pages} von {limit} Seiten in der Vorlage des Förderers.",
+    hpPagesOver:
+      "Narrative Abschnitte: ≈ {pages} Seiten, über der Grenze des Förderers von {limit}.",
     hpSelfRef:
       "Etwa {pct} der Literaturangaben in Ihren Arbeiten verweisen auf Ihre eigenen Arbeiten (n = {n}). Manche Gutachtergremien achten darauf; in Ihrem Lebenslauf erscheint es nirgends.",
   },
@@ -1351,6 +1368,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "掲載には、検索インデックスを有効にした公開済みページが必要です。どちらも「公開」メニューにあります。",
     hpInfoTitle: "あなただけに表示",
+    hpPages: "ナラティブのセクション：助成機関のテンプレートで約 {pages} / {limit} ページ。",
+    hpPagesOver:
+      "ナラティブのセクション：約 {pages} ページ、助成機関の上限 {limit} ページを超えています。",
     hpSelfRef:
       "あなたの論文の参考文献のうち約 {pct} が自身の業績を引用しています（n = {n}）。審査委員会がこれを見ることがありますが、CV には一切表示されません。",
   },
@@ -1536,6 +1556,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "A listagem exige uma página publicada com a indexação de busca ativada — ambas estão no menu Publicar.",
     hpInfoTitle: "Somente para você",
+    hpPages: "Seções narrativas: ≈ {pages} de {limit} páginas no modelo do financiador.",
+    hpPagesOver: "Seções narrativas: ≈ {pages} páginas, acima do limite de {limit} do financiador.",
     hpSelfRef:
       "Cerca de {pct} das referências dos seus artigos apontam para o seu próprio trabalho (n = {n}). Alguns comitês observam isso; nada no seu CV o mostra.",
   },
@@ -1722,6 +1744,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Per comparire serve una pagina pubblicata con l'indicizzazione attiva — entrambe nel menu Pubblica.",
     hpInfoTitle: "Solo per te",
+    hpPages: "Sezioni narrative: ≈ {pages} di {limit} pagine nel modello del finanziatore.",
+    hpPagesOver:
+      "Sezioni narrative: ≈ {pages} pagine, oltre il limite di {limit} del finanziatore.",
     hpSelfRef:
       "Circa il {pct} dei riferimenti nei tuoi articoli rimanda ai tuoi stessi lavori (n = {n}). Alcune commissioni lo guardano; nulla nel tuo CV lo mostra.",
   },
@@ -1900,6 +1925,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "등재하려면 검색 색인이 켜진 게시된 페이지가 필요합니다. 둘 다 게시 메뉴에 있습니다.",
     hpInfoTitle: "본인에게만 표시",
+    hpPages: "내러티브 부분: 지원기관 서식 기준 약 {pages} / {limit}쪽.",
+    hpPagesOver: "내러티브 부분: 약 {pages}쪽, 지원기관 제한 {limit}쪽 초과.",
     hpSelfRef:
       "논문의 참고문헌 중 약 {pct}가 본인의 연구를 가리킵니다 (n = {n}). 일부 심사 위원회는 이를 살펴보지만 CV에는 전혀 표시되지 않습니다.",
   },
@@ -2085,6 +2112,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlListingNeedsPage:
       "Для указания нужна опубликованная страница с включённой индексацией — и то и другое в меню «Публикация».",
     hpInfoTitle: "Только для вас",
+    hpPages: "Нарративные разделы: ≈ {pages} из {limit} страниц в шаблоне фонда.",
+    hpPagesOver: "Нарративные разделы: ≈ {pages} страниц, сверх лимита фонда в {limit}.",
     hpSelfRef:
       "Около {pct} ссылок в ваших статьях указывают на ваши собственные работы (n = {n}). Некоторые комиссии обращают на это внимание; в вашем резюме это нигде не отображается.",
   },

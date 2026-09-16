@@ -719,9 +719,13 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   const honorific = cv.owner.honorific
     ? `<span class="cv-honorific">${escapeHtml(cv.owner.honorific)}</span> `
     : "";
-  const headline = cv.owner.headline
-    ? `<div class="cv-headline">${escapeHtml(cv.owner.headline)}</div>`
-    : "";
+  // A funder layout whose template has no personal statement outside its own
+  // sections (CV-FRQ, Tri-agency CV) leaves the headline + summary off the page.
+  const hideSummary = cv.display.hideHeaderSummary === true;
+  const headline =
+    cv.owner.headline && !hideSummary
+      ? `<div class="cv-headline">${escapeHtml(cv.owner.headline)}</div>`
+      : "";
   const orcid = cv.owner.orcid ? escapeHtml(cv.owner.orcid) : "";
   // The ORCID iD line leads with the green iD icon (its brand guidelines call for it),
   // suppressed on the parser-safe ATS template like the other contact icons. The icon
@@ -730,9 +734,10 @@ export function headerHtml(cv: CanonicalCv, opts: { photo?: boolean } = {}): str
   const ids = orcid
     ? `<div class="cv-ids">${orcidIco}ORCID: <a href="https://orcid.org/${orcid}">${orcid}</a></div>`
     : "";
-  const summary = cv.owner.summary
-    ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
-    : "";
+  const summary =
+    cv.owner.summary && !hideSummary
+      ? `<p class="cv-summary">${escapeHtml(cv.owner.summary)}</p>`
+      : "";
   const photo = opts.photo ? photoHtml(cv) : "";
   // The research-summary block (metric strip + grouped chart/authorship cards)
   // renders INSIDE the header only in the default "header" position — with no

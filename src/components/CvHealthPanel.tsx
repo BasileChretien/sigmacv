@@ -59,13 +59,16 @@ export default function CvHealthPanel({
   const wu = workspaceUi(locale);
   const health = useMemo(() => computeCvHealth(cv), [cv]);
   const selfRef = ownerInsights ? health.selfReference : undefined;
+  // The page estimate is about the document, not the person: shown to whoever
+  // edits it (the anonymous preview never applies a layout with a limit).
+  const pages = health.narrativePages;
   // Nothing outstanding = nothing to show. The rows below are already the
   // precision-first suspect list (review candidates, duplicates, ORCID conflicts,
   // likely-misattributed, visible retractions); there is deliberately NO blanket
   // "you have N works left to review" figure. Asking a researcher to re-confirm
   // 115 publications the system has no reason to doubt is busywork, and it
   // contradicts misattribution.ts's whole precision-over-recall design.
-  if (health.total === 0 && !selfRef) return null;
+  if (health.total === 0 && !selfRef && !pages) return null;
 
   const rows: Array<{ key: CvHealthCategory; count: number; label: string }> = [
     { key: "review" as const, count: health.pendingReviewCandidates, label: wu.hpReview },
@@ -91,6 +94,13 @@ export default function CvHealthPanel({
           ),
         )
         .replace("{n}", new Intl.NumberFormat(locale).format(selfRef.works))
+    : null;
+  const fmtPages = (n: number) =>
+    new Intl.NumberFormat(locale, { maximumFractionDigits: 1 }).format(n);
+  const pagesText = pages
+    ? (pages.over ? wu.hpPagesOver : wu.hpPages)
+        .replace("{pages}", fmtPages(pages.pages))
+        .replace("{limit}", String(pages.limit))
     : null;
 
   return (
@@ -132,6 +142,14 @@ export default function CvHealthPanel({
       {selfRefText ? (
         <p className="cv-health-info" data-owner-only="self-reference">
           {selfRefText}
+        </p>
+      ) : null}
+      {pagesText ? (
+        <p
+          className={pages?.over ? "cv-health-info cv-health-over" : "cv-health-info"}
+          data-testid="cv-health-pages"
+        >
+          {pagesText}
         </p>
       ) : null}
       {rows.length > 0 ? <p className="muted cv-health-hint">{wu.hpHint}</p> : null}

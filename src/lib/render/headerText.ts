@@ -72,11 +72,14 @@ export function textHeader(cv: CanonicalCv): TextHeader {
     const shown = displayUrl(url);
     contact.push(label ? `${label}: ${shown}` : shown);
   }
+  // A funder layout may leave the headline + summary off the document
+  // (`display.hideHeaderSummary`); the HTML header applies the same rule.
+  const hideSummary = cv.display.hideHeaderSummary === true;
   return {
     honorific: cv.owner.honorific?.trim() || undefined,
-    headline: cv.owner.headline?.trim() || undefined,
+    headline: hideSummary ? undefined : cv.owner.headline?.trim() || undefined,
     contact,
-    summary: cv.owner.summary?.trim() || undefined,
+    summary: hideSummary ? undefined : cv.owner.summary?.trim() || undefined,
     careerContext: careerContextBlock(cv),
   };
 }

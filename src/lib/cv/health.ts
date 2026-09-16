@@ -6,6 +6,7 @@ import {
 } from "@/lib/canonical/schema";
 import { orderedSections } from "@/lib/canonical/curate";
 import { selfReferenceNotice, type SelfReferenceShare } from "./selfReference";
+import { narrativePageEstimate, type NarrativePageEstimate } from "@/lib/canonical/pageEstimate";
 import { evidenceRefCounts, type EvidenceRefCounts } from "@/lib/canonical/evidenceRefs";
 import { isNarrativeModuleType } from "@/lib/canonical/narrativeEvidence";
 
@@ -59,6 +60,13 @@ export interface CvHealth {
    * owner in the editor as a plain fact; never rendered on any CV output.
    */
   selfReference?: SelfReferenceShare;
+  /**
+   * INFORMATION, not curation debt (never part of `total`): the pages the visible
+   * prose sections take against the funder layout's page limit, present only when
+   * a layout with a limit is applied (`display.pageLimit`). `over` when the
+   * estimate exceeds the limit.
+   */
+  narrativePages?: NarrativePageEstimate;
 }
 
 /** A VISIBLE prose section with a non-blank body, with its evidence-link counts;
@@ -109,6 +117,7 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
   }
 
   const selfRef = selfReferenceNotice(cv);
+  const pagesEstimate = narrativePageEstimate(cv);
   return {
     pendingReviewCandidates,
     pendingDuplicates,
@@ -126,6 +135,7 @@ export function computeCvHealth(cv: CanonicalCv): CvHealth {
       unresolvedEvidenceRefs +
       narrativesWithoutEvidence,
     ...(selfRef ? { selfReference: selfRef } : {}),
+    ...(pagesEstimate.limit ? { narrativePages: pagesEstimate } : {}),
   };
 }
 

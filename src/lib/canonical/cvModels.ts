@@ -57,6 +57,18 @@ export interface CvModelDisplay {
   publicationsLimit?: number;
   publicationOrder?: DisplayChoices["publicationOrder"];
   peerReviewedOnly?: boolean;
+  /** Drop the header's headline + summary: the funder's template has no personal
+   *  statement outside its own sections. Cleared (false) by any layout that omits it. */
+  hideHeaderSummary?: boolean;
+  /** Where the research-summary block (metrics, chart, authorship) goes; "hidden" for
+   *  a funder that never asks for a figure. The owner's own value is kept aside and
+   *  restored by the next layout that omits this, or by the reset. */
+  summaryBlockPosition?: DisplayChoices["summaryBlockPosition"];
+  /** Paper size the funder's own template uses; kept aside and restored like the above. */
+  pageFormat?: DisplayChoices["pageFormat"];
+  /** The funder's page limit for the whole document; drives the editor's page
+   *  estimate. Cleared by any layout that omits it. */
+  pageLimit?: number;
 }
 
 /**
@@ -107,6 +119,20 @@ const NAR: CvModelDisplay = { publicationsLimit: 5, peerReviewedOnly: true };
 const CONCISE5: CvModelDisplay = { publicationsLimit: 5 };
 const CONCISE10: CvModelDisplay = { publicationsLimit: 10 };
 const FULL: CvModelDisplay = {};
+/**
+ * The FRQ "CV descriptif": three prose sections and nothing else on the page. The
+ * FRQnet presentation standards fix the attachment to letter paper; the header has
+ * no personal statement (Section 1 is that); the FRQ never asks for a metric; six
+ * pages in French, five in English.
+ */
+const FRQ_DISPLAY_FR: CvModelDisplay = {
+  ...NAR,
+  hideHeaderSummary: true,
+  summaryBlockPosition: "hidden",
+  pageFormat: "letter",
+  pageLimit: 6,
+};
+const FRQ_DISPLAY_EN: CvModelDisplay = { ...FRQ_DISPLAY_FR, pageLimit: 5 };
 
 /**
  * The CV-model catalog. Ordered grant → institution → industry; within grant,
@@ -377,7 +403,14 @@ const CV_MODELS_SOURCE = [
       "grants",
       "publications",
     ],
-    display: NAR,
+    // The personal statement is a section of the document, not a header blurb, and
+    // the agencies never ask for a figure; their templates are letter paper.
+    display: {
+      ...NAR,
+      hideHeaderSummary: true,
+      summaryBlockPosition: "hidden",
+      pageFormat: "letter",
+    },
     titleOverrides: {
       statement: "Personal statement",
       "narrative-knowledge": "Most significant contributions & experiences",
@@ -398,7 +431,7 @@ const CV_MODELS_SOURCE = [
     description:
       "Fonds de recherche du Québec 'CV descriptif' in French — three sections, 6 pages maximum, no word limit: Parcours et compétences; up to ten Contributions et expériences les plus importantes (each with its period, your role, its impact and its audience A/B/C); Activités de supervision et de mentorat. Written in the FRQ Word template and attached as a PDF to the FRQnet form, which collects education, employment and languages itself.",
     sections: ["statement", "narrative-knowledge", "narrative-individuals"],
-    display: NAR,
+    display: FRQ_DISPLAY_FR,
     titleOverrides: {
       statement: "Première section : Parcours et compétences de la personne candidate",
       "narrative-knowledge": "Deuxième section : Contributions et expériences les plus importantes",
@@ -413,7 +446,7 @@ const CV_MODELS_SOURCE = [
     description:
       "Fonds de recherche du Québec narrative CV in English — three sections, 5 pages maximum, no word limit: Background and skills; up to ten Most significant contributions and experiences (each with its period, your role, its impact and its audience A/B/C); Supervisory and mentorship activities. Written in the FRQ Word template and attached as a PDF to the FRQnet form, which collects education, employment and languages itself.",
     sections: ["statement", "narrative-knowledge", "narrative-individuals"],
-    display: NAR,
+    display: FRQ_DISPLAY_EN,
     titleOverrides: {
       statement: "Section 1: Background and skills",
       "narrative-knowledge": "Section 2: Most significant contributions and experiences",
@@ -1151,10 +1184,54 @@ export function applyCvModel(
     display: { ...next.display, sectionsCustomized: true },
   };
 
-  // 4. Display overrides (publications limit / order / peer-reviewed-only).
-  next = updateDisplay(next, { ...(model.display ?? {}) });
+  // 4. Display overrides. Two of them belong to the layout rather than to the
+  //    owner's style, so a layout that does not set them clears them: the header
+  //    summary comes back and the page limit goes when the next layout has none.
+  //    Two more (paper size, research-summary placement) ARE the owner's style:
+  //    a layout that sets them keeps the owner's value aside, and a later layout
+  //    that does not set them puts it back.
+  const d = model.display ?? {};
+  const { patch: stylePatch, restore } = layoutStyleSwap(next.display, d);
+  next = updateDisplay(next, {
+    hideHeaderSummary: false,
+    pageLimit: undefined,
+    ...d,
+    ...stylePatch,
+    layoutStyleRestore: restore,
+  });
 
   return next;
+}
+
+/** The owner-style fields a layout may override and must hand back. */
+const LAYOUT_STYLE_KEYS = ["summaryBlockPosition", "pageFormat"] as const;
+type LayoutStyleKey = (typeof LAYOUT_STYLE_KEYS)[number];
+type LayoutStyleRestore = NonNullable<DisplayChoices["layoutStyleRestore"]>;
+
+/**
+ * For each owner-style key: when the incoming layout sets it, keep the owner's
+ * current value aside (unless an earlier layout already did, in which case that
+ * older value is the owner's); when it does not, restore the kept value, if any.
+ * Returns the display patch to apply and the new keep-aside record (undefined when
+ * nothing is kept). Pure.
+ */
+function layoutStyleSwap(
+  display: DisplayChoices,
+  incoming: CvModelDisplay,
+): { patch: Partial<DisplayChoices>; restore: LayoutStyleRestore | undefined } {
+  const kept = display.layoutStyleRestore ?? {};
+  const patch: Partial<DisplayChoices> = {};
+  const restore: LayoutStyleRestore = {};
+  for (const key of LAYOUT_STYLE_KEYS) {
+    if (incoming[key] !== undefined) {
+      // Keep the owner's value: the one an earlier layout set aside, else the current one.
+      const own = key in kept ? kept[key] : display[key];
+      if (own !== undefined) (restore as Record<LayoutStyleKey, unknown>)[key] = own;
+    } else if (key in kept && kept[key] !== undefined) {
+      (patch as Record<LayoutStyleKey, unknown>)[key] = kept[key];
+    }
+  }
+  return { patch, restore: Object.keys(restore).length > 0 ? restore : undefined };
 }
 
 /**
@@ -1182,6 +1259,11 @@ export function resetCvSections(cv: CanonicalCv, locale: string = cv.display.loc
       peerReviewedOnly: false,
       publicationOrder: "custom",
       publicationsLimit: undefined,
+      hideHeaderSummary: false,
+      pageLimit: undefined,
+      // Hand back the paper size / block placement a layout set aside.
+      ...layoutStyleSwap(cv.display, {}).patch,
+      layoutStyleRestore: undefined,
     },
   );
 }

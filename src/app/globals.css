@@ -4898,3 +4898,9 @@ button.src-prov-chip.is-actionable:focus-visible {
 .digest-email-status {
   font-size: var(--text-xs);
 }
+
+/* CV-health: the narrative page estimate past the funder layout's limit. */
+.cv-health-over {
+  color: var(--warn-text);
+  font-weight: 600;
+}

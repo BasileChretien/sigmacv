@@ -1865,6 +1865,31 @@ export const DisplayChoicesSchema = z.object({
   /** Paper size for the PDF/print/preview (a4 = ISO default; letter = US). */
   pageFormat: z.enum(PAGE_FORMATS).default("a4"),
   /**
+   * Leave the header's headline and summary out of the document. Set by a funder
+   * layout whose template has no personal statement outside its own sections (the
+   * CV-FRQ, the Tri-agency CV); cleared by any other layout and by the reset. The
+   * owner's summary text itself is untouched.
+   */
+  hideHeaderSummary: z.boolean().default(false),
+  /**
+   * Page limit of the funder layout last applied (the CV-FRQ: 6 in French, 5 in
+   * English), driving the page estimate in the editor. Cleared by a layout without
+   * one and by the reset; never rendered.
+   */
+  pageLimit: z.number().int().min(1).max(50).optional(),
+  /**
+   * The owner's own paper size and research-summary placement as they were before
+   * a funder layout overrode them (the CV-FRQ sets letter paper and hides the block).
+   * A later layout that does not set a key restores it from here; the reset restores
+   * both. Absent when no layout has overridden anything.
+   */
+  layoutStyleRestore: z
+    .object({
+      summaryBlockPosition: SummaryBlockPositionSchema.optional(),
+      pageFormat: z.enum(PAGE_FORMATS).optional(),
+    })
+    .optional(),
+  /**
    * Per-field consent for what appears on the PUBLIC page (`/p/[slug]`). Default
    * ALL OFF (GDPR/APPI data-minimization): publishing shares the CV body, but
    * contact details are personal data and are shown publicly only when the owner
