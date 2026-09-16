@@ -52,11 +52,23 @@ updates:
       # version in package.json (tests/dockerfile-playwright-sync.test.ts fails
       # if they drift). Bumping it on its own would always open a red PR, so it
       # rides along with the npm Playwright bump instead.
-      - dependency-name: "mcr.microsoft.com/playwright"
+      #
+      # The name here must be the BARE image name, not the registry-qualified
+      # one: this rule read "mcr.microsoft.com/playwright" until 2026-09-16 and
+      # so matched nothing, which is how #445 (image -> v1.63.0-noble, red on
+      # its own, exactly as the paragraph above predicts) got opened anyway.
+      # Dependabot's own metadata on that PR settles the spelling — its commit
+      # trailer says `dependency-name: playwright` — and the `node` entry below
+      # is bare for the same reason. Only the Dockerfile is scanned by this
+      # ecosystem, and its images are `node` and this one, so `playwright` is
+      # unambiguous here.
+      - dependency-name: "playwright"
 
       # The builder's Node MAJOR is not a free-floating dependency either: it is
       # pinned to whatever the Playwright runtime image ships (v1.62.1-noble ->
-      # Node v24.18.1, verified 2026-09-02). Letting Docker Hub's cadence drive it
+      # Node v24.18.1, verified 2026-09-02; v1.63.0-noble still declares
+      # `ARG NODE_VERSION=24`, read from the image config blob on MCR
+      # 2026-09-16). Letting Docker Hub's cadence drive it
       # reintroduces the build-on-one-major / run-on-another bug the comment above
       # the builder FROM records fixing — which is exactly what #371 (node 24 -> 26)
       # proposed, and CI could not have caught it because no workflow builds the
