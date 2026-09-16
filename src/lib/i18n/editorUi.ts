@@ -81,6 +81,9 @@ export interface EditorExtraStrings {
   prosePagesApprox: string;
   prosePagesHint: string;
   // Evidence references in prose sections ([[id]] → a link to the entry).
+  /** Design-panel switch for the supervisee asterisk, and its caveat (title). */
+  markSupervisees: string;
+  markSuperviseesHint: string;
   evInsert: string;
   evPanel: string;
   evSearch: string;
@@ -224,6 +227,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} pages",
     prosePagesHint:
       "Estimate for the funder's own template: letter paper, 2 cm margins, 12-point Times, single spacing (the FRQnet presentation standards).",
+    markSupervisees: "Add an asterisk after the people I supervised in my references (Kaur, P.*)",
+    markSuperviseesHint:
+      "The FRQ's rule for its CV. Names come from your supervision records and are matched by name in your own author lists, so a co-author with the same name would be marked too. Off while supervisee names are hidden.",
     evInsert: "Cite one of my entries",
     evPanel: "Choose the entry to cite",
     evSearch: "Search your publications, datasets, students…",
@@ -350,6 +356,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} 页",
     prosePagesHint:
       "按资助机构模板估算：Letter 纸张、2 cm 页边距、12 磅 Times、单倍行距（FRQnet 排版规范）。",
+    markSupervisees: "在我的参考文献中，于我指导过的人的姓名后加星号（Kaur, P.*）",
+    markSuperviseesHint:
+      "FRQ 简历的规则。姓名来自您的指导记录，并按姓名在您自己的作者列表中匹配，因此同名的合著者也会被标记。隐藏受指导者姓名时不生效。",
     evInsert: "引用我的一个条目",
     evPanel: "选择要引用的条目",
     evSearch: "搜索您的出版物、数据集、学生…",
@@ -477,6 +486,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} páginas",
     prosePagesHint:
       "Estimación para la plantilla del financiador: papel carta, márgenes de 2 cm, Times de 12 puntos, interlineado sencillo (normas de presentación de FRQnet).",
+    markSupervisees:
+      "Añadir un asterisco tras las personas que supervisé en mis referencias (Kaur, P.*)",
+    markSuperviseesHint:
+      "La regla del FRQ para su CV. Los nombres vienen de tus registros de supervisión y se buscan por nombre en tus listas de autores, así que un coautor homónimo también quedaría marcado. Desactivado mientras los nombres de supervisados estén ocultos.",
     evInsert: "Citar una de mis entradas",
     evPanel: "Elige la entrada que quieres citar",
     evSearch: "Busca en tus publicaciones, datos, estudiantes…",
@@ -608,6 +621,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} pages",
     prosePagesHint:
       "Estimation pour le modèle du financeur : papier lettre, marges de 2 cm, Times 12 points, interligne simple (normes de présentation FRQnet).",
+    markSupervisees:
+      "Ajouter un astérisque après les personnes que j'ai supervisées dans mes références (Kaur, P.*)",
+    markSuperviseesHint:
+      "La règle du FRQ pour son CV. Les noms viennent de vos fiches de supervision et sont repérés par leur nom dans vos listes d'auteurs, donc un coauteur homonyme serait marqué aussi. Sans effet tant que les noms des personnes supervisées sont masqués.",
     evInsert: "Citer une de mes entrées",
     evPanel: "Choisir l'entrée à citer",
     evSearch: "Chercher dans vos publications, jeux de données, étudiants…",
@@ -738,6 +755,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} Seiten",
     prosePagesHint:
       "Schätzung für die Vorlage des Förderers: Letter-Papier, 2 cm Rand, Times 12 Punkt, einzeiliger Abstand (FRQnet-Darstellungsstandards).",
+    markSupervisees:
+      "In meinen Referenzen ein Sternchen hinter die von mir betreuten Personen setzen (Kaur, P.*)",
+    markSuperviseesHint:
+      "Die Regel des FRQ für seinen Lebenslauf. Die Namen stammen aus Ihren Betreuungseinträgen und werden per Name in Ihren Autorenlisten gesucht; ein gleichnamiger Koautor würde ebenfalls markiert. Ohne Wirkung, solange Namen Betreuter ausgeblendet sind.",
     evInsert: "Einen meiner Einträge zitieren",
     evPanel: "Den zu zitierenden Eintrag wählen",
     evSearch: "Publikationen, Datensätze, Studierende durchsuchen …",
@@ -867,6 +888,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} ページ",
     prosePagesHint:
       "助成機関のテンプレート基準の概算：レター用紙、余白 2 cm、Times 12 ポイント、シングルスペース（FRQnet の表記基準）。",
+    markSupervisees: "自分の参考文献で、指導した人の名前の後にアスタリスクを付ける（Kaur, P.*）",
+    markSuperviseesHint:
+      "FRQ の CV の規則です。名前は指導記録から取り、あなたの著者リスト内で名前で照合するため、同姓同名の共著者にも印が付きます。指導した人の名前を非表示にしている間は無効です。",
     evInsert: "自分の項目を引用",
     evPanel: "引用する項目を選ぶ",
     evSearch: "出版物、データセット、学生などを検索…",
@@ -996,6 +1020,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} páginas",
     prosePagesHint:
       "Estimativa para o modelo do financiador: papel carta, margens de 2 cm, Times 12 pontos, espaçamento simples (normas de apresentação do FRQnet).",
+    markSupervisees:
+      "Acrescentar um asterisco após as pessoas que supervisionei nas minhas referências (Kaur, P.*)",
+    markSuperviseesHint:
+      "A regra do FRQ para o seu CV. Os nomes vêm dos seus registros de supervisão e são localizados pelo nome nas suas listas de autores, então um coautor homônimo também seria marcado. Sem efeito enquanto os nomes dos supervisionados estiverem ocultos.",
     evInsert: "Citar uma das minhas entradas",
     evPanel: "Escolha a entrada a citar",
     evSearch: "Buscar em suas publicações, dados, estudantes…",
@@ -1127,6 +1155,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} pagine",
     prosePagesHint:
       "Stima per il modello del finanziatore: carta letter, margini di 2 cm, Times 12 punti, interlinea singola (standard di presentazione FRQnet).",
+    markSupervisees:
+      "Aggiungere un asterisco dopo le persone che ho supervisionato nei miei riferimenti (Kaur, P.*)",
+    markSuperviseesHint:
+      "La regola del FRQ per il suo CV. I nomi vengono dalle tue schede di supervisione e sono cercati per nome nei tuoi elenchi di autori, quindi verrebbe marcato anche un coautore omonimo. Senza effetto finché i nomi dei supervisionati sono nascosti.",
     evInsert: "Cita una delle mie voci",
     evPanel: "Scegli la voce da citare",
     evSearch: "Cerca tra pubblicazioni, dataset, studenti…",
@@ -1256,6 +1288,9 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n}쪽",
     prosePagesHint:
       "지원기관 서식 기준 추정: 레터 용지, 여백 2 cm, Times 12포인트, 1줄 간격(FRQnet 표기 기준).",
+    markSupervisees: "내 참고문헌에서 내가 지도한 사람의 이름 뒤에 별표 추가(Kaur, P.*)",
+    markSuperviseesHint:
+      "FRQ CV의 규칙입니다. 이름은 지도 기록에서 가져와 본인의 저자 목록에서 이름으로 찾으므로, 동명의 공저자도 표시됩니다. 지도한 사람의 이름을 숨긴 동안에는 적용되지 않습니다.",
     evInsert: "내 항목 인용하기",
     evPanel: "인용할 항목 선택",
     evSearch: "출판물, 데이터셋, 학생 검색…",
@@ -1384,6 +1419,10 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} стр.",
     prosePagesHint:
       "Оценка для шаблона фонда: формат Letter, поля 2 см, Times 12 пунктов, одинарный интервал (стандарты оформления FRQnet).",
+    markSupervisees:
+      "Ставить звёздочку после имён тех, кем я руководил(а), в моих ссылках (Kaur, P.*)",
+    markSuperviseesHint:
+      "Правило FRQ для его резюме. Имена берутся из ваших записей о руководстве и ищутся по имени в ваших списках авторов, поэтому соавтор-однофамилец тоже будет отмечен. Не действует, пока имена подопечных скрыты.",
     evInsert: "Процитировать одну из моих записей",
     evPanel: "Выберите запись для цитирования",
     evSearch: "Поиск по публикациям, наборам данных, ученикам…",

@@ -66,6 +66,9 @@ export interface CvModelDisplay {
   summaryBlockPosition?: DisplayChoices["summaryBlockPosition"];
   /** Paper size the funder's own template uses; kept aside and restored like the above. */
   pageFormat?: DisplayChoices["pageFormat"];
+  /** Asterisk after each supervisee's name in the owner's references (the FRQ's
+   *  rule); kept aside and restored like the above. */
+  markSupervisees?: boolean;
   /** The funder's page limit for the whole document; drives the editor's page
    *  estimate. Cleared by any layout that omits it. */
   pageLimit?: number;
@@ -131,6 +134,7 @@ const FRQ_DISPLAY_FR: CvModelDisplay = {
   summaryBlockPosition: "hidden",
   pageFormat: "letter",
   pageLimit: 6,
+  markSupervisees: true,
 };
 const FRQ_DISPLAY_EN: CvModelDisplay = { ...FRQ_DISPLAY_FR, pageLimit: 5 };
 
@@ -1204,7 +1208,7 @@ export function applyCvModel(
 }
 
 /** The owner-style fields a layout may override and must hand back. */
-const LAYOUT_STYLE_KEYS = ["summaryBlockPosition", "pageFormat"] as const;
+const LAYOUT_STYLE_KEYS = ["summaryBlockPosition", "pageFormat", "markSupervisees"] as const;
 type LayoutStyleKey = (typeof LAYOUT_STYLE_KEYS)[number];
 type LayoutStyleRestore = NonNullable<DisplayChoices["layoutStyleRestore"]>;
 

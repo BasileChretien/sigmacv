@@ -627,6 +627,9 @@
             "pageFormat": {
               "type": "string",
               "enum": ["a4", "letter"]
+            },
+            "markSupervisees": {
+              "type": "boolean"
             }
           }
         },
@@ -665,6 +668,10 @@
           "type": "boolean"
         },
         "hideSuperviseeNames": {
+          "default": false,
+          "type": "boolean"
+        },
+        "markSupervisees": {
           "default": false,
           "type": "boolean"
         },
@@ -1917,6 +1924,9 @@
                   "pageFormat": {
                     "type": "string",
                     "enum": ["a4", "letter"]
+                  },
+                  "markSupervisees": {
+                    "type": "boolean"
                   }
                 }
               },
@@ -1955,6 +1965,10 @@
                 "type": "boolean"
               },
               "hideSuperviseeNames": {
+                "default": false,
+                "type": "boolean"
+              },
+              "markSupervisees": {
                 "default": false,
                 "type": "boolean"
               },

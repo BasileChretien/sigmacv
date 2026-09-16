@@ -1921,6 +1921,7 @@ export const DisplayChoicesSchema = z.object({
     .object({
       summaryBlockPosition: SummaryBlockPositionSchema.optional(),
       pageFormat: z.enum(PAGE_FORMATS).optional(),
+      markSupervisees: z.boolean().optional(),
     })
     .optional(),
   /**
@@ -1983,6 +1984,16 @@ export const DisplayChoicesSchema = z.object({
    * been reminded to publish names only with the person's agreement.
    */
   hideSuperviseeNames: z.boolean().default(false),
+  /**
+   * Add an asterisk after each supervisee's name in the owner's own references
+   * ("Kaur, P.*"), the FRQ's rule for its CV descriptif. The names come from the
+   * owner's supervision records and are matched by string in the author lists of
+   * the owner's works — a deliberate exception to identifier-only matching, see
+   * `canonical/supervisees.ts`. Default OFF; the CV-FRQ layouts set it and hand
+   * the owner's value back (`layoutStyleRestore`). Never applied while
+   * `hideSuperviseeNames` is on.
+   */
+  markSupervisees: z.boolean().default(false),
   /**
    * Whether THIS CV may be linked TO from other users' co-author blocks / JSON-LD
    * `knows` graphs (i.e. listed as their on-SigmaCV co-author). Opt-OUT: default

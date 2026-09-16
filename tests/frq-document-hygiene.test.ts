@@ -95,12 +95,14 @@ describe("the FRQ and Tri-agency layouts shape the document", () => {
     expect(frq.display.layoutStyleRestore).toEqual({
       pageFormat: "letter",
       summaryBlockPosition: "bottom",
+      markSupervisees: false,
     });
     // FRQ → FRQ-EN keeps the ORIGINAL owner values aside, not FRQ's own.
     const frqEn = applyCvModel(frq, "frq-en");
     expect(frqEn.display.layoutStyleRestore).toEqual({
       pageFormat: "letter",
       summaryBlockPosition: "bottom",
+      markSupervisees: false,
     });
     const erc = applyCvModel(frqEn, "erc");
     expect(erc.display.pageFormat).toBe("letter");
