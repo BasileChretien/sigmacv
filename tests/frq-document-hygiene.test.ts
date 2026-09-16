@@ -76,12 +76,40 @@ describe("the FRQ and Tri-agency layouts shape the document", () => {
     const erc = applyCvModel(frq, "erc");
     expect(erc.display.hideHeaderSummary).toBe(false);
     expect(erc.display.pageLimit).toBeUndefined();
-    // Style choices a layout does not speak to are left as they are.
-    expect(erc.display.pageFormat).toBe("letter");
-    expect(erc.display.summaryBlockPosition).toBe("hidden");
+    // The owner's paper size and block placement come back with the next layout.
+    expect(erc.display.pageFormat).toBe("a4");
+    expect(erc.display.summaryBlockPosition).toBe("header");
+    expect(erc.display.layoutStyleRestore).toBeUndefined();
     const reset = resetCvSections(applyCvModel(makeCv(), "frq"));
     expect(reset.display.hideHeaderSummary).toBe(false);
     expect(reset.display.pageLimit).toBeUndefined();
+    expect(reset.display.pageFormat).toBe("a4");
+    expect(reset.display.summaryBlockPosition).toBe("header");
+    expect(reset.display.layoutStyleRestore).toBeUndefined();
+  });
+
+  it("an owner's own choices survive a chain of layouts: letter + bottom before FRQ come back after ERC", () => {
+    const own = updateDisplay(makeCv(), { pageFormat: "letter", summaryBlockPosition: "bottom" });
+    const frq = applyCvModel(own, "frq");
+    expect(frq.display.summaryBlockPosition).toBe("hidden");
+    expect(frq.display.layoutStyleRestore).toEqual({
+      pageFormat: "letter",
+      summaryBlockPosition: "bottom",
+    });
+    // FRQ → FRQ-EN keeps the ORIGINAL owner values aside, not FRQ's own.
+    const frqEn = applyCvModel(frq, "frq-en");
+    expect(frqEn.display.layoutStyleRestore).toEqual({
+      pageFormat: "letter",
+      summaryBlockPosition: "bottom",
+    });
+    const erc = applyCvModel(frqEn, "erc");
+    expect(erc.display.pageFormat).toBe("letter");
+    expect(erc.display.summaryBlockPosition).toBe("bottom");
+    expect(erc.display.layoutStyleRestore).toBeUndefined();
+    // A second ERC apply, with nothing kept aside, changes neither.
+    const again = applyCvModel(erc, "nih");
+    expect(again.display.pageFormat).toBe("letter");
+    expect(again.display.summaryBlockPosition).toBe("bottom");
   });
 
   it("no layout without a page limit leaks one, and only the CV-FRQ layouts set one", () => {

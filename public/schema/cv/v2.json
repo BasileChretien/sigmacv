@@ -617,6 +617,19 @@
           "minimum": 1,
           "maximum": 50
         },
+        "layoutStyleRestore": {
+          "type": "object",
+          "properties": {
+            "summaryBlockPosition": {
+              "type": "string",
+              "enum": ["header", "top", "bottom", "hidden"]
+            },
+            "pageFormat": {
+              "type": "string",
+              "enum": ["a4", "letter"]
+            }
+          }
+        },
         "publicContact": {
           "default": {},
           "type": "object",
@@ -1885,6 +1898,19 @@
                 "type": "integer",
                 "minimum": 1,
                 "maximum": 50
+              },
+              "layoutStyleRestore": {
+                "type": "object",
+                "properties": {
+                  "summaryBlockPosition": {
+                    "type": "string",
+                    "enum": ["header", "top", "bottom", "hidden"]
+                  },
+                  "pageFormat": {
+                    "type": "string",
+                    "enum": ["a4", "letter"]
+                  }
+                }
               },
               "publicContact": {
                 "default": {},

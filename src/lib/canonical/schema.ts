@@ -1878,6 +1878,18 @@ export const DisplayChoicesSchema = z.object({
    */
   pageLimit: z.number().int().min(1).max(50).optional(),
   /**
+   * The owner's own paper size and research-summary placement as they were before
+   * a funder layout overrode them (the CV-FRQ sets letter paper and hides the block).
+   * A later layout that does not set a key restores it from here; the reset restores
+   * both. Absent when no layout has overridden anything.
+   */
+  layoutStyleRestore: z
+    .object({
+      summaryBlockPosition: SummaryBlockPositionSchema.optional(),
+      pageFormat: z.enum(PAGE_FORMATS).optional(),
+    })
+    .optional(),
+  /**
    * Per-field consent for what appears on the PUBLIC page (`/p/[slug]`). Default
    * ALL OFF (GDPR/APPI data-minimization): publishing shares the CV body, but
    * contact details are personal data and are shown publicly only when the owner
