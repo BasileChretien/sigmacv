@@ -69,15 +69,17 @@ describe("EvidencePicker", () => {
         onInsert={onInsert}
       />,
     );
-    fireEvent.click(screen.getByText("Insert evidence"));
+    fireEvent.click(screen.getByText("Cite one of my entries"));
     // Publications support "knowledge"; supervision does not; the not-mine work is never offered.
     expect(screen.getByText("Signal detection in pharmacovigilance")).toBeTruthy();
     expect(screen.queryByText("PhD supervision: J. Doe")).toBeNull();
     expect(screen.queryByText("A study of mentoring")).toBeNull();
 
-    fireEvent.change(screen.getByLabelText("Search your entries…"), { target: { value: "zzz" } });
+    fireEvent.change(screen.getByLabelText("Search your publications, datasets, students…"), {
+      target: { value: "zzz" },
+    });
     expect(screen.getByText("No matching entry")).toBeTruthy();
-    fireEvent.change(screen.getByLabelText("Search your entries…"), {
+    fireEvent.change(screen.getByLabelText("Search your publications, datasets, students…"), {
       target: { value: "signal" },
     });
     fireEvent.click(screen.getByText("Signal detection in pharmacovigilance"));
@@ -88,7 +90,7 @@ describe("EvidencePicker", () => {
     render(
       <EvidencePicker cv={cv} sectionType="statement" body="" locale="en-US" onInsert={vi.fn()} />,
     );
-    fireEvent.click(screen.getByText("Insert evidence"));
+    fireEvent.click(screen.getByText("Cite one of my entries"));
     expect(screen.getByText("Signal detection in pharmacovigilance")).toBeTruthy();
     expect(screen.getByText("PhD supervision: J. Doe")).toBeTruthy();
   });
@@ -103,9 +105,9 @@ describe("EvidencePicker", () => {
         onInsert={vi.fn()}
       />,
     );
-    expect(screen.getByText("Linked evidence: 1")).toBeTruthy();
+    expect(screen.getByText("Cited in this section: 1")).toBeTruthy();
     expect(screen.getByText("Smith 2021")).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toContain("2 references");
+    expect(screen.getByRole("status").textContent).toContain("2 citations");
   });
 
   it("shows no summary line for a body without references", () => {
@@ -118,7 +120,7 @@ describe("EvidencePicker", () => {
         onInsert={vi.fn()}
       />,
     );
-    expect(screen.queryByText(/Preuves liées/)).toBeNull();
-    expect(screen.getByText("Insérer une preuve")).toBeTruthy();
+    expect(screen.queryByText(/Citées dans cette section/)).toBeNull();
+    expect(screen.getByText("Citer une de mes entrées")).toBeTruthy();
   });
 });

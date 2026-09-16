@@ -224,14 +224,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} pages",
     prosePagesHint:
       "Estimate for the funder's own template: letter paper, 2 cm margins, 12-point Times, single spacing (the FRQnet presentation standards).",
-    evInsert: "Insert evidence",
-    evPanel: "Insert an entry as evidence",
-    evSearch: "Search your entries…",
+    evInsert: "Cite one of my entries",
+    evPanel: "Choose the entry to cite",
+    evSearch: "Search your publications, datasets, students…",
     evNone: "No matching entry",
-    evLinked: "Linked evidence: {n}",
-    evUnresolved: "{n} references point to an entry that is hidden or no longer on the CV",
+    evLinked: "Cited in this section: {n}",
+    evUnresolved:
+      "{n} citations point to an entry that is hidden or no longer on the CV; they will not appear in exports",
     evHint:
-      "Reference an entry with [[id]] — every export shows it as a link to that entry, so a claim can be checked.",
+      "Pick a publication, dataset or other entry of your CV. It appears in your text as a marker between double brackets and turns into a clickable reference, e.g. (Chrétien et al. 2022), in every export, so a reader can check the claim.",
     grantLegend: "Grant / funder CV",
     grantIntro:
       "Apply a structured starting layout matching a major funder’s call. It shows the funder’s sections (creating any missing ones), sets their order and hides the rest. Reversible — your current view is saved first. Submit the final application via the funder’s own portal/template.",
@@ -349,13 +350,14 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} 页",
     prosePagesHint:
       "按资助机构模板估算：Letter 纸张、2 cm 页边距、12 磅 Times、单倍行距（FRQnet 排版规范）。",
-    evInsert: "插入证据",
-    evPanel: "将一个条目作为证据插入",
-    evSearch: "搜索您的条目…",
+    evInsert: "引用我的一个条目",
+    evPanel: "选择要引用的条目",
+    evSearch: "搜索您的出版物、数据集、学生…",
     evNone: "没有匹配的条目",
-    evLinked: "已链接的证据：{n}",
-    evUnresolved: "{n} 个引用指向已隐藏或已不在简历上的条目",
-    evHint: "用 [[id]] 引用一个条目——所有导出格式都会将其显示为指向该条目的链接，使陈述可以核实。",
+    evLinked: "本部分引用：{n}",
+    evUnresolved: "{n} 处引用指向已隐藏或已不在简历上的条目；它们不会出现在导出文件中",
+    evHint:
+      "选择简历中的一篇出版物、一个数据集或其他条目。它在正文中显示为一个双方括号标记，并在所有导出格式中变成可点击的参考文献，例如（Chrétien et al. 2022），读者可以据此核实您的陈述。",
     grantLegend: "资助／资助方简历",
     grantIntro:
       "套用与某个重要资助方公募相匹配的结构化起始版式。它会显示该资助方的栏目（缺失的将创建）、设定其顺序并隐藏其余栏目。可逆——会先保存你当前的视图。最终申请请通过资助方自己的门户／模板提交。",
@@ -475,14 +477,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} páginas",
     prosePagesHint:
       "Estimación para la plantilla del financiador: papel carta, márgenes de 2 cm, Times de 12 puntos, interlineado sencillo (normas de presentación de FRQnet).",
-    evInsert: "Insertar evidencia",
-    evPanel: "Insertar una entrada como evidencia",
-    evSearch: "Buscar en tus entradas…",
+    evInsert: "Citar una de mis entradas",
+    evPanel: "Elige la entrada que quieres citar",
+    evSearch: "Busca en tus publicaciones, datos, estudiantes…",
     evNone: "Ninguna entrada coincide",
-    evLinked: "Evidencia enlazada: {n}",
-    evUnresolved: "{n} referencias apuntan a una entrada oculta o que ya no está en el CV",
+    evLinked: "Citadas en esta sección: {n}",
+    evUnresolved:
+      "{n} citas apuntan a una entrada oculta o que ya no está en el CV; no aparecerán en las exportaciones",
     evHint:
-      "Referencia una entrada con [[id]]: cada exportación la muestra como un enlace a esa entrada, para que la afirmación pueda verificarse.",
+      "Elige una publicación, un conjunto de datos u otra entrada de tu CV. Aparece en tu texto como una marca entre dobles corchetes y se convierte en una referencia clicable, p. ej. (Chrétien et al. 2022), en cada exportación, para que el lector pueda comprobar la afirmación.",
     grantLegend: "CV de subvención / financiador",
     grantIntro:
       "Aplica un diseño inicial estructurado acorde con una gran convocatoria de un financiador. Muestra las secciones del financiador (creando las que falten), fija su orden y oculta el resto. Reversible: tu vista actual se guarda primero. Presenta la solicitud final mediante el portal/plantilla del propio financiador.",
@@ -605,14 +608,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} pages",
     prosePagesHint:
       "Estimation pour le modèle du financeur : papier lettre, marges de 2 cm, Times 12 points, interligne simple (normes de présentation FRQnet).",
-    evInsert: "Insérer une preuve",
-    evPanel: "Insérer une entrée comme preuve",
-    evSearch: "Rechercher dans vos entrées…",
+    evInsert: "Citer une de mes entrées",
+    evPanel: "Choisir l'entrée à citer",
+    evSearch: "Chercher dans vos publications, jeux de données, étudiants…",
     evNone: "Aucune entrée correspondante",
-    evLinked: "Preuves liées : {n}",
-    evUnresolved: "{n} références pointent vers une entrée masquée ou qui n’est plus dans le CV",
+    evLinked: "Citées dans cette section : {n}",
+    evUnresolved:
+      "{n} citations pointent vers une entrée masquée ou qui n'est plus dans le CV ; elles n'apparaîtront pas dans les exports",
     evHint:
-      "Référencez une entrée avec [[id]] — chaque export l’affiche comme un lien vers cette entrée, pour que l’affirmation soit vérifiable.",
+      "Choisissez une publication, un jeu de données ou une autre entrée de votre CV. Elle apparaît dans votre texte comme un repère entre doubles crochets et devient une référence cliquable, par exemple (Chrétien et al. 2022), dans chaque export, pour que le lecteur puisse vérifier l'affirmation.",
     grantLegend: "CV de financement",
     grantIntro:
       "Appliquez une mise en page de départ structurée correspondant à un grand appel d’un financeur. Elle affiche les sections du financeur (en créant celles qui manquent), fixe leur ordre et masque les autres. Réversible — votre vue actuelle est d’abord enregistrée. Déposez la candidature finale via le portail/modèle propre au financeur.",
@@ -734,15 +738,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} Seiten",
     prosePagesHint:
       "Schätzung für die Vorlage des Förderers: Letter-Papier, 2 cm Rand, Times 12 Punkt, einzeiliger Abstand (FRQnet-Darstellungsstandards).",
-    evInsert: "Beleg einfügen",
-    evPanel: "Einen Eintrag als Beleg einfügen",
-    evSearch: "Deine Einträge durchsuchen …",
+    evInsert: "Einen meiner Einträge zitieren",
+    evPanel: "Den zu zitierenden Eintrag wählen",
+    evSearch: "Publikationen, Datensätze, Studierende durchsuchen …",
     evNone: "Kein passender Eintrag",
-    evLinked: "Verknüpfte Belege: {n}",
+    evLinked: "In diesem Abschnitt zitiert: {n}",
     evUnresolved:
-      "{n} Verweise zeigen auf einen Eintrag, der ausgeblendet ist oder nicht mehr im Lebenslauf steht",
+      "{n} Zitate zeigen auf einen Eintrag, der ausgeblendet ist oder nicht mehr im Lebenslauf steht; sie erscheinen in keinem Export",
     evHint:
-      "Verweise mit [[id]] auf einen Eintrag – jeder Export zeigt ihn als Link auf diesen Eintrag, damit die Aussage überprüfbar ist.",
+      "Wählen Sie eine Publikation, einen Datensatz oder einen anderen Eintrag Ihres Lebenslaufs. Er erscheint in Ihrem Text als Marke in doppelten eckigen Klammern und wird in jedem Export zu einem anklickbaren Verweis, z. B. (Chrétien et al. 2022), damit Lesende die Aussage prüfen können.",
     grantLegend: "Förder-Lebenslauf",
     grantIntro:
       "Wenden Sie ein strukturiertes Ausgangslayout passend zur Ausschreibung eines großen Förderers an. Es zeigt die Abschnitte des Förderers (legt fehlende an), setzt ihre Reihenfolge und blendet die übrigen aus. Umkehrbar — Ihre aktuelle Ansicht wird zuvor gespeichert. Reichen Sie den endgültigen Antrag über das Portal/die Vorlage des Förderers ein.",
@@ -863,14 +867,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} ページ",
     prosePagesHint:
       "助成機関のテンプレート基準の概算：レター用紙、余白 2 cm、Times 12 ポイント、シングルスペース（FRQnet の表記基準）。",
-    evInsert: "根拠を挿入",
-    evPanel: "項目を根拠として挿入",
-    evSearch: "項目を検索…",
+    evInsert: "自分の項目を引用",
+    evPanel: "引用する項目を選ぶ",
+    evSearch: "出版物、データセット、学生などを検索…",
     evNone: "該当する項目はありません",
-    evLinked: "リンクされた根拠：{n}",
-    evUnresolved: "{n} 件の参照が、非表示または履歴書に存在しない項目を指しています",
+    evLinked: "このセクションで引用：{n}",
+    evUnresolved:
+      "{n} 件の引用が、非表示または CV に存在しない項目を指しています。エクスポートには表示されません",
     evHint:
-      "[[id]] で項目を参照できます。すべての出力でその項目へのリンクとして表示され、記述を検証できるようになります。",
+      "CV の出版物、データセット、その他の項目を選びます。本文には二重角括弧のマークとして表示され、すべてのエクスポートでクリックできる参照（例：Chrétien et al. 2022）になるので、読者は主張を確認できます。",
     grantLegend: "助成用 CV",
     grantIntro:
       "主要な助成機関の公募に合わせた構造化された初期レイアウトを適用します。その助成機関のセクションを表示し（不足分は作成）、順序を設定し、残りを非表示にします。元に戻せます——先に現在のビューを保存します。最終的な申請は助成機関自身のポータル／テンプレートで提出してください。",
@@ -991,14 +996,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} páginas",
     prosePagesHint:
       "Estimativa para o modelo do financiador: papel carta, margens de 2 cm, Times 12 pontos, espaçamento simples (normas de apresentação do FRQnet).",
-    evInsert: "Inserir evidência",
-    evPanel: "Inserir uma entrada como evidência",
-    evSearch: "Buscar nas suas entradas…",
+    evInsert: "Citar uma das minhas entradas",
+    evPanel: "Escolha a entrada a citar",
+    evSearch: "Buscar em suas publicações, dados, estudantes…",
     evNone: "Nenhuma entrada corresponde",
-    evLinked: "Evidências vinculadas: {n}",
-    evUnresolved: "{n} referências apontam para uma entrada oculta ou que não está mais no CV",
+    evLinked: "Citadas nesta seção: {n}",
+    evUnresolved:
+      "{n} citações apontam para uma entrada oculta ou que não está mais no CV; elas não aparecerão nas exportações",
     evHint:
-      "Referencie uma entrada com [[id]] — toda exportação a mostra como um link para essa entrada, para que a afirmação possa ser verificada.",
+      "Escolha uma publicação, um conjunto de dados ou outra entrada do seu CV. Ela aparece no seu texto como um marcador entre colchetes duplos e vira uma referência clicável, por exemplo (Chrétien et al. 2022), em cada exportação, para que o leitor possa verificar a afirmação.",
     grantLegend: "Currículo de financiamento",
     grantIntro:
       "Aplique um layout inicial estruturado correspondente a uma grande chamada de um financiador. Ele mostra as seções do financiador (criando as que faltam), define a ordem delas e oculta as demais. Reversível — sua visualização atual é salva primeiro. Envie a candidatura final pelo portal/modelo do próprio financiador.",
@@ -1121,14 +1127,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} pagine",
     prosePagesHint:
       "Stima per il modello del finanziatore: carta letter, margini di 2 cm, Times 12 punti, interlinea singola (standard di presentazione FRQnet).",
-    evInsert: "Inserisci evidenza",
-    evPanel: "Inserisci una voce come evidenza",
-    evSearch: "Cerca tra le tue voci…",
+    evInsert: "Cita una delle mie voci",
+    evPanel: "Scegli la voce da citare",
+    evSearch: "Cerca tra pubblicazioni, dataset, studenti…",
     evNone: "Nessuna voce corrispondente",
-    evLinked: "Evidenze collegate: {n}",
-    evUnresolved: "{n} riferimenti puntano a una voce nascosta o non più presente nel CV",
+    evLinked: "Citate in questa sezione: {n}",
+    evUnresolved:
+      "{n} citazioni puntano a una voce nascosta o non più presente nel CV; non compariranno nelle esportazioni",
     evHint:
-      "Fai riferimento a una voce con [[id]]: ogni esportazione la mostra come link a quella voce, così l’affermazione è verificabile.",
+      "Scegli una pubblicazione, un dataset o un'altra voce del tuo CV. Compare nel testo come un segno tra doppie parentesi quadre e diventa un riferimento cliccabile, ad esempio (Chrétien et al. 2022), in ogni esportazione, così il lettore può verificare l'affermazione.",
     grantLegend: "CV per finanziamenti",
     grantIntro:
       "Applica un layout iniziale strutturato corrispondente a un importante bando di un ente finanziatore. Mostra le sezioni dell’ente (creando quelle mancanti), ne imposta l’ordine e nasconde le altre. Reversibile — la tua vista attuale viene salvata prima. Presenta la domanda finale tramite il portale/modello dell’ente finanziatore.",
@@ -1249,14 +1256,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n}쪽",
     prosePagesHint:
       "지원기관 서식 기준 추정: 레터 용지, 여백 2 cm, Times 12포인트, 1줄 간격(FRQnet 표기 기준).",
-    evInsert: "근거 삽입",
-    evPanel: "항목을 근거로 삽입",
-    evSearch: "내 항목 검색…",
+    evInsert: "내 항목 인용하기",
+    evPanel: "인용할 항목 선택",
+    evSearch: "출판물, 데이터셋, 학생 검색…",
     evNone: "일치하는 항목이 없습니다",
-    evLinked: "연결된 근거: {n}",
-    evUnresolved: "{n}개의 참조가 숨겨졌거나 더 이상 이력서에 없는 항목을 가리킵니다",
+    evLinked: "이 부분에서 인용: {n}",
+    evUnresolved:
+      "{n}개의 인용이 숨겨졌거나 더 이상 CV에 없는 항목을 가리킵니다. 내보내기에는 나타나지 않습니다",
     evHint:
-      "[[id]]로 항목을 참조하세요. 모든 내보내기에서 해당 항목으로 가는 링크로 표시되어 주장을 검증할 수 있습니다.",
+      "CV의 출판물, 데이터셋 또는 다른 항목을 고르세요. 본문에는 이중 대괄호 표시로 나타나고, 모든 내보내기에서 클릭할 수 있는 참조(예: Chrétien et al. 2022)가 되어 독자가 주장을 확인할 수 있습니다.",
     grantLegend: "연구비 CV",
     grantIntro:
       "주요 지원기관 공모에 맞는 구조화된 시작 레이아웃을 적용합니다. 해당 지원기관의 섹션을 표시하고(없으면 생성), 순서를 설정하며 나머지는 숨깁니다. 되돌릴 수 있음 — 현재 보기를 먼저 저장합니다. 최종 지원은 지원기관 자체 포털/템플릿으로 제출하세요.",
@@ -1376,14 +1384,15 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     prosePagesApprox: "≈ {n} стр.",
     prosePagesHint:
       "Оценка для шаблона фонда: формат Letter, поля 2 см, Times 12 пунктов, одинарный интервал (стандарты оформления FRQnet).",
-    evInsert: "Вставить подтверждение",
-    evPanel: "Вставить запись как подтверждение",
-    evSearch: "Поиск по вашим записям…",
+    evInsert: "Процитировать одну из моих записей",
+    evPanel: "Выберите запись для цитирования",
+    evSearch: "Поиск по публикациям, наборам данных, ученикам…",
     evNone: "Подходящих записей нет",
-    evLinked: "Связанные подтверждения: {n}",
-    evUnresolved: "{n} ссылок указывают на запись, которая скрыта или больше не входит в резюме",
+    evLinked: "Процитировано в этом разделе: {n}",
+    evUnresolved:
+      "{n} ссылок указывают на запись, которая скрыта или больше не входит в резюме; в экспорте они не появятся",
     evHint:
-      "Ссылайтесь на запись через [[id]] — в каждом экспорте это отображается как ссылка на запись, и утверждение можно проверить.",
+      "Выберите публикацию, набор данных или другую запись вашего резюме. В тексте она появится как метка в двойных квадратных скобках и в каждом экспорте станет кликабельной ссылкой, например (Chrétien et al. 2022), чтобы читатель мог проверить утверждение.",
     grantLegend: "Резюме для гранта",
     grantIntro:
       "Примените структурированный начальный макет под крупный конкурс грантодателя. Он показывает разделы грантодателя (создавая недостающие), задаёт их порядок и скрывает остальные. Обратимо — текущий вид сохраняется заранее. Итоговую заявку подавайте через собственный портал/шаблон грантодателя.",
