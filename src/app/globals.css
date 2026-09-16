@@ -1259,14 +1259,6 @@ input[type="radio"] {
   align-items: flex-start;
   gap: var(--space-2);
 }
-/* The worklist's "Institution listing" status line: same group styling, the
-   action beneath its sentence. */
-.cv-worklist-listing-status {
-  margin: 0 0 var(--space-1);
-}
-.cv-worklist-listing-status p {
-  margin: 0 0 var(--space-1);
-}
 /* ── Versions popover (frozen, citable CV versions) ── */
 .versions-panel {
   width: min(24rem, 92vw);

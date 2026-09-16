@@ -233,8 +233,6 @@ export interface WorkspaceUiStrings {
   wlDepositBasisPaper: string;
   /** Choice: route by the owner's current affiliation; {country}. */
   wlDepositBasisCurrent: string;
-  /** One line above the closed works: links open in a new tab, the DOI helps fill the form, the file is the author's choice. */
-  wlDepositHelp: string;
   /** Title on a row's jump button. */
   wlJump: string;
   // ── Owner worklist: your grants and their open-access policies ───────────
@@ -260,33 +258,9 @@ export interface WorkspaceUiStrings {
   wlFundingFound: string;
   /** Fallback when neither the grant, the work nor the crosswalk names the funder. */
   wlFundingUnnamedFunder: string;
-  // ── Owner worklist: institution listing (a status line, never a gap) ─────
-  /** First row: whether the CV is listed under its current affiliations. */
-  wlListingHeading: string;
-  /** Voluntary, absence means nothing, withdrawal immediate — under the heading. */
-  wlListingHelp: string;
-  /** Not yet listed; {institution} = the names joined. */
-  wlListingUnlisted: string;
-  /** On the institution's page but not in its OAI-PMH set; {institution}. */
-  wlListingPageOnly: string;
-  /** In the institution's OAI-PMH set but not on its page; {institution}. */
-  wlListingSetOnly: string;
-  /** The consent button — names the institution(s); {institution}. */
-  wlListingListMe: string;
-  /** The consent button while no institution is ticked yet (disabled). */
-  wlListingListMeNone: string;
-  /** Listed; {institution} = the names joined. */
-  wlListingListed: string;
-  /** The worklist's "Search indexing" row: heading, help, and the three states. */
-  wlIndexingHeading: string;
-  wlIndexingHelp: string;
-  wlIndexingUndecided: string;
-  wlIndexingOff: string;
-  wlIndexingOn: string;
+  // ── Owner worklist: the institution / indexing prompts' "Change" link ─────
   /** Opens the Publish menu at the institution sub-section. */
   wlListingChange: string;
-  /** Shown instead of the button while the page is unpublished or not indexable. */
-  wlListingNeedsPage: string;
 }
 
 const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
@@ -439,8 +413,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "Suggest places by",
     wlDepositBasisPaper: "the affiliation on each paper",
     wlDepositBasisCurrent: "your current affiliation ({country})",
-    wlDepositHelp:
-      "Each link opens the repository in a new tab (its deposit form where SigmaCV knows it). Copy the DOI to fill in the paper's details. Which file you upload is your choice; the journal's policy says which versions it allows.",
     wlJump: "Jump to this entry",
     wlFundingHeading: "Your grants and their open-access policies",
     wlFundingHelp:
@@ -454,24 +426,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV has no policy record for {funder}.",
     wlFundingFound: "SigmaCV found: {state}",
     wlFundingUnnamedFunder: "a funder",
-    wlListingHeading: "Institution listing",
-    wlListingHelp:
-      "A status line, not a task: listing is voluntary and absence means nothing. Withdraw at any time from the Publish menu, with immediate effect.",
-    wlListingUnlisted: "You are not yet listed under {institution}.",
-    wlListingPageOnly: "Listed on {institution}'s page; not in its repository set.",
-    wlListingSetOnly: "In {institution}'s repository set; not on its page.",
-    wlListingListMe: "List me under {institution}",
-    wlListingListMeNone: "List me under the institutions I tick",
-    wlListingListed: "Listed under {institution}.",
-    wlIndexingHeading: "Search indexing",
-    wlIndexingHelp:
-      "Whether search engines may list your public page. Off until you choose; nothing is decided by silence.",
-    wlIndexingUndecided: "Not decided yet — your page is not indexed.",
-    wlIndexingOff: "Off — you chose not now; your page is not indexed.",
-    wlIndexingOn: "On — search engines may index your page.",
     wlListingChange: "Change",
-    wlListingNeedsPage:
-      "Listing needs a published page with search indexing on — both are in the Publish menu.",
     hpInfoTitle: "For your eyes only",
     hpPages: "Narrative sections: ≈ {pages} of {limit} pages in the funder's template.",
     hpPagesOver: "Narrative sections: ≈ {pages} pages, over the funder's limit of {limit}.",
@@ -614,8 +569,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "推荐依据",
     wlDepositBasisPaper: "各篇论文上的署名单位",
     wlDepositBasisCurrent: "您目前的单位（{country}）",
-    wlDepositHelp:
-      "每个链接都会在新标签页中打开相应知识库（若 SigmaCV 已知其存缴表单，则直接打开）。复制 DOI 以填写论文信息。上传哪个文件由您决定；期刊政策会说明允许哪些版本。",
     wlJump: "跳转到此条目",
     wlFundingHeading: "您的资助项目及其开放获取政策",
     wlFundingHelp:
@@ -629,22 +582,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV 没有 {funder} 的政策记录。",
     wlFundingFound: "SigmaCV 的发现：{state}",
     wlFundingUnnamedFunder: "某资助方",
-    wlListingHeading: "机构列入",
-    wlListingHelp:
-      "这只是状态说明，不是待办事项：列入完全自愿，未列入不代表任何含义。可随时在“发布”菜单中撤回，立即生效。",
-    wlListingUnlisted: "你尚未列入 {institution}。",
-    wlListingPageOnly: "已显示在 {institution} 的页面上；尚未加入其资料库集合。",
-    wlListingSetOnly: "已加入 {institution} 的资料库集合；尚未显示在其页面上。",
-    wlListingListMe: "将我列入 {institution}",
-    wlListingListMeNone: "将我列入我勾选的机构",
-    wlListingListed: "已列入 {institution}。",
-    wlIndexingHeading: "搜索引擎收录",
-    wlIndexingHelp: "搜索引擎是否可以收录您的公开页面。在您选择之前保持关闭；沉默不作为决定。",
-    wlIndexingUndecided: "尚未决定——您的页面未被收录。",
-    wlIndexingOff: "关闭——您选择了暂不；您的页面未被收录。",
-    wlIndexingOn: "开启——搜索引擎可以收录您的页面。",
     wlListingChange: "更改",
-    wlListingNeedsPage: "列入需要已发布且开启搜索索引的页面——两者都在“发布”菜单中。",
     hpInfoTitle: "仅供您本人查看",
     hpPages: "叙述部分：按资助机构模板约 {pages} / {limit} 页。",
     hpPagesOver: "叙述部分：约 {pages} 页，超出资助机构 {limit} 页的限制。",
@@ -803,8 +741,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "Sugerir lugares según",
     wlDepositBasisPaper: "la afiliación de cada artículo",
     wlDepositBasisCurrent: "tu afiliación actual ({country})",
-    wlDepositHelp:
-      "Cada enlace abre el repositorio en una pestaña nueva (su formulario de depósito cuando SigmaCV lo conoce). Copia el DOI para rellenar los datos del artículo. Qué archivo subir lo decides tú; la política de la revista indica qué versiones permite.",
     wlJump: "Ir a esta entrada",
     wlFundingHeading: "Tus ayudas y sus políticas de acceso abierto",
     wlFundingHelp:
@@ -818,25 +754,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV no tiene registro de política para {funder}.",
     wlFundingFound: "SigmaCV encontró: {state}",
     wlFundingUnnamedFunder: "un financiador",
-    wlListingHeading: "Inclusión en la institución",
-    wlListingHelp:
-      "Una línea de estado, no una tarea: figurar es voluntario y no figurar no significa nada. Retíralo cuando quieras desde el menú Publicar, con efecto inmediato.",
-    wlListingUnlisted: "Todavía no figuras bajo {institution}.",
-    wlListingPageOnly:
-      "Figuras en la página de {institution}; no en su conjunto para repositorios.",
-    wlListingSetOnly: "Figuras en el conjunto para repositorios de {institution}; no en su página.",
-    wlListingListMe: "Listarme bajo {institution}",
-    wlListingListMeNone: "Listarme bajo las instituciones que marque",
-    wlListingListed: "Figuras bajo {institution}.",
-    wlIndexingHeading: "Indexación en buscadores",
-    wlIndexingHelp:
-      "Si los motores de búsqueda pueden listar tu página pública. Desactivada hasta que elijas; nada se decide por silencio.",
-    wlIndexingUndecided: "Sin decidir todavía: tu página no está indexada.",
-    wlIndexingOff: "Desactivada: elegiste «ahora no»; tu página no está indexada.",
-    wlIndexingOn: "Activada: los motores de búsqueda pueden indexar tu página.",
     wlListingChange: "Cambiar",
-    wlListingNeedsPage:
-      "Para figurar hace falta una página publicada con la indexación activada; ambas cosas están en el menú Publicar.",
     hpInfoTitle: "Solo para ti",
     hpPages: "Secciones narrativas: ≈ {pages} de {limit} páginas en la plantilla del financiador.",
     hpPagesOver:
@@ -999,8 +917,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "Proposer des lieux selon",
     wlDepositBasisPaper: "l'affiliation de chaque article",
     wlDepositBasisCurrent: "votre affiliation actuelle ({country})",
-    wlDepositHelp:
-      "Chaque lien ouvre l'archive dans un nouvel onglet (son formulaire de dépôt quand SigmaCV le connaît). Copiez le DOI pour renseigner les informations de l'article. Le choix du fichier vous revient ; la politique de la revue indique quelles versions elle autorise.",
     wlJump: "Aller à cette entrée",
     wlFundingHeading: "Vos financements et leurs politiques d'accès ouvert",
     wlFundingHelp:
@@ -1016,27 +932,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV n'a pas d'enregistrement de politique pour {funder}.",
     wlFundingFound: "SigmaCV a trouvé : {state}",
     wlFundingUnnamedFunder: "un financeur",
-    wlListingHeading: "Inscription auprès de l'établissement",
-    wlListingHelp:
-      "Une ligne d'état, pas une tâche : figurer est volontaire et ne pas figurer ne signifie rien. Retirez-vous à tout moment depuis le menu Publier, avec effet immédiat.",
-    wlListingUnlisted: "Vous ne figurez pas encore sous {institution}.",
-    wlListingPageOnly:
-      "Vous figurez sur la page de {institution} ; pas dans son ensemble pour les dépôts.",
-    wlListingSetOnly:
-      "Vous figurez dans l'ensemble pour les dépôts de {institution} ; pas sur sa page.",
-    wlListingListMe: "Me lister sous {institution}",
-    wlListingListMeNone: "Me lister sous les établissements cochés",
-    wlListingListed: "Vous figurez sous {institution}.",
-    wlIndexingHeading: "Indexation par les moteurs de recherche",
-    wlIndexingHelp:
-      "Si les moteurs de recherche peuvent référencer votre page publique. Désactivée tant que vous n'avez pas choisi ; rien n'est décidé par le silence.",
-    wlIndexingUndecided: "Pas encore décidé — votre page n'est pas indexée.",
-    wlIndexingOff:
-      "Désactivée — vous avez choisi « pas maintenant » ; votre page n'est pas indexée.",
-    wlIndexingOn: "Activée — les moteurs de recherche peuvent indexer votre page.",
     wlListingChange: "Modifier",
-    wlListingNeedsPage:
-      "Figurer suppose une page publiée avec l'indexation activée — les deux se trouvent dans le menu Publier.",
     hpInfoTitle: "Pour vous seulement",
     hpPages: "Sections narratives : ≈ {pages} pages sur {limit} dans le modèle du financeur.",
     hpPagesOver:
@@ -1197,8 +1093,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "Ablageorte vorschlagen nach",
     wlDepositBasisPaper: "der Affiliation auf dem jeweiligen Artikel",
     wlDepositBasisCurrent: "Ihrer aktuellen Affiliation ({country})",
-    wlDepositHelp:
-      "Jeder Link öffnet das Repositorium in einem neuen Tab (sein Ablageformular, wo SigmaCV es kennt). Kopieren Sie die DOI, um dort die Angaben zum Artikel einzutragen. Welche Datei Sie hochladen, entscheiden Sie; die Richtlinie der Zeitschrift sagt, welche Versionen sie erlaubt.",
     wlJump: "Zu diesem Eintrag springen",
     wlFundingHeading: "Ihre Förderungen und deren Open-Access-Richtlinien",
     wlFundingHelp:
@@ -1212,25 +1106,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV hat keinen Richtlinien-Eintrag für {funder}.",
     wlFundingFound: "SigmaCV hat gefunden: {state}",
     wlFundingUnnamedFunder: "ein Förderer",
-    wlListingHeading: "Auflistung bei der Einrichtung",
-    wlListingHelp:
-      "Eine Statuszeile, keine Aufgabe: Die Auflistung ist freiwillig, und ihr Fehlen bedeutet nichts. Jederzeit im Menü Veröffentlichen zurücknehmbar, mit sofortiger Wirkung.",
-    wlListingUnlisted: "Sie sind noch nicht unter {institution} aufgeführt.",
-    wlListingPageOnly:
-      "Auf der Seite von {institution} aufgeführt; nicht in deren Set für Repositorien.",
-    wlListingSetOnly: "Im Set für Repositorien von {institution}; nicht auf deren Seite.",
-    wlListingListMe: "Mich unter {institution} aufführen",
-    wlListingListMeNone: "Mich unter den angekreuzten Einrichtungen aufführen",
-    wlListingListed: "Aufgeführt unter {institution}.",
-    wlIndexingHeading: "Suchmaschinen-Indexierung",
-    wlIndexingHelp:
-      "Ob Suchmaschinen Ihre öffentliche Seite listen dürfen. Aus, bis Sie sich entscheiden; Schweigen entscheidet nichts.",
-    wlIndexingUndecided: "Noch nicht entschieden – Ihre Seite ist nicht indexiert.",
-    wlIndexingOff: "Aus – Sie haben „jetzt nicht“ gewählt; Ihre Seite ist nicht indexiert.",
-    wlIndexingOn: "An – Suchmaschinen dürfen Ihre Seite indexieren.",
     wlListingChange: "Ändern",
-    wlListingNeedsPage:
-      "Die Auflistung setzt eine veröffentlichte Seite mit eingeschalteter Suchindexierung voraus – beides im Menü Veröffentlichen.",
     hpInfoTitle: "Nur für Sie",
     hpPages: "Narrative Abschnitte: ≈ {pages} von {limit} Seiten in der Vorlage des Förderers.",
     hpPagesOver:
@@ -1387,8 +1263,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "登録先の提案基準",
     wlDepositBasisPaper: "各論文での所属",
     wlDepositBasisCurrent: "現在の所属（{country}）",
-    wlDepositHelp:
-      "各リンクは新しいタブでリポジトリを開きます（SigmaCV が把握している場合は登録フォーム）。DOI をコピーして論文情報を入力してください。アップロードするファイルはご自身でお選びください（どの版が認められるかは雑誌のポリシーに記載されています）。",
     wlJump: "この項目へ移動",
     wlFundingHeading: "あなたの助成金とそのオープンアクセス方針",
     wlFundingHelp:
@@ -1402,26 +1276,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV には {funder} の方針の記録がありません。",
     wlFundingFound: "SigmaCV が見つけた状態：{state}",
     wlFundingUnnamedFunder: "助成機関",
-    wlListingHeading: "機関への掲載",
-    wlListingHelp:
-      "これは状態の表示であり、作業項目ではありません。掲載は任意で、掲載がないことは何も意味しません。「公開」メニューからいつでも取り下げられ、即時に反映されます。",
-    wlListingUnlisted: "{institution} の下にはまだ掲載されていません。",
-    wlListingPageOnly:
-      "{institution} のページには掲載されていますが、そのリポジトリ用セットには入っていません。",
-    wlListingSetOnly:
-      "{institution} のリポジトリ用セットには入っていますが、そのページには掲載されていません。",
-    wlListingListMe: "{institution} の下に掲載する",
-    wlListingListMeNone: "チェックした機関の下に掲載する",
-    wlListingListed: "{institution} の下に掲載済みです。",
-    wlIndexingHeading: "検索エンジンの索引",
-    wlIndexingHelp:
-      "検索エンジンがあなたの公開ページを掲載できるかどうか。選択するまでオフのままで、沈黙は決定になりません。",
-    wlIndexingUndecided: "未決定 — あなたのページは索引されていません。",
-    wlIndexingOff: "オフ — 「今はしない」を選びました。あなたのページは索引されていません。",
-    wlIndexingOn: "オン — 検索エンジンがあなたのページを索引できます。",
     wlListingChange: "変更",
-    wlListingNeedsPage:
-      "掲載には、検索インデックスを有効にした公開済みページが必要です。どちらも「公開」メニューにあります。",
     hpInfoTitle: "あなただけに表示",
     hpPages: "ナラティブのセクション：助成機関のテンプレートで約 {pages} / {limit} ページ。",
     hpPagesOver:
@@ -1582,8 +1437,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "Sugerir lugares com base em",
     wlDepositBasisPaper: "a afiliação de cada artigo",
     wlDepositBasisCurrent: "sua afiliação atual ({country})",
-    wlDepositHelp:
-      "Cada link abre o repositório em uma nova aba (ou direto o formulário de depósito, quando o SigmaCV o conhece). Copie o DOI para preencher os dados do artigo. Qual arquivo enviar é escolha sua; a política da revista indica quais versões permite.",
     wlJump: "Ir para esta entrada",
     wlFundingHeading: "Seus financiamentos e suas políticas de acesso aberto",
     wlFundingHelp:
@@ -1598,26 +1451,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "O SigmaCV não tem registro de política para {funder}.",
     wlFundingFound: "O SigmaCV encontrou: {state}",
     wlFundingUnnamedFunder: "um financiador",
-    wlListingHeading: "Listagem na instituição",
-    wlListingHelp:
-      "Uma linha de status, não uma tarefa: aparecer é voluntário e não aparecer não significa nada. Retire a qualquer momento no menu Publicar, com efeito imediato.",
-    wlListingUnlisted: "Você ainda não está listado sob {institution}.",
-    wlListingPageOnly:
-      "Você aparece na página de {institution}; não no conjunto dela para repositórios.",
-    wlListingSetOnly:
-      "Você aparece no conjunto de {institution} para repositórios; não na página dela.",
-    wlListingListMe: "Listar-me sob {institution}",
-    wlListingListMeNone: "Listar-me sob as instituições que eu marcar",
-    wlListingListed: "Listado sob {institution}.",
-    wlIndexingHeading: "Indexação em buscadores",
-    wlIndexingHelp:
-      "Se os mecanismos de busca podem listar sua página pública. Desligada até você escolher; nada é decidido por silêncio.",
-    wlIndexingUndecided: "Ainda não decidido — sua página não está indexada.",
-    wlIndexingOff: "Desligada — você escolheu «agora não»; sua página não está indexada.",
-    wlIndexingOn: "Ligada — os mecanismos de busca podem indexar sua página.",
     wlListingChange: "Alterar",
-    wlListingNeedsPage:
-      "A listagem exige uma página publicada com a indexação de busca ativada — ambas estão no menu Publicar.",
     hpInfoTitle: "Somente para você",
     hpPages: "Seções narrativas: ≈ {pages} de {limit} páginas no modelo do financiador.",
     hpPagesOver: "Seções narrativas: ≈ {pages} páginas, acima do limite de {limit} do financiador.",
@@ -1778,8 +1612,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "Suggerisci archivi in base a",
     wlDepositBasisPaper: "l'affiliazione di ciascun articolo",
     wlDepositBasisCurrent: "la tua affiliazione attuale ({country})",
-    wlDepositHelp:
-      "Ogni link apre l'archivio in una nuova scheda (il suo modulo di deposito, quando SigmaCV lo conosce). Copia il DOI per compilare i dati dell'articolo. Quale file caricare lo scegli tu; la politica della rivista indica quali versioni consente.",
     wlJump: "Vai a questa voce",
     wlFundingHeading: "I tuoi finanziamenti e le loro politiche di accesso aperto",
     wlFundingHelp:
@@ -1794,26 +1626,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV non ha alcuna registrazione della politica di {funder}.",
     wlFundingFound: "SigmaCV ha trovato: {state}",
     wlFundingUnnamedFunder: "un finanziatore",
-    wlListingHeading: "Elenco presso l'istituzione",
-    wlListingHelp:
-      "Una riga di stato, non un compito: comparire è volontario e non comparire non significa nulla. Ritirati in qualsiasi momento dal menu Pubblica, con effetto immediato.",
-    wlListingUnlisted: "Non compari ancora sotto {institution}.",
-    wlListingPageOnly:
-      "Compari sulla pagina di {institution}; non nel suo insieme per i repository.",
-    wlListingSetOnly:
-      "Compari nell'insieme per i repository di {institution}; non sulla sua pagina.",
-    wlListingListMe: "Elencami sotto {institution}",
-    wlListingListMeNone: "Elencami sotto le istituzioni che spunto",
-    wlListingListed: "Elencato sotto {institution}.",
-    wlIndexingHeading: "Indicizzazione nei motori di ricerca",
-    wlIndexingHelp:
-      "Se i motori di ricerca possono elencare la tua pagina pubblica. Disattivata finché non scegli; nulla è deciso dal silenzio.",
-    wlIndexingUndecided: "Non ancora deciso — la tua pagina non è indicizzata.",
-    wlIndexingOff: "Disattivata — hai scelto «non ora»; la tua pagina non è indicizzata.",
-    wlIndexingOn: "Attivata — i motori di ricerca possono indicizzare la tua pagina.",
     wlListingChange: "Modifica",
-    wlListingNeedsPage:
-      "Per comparire serve una pagina pubblicata con l'indicizzazione attiva — entrambe nel menu Pubblica.",
     hpInfoTitle: "Solo per te",
     hpPages: "Sezioni narrative: ≈ {pages} di {limit} pagine nel modello del finanziatore.",
     hpPagesOver:
@@ -1967,8 +1780,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "기탁처 추천 기준",
     wlDepositBasisPaper: "각 논문의 소속",
     wlDepositBasisCurrent: "현재 소속({country})",
-    wlDepositHelp:
-      "각 링크는 새 탭에서 리포지터리를 엽니다(SigmaCV가 아는 경우 기탁 양식). DOI를 복사해 논문 정보를 입력하세요. 어떤 파일을 올릴지는 직접 선택하세요(허용되는 버전은 학술지 정책에 나와 있습니다).",
     wlJump: "이 항목으로 이동",
     wlFundingHeading: "내 연구비와 그 오픈 액세스 정책",
     wlFundingHelp:
@@ -1982,26 +1793,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "SigmaCV에는 {funder}의 정책 기록이 없습니다.",
     wlFundingFound: "SigmaCV가 확인한 상태: {state}",
     wlFundingUnnamedFunder: "지원 기관",
-    wlListingHeading: "기관 등재",
-    wlListingHelp:
-      "상태 표시일 뿐 할 일이 아닙니다. 등재는 자발적이며 등재되지 않았다는 것은 아무 의미도 없습니다. 언제든지 게시 메뉴에서 철회할 수 있으며 즉시 반영됩니다.",
-    wlListingUnlisted: "아직 {institution} 아래에 등재되지 않았습니다.",
-    wlListingPageOnly:
-      "{institution} 페이지에는 표시되지만, 해당 기관의 리포지토리 세트에는 포함되어 있지 않습니다.",
-    wlListingSetOnly:
-      "{institution}의 리포지토리 세트에는 포함되어 있지만, 해당 기관의 페이지에는 표시되지 않습니다.",
-    wlListingListMe: "{institution} 아래에 등재",
-    wlListingListMeNone: "체크한 기관 아래에 등재",
-    wlListingListed: "{institution} 아래에 등재됨.",
-    wlIndexingHeading: "검색 엔진 색인",
-    wlIndexingHelp:
-      "검색 엔진이 귀하의 공개 페이지를 목록에 올릴 수 있는지 여부입니다. 선택하기 전까지는 꺼져 있으며, 침묵은 결정이 아닙니다.",
-    wlIndexingUndecided: "아직 결정되지 않음 — 귀하의 페이지는 색인되지 않았습니다.",
-    wlIndexingOff: "꺼짐 — '지금은 안 함'을 선택했습니다. 귀하의 페이지는 색인되지 않았습니다.",
-    wlIndexingOn: "켜짐 — 검색 엔진이 귀하의 페이지를 색인할 수 있습니다.",
     wlListingChange: "변경",
-    wlListingNeedsPage:
-      "등재하려면 검색 색인이 켜진 게시된 페이지가 필요합니다. 둘 다 게시 메뉴에 있습니다.",
     hpInfoTitle: "본인에게만 표시",
     hpPages: "내러티브 부분: 지원기관 서식 기준 약 {pages} / {limit}쪽.",
     hpPagesOver: "내러티브 부분: 약 {pages}쪽, 지원기관 제한 {limit}쪽 초과.",
@@ -2161,8 +1953,6 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositBasisLabel: "Предлагать места по",
     wlDepositBasisPaper: "аффилиации в каждой статье",
     wlDepositBasisCurrent: "вашей текущей аффилиации ({country})",
-    wlDepositHelp:
-      "Каждая ссылка открывает репозиторий в новой вкладке (его форму размещения, если SigmaCV её знает). Скопируйте DOI, чтобы заполнить данные статьи. Какой файл загрузить, решаете вы; какие версии допустимы, указано в политике журнала.",
     wlJump: "Перейти к этой записи",
     wlFundingHeading: "Ваши гранты и их политики открытого доступа",
     wlFundingHelp:
@@ -2176,26 +1966,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlFundingNoPolicy: "У SigmaCV нет записи о политике {funder}.",
     wlFundingFound: "SigmaCV нашёл: {state}",
     wlFundingUnnamedFunder: "спонсор",
-    wlListingHeading: "Указание под организацией",
-    wlListingHelp:
-      "Строка состояния, а не задача: указание добровольно, а его отсутствие ничего не значит. Отзовите в любой момент в меню «Публикация», с немедленным эффектом.",
-    wlListingUnlisted: "Вы ещё не указаны под {institution}.",
-    wlListingPageOnly:
-      "Вы указаны на странице организации {institution}, но не в её наборе для репозиториев.",
-    wlListingSetOnly:
-      "Вы указаны в наборе для репозиториев организации {institution}, но не на её странице.",
-    wlListingListMe: "Указать меня под {institution}",
-    wlListingListMeNone: "Указать меня под отмеченными организациями",
-    wlListingListed: "Указано под {institution}.",
-    wlIndexingHeading: "Индексация поисковыми системами",
-    wlIndexingHelp:
-      "Могут ли поисковые системы показывать вашу публичную страницу. Выключено, пока вы не решите; молчание ничего не решает.",
-    wlIndexingUndecided: "Ещё не решено — ваша страница не индексируется.",
-    wlIndexingOff: "Выключено — вы выбрали «не сейчас»; ваша страница не индексируется.",
-    wlIndexingOn: "Включено — поисковые системы могут индексировать вашу страницу.",
     wlListingChange: "Изменить",
-    wlListingNeedsPage:
-      "Для указания нужна опубликованная страница с включённой индексацией — и то и другое в меню «Публикация».",
     hpInfoTitle: "Только для вас",
     hpPages: "Нарративные разделы: ≈ {pages} из {limit} страниц в шаблоне фонда.",
     hpPagesOver: "Нарративные разделы: ≈ {pages} страниц, сверх лимита фонда в {limit}.",

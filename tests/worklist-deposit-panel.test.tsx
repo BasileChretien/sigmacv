@@ -327,7 +327,6 @@ describe("WorklistPanel — the deposit action", () => {
       />,
     );
     expect(book.container.querySelector('[data-worklist="deposit"]')).toBeNull();
-    expect(book.container.textContent).not.toContain(EN.wlDepositHelp);
     book.unmount();
 
     const unrecorded = render(
