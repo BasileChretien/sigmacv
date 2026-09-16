@@ -58,7 +58,7 @@ const cv: CanonicalCv = CanonicalCvSchema.parse({
 });
 
 describe("EvidencePicker", () => {
-  it("offers the module's supporting entries, searchable, and inserts the [[id]] token", () => {
+  it("offers the module's supporting entries, searchable, and inserts a readable [[id | label]] marker", () => {
     const onInsert = vi.fn();
     render(
       <EvidencePicker
@@ -83,7 +83,7 @@ describe("EvidencePicker", () => {
       target: { value: "signal" },
     });
     fireEvent.click(screen.getByText("Signal detection in pharmacovigilance"));
-    expect(onInsert).toHaveBeenCalledWith("[[W1]]");
+    expect(onInsert).toHaveBeenCalledWith("[[W1 | Smith 2021]]");
   });
 
   it("offers every listed entry to a free statement", () => {

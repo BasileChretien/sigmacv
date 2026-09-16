@@ -37,10 +37,16 @@ export const EVIDENCE_REF_MAX = 50;
 /** Max characters of a title-based reference label (then "…"). */
 const EVIDENCE_LABEL_MAX = 60;
 
-// `[[<id>]]` — an id is any run without brackets / newlines (item ids are
-// `W…`, `position:orcid:…`, `dataset:datacite:10-…`, … — never brackets).
-// Bounded to the schema's id cap so a pathological body can't back-track.
+// `[[<id>]]` or `[[<id> | <label>]]` — an id is any run without brackets, pipes or
+// newlines (item ids are `W…`, `position:orcid:…`, `dataset:datacite:10-…`, … —
+// never brackets or pipes). The optional label after the pipe is for the person
+// writing: it makes the marker readable in the text box ("Chrétien 2022" rather
+// than an opaque id). Only the id is authoritative; every export prints the
+// entry's own short reference, never the label. Bounded to the schema's id cap so
+// a pathological body can't back-track.
 const TOKEN_RE = /\[\[([^[\]\n]{1,1024})\]\]/g;
+/** Max characters of the readable label a token may carry. */
+export const EVIDENCE_TOKEN_LABEL_MAX = 60;
 
 export type EvidenceSegment = { kind: "text"; text: string } | { kind: "ref"; id: string };
 
@@ -54,8 +60,9 @@ export function parseEvidenceRefs(body: string): EvidenceSegment[] {
   const out: EvidenceSegment[] = [];
   let last = 0;
   for (const m of body.matchAll(TOKEN_RE)) {
-    const id = m[1]!.trim();
-    if (!id) continue; // `[[  ]]` is not a reference — leave it in the text run
+    // The id is what comes before the first pipe; a readable label may follow it.
+    const id = m[1]!.split("|")[0]!.trim();
+    if (!id) continue; // `[[  ]]` / `[[ | label ]]` is not a reference — leave it in the text run
     const at = m.index!;
     if (at > last) out.push({ kind: "text", text: body.slice(last, at) });
     out.push({ kind: "ref", id });
@@ -63,6 +70,22 @@ export function parseEvidenceRefs(body: string): EvidenceSegment[] {
   }
   if (last < body.length) out.push({ kind: "text", text: body.slice(last) });
   return out;
+}
+
+/**
+ * The token the editor inserts for an entry: `[[<id> | <label>]]`, the label being
+ * the entry's short reference ("Chrétien et al. 2022") so the marker reads in the
+ * text box. The label is cleaned of the characters that would break the token
+ * (brackets, pipes, line breaks) and capped; an empty label yields the bare `[[id]]`.
+ */
+export function evidenceToken(id: string, label?: string): string {
+  const clean = (label ?? "")
+    .replace(/[[\]|\r\n]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, EVIDENCE_TOKEN_LABEL_MAX)
+    .trim();
+  return clean ? `[[${id} | ${clean}]]` : `[[${id}]]`;
 }
 
 /** The distinct referenced ids of a body, in order of first appearance, capped. */

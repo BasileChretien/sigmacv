@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **A citation marker in a narrative section now reads as a citation.** Choosing an entry to cite used to drop `[[W2741809807]]` into the text, an opaque identifier the writer had to trust. The marker now carries the entry's short reference after a pipe, `[[W2741809807 | Chrétien et al. 2022]]`, so the text box reads like prose. Only the identifier counts: exports keep printing the entry's own reference, the label may be edited or deleted without effect, and every marker written before (bare identifier) is read exactly as before.
+
 ### Fixed
 
 - **The evidence control under a narrative section says what it does for the writer.** It read "Insert evidence. Reference an entry with [[id]] — every export shows it as a link to that entry, so a claim can be checked", a description of the mechanism that a researcher found hard to follow. The button now says "Cite one of my entries", the search box names what it searches (publications, datasets, students), the line under it says what happens in plain words (the entry appears in the text as a marker between double brackets and becomes a clickable reference such as "(Chrétien et al. 2022)" in every export, so a reader can check the claim), the count reads "Cited in this section", and the warning about a citation to a hidden or removed entry says it will not appear in exports. Ten locales.
