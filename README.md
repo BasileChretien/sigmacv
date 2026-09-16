@@ -78,7 +78,7 @@ lets SigmaCV find _your_ work reliably. _(Self-hosters can optionally enable
   underlying record, your citations look identical and correct everywhere.
   Download as **PDF, Word (DOCX), LaTeX, Markdown, BibTeX, CSL-JSON, JSON Résumé,
   or an NIH biosketch.**
-- **58 one-click layouts.** Apply (and undo) ready-made CV templates for major
+- **61 one-click layouts.** Apply (and undo) ready-made CV templates for major
   funders, institutions, and industry in a single click — including UKRI R4RI,
   the Royal Society, the Swiss SNSF, the US NIH and NSF, the European ERC, and an
   ICH-GCP clinical-investigator CV. Applying a layout just selects, reorders, and
@@ -129,7 +129,7 @@ lets SigmaCV find _your_ work reliably. _(Self-hosters can optionally enable
 | **Identifier-based matching** | Finds _your_ work by ORCID / OpenAlex ID, not by name — far fewer wrong-person mix-ups.                                                                           |
 | **"Not mine" curation**       | Hide anything incorrect (it's hidden, not deleted); reorder and choose sections.                                                                                  |
 | **Export formats**            | PDF, Word (DOCX), LaTeX, Markdown, BibTeX, CSL-JSON, JSON Résumé, and an NIH biosketch.                                                                           |
-| **58 CV layouts**             | One-click funder / institution / industry templates — e.g. UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC, an ICH-GCP clinical-investigator CV.                    |
+| **61 CV layouts**             | One-click funder / institution / industry templates — e.g. UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC, an ICH-GCP clinical-investigator CV.                    |
 | **Living public page**        | Optionally publish a web page that re-syncs from the open record; machine-readable (BibTeX / CSL-JSON / JSON-LD) and one-click importable into Zotero / Mendeley. |
 | **Consistent citations**      | One citation engine means identical, correctly formatted references in _every_ output.                                                                            |
 | **10 languages**              | English, 中文, Español, Français, Deutsch, 日本語, Português, Italiano, 한국어, Русский.                                                                          |

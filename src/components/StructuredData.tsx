@@ -64,7 +64,7 @@ export default function StructuredData({ locale, description }: StructuredDataPr
         "Auto-import publications, metrics and grants from OpenAlex and ORCID",
         "Identical CSL citations across every export format",
         "Self-name highlighting by identifier (ORCID / OpenAlex ID)",
-        "58 one-click funder, institution and industry CV layouts",
+        "61 one-click funder, institution and industry CV layouts",
         "Export to PDF, DOCX, LaTeX, Markdown, BibTeX, CSL-JSON, JSON Résumé and NIH biosketch",
         "Living, machine-readable public CV page",
         "Opt-in, field-normalized metrics (default none, DORA-aligned)",

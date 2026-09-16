@@ -67,9 +67,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "ERC CV",
       heading: "Build an ERC CV from your research record",
       subhead:
-        "Sign in with ORCID and SigmaCV assembles your open research record into an ERC-style CV — one of 58 one-click funder layouts — ready to curate and export.",
+        "Sign in with ORCID and SigmaCV assembles your open research record into an ERC-style CV — one of 61 one-click funder layouts — ready to curate and export.",
       bullets: [
-        "An ERC-style layout among 58 one-click funder, institution and industry formats, applied reversibly.",
+        "An ERC-style layout among 61 one-click funder, institution and industry formats, applied reversibly.",
         "Publications, funding and more pulled from ORCID and OpenAlex — matched by identifier, never by name.",
         "Consistent CSL citations exported to PDF, DOCX or LaTeX; free for individuals and open source.",
       ],
@@ -147,9 +147,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "ERC 简历",
       heading: "依据您的学术记录生成 ERC 简历",
       subhead:
-        "使用 ORCID 登录，SigmaCV 即可将您公开的学术记录汇总为一份 ERC 风格的简历——58 种一键式资助机构布局之一——随时可整理和导出。",
+        "使用 ORCID 登录，SigmaCV 即可将您公开的学术记录汇总为一份 ERC 风格的简历——61 种一键式资助机构布局之一——随时可整理和导出。",
       bullets: [
-        "在 58 种一键式资助机构、高校和行业格式中提供 ERC 风格的布局，以可逆方式应用。",
+        "在 61 种一键式资助机构、高校和行业格式中提供 ERC 风格的布局，以可逆方式应用。",
         "论文、资助等从 ORCID 和 OpenAlex 提取——通过标识符匹配，绝不通过姓名。",
         "以 CSL 提供一致的引用，并导出为 PDF、DOCX 或 LaTeX；对个人免费且开源。",
       ],
@@ -227,9 +227,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "CV ERC",
       heading: "Crea un CV para el ERC a partir de tu registro de investigación",
       subhead:
-        "Inicia sesión con ORCID y SigmaCV reúne tu registro científico abierto en un CV al estilo del ERC —uno de los 58 diseños de financiador en un clic—, listo para seleccionar y exportar.",
+        "Inicia sesión con ORCID y SigmaCV reúne tu registro científico abierto en un CV al estilo del ERC —uno de los 61 diseños de financiador en un clic—, listo para seleccionar y exportar.",
       bullets: [
-        "Un diseño al estilo del ERC entre 58 formatos de financiador, institución e industria en un clic, aplicado de forma reversible.",
+        "Un diseño al estilo del ERC entre 61 formatos de financiador, institución e industria en un clic, aplicado de forma reversible.",
         "Publicaciones, financiación y más, extraídas de ORCID y OpenAlex, identificadas por identificador, nunca por nombre.",
         "Citas CSL coherentes exportadas a PDF, DOCX o LaTeX; gratis para particulares y de código abierto.",
       ],
@@ -307,9 +307,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "CV ERC",
       heading: "Construisez un CV ERC à partir de votre dossier de recherche",
       subhead:
-        "Connectez-vous avec ORCID et SigmaCV assemble votre dossier scientifique ouvert en un CV de style ERC — l'une des 58 mises en page de financeur en un clic — prêt à sélectionner et à exporter.",
+        "Connectez-vous avec ORCID et SigmaCV assemble votre dossier scientifique ouvert en un CV de style ERC — l'une des 61 mises en page de financeur en un clic — prêt à sélectionner et à exporter.",
       bullets: [
-        "Une mise en page de style ERC parmi 58 formats de financeur, d'institution et d'industrie en un clic, appliqués de manière réversible.",
+        "Une mise en page de style ERC parmi 61 formats de financeur, d'institution et d'industrie en un clic, appliqués de manière réversible.",
         "Publications, financements et plus encore récupérés depuis ORCID et OpenAlex — appariés par identifiant, jamais par nom.",
         "Citations CSL cohérentes exportées en PDF, DOCX ou LaTeX ; gratuit pour les particuliers et open source.",
       ],
@@ -387,9 +387,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "ERC-Lebenslauf",
       heading: "Einen ERC-Lebenslauf aus Ihrem Forschungsverzeichnis erstellen",
       subhead:
-        "Melden Sie sich mit ORCID an, und SigmaCV fügt Ihr offenes Forschungsverzeichnis zu einem Lebenslauf im ERC-Stil zusammen — eines von 58 Förder-Layouts mit einem Klick — bereit zum Auswählen und Exportieren.",
+        "Melden Sie sich mit ORCID an, und SigmaCV fügt Ihr offenes Forschungsverzeichnis zu einem Lebenslauf im ERC-Stil zusammen — eines von 61 Förder-Layouts mit einem Klick — bereit zum Auswählen und Exportieren.",
       bullets: [
-        "Ein Layout im ERC-Stil unter 58 Förderer-, Institutions- und Industrieformaten mit einem Klick, reversibel angewendet.",
+        "Ein Layout im ERC-Stil unter 61 Förderer-, Institutions- und Industrieformaten mit einem Klick, reversibel angewendet.",
         "Publikationen, Förderungen und mehr aus ORCID und OpenAlex — über Kennungen zugeordnet, niemals über den Namen.",
         "Einheitliche CSL-Zitate, exportiert als PDF, DOCX oder LaTeX; kostenlos für Einzelpersonen und quelloffen.",
       ],
@@ -467,9 +467,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "ERC CV",
       heading: "あなたの研究記録から ERC CV を作成",
       subhead:
-        "ORCID でサインインすると、SigmaCV があなたの公開された研究記録を ERC 形式の CV——58 種のワンクリック助成機関レイアウトの一つ——にまとめます。整理してそのまま書き出せます。",
+        "ORCID でサインインすると、SigmaCV があなたの公開された研究記録を ERC 形式の CV——61 種のワンクリック助成機関レイアウトの一つ——にまとめます。整理してそのまま書き出せます。",
       bullets: [
-        "58 種のワンクリック助成機関・機関・業界フォーマットの中の ERC 形式レイアウトを、可逆的に適用。",
+        "61 種のワンクリック助成機関・機関・業界フォーマットの中の ERC 形式レイアウトを、可逆的に適用。",
         "論文・助成その他を ORCID と OpenAlex から取得——名前ではなく識別子で照合します。",
         "一貫した CSL 引用を PDF・DOCX・LaTeX に書き出し。個人には無料でオープンソース。",
       ],
@@ -547,9 +547,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "Currículo ERC",
       heading: "Monte um currículo ERC a partir do seu registro de pesquisa",
       subhead:
-        "Entre com o ORCID e o SigmaCV reúne seu registro de pesquisa aberto em um currículo no estilo ERC — um dos 58 layouts de financiador em um clique — pronto para curar e exportar.",
+        "Entre com o ORCID e o SigmaCV reúne seu registro de pesquisa aberto em um currículo no estilo ERC — um dos 61 layouts de financiador em um clique — pronto para curar e exportar.",
       bullets: [
-        "Um layout no estilo ERC entre 58 formatos de financiador, instituição e indústria em um clique, aplicados de forma reversível.",
+        "Um layout no estilo ERC entre 61 formatos de financiador, instituição e indústria em um clique, aplicados de forma reversível.",
         "Publicações, financiamentos e mais extraídos do ORCID e do OpenAlex — correspondidos por identificador, nunca por nome.",
         "Citações CSL consistentes exportadas para PDF, DOCX ou LaTeX; gratuito para indivíduos e de código aberto.",
       ],
@@ -627,9 +627,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "CV ERC",
       heading: "Crea un CV ERC dal tuo registro di ricerca",
       subhead:
-        "Accedi con ORCID e SigmaCV assembla il tuo registro di ricerca aperto in un CV in stile ERC — una delle 58 strutture di ente finanziatore applicabili in un clic — pronto da selezionare ed esportare.",
+        "Accedi con ORCID e SigmaCV assembla il tuo registro di ricerca aperto in un CV in stile ERC — una delle 61 strutture di ente finanziatore applicabili in un clic — pronto da selezionare ed esportare.",
       bullets: [
-        "Una struttura in stile ERC tra 58 formati in un clic per enti finanziatori, istituzioni e industria, applicata in modo reversibile.",
+        "Una struttura in stile ERC tra 61 formati in un clic per enti finanziatori, istituzioni e industria, applicata in modo reversibile.",
         "Pubblicazioni, finanziamenti e altro recuperati da ORCID e OpenAlex — abbinati tramite identificativo, mai tramite il nome.",
         "Citazioni CSL coerenti esportate in PDF, DOCX o LaTeX; gratuito per i singoli individui e open source.",
       ],
@@ -707,9 +707,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "ERC CV",
       heading: "연구 기록으로 ERC CV 만들기",
       subhead:
-        "ORCID로 로그인하면 SigmaCV가 공개된 연구 기록을 ERC 양식의 CV로 구성합니다 — 58가지 원클릭 지원기관 레이아웃 중 하나로, 바로 정리하고 내보낼 수 있습니다.",
+        "ORCID로 로그인하면 SigmaCV가 공개된 연구 기록을 ERC 양식의 CV로 구성합니다 — 61가지 원클릭 지원기관 레이아웃 중 하나로, 바로 정리하고 내보낼 수 있습니다.",
       bullets: [
-        "58가지 원클릭 지원기관·기관·산업 형식 중 하나인 ERC 양식 레이아웃을 가역적으로 적용합니다.",
+        "61가지 원클릭 지원기관·기관·산업 형식 중 하나인 ERC 양식 레이아웃을 가역적으로 적용합니다.",
         "논문, 연구비 등을 ORCID와 OpenAlex에서 가져옵니다 — 이름이 아니라 식별자로 매칭합니다.",
         "일관된 CSL 인용을 PDF, DOCX, LaTeX으로 내보냅니다. 개인에게 무료이며 오픈 소스입니다.",
       ],
@@ -787,9 +787,9 @@ const TOPIC_PAGES_I18N: Record<Locale, Record<TopicPageId, LandingPageStrings>> 
       navLabel: "Резюме для ERC",
       heading: "Создайте резюме для ERC из вашей научной записи",
       subhead:
-        "Войдите через ORCID, и SigmaCV соберёт вашу открытую научную запись в резюме в стиле ERC — один из 58 макетов грантодателей «в один щелчок» — готовое к отбору и экспорту.",
+        "Войдите через ORCID, и SigmaCV соберёт вашу открытую научную запись в резюме в стиле ERC — один из 61 макетов грантодателей «в один щелчок» — готовое к отбору и экспорту.",
       bullets: [
-        "Макет в стиле ERC — один из 58 форматов «в один щелчок» для грантодателей, учреждений и индустрии, применяемых обратимо.",
+        "Макет в стиле ERC — один из 61 форматов «в один щелчок» для грантодателей, учреждений и индустрии, применяемых обратимо.",
         "Публикации, финансирование и другое подтягиваются из ORCID и OpenAlex — сопоставление по идентификатору, никогда по имени.",
         "Единообразные CSL-ссылки, экспортируемые в PDF, DOCX или LaTeX; бесплатно для частных лиц и с открытым исходным кодом.",
       ],
@@ -885,7 +885,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "Applying to the European Research Council means presenting your CV in the ERC's expected structure. SigmaCV assembles your open research record and applies an ERC-style layout, so you start from your real publications and funding rather than a blank form.",
-        "It is one of 58 one-click funder, institution and industry layouts, applied reversibly to a single canonical CV — so you can prepare an ERC CV and a different funder's CV from the same record. Always follow the ERC's current official guidance for your call.",
+        "It is one of 61 one-click funder, institution and industry layouts, applied reversibly to a single canonical CV — so you can prepare an ERC CV and a different funder's CV from the same record. Always follow the ERC's current official guidance for your call.",
       ],
       stepsHeading: "How to build an ERC CV",
       steps: [
@@ -914,7 +914,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "Which other funder formats are supported?",
-          a: "58 one-click layouts spanning funders, institutions and industry — including UKRI R4RI, the Royal Society, SNSF, NIH and NSF alongside ERC — each filled from your open research record.",
+          a: "61 one-click layouts spanning funders, institutions and industry — including UKRI R4RI, the Royal Society, SNSF, NIH and NSF alongside ERC — each filled from your open research record.",
         },
         {
           q: "Will switching layouts lose my edits?",
@@ -1022,7 +1022,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "申请欧洲研究理事会（ERC）意味着要按照 ERC 预期的结构来呈现您的简历。SigmaCV 汇总您公开的学术记录并应用 ERC 风格的布局，因此您从真实的论文和资助出发，而不是一张空白表格。",
-        "它是 58 种一键式资助机构、高校和行业布局之一，以可逆方式应用于同一份规范简历——因此您可以从同一份记录准备一份 ERC 简历和一份其他资助机构的简历。请始终遵循 ERC 针对您项目征集的现行官方指南。",
+        "它是 61 种一键式资助机构、高校和行业布局之一，以可逆方式应用于同一份规范简历——因此您可以从同一份记录准备一份 ERC 简历和一份其他资助机构的简历。请始终遵循 ERC 针对您项目征集的现行官方指南。",
       ],
       stepsHeading: "如何生成 ERC 简历",
       steps: [
@@ -1051,7 +1051,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "还支持哪些其他资助机构格式？",
-          a: "58 种一键式布局，涵盖资助机构、高校和行业——除 ERC 外，还包括 UKRI R4RI、Royal Society、SNSF、NIH 和 NSF——每种均从您公开的学术记录填充。",
+          a: "61 种一键式布局，涵盖资助机构、高校和行业——除 ERC 外，还包括 UKRI R4RI、Royal Society、SNSF、NIH 和 NSF——每种均从您公开的学术记录填充。",
         },
         {
           q: "切换布局会丢失我的编辑内容吗？",
@@ -1159,7 +1159,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "Solicitar financiación al European Research Council implica presentar tu CV con la estructura que el ERC espera. SigmaCV reúne tu registro científico abierto y aplica un diseño al estilo del ERC, de modo que partes de tus publicaciones y tu financiación reales en lugar de un formulario en blanco.",
-        "Es uno de los 58 diseños de financiador, institución e industria en un clic, aplicados de forma reversible a un único CV canónico, así que puedes preparar un CV para el ERC y un CV para otro financiador a partir del mismo registro. Sigue siempre las directrices oficiales vigentes del ERC para tu convocatoria.",
+        "Es uno de los 61 diseños de financiador, institución e industria en un clic, aplicados de forma reversible a un único CV canónico, así que puedes preparar un CV para el ERC y un CV para otro financiador a partir del mismo registro. Sigue siempre las directrices oficiales vigentes del ERC para tu convocatoria.",
       ],
       stepsHeading: "Cómo crear un CV para el ERC",
       steps: [
@@ -1188,7 +1188,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "¿Qué otros formatos de financiadores se admiten?",
-          a: "58 diseños en un clic que abarcan financiadores, instituciones e industria, incluidos UKRI R4RI, la Royal Society, SNSF, NIH y NSF junto al ERC, cada uno rellenado a partir de tu registro científico abierto.",
+          a: "61 diseños en un clic que abarcan financiadores, instituciones e industria, incluidos UKRI R4RI, la Royal Society, SNSF, NIH y NSF junto al ERC, cada uno rellenado a partir de tu registro científico abierto.",
         },
         {
           q: "¿Cambiar de diseño perderá mis ediciones?",
@@ -1296,7 +1296,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "Candidater au Conseil européen de la recherche, c'est présenter votre CV dans la structure attendue par l'ERC. SigmaCV assemble votre dossier scientifique ouvert et applique une mise en page de style ERC : vous partez ainsi de vos vraies publications et financements plutôt que d'un formulaire vierge.",
-        "C'est l'une des 58 mises en page de financeur, d'institution et d'industrie en un clic, appliquées de manière réversible à un seul CV canonique — vous pouvez donc préparer un CV ERC et le CV d'un autre financeur à partir du même dossier. Suivez toujours les consignes officielles en vigueur de l'ERC pour votre appel.",
+        "C'est l'une des 61 mises en page de financeur, d'institution et d'industrie en un clic, appliquées de manière réversible à un seul CV canonique — vous pouvez donc préparer un CV ERC et le CV d'un autre financeur à partir du même dossier. Suivez toujours les consignes officielles en vigueur de l'ERC pour votre appel.",
       ],
       stepsHeading: "Comment construire un CV ERC",
       steps: [
@@ -1325,7 +1325,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "Quels autres formats de financeurs sont pris en charge ?",
-          a: "58 mises en page en un clic couvrant financeurs, institutions et industrie — dont UKRI R4RI, la Royal Society, le SNSF, les NIH et NSF aux côtés de l'ERC — chacune remplie depuis votre dossier scientifique ouvert.",
+          a: "61 mises en page en un clic couvrant financeurs, institutions et industrie — dont UKRI R4RI, la Royal Society, le SNSF, les NIH et NSF aux côtés de l'ERC — chacune remplie depuis votre dossier scientifique ouvert.",
         },
         {
           q: "Changer de mise en page va-t-il perdre mes modifications ?",
@@ -1433,7 +1433,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "Eine Bewerbung beim European Research Council bedeutet, Ihren Lebenslauf in der vom ERC erwarteten Struktur zu präsentieren. SigmaCV stellt Ihr offenes Forschungsverzeichnis zusammen und wendet ein Layout im ERC-Stil an, sodass Sie von Ihren echten Publikationen und Förderungen ausgehen statt von einem leeren Formular.",
-        "Es ist eines von 58 Förderer-, Institutions- und Industrie-Layouts mit einem Klick, reversibel auf einen einzigen kanonischen Lebenslauf angewendet — sodass Sie aus demselben Verzeichnis einen ERC-Lebenslauf und den Lebenslauf eines anderen Förderers vorbereiten können. Befolgen Sie für Ihre Ausschreibung stets die aktuelle offizielle Anleitung des ERC.",
+        "Es ist eines von 61 Förderer-, Institutions- und Industrie-Layouts mit einem Klick, reversibel auf einen einzigen kanonischen Lebenslauf angewendet — sodass Sie aus demselben Verzeichnis einen ERC-Lebenslauf und den Lebenslauf eines anderen Förderers vorbereiten können. Befolgen Sie für Ihre Ausschreibung stets die aktuelle offizielle Anleitung des ERC.",
       ],
       stepsHeading: "So erstellen Sie einen ERC-Lebenslauf",
       steps: [
@@ -1462,7 +1462,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "Welche anderen Förderformate werden unterstützt?",
-          a: "58 Layouts mit einem Klick, die Förderer, Institutionen und Industrie abdecken — darunter UKRI R4RI, die Royal Society, SNSF, NIH und NSF neben ERC — jedes aus Ihrem offenen Forschungsverzeichnis befüllt.",
+          a: "61 Layouts mit einem Klick, die Förderer, Institutionen und Industrie abdecken — darunter UKRI R4RI, die Royal Society, SNSF, NIH und NSF neben ERC — jedes aus Ihrem offenen Forschungsverzeichnis befüllt.",
         },
         {
           q: "Gehen meine Bearbeitungen beim Wechsel des Layouts verloren?",
@@ -1570,7 +1570,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "欧州研究会議（ERC）への申請では、CV を ERC が想定する構造で提示する必要があります。SigmaCV はあなたの公開された研究記録をまとめて ERC 形式のレイアウトを適用するため、空白の様式ではなく、実在するあなたの論文や助成から始められます。",
-        "これは 58 種のワンクリック助成機関・機関・業界レイアウトの一つで、一つの正規 CV に可逆的に適用されます——だから ERC の CV と別の助成機関の CV を、同じ記録から準備できます。ご自身の公募については、必ず ERC の現行の公式ガイダンスに従ってください。",
+        "これは 61 種のワンクリック助成機関・機関・業界レイアウトの一つで、一つの正規 CV に可逆的に適用されます——だから ERC の CV と別の助成機関の CV を、同じ記録から準備できます。ご自身の公募については、必ず ERC の現行の公式ガイダンスに従ってください。",
       ],
       stepsHeading: "ERC CV を作る方法",
       steps: [
@@ -1599,7 +1599,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "他にどの助成機関フォーマットに対応していますか？",
-          a: "助成機関・機関・業界にわたる 58 種のワンクリックレイアウト——ERC のほか UKRI R4RI、Royal Society、SNSF、NIH、NSF を含む——で、それぞれあなたの公開された研究記録から入力されます。",
+          a: "助成機関・機関・業界にわたる 61 種のワンクリックレイアウト——ERC のほか UKRI R4RI、Royal Society、SNSF、NIH、NSF を含む——で、それぞれあなたの公開された研究記録から入力されます。",
         },
         {
           q: "レイアウトを切り替えると編集内容は失われますか？",
@@ -1707,7 +1707,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "Candidatar-se ao Conselho Europeu de Pesquisa (ERC) significa apresentar seu currículo na estrutura esperada pelo ERC. O SigmaCV reúne seu registro de pesquisa aberto e aplica um layout no estilo ERC, para que você comece pelas suas publicações e financiamentos reais, em vez de um formulário em branco.",
-        "É um dos 58 layouts de financiador, instituição e indústria em um clique, aplicados de forma reversível a um único currículo canônico — então você pode preparar um currículo ERC e o currículo de um financiador diferente a partir do mesmo registro. Sempre siga as orientações oficiais atuais do ERC para a sua chamada.",
+        "É um dos 61 layouts de financiador, instituição e indústria em um clique, aplicados de forma reversível a um único currículo canônico — então você pode preparar um currículo ERC e o currículo de um financiador diferente a partir do mesmo registro. Sempre siga as orientações oficiais atuais do ERC para a sua chamada.",
       ],
       stepsHeading: "Como montar um currículo ERC",
       steps: [
@@ -1736,7 +1736,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "Quais outros formatos de financiadores são suportados?",
-          a: "58 layouts em um clique abrangendo financiadores, instituições e indústria — incluindo UKRI R4RI, Royal Society, SNSF, NIH e NSF além do ERC — cada um preenchido a partir do seu registro de pesquisa aberto.",
+          a: "61 layouts em um clique abrangendo financiadores, instituições e indústria — incluindo UKRI R4RI, Royal Society, SNSF, NIH e NSF além do ERC — cada um preenchido a partir do seu registro de pesquisa aberto.",
         },
         {
           q: "Trocar de layout vai apagar minhas edições?",
@@ -1844,7 +1844,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "Candidarsi all'European Research Council significa presentare il tuo CV nella struttura attesa dall'ERC. SigmaCV assembla il tuo registro di ricerca aperto e applica una struttura in stile ERC, così parti dalle tue pubblicazioni e dai tuoi finanziamenti reali anziché da un modulo vuoto.",
-        "È una delle 58 strutture in un clic per enti finanziatori, istituzioni e industria, applicate in modo reversibile a un unico CV canonico — così puoi preparare un CV ERC e un CV per un altro ente finanziatore dallo stesso registro. Segui sempre le indicazioni ufficiali attuali dell'ERC per il tuo bando.",
+        "È una delle 61 strutture in un clic per enti finanziatori, istituzioni e industria, applicate in modo reversibile a un unico CV canonico — così puoi preparare un CV ERC e un CV per un altro ente finanziatore dallo stesso registro. Segui sempre le indicazioni ufficiali attuali dell'ERC per il tuo bando.",
       ],
       stepsHeading: "Come creare un CV ERC",
       steps: [
@@ -1873,7 +1873,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "Quali altri formati di ente finanziatore sono supportati?",
-          a: "58 strutture in un clic che coprono enti finanziatori, istituzioni e industria — tra cui UKRI R4RI, la Royal Society, SNSF, NIH e NSF accanto a ERC — ognuna compilata dal tuo registro di ricerca aperto.",
+          a: "61 strutture in un clic che coprono enti finanziatori, istituzioni e industria — tra cui UKRI R4RI, la Royal Society, SNSF, NIH e NSF accanto a ERC — ognuna compilata dal tuo registro di ricerca aperto.",
         },
         {
           q: "Cambiando struttura perderò le mie modifiche?",
@@ -1981,7 +1981,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "European Research Council에 지원한다는 것은 회원님의 CV를 ERC가 기대하는 구조로 제시한다는 뜻입니다. SigmaCV는 회원님의 공개된 연구 기록을 모아 ERC 양식 레이아웃을 적용하므로, 빈 양식이 아니라 실제 논문과 연구비에서 시작합니다.",
-        "이는 58가지 원클릭 지원기관·기관·산업 레이아웃 중 하나로, 하나의 정규 이력서에 가역적으로 적용됩니다 — 따라서 동일한 기록에서 ERC CV와 다른 지원기관의 CV를 준비할 수 있습니다. 회원님의 공모에 대해서는 언제나 ERC의 현행 공식 안내를 따르세요.",
+        "이는 61가지 원클릭 지원기관·기관·산업 레이아웃 중 하나로, 하나의 정규 이력서에 가역적으로 적용됩니다 — 따라서 동일한 기록에서 ERC CV와 다른 지원기관의 CV를 준비할 수 있습니다. 회원님의 공모에 대해서는 언제나 ERC의 현행 공식 안내를 따르세요.",
       ],
       stepsHeading: "ERC CV를 만드는 방법",
       steps: [
@@ -2010,7 +2010,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "다른 지원기관 형식은 어떤 것이 지원되나요?",
-          a: "지원기관·기관·산업을 아우르는 58가지 원클릭 레이아웃입니다 — ERC와 함께 UKRI R4RI, Royal Society, SNSF, NIH, NSF를 포함하며, 각각 회원님의 공개된 연구 기록에서 채워집니다.",
+          a: "지원기관·기관·산업을 아우르는 61가지 원클릭 레이아웃입니다 — ERC와 함께 UKRI R4RI, Royal Society, SNSF, NIH, NSF를 포함하며, 각각 회원님의 공개된 연구 기록에서 채워집니다.",
         },
         {
           q: "레이아웃을 전환하면 편집 내용이 사라지나요?",
@@ -2118,7 +2118,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
     "erc-cv": {
       intro: [
         "Подача заявки в Европейский исследовательский совет означает, что ваше резюме нужно представить в ожидаемой ERC структуре. SigmaCV собирает вашу открытую научную запись и применяет макет в стиле ERC, поэтому вы начинаете со своих реальных публикаций и финансирования, а не с пустой формы.",
-        "Это один из 58 макетов «в один щелчок» для грантодателей, учреждений и индустрии, применяемых обратимо к одному каноническому резюме, — поэтому вы можете подготовить резюме для ERC и резюме для другого грантодателя из той же записи. Всегда следуйте актуальным официальным рекомендациям ERC для вашего конкурса.",
+        "Это один из 61 макетов «в один щелчок» для грантодателей, учреждений и индустрии, применяемых обратимо к одному каноническому резюме, — поэтому вы можете подготовить резюме для ERC и резюме для другого грантодателя из той же записи. Всегда следуйте актуальным официальным рекомендациям ERC для вашего конкурса.",
       ],
       stepsHeading: "Как создать резюме для ERC",
       steps: [
@@ -2147,7 +2147,7 @@ const TOPIC_CONTENT_I18N: Record<Locale, Record<TopicPageId, LandingPageContent>
       faqExtra: [
         {
           q: "Какие другие форматы грантодателей поддерживаются?",
-          a: "58 макетов «в один щелчок», охватывающих грантодателей, учреждения и индустрию — включая UKRI R4RI, Royal Society, SNSF, NIH и NSF наряду с ERC, — каждый заполняется из вашей открытой научной записи.",
+          a: "61 макетов «в один щелчок», охватывающих грантодателей, учреждения и индустрию — включая UKRI R4RI, Royal Society, SNSF, NIH и NSF наряду с ERC, — каждый заполняется из вашей открытой научной записи.",
         },
         {
           q: "Потеряю ли я правки при переключении макетов?",

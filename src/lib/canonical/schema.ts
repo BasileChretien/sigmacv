@@ -123,8 +123,14 @@ export function isProseSectionType(type: CvSectionType): boolean {
   return PROSE_SECTION_TYPES.has(type);
 }
 
-/** Mirror of the `body` cap (`CvSectionSchema.body`) — used by the prose editor. */
-export const PROSE_BODY_MAX = 8000;
+/**
+ * The `body` cap (`CvSectionSchema.body`), shared with the prose editor and the
+ * `setSectionBody` curate op. Sized for a funder narrative CV's longest section:
+ * the FRQ "CV descriptif" allows 6 pages across three sections (≈ 3,000–3,500
+ * characters a page) and its contributions section carries most of them, so
+ * the previous 8,000 cut real applicants off mid-section.
+ */
+export const PROSE_BODY_MAX = 20_000;
 
 /** Cap for the owner's private notes (`CanonicalCv.notes`) — shared by the
  *  schema, the `setNotes` curate op, and the editor textarea so all three agree. */
@@ -1229,12 +1235,12 @@ const CvSectionSchema = z.object({
   items: z.array(CvItemSchema).max(10_000),
   /**
    * USER FREE-TEXT prose body. Used ONLY by prose sections (`PROSE_SECTION_TYPES`)
-   * — a heading + running prose, with `items` left `[]`. Bounded (8k chars) to
-   * keep the canonical document a sane size. It is user-controlled and must be
+   * — a heading + running prose, with `items` left `[]`. Bounded (`PROSE_BODY_MAX`)
+   * to keep the canonical document a sane size. It is user-controlled and must be
    * escaped / safe-transformed by every renderer (never interpreted as raw
    * HTML/markdown). Optional + back-compat: a non-prose section omits it.
    */
-  body: z.string().max(8000).optional(),
+  body: z.string().max(PROSE_BODY_MAX).optional(),
 });
 export type CvSection = z.infer<typeof CvSectionSchema>;
 

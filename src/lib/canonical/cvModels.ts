@@ -356,14 +356,18 @@ const CV_MODELS_SOURCE = [
     display: BS10,
   },
 
-  // ─── GRANT — Canada / Australia / Japan / China ───────────────────────────
+  // ─── GRANT — Canada (federal + Québec) / Australia / Japan / China ────────
   {
+    // The id stays "ccv" — it is persisted in snapshot / freeze requests — but
+    // the model names the federal Tri-agency CV that is replacing the Canadian
+    // Common CV portal competition by competition (NSERC's 2027 competitions,
+    // CIHR's Project Grant no sooner than fall 2027).
     id: "ccv",
     category: "grant",
     region: "CA",
-    name: "Canadian Tri-agency narrative CV (CCV)",
+    name: "Tri-agency CV (CIHR · NSERC · SSHRC)",
     description:
-      "Canadian Common CV / Tri-agency narrative (CIHR · NSERC · SSHRC): Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Final submission via the CCV portal.",
+      "Canada's federal Tri-agency narrative CV, replacing the Canadian Common CV (CCV) competition by competition: Personal statement, Most significant contributions & experiences, Supervisory & mentorship. Attached as a PDF to the application in the agency's portal — check which CV your competition still requires.",
     sections: [
       "statement",
       "narrative-knowledge",
@@ -378,6 +382,42 @@ const CV_MODELS_SOURCE = [
       statement: "Personal statement",
       "narrative-knowledge": "Most significant contributions & experiences",
       supervision: "Supervisory & mentorship activities",
+    },
+  },
+  // The Fonds de recherche du Québec "CV descriptif" (mandatory in FRQ
+  // competitions from 2025-2026): exactly three prose sections and no separate
+  // lists — education, employment history and languages are collected by the
+  // FRQnet form itself. Two models because the FRQ publishes two templates with
+  // different page limits: French (6 pages) and English (5 pages). Headings are
+  // verbatim from the FRQ instructions (July 2025 FR / November 2025 EN).
+  {
+    id: "frq",
+    category: "grant",
+    region: "CA-QC",
+    name: "CV-FRQ — CV descriptif (Fonds de recherche du Québec, français)",
+    description:
+      "Fonds de recherche du Québec 'CV descriptif' in French — three sections, 6 pages maximum, no word limit: Parcours et compétences; up to ten Contributions et expériences les plus importantes (each with its period, your role, its impact and its audience A/B/C); Activités de supervision et de mentorat. Written in the FRQ Word template and attached as a PDF to the FRQnet form, which collects education, employment and languages itself.",
+    sections: ["statement", "narrative-knowledge", "narrative-individuals"],
+    display: NAR,
+    titleOverrides: {
+      statement: "Première section : Parcours et compétences de la personne candidate",
+      "narrative-knowledge": "Deuxième section : Contributions et expériences les plus importantes",
+      "narrative-individuals": "Troisième section : Activités de supervision et de mentorat",
+    },
+  },
+  {
+    id: "frq-en",
+    category: "grant",
+    region: "CA-QC",
+    name: "CV-FRQ — narrative CV (Fonds de recherche du Québec, English)",
+    description:
+      "Fonds de recherche du Québec narrative CV in English — three sections, 5 pages maximum, no word limit: Background and skills; up to ten Most significant contributions and experiences (each with its period, your role, its impact and its audience A/B/C); Supervisory and mentorship activities. Written in the FRQ Word template and attached as a PDF to the FRQnet form, which collects education, employment and languages itself.",
+    sections: ["statement", "narrative-knowledge", "narrative-individuals"],
+    display: NAR,
+    titleOverrides: {
+      statement: "Section 1: Background and skills",
+      "narrative-knowledge": "Section 2: Most significant contributions and experiences",
+      "narrative-individuals": "Section 3: Supervisory and mentorship activities",
     },
   },
   {

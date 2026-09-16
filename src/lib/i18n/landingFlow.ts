@@ -10,7 +10,7 @@ import { asLocale, type Locale } from "./index";
  * Typed as Record<Locale, LandingFlow> so a missing locale/field is a compile
  * error. Non-English copy was machine-drafted and is flagged for native review.
  * "SigmaCV", "ORCID", "CSL", "DOI", "PDF", "DOCX", "LaTeX", "Markdown", funder
- * names and "58" are brand/proper nouns or universal tokens — left untranslated.
+ * names and "61" are brand/proper nouns or universal tokens — left untranslated.
  */
 export interface LandingStep {
   title: string;
@@ -48,9 +48,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "Style it your way",
-        body: "58 one-click layouts, any citation style, and your name highlighted by identifier — never by string.",
+        body: "61 one-click layouts, any citation style, and your name highlighted by identifier — never by string.",
         points: [
-          "58 one-click funder, job & industry layouts",
+          "61 one-click funder, job & industry layouts",
           "Any CSL citation style — identical across every export",
           "Field-normalized metrics, opt-in and off by default",
         ],
@@ -74,7 +74,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "Browse all 58 funder, job & industry templates",
+    templatesCta: "Browse all 61 funder, job & industry templates",
     ctaTitle: "Build your CV from the open research record.",
     optionalLabel: "Optional",
   },
@@ -93,9 +93,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "按你的方式设计",
-        body: "58 种一键布局，任意引用样式，并通过标识符（而非姓名字符串）高亮你的名字。",
+        body: "61 种一键布局，任意引用样式，并通过标识符（而非姓名字符串）高亮你的名字。",
         points: [
-          "58 种一键式资助方、求职与行业布局",
+          "61 种一键式资助方、求职与行业布局",
           "任意 CSL 引用样式——所有导出格式完全一致",
           "领域标准化指标，可选启用，默认关闭",
         ],
@@ -119,7 +119,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "浏览全部 58 种资助方、求职与行业模板",
+    templatesCta: "浏览全部 61 种资助方、求职与行业模板",
     ctaTitle: "用公开学术记录构建你的简历。",
     optionalLabel: "可选",
   },
@@ -138,9 +138,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "Dale tu estilo",
-        body: "58 diseños de un clic, cualquier estilo de cita y tu nombre resaltado por identificador, nunca por cadena de texto.",
+        body: "61 diseños de un clic, cualquier estilo de cita y tu nombre resaltado por identificador, nunca por cadena de texto.",
         points: [
-          "58 diseños de un clic para financiadores, empleo e industria",
+          "61 diseños de un clic para financiadores, empleo e industria",
           "Cualquier estilo de cita CSL — idéntico en todas las exportaciones",
           "Métricas normalizadas por campo, opcionales y desactivadas por defecto",
         ],
@@ -164,7 +164,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "Explora las 58 plantillas para financiadores, empleo e industria",
+    templatesCta: "Explora las 61 plantillas para financiadores, empleo e industria",
     ctaTitle: "Crea tu CV a partir del registro abierto.",
     optionalLabel: "Opcional",
   },
@@ -183,9 +183,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "Personnalisez le style",
-        body: "58 mises en page en un clic, n'importe quel style de citation, et votre nom mis en évidence par identifiant — jamais par chaîne de caractères.",
+        body: "61 mises en page en un clic, n'importe quel style de citation, et votre nom mis en évidence par identifiant — jamais par chaîne de caractères.",
         points: [
-          "58 mises en page en un clic : financeurs, emploi et industrie",
+          "61 mises en page en un clic : financeurs, emploi et industrie",
           "Tout style de citation CSL — identique dans tous les exports",
           "Indicateurs normalisés par domaine, optionnels et désactivés par défaut",
         ],
@@ -209,7 +209,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "Parcourir les 58 modèles financeurs, emploi et industrie",
+    templatesCta: "Parcourir les 61 modèles financeurs, emploi et industrie",
     ctaTitle: "Construisez votre CV à partir du registre ouvert.",
     optionalLabel: "Facultatif",
   },
@@ -228,9 +228,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "Gestalten Sie nach Ihrem Stil",
-        body: "58 Layouts per Klick, jeder Zitierstil und Ihr Name per Identifikator hervorgehoben — nie per Namensstring.",
+        body: "61 Layouts per Klick, jeder Zitierstil und Ihr Name per Identifikator hervorgehoben — nie per Namensstring.",
         points: [
-          "58 Ein-Klick-Layouts für Förderer, Job und Industrie",
+          "61 Ein-Klick-Layouts für Förderer, Job und Industrie",
           "Jeder CSL-Zitierstil — in jedem Export identisch",
           "Feldnormierte Metriken, optional und standardmäßig aus",
         ],
@@ -254,7 +254,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "Alle 58 Vorlagen für Förderer, Job und Industrie ansehen",
+    templatesCta: "Alle 61 Vorlagen für Förderer, Job und Industrie ansehen",
     ctaTitle: "Erstellen Sie Ihren CV aus dem offenen Forschungsnachweis.",
     optionalLabel: "Optional",
   },
@@ -273,9 +273,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "好みのスタイルに",
-        body: "ワンクリックの 58 レイアウト、任意の引用スタイル、そして名前は識別子で強調——文字列では照合しません。",
+        body: "ワンクリックの 61 レイアウト、任意の引用スタイル、そして名前は識別子で強調——文字列では照合しません。",
         points: [
-          "助成機関・求職・業界向けのワンクリック 58 レイアウト",
+          "助成機関・求職・業界向けのワンクリック 61 レイアウト",
           "任意の CSL 引用スタイル——すべての書き出しで同一",
           "分野標準化指標、オプトインで既定はオフ",
         ],
@@ -299,7 +299,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "助成機関・求職・業界向けの全 58 テンプレートを見る",
+    templatesCta: "助成機関・求職・業界向けの全 61 テンプレートを見る",
     ctaTitle: "公開された研究記録から CV を作成。",
     optionalLabel: "任意",
   },
@@ -318,9 +318,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "Estilize do seu jeito",
-        body: "58 layouts com um clique, qualquer estilo de citação e seu nome destacado por identificador — nunca por texto.",
+        body: "61 layouts com um clique, qualquer estilo de citação e seu nome destacado por identificador — nunca por texto.",
         points: [
-          "58 layouts de um clique para financiadores, emprego e indústria",
+          "61 layouts de um clique para financiadores, emprego e indústria",
           "Qualquer estilo de citação CSL — idêntico em toda exportação",
           "Métricas normalizadas por área, opcionais e desativadas por padrão",
         ],
@@ -344,7 +344,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "Veja todos os 58 modelos para financiadores, emprego e indústria",
+    templatesCta: "Veja todos os 61 modelos para financiadores, emprego e indústria",
     ctaTitle: "Monte seu currículo a partir do registro aberto.",
     optionalLabel: "Opcional",
   },
@@ -363,9 +363,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "Dai il tuo stile",
-        body: "58 layout con un clic, qualsiasi stile di citazione e il tuo nome evidenziato per identificatore — mai per stringa.",
+        body: "61 layout con un clic, qualsiasi stile di citazione e il tuo nome evidenziato per identificatore — mai per stringa.",
         points: [
-          "58 layout con un clic per finanziatori, lavoro e industria",
+          "61 layout con un clic per finanziatori, lavoro e industria",
           "Qualsiasi stile di citazione CSL — identico in ogni esportazione",
           "Metriche normalizzate per campo, opt-in e disattivate per impostazione predefinita",
         ],
@@ -389,7 +389,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "Sfoglia tutti i 58 modelli per finanziatori, lavoro e industria",
+    templatesCta: "Sfoglia tutti i 61 modelli per finanziatori, lavoro e industria",
     ctaTitle: "Crea il tuo CV dal registro aperto.",
     optionalLabel: "Facoltativo",
   },
@@ -408,9 +408,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "원하는 스타일로",
-        body: "원클릭 58개 레이아웃, 모든 인용 스타일, 그리고 이름은 문자열이 아닌 식별자로 강조.",
+        body: "원클릭 61개 레이아웃, 모든 인용 스타일, 그리고 이름은 문자열이 아닌 식별자로 강조.",
         points: [
-          "연구비·구직·산업용 원클릭 58개 레이아웃",
+          "연구비·구직·산업용 원클릭 61개 레이아웃",
           "모든 CSL 인용 스타일 — 모든 내보내기에서 동일",
           "분야 정규화 지표, 옵트인이며 기본은 꺼짐",
         ],
@@ -434,7 +434,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "연구비·구직·산업용 58개 템플릿 모두 보기",
+    templatesCta: "연구비·구직·산업용 61개 템플릿 모두 보기",
     ctaTitle: "공개된 연구 기록으로 CV를 만드세요.",
     optionalLabel: "선택 사항",
   },
@@ -453,9 +453,9 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
       },
       {
         title: "Оформите по-своему",
-        body: "58 макетов в один клик, любой стиль цитирования и ваше имя, выделяемое по идентификатору, а не по строке.",
+        body: "61 макетов в один клик, любой стиль цитирования и ваше имя, выделяемое по идентификатору, а не по строке.",
         points: [
-          "58 макетов в один клик: фонды, работа и индустрия",
+          "61 макетов в один клик: фонды, работа и индустрия",
           "Любой стиль цитирования CSL — одинаково во всех форматах",
           "Нормированные по области метрики, по желанию и по умолчанию выключены",
         ],
@@ -479,7 +479,7 @@ const LANDING_FLOW_I18N: Record<Locale, LandingFlow> = {
         ],
       },
     ],
-    templatesCta: "Посмотреть все 58 шаблонов: фонды, работа и индустрия",
+    templatesCta: "Посмотреть все 61 шаблонов: фонды, работа и индустрия",
     ctaTitle: "Создайте резюме из открытого реестра.",
     optionalLabel: "Необязательно",
   },

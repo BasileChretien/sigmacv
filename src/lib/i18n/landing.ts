@@ -175,7 +175,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Your name is highlighted by ORCID / OpenAlex ID — never by a name string.",
       },
       {
-        title: "58 one-click layouts",
+        title: "61 one-click layouts",
         body: "Funder, institution and industry CV layouts — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC and an ICH-GCP investigator CV.",
       },
       {
@@ -267,7 +267,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
       },
       { title: "按标识符高亮", body: "您的姓名按 ORCID / OpenAlex ID 高亮——绝不按姓名字符串。" },
       {
-        title: "58 种一键版式",
+        title: "61 种一键版式",
         body: "资助方、机构与行业简历版式——UKRI R4RI、Royal Society、SNSF、NIH、NSF、ERC 以及 ICH-GCP 研究者简历。",
       },
       {
@@ -366,7 +366,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Tu nombre se resalta por ID de ORCID / OpenAlex — nunca por la cadena del nombre.",
       },
       {
-        title: "58 diseños con un clic",
+        title: "61 diseños con un clic",
         body: "Diseños de CV de financiadores, instituciones e industria — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC y un CV de investigador ICH-GCP.",
       },
       {
@@ -469,7 +469,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Votre nom est mis en évidence par identifiant ORCID / OpenAlex — jamais par la chaîne du nom.",
       },
       {
-        title: "58 mises en page en un clic",
+        title: "61 mises en page en un clic",
         body: "Mises en page de CV pour financeurs, institutions et industrie — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC et un CV d'investigateur ICH-GCP.",
       },
       {
@@ -573,7 +573,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Ihr Name wird per ORCID-/OpenAlex-ID hervorgehoben — nie per Namenszeichenkette.",
       },
       {
-        title: "58 Layouts per Klick",
+        title: "61 Layouts per Klick",
         body: "Layouts für Förderer, Institutionen und Industrie — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC und ein ICH-GCP-Prüfer-Lebenslauf.",
       },
       {
@@ -674,7 +674,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "お名前は ORCID / OpenAlex ID でハイライト——名前の文字列では行いません。",
       },
       {
-        title: "58 種のワンクリックレイアウト",
+        title: "61 種のワンクリックレイアウト",
         body: "助成機関・機関・産業向けの CV レイアウト——UKRI R4RI、Royal Society、SNSF、NIH、NSF、ERC、ICH-GCP 治験責任医師 CV。",
       },
       {
@@ -776,7 +776,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Seu nome é destacado por ID do ORCID / OpenAlex — nunca pela cadeia do nome.",
       },
       {
-        title: "58 layouts com um clique",
+        title: "61 layouts com um clique",
         body: "Layouts de currículo de financiadores, instituições e indústria — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC e um currículo de investigador ICH-GCP.",
       },
       {
@@ -878,7 +878,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Il tuo nome è evidenziato per ID ORCID / OpenAlex — mai per la stringa del nome.",
       },
       {
-        title: "58 layout con un clic",
+        title: "61 layout con un clic",
         body: "Layout di CV per enti finanziatori, istituzioni e industria — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC e un CV di sperimentatore ICH-GCP.",
       },
       {
@@ -979,7 +979,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "이름은 ORCID / OpenAlex ID로 강조됩니다 — 이름 문자열로는 절대 하지 않습니다.",
       },
       {
-        title: "58가지 원클릭 레이아웃",
+        title: "61가지 원클릭 레이아웃",
         body: "지원기관·기관·산업용 CV 레이아웃 — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC 및 ICH-GCP 시험자 CV.",
       },
       {
@@ -1078,7 +1078,7 @@ const LANDING_I18N: Record<Locale, LandingStrings> = {
         body: "Ваше имя выделяется по идентификатору ORCID / OpenAlex — никогда по строке имени.",
       },
       {
-        title: "58 макетов в один клик",
+        title: "61 макетов в один клик",
         body: "Макеты резюме для грантодателей, учреждений и индустрии — UKRI R4RI, Royal Society, SNSF, NIH, NSF, ERC и резюме исследователя ICH-GCP.",
       },
       {

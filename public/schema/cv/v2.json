@@ -1564,7 +1564,7 @@
           },
           "body": {
             "type": "string",
-            "maxLength": 8000
+            "maxLength": 20000
           }
         },
         "required": ["id", "type", "title", "visible", "order", "items"]

@@ -90,10 +90,54 @@ describe("CV-model catalog", () => {
 
   it("counts: grant + institution + industry models", () => {
     const byCat = (c: CvModelCategory) => CV_MODELS.filter((m) => m.category === c).length;
-    expect(byCat("grant")).toBe(38);
+    expect(byCat("grant")).toBe(40);
     expect(byCat("institution")).toBe(11);
     expect(byCat("industry")).toBe(10);
-    expect(CV_MODELS.length).toBe(59);
+    expect(CV_MODELS.length).toBe(61);
+  });
+
+  // The Fonds de recherche du Québec "CV descriptif": three prose sections under
+  // the FRQ's own headings (verbatim from its July 2025 FR / November 2025 EN
+  // instructions), nothing else shown — the FRQnet form collects education,
+  // employment and languages itself, and the CV is a 6-page (FR) / 5-page (EN)
+  // PDF attachment. One model per official template because the page limits differ.
+  it("the two FRQ models are exactly the three FRQ sections under the FRQ's headings", () => {
+    const expected: Record<string, readonly string[]> = {
+      frq: [
+        "Première section : Parcours et compétences de la personne candidate",
+        "Deuxième section : Contributions et expériences les plus importantes",
+        "Troisième section : Activités de supervision et de mentorat",
+      ],
+      "frq-en": [
+        "Section 1: Background and skills",
+        "Section 2: Most significant contributions and experiences",
+        "Section 3: Supervisory and mentorship activities",
+      ],
+    };
+    for (const [id, headings] of Object.entries(expected)) {
+      const m = CV_MODELS.find((x) => x.id === id)!;
+      expect(m.category).toBe("grant");
+      expect(m.sections).toEqual(["statement", "narrative-knowledge", "narrative-individuals"]);
+      expect(m.sections.every((t) => isProseSectionType(t))).toBe(true);
+      expect(m.sections.map((t) => m.titleOverrides![t])).toEqual(headings);
+      const applied = applyCvModel(makeCv("fr-FR"), id);
+      const visible = [...applied.sections]
+        .filter((s) => s.visible)
+        .sort((a, b) => a.order - b.order);
+      expect(visible.map((s) => s.title)).toEqual(headings);
+      expect(visible.every((s) => s.body === "")).toBe(true);
+    }
+    expect(CV_MODELS.find((x) => x.id === "frq")!.description).toContain("6 pages");
+    expect(CV_MODELS.find((x) => x.id === "frq-en")!.description).toContain("5 pages");
+  });
+
+  // The Canadian Common CV portal is being retired; the model keeps its persisted
+  // id but must no longer send applicants to the CCV portal.
+  it("the Canadian federal model names the Tri-agency CV, not the retiring CCV portal", () => {
+    const m = CV_MODELS.find((x) => x.id === "ccv")!;
+    expect(m.name).toBe("Tri-agency CV (CIHR · NSERC · SSHRC)");
+    expect(m.description).not.toMatch(/via the CCV portal/i);
+    expect(m.description).toContain("Canadian Common CV (CCV)");
   });
 
   it("every model has a unique id", () => {
