@@ -200,10 +200,12 @@ describe("WorklistPanel — your grants and their open-access policies", () => {
     expect(screen.getByText("SigmaCV has no policy record for AMED.")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /policy page/ })).toBeNull();
     expect(screen.getByText(/SigmaCV found:/).textContent).toContain("No open copy found");
-    expect(screen.getByText("Works with no open copy found")).toBeTruthy();
+    // No ground to deposit it today (no record, no right): the paper is in the
+    // funding group only, not among the papers to deposit.
+    expect(screen.queryByText("Papers you can deposit now")).toBeNull();
     // No jump handler → plain text, not a button.
     expect(screen.queryByRole("button")).toBeNull();
-    expect(screen.getAllByText("Work W-amed (2024)")).toHaveLength(2);
+    expect(screen.getAllByText("Work W-amed (2024)")).toHaveLength(1);
   });
 
   it("names an unnamed funder generically rather than printing an empty name", () => {

@@ -500,12 +500,9 @@ describe("joinOwnerFunding — selection and order", () => {
 
 describe("hasWorklistContent with the funding join", () => {
   const noGaps = { positionsWithoutRor: [] };
-  const noClosed = {
-    counts: { "open-cc": 0, "open-other": 0, "no-open-copy-found": 0, "not-determined": 0 },
-  };
   it("shows the panel for a funding join alone, and still hides it with nothing at all", () => {
-    expect(hasWorklistContent(noGaps, noClosed)).toBe(false);
-    expect(hasWorklistContent(noGaps, noClosed, 0)).toBe(false);
-    expect(hasWorklistContent(noGaps, noClosed, 1)).toBe(true);
+    expect(hasWorklistContent(noGaps, 0)).toBe(false);
+    expect(hasWorklistContent(noGaps, 0, 0)).toBe(false);
+    expect(hasWorklistContent(noGaps, 0, 1)).toBe(true);
   });
 });

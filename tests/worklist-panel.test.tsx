@@ -100,6 +100,7 @@ describe("WorklistPanel (component)", () => {
         work("W-closed", {
           year: 2021,
           oaIsOpen: false,
+          workCountries: ["FR"],
           workInstitutions: [NAGOYA],
           funders: [{ id: "https://openalex.org/F1", name: "Wellcome Trust" }],
         }),
@@ -131,8 +132,10 @@ describe("WorklistPanel (component)", () => {
     expect(screen.queryByRole("button", { name: /Work W-elsewhere/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /Work W-nodata/ })).toBeNull();
 
-    // (b) closed works: chip; funders and the policy link behind the row's disclosure.
-    expect(screen.getByText("Works with no open copy found")).toBeTruthy();
+    // (b) papers with a ground today (the French right has run for a 2021 paper):
+    // funders and the policy link behind the row's disclosure.
+    expect(screen.getByText("Papers you can deposit now")).toBeTruthy();
+    expect(screen.getByText(/Allowed by law — Code de la recherche/)).toBeTruthy();
     document
       .querySelectorAll<HTMLDetailsElement>("details.cv-worklist-row-more")
       .forEach((d) => (d.open = true));
@@ -144,7 +147,7 @@ describe("WorklistPanel (component)", () => {
     expect(onJump).toHaveBeenLastCalledWith("W-closed");
 
     // The help copy is help, never a verdict.
-    expect(screen.getByText(/a repository deposit may be possible/)).toBeTruthy();
+    expect(screen.getByText(/deposit a version today/)).toBeTruthy();
     expect(document.body.textContent).not.toMatch(/compliant|overdue|violation/i);
     // Actions, never states: no "N of M", no open-access breakdown by state.
     expect(document.body.textContent).not.toMatch(/\d+ of \d+/);
@@ -171,18 +174,22 @@ describe("WorklistPanel (component)", () => {
         work("W-closed", {
           year: 2022,
           oaIsOpen: false,
+          workCountries: ["FR"],
           workInstitutions: [NAGOYA],
           funders: [{ id: "https://openalex.org/F1", name: funder }],
         }),
       ],
       [nagoyaNow()],
     );
-    render(<WorklistPanel cv={cv} locale="en-US" />);
+    const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
+    container
+      .querySelectorAll<HTMLDetailsElement>("details.cv-worklist-row-more")
+      .forEach((d) => (d.open = true));
     expect(screen.getByText(`Funders named on the work: ${funder}`)).toBeTruthy();
   });
 
   it("renders rows as plain text without a jump callback, and omits the policy link without a venue", () => {
-    const closed = work("W-closed", { year: 2021, oaIsOpen: false });
+    const closed = work("W-closed", { year: 2021, oaIsOpen: false, workCountries: ["FR"] });
     const cv = makeCv([{ ...closed, csl: { id: "W-closed", type: "article-journal" } }], []);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
     expect(screen.queryByRole("button")).toBeNull();
@@ -193,14 +200,20 @@ describe("WorklistPanel (component)", () => {
     // no Copy DOI button): the row itself and the journal policy stay plain.
     const links = screen.queryAllByRole("link");
     expect(links.length).toBeGreaterThan(0);
-    expect(links.every((a) => a.closest('[data-worklist^="deposit"]'))).toBe(true);
+    // … and the statutory line's own links: all inside the row's blocks.
+    expect(links.every((a) => a.closest("[data-worklist]"))).toBe(true);
     expect(screen.getByText("(untitled) (2021)")).toBeTruthy();
-    expect(screen.getByText("No open copy found")).toBeTruthy();
+    // No state chip on the row: every row here is a paper with no open copy.
+    expect(screen.queryByText("No open copy found")).toBeNull();
   });
 
   it("localizes the panel", () => {
-    const cv = makeCv([work("W-closed", { year: 2021, oaIsOpen: false })], []);
+    const cv = makeCv(
+      [work("W-closed", { year: 2021, oaIsOpen: false, workCountries: ["FR"] })],
+      [],
+    );
     render(<WorklistPanel cv={cv} locale="fr-FR" />);
+    expect(screen.getByText("Articles que vous pouvez déposer maintenant")).toBeTruthy();
     expect(
       screen.getByRole("heading", { level: 2, name: "Ce que vous pouvez faire" }),
     ).toBeTruthy();

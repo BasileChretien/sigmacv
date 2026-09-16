@@ -700,10 +700,6 @@ export default function CvWorkspace({
                 variant="regions"
                 funderCrosswalk={funderCrosswalk}
                 currentAffiliationCountry={currentAffiliationCountry}
-                institutionListing={{
-                  state: publishState,
-                  onPublishStateChange: setPublishState,
-                }}
               />
             </section>
             <section className="cv-workspace-pane" data-pane="preview">

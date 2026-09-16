@@ -203,14 +203,8 @@ export function policyFinderUrl(journalName: string | undefined): string | undef
  *  not-determined works alone are not a worklist. */
 export function hasWorklistContent(
   gaps: Pick<AffiliationGaps, "positionsWithoutRor">,
-  oa: Pick<OpenAccessStates, "counts">,
+  readyDeposits: number,
   joinedFunding = 0,
-  unlistedAffiliation = false,
 ): boolean {
-  return (
-    gaps.positionsWithoutRor.length > 0 ||
-    oa.counts["no-open-copy-found"] > 0 ||
-    joinedFunding > 0 ||
-    unlistedAffiliation
-  );
+  return gaps.positionsWithoutRor.length > 0 || readyDeposits > 0 || joinedFunding > 0;
 }

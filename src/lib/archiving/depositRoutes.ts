@@ -1,4 +1,5 @@
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
+import type { DepositNow } from "./depositNow";
 import type { FunderRow } from "@/lib/funders/join";
 import { fill } from "@/lib/i18n/fill";
 import type { WorkspaceUiStrings } from "@/lib/i18n/workspaceUi";
@@ -215,8 +216,14 @@ export function depositAction(
   route: DepositRoute,
   wu: WorkspaceUiStrings,
   hasStatutoryRight: boolean,
+  now?: DepositNow,
 ): string {
   const destination = route.destination;
+  // A statutory right that has run names the accepted manuscript outright —
+  // the ground is the law, whatever the publisher records.
+  if (now?.basis === "statute" && route.kind !== "funder") {
+    return fill(wu.wlDepositAccepted, { destination });
+  }
   const kind = depositActionKind(item, route);
   if (kind === "conditional") {
     return fill(hasStatutoryRight ? wu.wlDepositIfRightOrAgreement : wu.wlDepositIfAgreement, {
@@ -245,10 +252,13 @@ export function depositNotes(
   wu: WorkspaceUiStrings,
   locale: string,
   today: string,
+  now?: DepositNow,
 ): string[] {
   const notes: string[] = [];
   const record = item.meta.selfArchiving;
-  if (route.kind !== "funder" && record?.canArchive) {
+  // Under a statutory right the publisher's licence and embargo do not bind the
+  // deposit: the record's form notes stay out; the DOI notes still apply.
+  if (route.kind !== "funder" && record?.canArchive && now?.basis !== "statute") {
     if (record.licence) notes.push(fill(wu.wlDepositFormLicence, { licence: record.licence }));
     if (record.embargoEnd) {
       if (record.embargoEnd > today) {

@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, render, screen, within } from "@testing-library/react";
 import WorklistPanel from "@/components/WorklistPanel";
 import { STATUTORY_ARCHIVING } from "@/lib/archiving/statutoryRights";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
@@ -107,20 +107,24 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
   });
 
   it("prints a refusal without statement or link, and labels a policy document as policy text with its measures as guidance", () => {
-    const cv = makeCv([
-      work("W1", {
-        oaIsOpen: false,
-        selfArchiving: {
-          ...RECORD,
-          canArchive: false,
-          policyUrl: undefined,
-          recordUpdated: undefined,
-        },
-        // Japan's national policy is a Cabinet Office document, not a statute (and starts with 2025).
-        workCountries: ["JP"],
-        year: 2025,
-      }),
-    ]);
+    const cv = makeCv(
+      [
+        work("W1", {
+          oaIsOpen: false,
+          selfArchiving: {
+            ...RECORD,
+            canArchive: false,
+            policyUrl: undefined,
+            recordUpdated: undefined,
+          },
+          // A January 2025 paper: the French right has run (the ground), and Japan's
+          // policy — a Cabinet Office document, not a statute — applies from 2025
+          // and is shown beside it.
+          workCountries: ["FR", "JP"],
+          year: 2025,
+        }),
+      ].map((w) => ({ ...w, csl: { ...w.csl!, issued: { "date-parts": [[2025, 1, 15]] } } })),
+    );
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
     openRows(container);
     const rights = container.querySelector('[data-worklist="rights"]')!;
@@ -130,16 +134,20 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     );
     expect(rights.querySelector("blockquote")).toBeNull();
     expect(screen.queryByRole("link", { name: EN.wlArchivingPolicyLink })).toBeNull();
-    const statutory = rights.querySelector(".cv-worklist-rights-statutory")!;
-    expect(statutory.textContent).toContain("(Japan)");
+    const statutory = [
+      ...rights.querySelectorAll<HTMLElement>(".cv-worklist-rights-statutory"),
+    ].find((p) => p.textContent!.includes("(Japan)"))!;
+    expect(statutory).toBeTruthy();
     expect(statutory.textContent).toContain("Recorded on 2026-09-16.");
-    expect(screen.getByRole("link", { name: EN.wlStatutoryPolicyLink }).getAttribute("href")).toBe(
+    // Scoped to Japan's line: France's beside it carries "legal text" and "guidance" too.
+    const jp = within(statutory);
+    expect(jp.getByRole("link", { name: EN.wlStatutoryPolicyLink }).getAttribute("href")).toBe(
       entry("JP").sourceUrl,
     );
-    expect(
-      screen.getByRole("link", { name: EN.wlStatutoryGuidanceLink }).getAttribute("href"),
-    ).toBe(entry("JP").guidanceUrl);
-    expect(screen.queryByRole("link", { name: EN.wlStatutorySourceLink })).toBeNull();
+    expect(jp.getByRole("link", { name: EN.wlStatutoryGuidanceLink }).getAttribute("href")).toBe(
+      entry("JP").guidanceUrl,
+    );
+    expect(jp.queryByRole("link", { name: EN.wlStatutorySourceLink })).toBeNull();
   });
 
   it("leaves out a rule the work's year rules out, and with nothing else shows no rights block", () => {
@@ -151,7 +159,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
   });
 
   it("prints the statutory rule alone when OA.Works holds nothing for the work", () => {
-    const cv = makeCv([work("W1", { oaIsOpen: false, year: 2023, workCountries: ["ES"] })]);
+    const cv = makeCv([work("W1", { oaIsOpen: false, year: 2023, workCountries: ["FR", "ES"] })]);
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
     openRows(container);
     const rights = container.querySelector('[data-worklist="rights"]')!;
@@ -159,6 +167,7 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     expect(rights.textContent).toContain(
       "May also apply — statutory repository-deposit requirement (Spain), ",
     );
+    expect(rights.textContent).toContain("May also apply — secondary-publication right (France)");
     expect(container.textContent).toContain(EN.wlArchivingDisclaimer);
   });
 

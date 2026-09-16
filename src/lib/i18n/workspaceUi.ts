@@ -211,6 +211,16 @@ export interface WorkspaceUiStrings {
   wlRowDetails: string;
   /** Hidden note every external link is described by (WCAG: a new tab is a change of context). */
   wlOpensNewTab: string;
+  /** Why the deposit is allowed today — the publisher's permission: {version}, {date} = the record's date. */
+  wlWhyPublisher: string;
+  /** … and its embargo ended on {date}. */
+  wlWhyEmbargoEnded: string;
+  /** … and it set no embargo. */
+  wlWhyNoEmbargo: string;
+  /** … or the statutory right: {instrument}, {country}, {duration} = its delay, {date} = when it ran out. */
+  wlWhyStatute: string;
+  /** The same for a right that sets no delay. */
+  wlWhyStatuteNoDelay: string;
   /** The deposit chip on a publication row: `{destination}` = the route's name. */
   wlChipDeposit: string;
   /** The same when the publisher's record allows no deposit outright. */
@@ -342,9 +352,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "Current positions without an institution record",
     wlPositionsHelp:
       "No ROR record was matched. Add the organisation to this position on ORCID, then sync again.",
-    wlClosedHeading: "Works with no open copy found",
+    wlClosedHeading: "Papers you can deposit now",
     wlClosedHelp:
-      "No open copy was found by OpenAlex; a repository deposit may be possible — check the journal's policy.",
+      "SigmaCV found no open copy, and the publisher's policy or the law lets you deposit a version today.",
     wlStateOpenCc: "Open, Creative Commons licence",
     wlStateOpenOther: "Open, other or unknown licence",
     wlStateClosed: "No open copy found",
@@ -416,6 +426,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copied",
     wlRowDetails: "Policy record, rights and form notes",
     wlOpensNewTab: "Opens in a new tab",
+    wlWhyPublisher: "Allowed by the publisher's policy: {version}, as OA.Works recorded on {date}.",
+    wlWhyEmbargoEnded: "The embargo ended on {date}.",
+    wlWhyNoEmbargo: "No embargo.",
+    wlWhyStatute:
+      "Allowed by law — {instrument} ({country}): the accepted manuscript, {duration} after publication (since {date}), under the conditions in the record below.",
+    wlWhyStatuteNoDelay:
+      "Allowed by law — {instrument} ({country}): the accepted manuscript once the publisher has accepted it, under the conditions in the record below.",
     wlChipDeposit: "Deposit in {destination}",
     wlChipDepositIf: "Deposit in {destination} if allowed",
     wlChipHint: "Opens this work in the Open access tab",
@@ -519,8 +536,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "仅供您本人查看——这是对您记录的帮助，不是评判。这里的内容不会出现在您的简历或公开页面上。",
     wlPositionsHeading: "没有机构记录的当前职位",
     wlPositionsHelp: "未匹配到 ROR 记录。请在 ORCID 上为该职位添加所属组织，然后重新同步。",
-    wlClosedHeading: "未找到开放副本的作品",
-    wlClosedHelp: "OpenAlex 未找到开放副本；也许可以在知识库中存缴——请查看该期刊的政策。",
+    wlClosedHeading: "现在可以存缴的论文",
+    wlClosedHelp: "SigmaCV 未找到开放版本，而出版社政策或法律允许您今天存入一个版本。",
     wlStateOpenCc: "开放，知识共享（CC）许可",
     wlStateOpenOther: "开放，其他或未知许可",
     wlStateClosed: "未找到开放副本",
@@ -584,6 +601,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "已复制 DOI",
     wlRowDetails: "政策记录、权利与表单说明",
     wlOpensNewTab: "在新标签页中打开",
+    wlWhyPublisher: "出版社政策允许：{version}，据 OA.Works 于 {date} 的记录。",
+    wlWhyEmbargoEnded: "禁运期已于 {date} 结束。",
+    wlWhyNoEmbargo: "无禁运期。",
+    wlWhyStatute:
+      "法律允许 — {instrument}（{country}）：接受稿，出版 {duration} 后（自 {date} 起），须符合下方记录中的条件。",
+    wlWhyStatuteNoDelay:
+      "法律允许 — {instrument}（{country}）：出版社接受后即可存入接受稿，须符合下方记录中的条件。",
     wlChipDeposit: "存入 {destination}",
     wlChipDepositIf: "如获许可，存入 {destination}",
     wlChipHint: "在“开放获取”标签页中打开此作品",
@@ -689,9 +713,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "Puestos actuales sin registro de institución",
     wlPositionsHelp:
       "No se encontró un registro ROR. Añade la organización a este puesto en ORCID y vuelve a sincronizar.",
-    wlClosedHeading: "Trabajos sin copia abierta encontrada",
+    wlClosedHeading: "Artículos que puede depositar ahora",
     wlClosedHelp:
-      "OpenAlex no encontró ninguna copia abierta; quizá sea posible un depósito en repositorio: consulta la política de la revista.",
+      "SigmaCV no encontró ninguna copia abierta, y la política de la editorial o la ley le permiten depositar una versión hoy.",
     wlStateOpenCc: "Abierto, licencia Creative Commons",
     wlStateOpenOther: "Abierto, otra licencia o licencia desconocida",
     wlStateClosed: "No se encontró copia abierta",
@@ -765,6 +789,14 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiado",
     wlRowDetails: "Registro de la política, derechos y notas para el formulario",
     wlOpensNewTab: "Se abre en una pestaña nueva",
+    wlWhyPublisher:
+      "Permitido por la política de la editorial: {version}, según el registro de OA.Works del {date}.",
+    wlWhyEmbargoEnded: "El embargo terminó el {date}.",
+    wlWhyNoEmbargo: "Sin embargo.",
+    wlWhyStatute:
+      "Permitido por la ley — {instrument} ({country}): el manuscrito aceptado, {duration} después de la publicación (desde el {date}), en las condiciones del registro de abajo.",
+    wlWhyStatuteNoDelay:
+      "Permitido por la ley — {instrument} ({country}): el manuscrito aceptado en cuanto la editorial lo acepta, en las condiciones del registro de abajo.",
     wlChipDeposit: "Depositar en {destination}",
     wlChipDepositIf: "Depositar en {destination} si está permitido",
     wlChipHint: "Abre este trabajo en la pestaña Acceso abierto",
@@ -875,9 +907,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "Postes actuels sans fiche d’institution",
     wlPositionsHelp:
       "Aucune fiche ROR n’a été trouvée. Ajoutez l’organisation à ce poste sur ORCID, puis synchronisez de nouveau.",
-    wlClosedHeading: "Travaux sans copie ouverte trouvée",
+    wlClosedHeading: "Articles que vous pouvez déposer maintenant",
     wlClosedHelp:
-      "OpenAlex n’a trouvé aucune copie ouverte ; un dépôt en archive ouverte est peut-être possible — consultez la politique de la revue.",
+      "SigmaCV n’a trouvé aucune copie ouverte, et la politique de l’éditeur ou la loi vous permettent d’en déposer une version aujourd’hui.",
     wlStateOpenCc: "Ouvert, licence Creative Commons",
     wlStateOpenOther: "Ouvert, autre licence ou licence inconnue",
     wlStateClosed: "Aucune copie ouverte trouvée",
@@ -953,6 +985,14 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copié",
     wlRowDetails: "Politique enregistrée, droits et notes pour le formulaire",
     wlOpensNewTab: "S’ouvre dans un nouvel onglet",
+    wlWhyPublisher:
+      "Autorisé par la politique de l’éditeur : {version}, selon la fiche OA.Works du {date}.",
+    wlWhyEmbargoEnded: "L’embargo a pris fin le {date}.",
+    wlWhyNoEmbargo: "Sans embargo.",
+    wlWhyStatute:
+      "Autorisé par la loi — {instrument} ({country}) : le manuscrit accepté, {duration} après la publication (depuis le {date}), aux conditions de la fiche ci-dessous.",
+    wlWhyStatuteNoDelay:
+      "Autorisé par la loi — {instrument} ({country}) : le manuscrit accepté dès son acceptation par l’éditeur, aux conditions de la fiche ci-dessous.",
     wlChipDeposit: "Déposer dans {destination}",
     wlChipDepositIf: "Déposer dans {destination} si c’est permis",
     wlChipHint: "Ouvre ce travail dans l’onglet Accès ouvert",
@@ -1067,9 +1107,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "Aktuelle Positionen ohne Institutionsdatensatz",
     wlPositionsHelp:
       "Es wurde kein ROR-Datensatz zugeordnet. Ergänzen Sie die Organisation bei dieser Position auf ORCID und synchronisieren Sie erneut.",
-    wlClosedHeading: "Arbeiten ohne gefundene offene Kopie",
+    wlClosedHeading: "Artikel, die Sie jetzt hinterlegen können",
     wlClosedHelp:
-      "OpenAlex hat keine offene Kopie gefunden; eine Ablage in einem Repositorium ist womöglich möglich — prüfen Sie die Richtlinie der Zeitschrift.",
+      "SigmaCV hat keine offene Kopie gefunden, und die Verlagsrichtlinie oder das Gesetz erlauben Ihnen, heute eine Fassung zu hinterlegen.",
     wlStateOpenCc: "Offen, Creative-Commons-Lizenz",
     wlStateOpenOther: "Offen, andere oder unbekannte Lizenz",
     wlStateClosed: "Keine offene Kopie gefunden",
@@ -1143,6 +1183,14 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI kopiert",
     wlRowDetails: "Aufgezeichnete Policy, Rechte und Hinweise zum Formular",
     wlOpensNewTab: "Öffnet sich in einem neuen Tab",
+    wlWhyPublisher:
+      "Erlaubt durch die Verlagsrichtlinie: {version}, laut OA.Works-Eintrag vom {date}.",
+    wlWhyEmbargoEnded: "Das Embargo endete am {date}.",
+    wlWhyNoEmbargo: "Kein Embargo.",
+    wlWhyStatute:
+      "Erlaubt durch Gesetz — {instrument} ({country}): das akzeptierte Manuskript, {duration} nach der Veröffentlichung (seit {date}), unter den Bedingungen im Eintrag unten.",
+    wlWhyStatuteNoDelay:
+      "Erlaubt durch Gesetz — {instrument} ({country}): das akzeptierte Manuskript, sobald der Verlag es angenommen hat, unter den Bedingungen im Eintrag unten.",
     wlChipDeposit: "In {destination} hinterlegen",
     wlChipDepositIf: "In {destination} hinterlegen, falls erlaubt",
     wlChipHint: "Öffnet diese Arbeit im Tab „Open Access“",
@@ -1252,9 +1300,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "機関レコードのない現在の職位",
     wlPositionsHelp:
       "ROR レコードが見つかりませんでした。ORCID でこの職位に組織を追加し、もう一度同期してください。",
-    wlClosedHeading: "オープンな複製が見つからなかった業績",
+    wlClosedHeading: "今すぐ登録できる論文",
     wlClosedHelp:
-      "OpenAlex はオープンな複製を見つけられませんでした。リポジトリへの登録が可能かもしれません — 学術誌のポリシーを確認してください。",
+      "SigmaCV はオープンな版を見つけられませんでしたが、出版社のポリシーまたは法律により、今日いずれかの版を登録できます。",
     wlStateOpenCc: "オープン、クリエイティブ・コモンズ・ライセンス",
     wlStateOpenOther: "オープン、その他または不明のライセンス",
     wlStateClosed: "オープンな複製は見つかりませんでした",
@@ -1326,6 +1374,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI をコピーしました",
     wlRowDetails: "ポリシーの記録、権利、フォームの注記",
     wlOpensNewTab: "新しいタブで開きます",
+    wlWhyPublisher: "出版社のポリシーで許可：{version}（OA.Works の {date} の記録による）。",
+    wlWhyEmbargoEnded: "エンバーゴは {date} に終了しました。",
+    wlWhyNoEmbargo: "エンバーゴなし。",
+    wlWhyStatute:
+      "法律で許可 — {instrument}（{country}）：受理原稿を出版から {duration} 後（{date} 以降）、下記の記録の条件のもとで。",
+    wlWhyStatuteNoDelay:
+      "法律で許可 — {instrument}（{country}）：出版社の受理後すぐに受理原稿を、下記の記録の条件のもとで。",
     wlChipDeposit: "{destination} に登録",
     wlChipDepositIf: "許可されていれば {destination} に登録",
     wlChipHint: "この論文を「オープンアクセス」タブで開きます",
@@ -1437,9 +1492,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "Cargos atuais sem registro de instituição",
     wlPositionsHelp:
       "Nenhum registro ROR foi encontrado. Adicione a organização a este cargo no ORCID e sincronize novamente.",
-    wlClosedHeading: "Trabalhos sem cópia aberta encontrada",
+    wlClosedHeading: "Artigos que você pode depositar agora",
     wlClosedHelp:
-      "O OpenAlex não encontrou nenhuma cópia aberta; um depósito em repositório pode ser possível: consulte a política da revista.",
+      "O SigmaCV não encontrou nenhuma cópia aberta, e a política da editora ou a lei permitem depositar uma versão hoje.",
     wlStateOpenCc: "Aberto, licença Creative Commons",
     wlStateOpenOther: "Aberto, outra licença ou licença desconhecida",
     wlStateClosed: "Nenhuma cópia aberta encontrada",
@@ -1513,6 +1568,14 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiado",
     wlRowDetails: "Registro da política, direitos e notas para o formulário",
     wlOpensNewTab: "Abre em uma nova aba",
+    wlWhyPublisher:
+      "Permitido pela política da editora: {version}, segundo o registro do OA.Works de {date}.",
+    wlWhyEmbargoEnded: "O embargo terminou em {date}.",
+    wlWhyNoEmbargo: "Sem embargo.",
+    wlWhyStatute:
+      "Permitido por lei — {instrument} ({country}): o manuscrito aceito, {duration} após a publicação (desde {date}), nas condições do registro abaixo.",
+    wlWhyStatuteNoDelay:
+      "Permitido por lei — {instrument} ({country}): o manuscrito aceito assim que a editora o aceita, nas condições do registro abaixo.",
     wlChipDeposit: "Depositar em {destination}",
     wlChipDepositIf: "Depositar em {destination} se permitido",
     wlChipHint: "Abre este trabalho na aba Acesso aberto",
@@ -1624,9 +1687,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "Posizioni attuali senza scheda dell’istituzione",
     wlPositionsHelp:
       "Nessuna scheda ROR è stata trovata. Aggiungi l’organizzazione a questa posizione su ORCID, poi sincronizza di nuovo.",
-    wlClosedHeading: "Lavori senza copia aperta trovata",
+    wlClosedHeading: "Articoli che puoi depositare ora",
     wlClosedHelp:
-      "OpenAlex non ha trovato alcuna copia aperta; un deposito in un repository potrebbe essere possibile: verifica la politica della rivista.",
+      "SigmaCV non ha trovato alcuna copia aperta, e la politica dell’editore o la legge ti permettono di depositarne una versione oggi.",
     wlStateOpenCc: "Aperto, licenza Creative Commons",
     wlStateOpenOther: "Aperto, altra licenza o licenza sconosciuta",
     wlStateClosed: "Nessuna copia aperta trovata",
@@ -1701,6 +1764,14 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiato",
     wlRowDetails: "Politica registrata, diritti e note per il modulo",
     wlOpensNewTab: "Si apre in una nuova scheda",
+    wlWhyPublisher:
+      "Consentito dalla politica dell’editore: {version}, secondo la scheda OA.Works del {date}.",
+    wlWhyEmbargoEnded: "L’embargo è terminato il {date}.",
+    wlWhyNoEmbargo: "Nessun embargo.",
+    wlWhyStatute:
+      "Consentito dalla legge — {instrument} ({country}): il manoscritto accettato, {duration} dopo la pubblicazione (dal {date}), alle condizioni della scheda qui sotto.",
+    wlWhyStatuteNoDelay:
+      "Consentito dalla legge — {instrument} ({country}): il manoscritto accettato appena l’editore lo accetta, alle condizioni della scheda qui sotto.",
     wlChipDeposit: "Depositare in {destination}",
     wlChipDepositIf: "Depositare in {destination} se consentito",
     wlChipHint: "Apre questo lavoro nella scheda Accesso aperto",
@@ -1812,9 +1883,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "기관 레코드가 없는 현재 직위",
     wlPositionsHelp:
       "일치하는 ROR 레코드가 없습니다. ORCID에서 이 직위에 기관을 추가한 뒤 다시 동기화하세요.",
-    wlClosedHeading: "공개 사본을 찾지 못한 연구물",
+    wlClosedHeading: "지금 기탁할 수 있는 논문",
     wlClosedHelp:
-      "OpenAlex가 공개 사본을 찾지 못했습니다. 리포지터리 기탁이 가능할 수 있습니다 — 학술지의 정책을 확인하세요.",
+      "SigmaCV가 공개된 사본을 찾지 못했으며, 출판사 정책이나 법률에 따라 오늘 한 버전을 기탁할 수 있습니다.",
     wlStateOpenCc: "공개, 크리에이티브 커먼즈 라이선스",
     wlStateOpenOther: "공개, 기타 또는 알 수 없는 라이선스",
     wlStateClosed: "공개 사본을 찾지 못함",
@@ -1883,6 +1954,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI 복사됨",
     wlRowDetails: "정책 기록, 권리, 양식 안내",
     wlOpensNewTab: "새 탭에서 열립니다",
+    wlWhyPublisher: "출판사 정책으로 허용: {version}, OA.Works의 {date} 기록 기준.",
+    wlWhyEmbargoEnded: "엠바고는 {date}에 끝났습니다.",
+    wlWhyNoEmbargo: "엠바고 없음.",
+    wlWhyStatute:
+      "법률로 허용 — {instrument}({country}): 게재 후 {duration}이 지난 수락 원고({date}부터), 아래 기록의 조건에 따라.",
+    wlWhyStatuteNoDelay:
+      "법률로 허용 — {instrument}({country}): 출판사가 수락한 즉시 수락 원고를, 아래 기록의 조건에 따라.",
     wlChipDeposit: "{destination}에 기탁",
     wlChipDepositIf: "허용되는 경우 {destination}에 기탁",
     wlChipHint: "이 저작물을 오픈 액세스 탭에서 엽니다",
@@ -1994,9 +2072,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPositionsHeading: "Текущие должности без записи об организации",
     wlPositionsHelp:
       "Запись ROR не найдена. Добавьте организацию к этой должности в ORCID и синхронизируйте снова.",
-    wlClosedHeading: "Работы, для которых не найдена открытая копия",
+    wlClosedHeading: "Статьи, которые вы можете разместить сейчас",
     wlClosedHelp:
-      "OpenAlex не нашёл открытой копии; возможно, доступно размещение в репозитории — проверьте политику журнала.",
+      "SigmaCV не нашёл открытой копии, а политика издателя или закон позволяют вам разместить одну из версий уже сегодня.",
     wlStateOpenCc: "Открыто, лицензия Creative Commons",
     wlStateOpenOther: "Открыто, другая или неизвестная лицензия",
     wlStateClosed: "Открытая копия не найдена",
@@ -2070,6 +2148,13 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI скопирован",
     wlRowDetails: "Запись о политике, права и заметки к форме",
     wlOpensNewTab: "Откроется в новой вкладке",
+    wlWhyPublisher: "Разрешено политикой издателя: {version}, по записи OA.Works от {date}.",
+    wlWhyEmbargoEnded: "Эмбарго закончилось {date}.",
+    wlWhyNoEmbargo: "Без эмбарго.",
+    wlWhyStatute:
+      "Разрешено законом — {instrument} ({country}): принятая рукопись через {duration} после публикации (с {date}), на условиях записи ниже.",
+    wlWhyStatuteNoDelay:
+      "Разрешено законом — {instrument} ({country}): принятая рукопись сразу после принятия издателем, на условиях записи ниже.",
     wlChipDeposit: "Разместить в {destination}",
     wlChipDepositIf: "Разместить в {destination}, если это разрешено",
     wlChipHint: "Открывает эту работу на вкладке «Открытый доступ»",

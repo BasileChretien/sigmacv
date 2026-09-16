@@ -89,12 +89,13 @@ beforeAll(() => {
 afterEach(cleanup);
 
 describe("Deposit chip on a publication row", () => {
-  it("names the destination on a closed journal article only, and 'if allowed' when the record allows no deposit", () => {
+  it("names the destination on a closed journal article only, and 'if allowed' when the record names another place", () => {
     renderEditor(
       makeCv([
         work("W-closed"),
         work("W-open", { oaIsOpen: true }),
-        work("W-if", { selfArchiving: record({ canArchive: false }) }),
+        // A place the record does not name, and the French right not yet run.
+        work("W-if", { year: 2026, selfArchiving: record({ locations: ["Preprint Server"] }) }),
       ]),
     );
     expect(chips().map((b) => b.textContent)).toEqual([

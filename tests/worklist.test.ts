@@ -249,26 +249,15 @@ describe("policyFinderUrl", () => {
 describe("hasWorklistContent", () => {
   it("is true when any group has a row, false otherwise", () => {
     const empty = { positionsWithoutRor: [], currentPositions: 1 };
-    const oaEmpty = {
-      rows: [{ itemId: "x", state: "open-cc" as const, funderNames: [] }],
-      counts: { "open-cc": 1, "open-other": 0, "no-open-copy-found": 0, "not-determined": 0 },
-      total: 1,
-    };
-    expect(hasWorklistContent(empty, oaEmpty)).toBe(false);
+    expect(hasWorklistContent(empty, 0)).toBe(false);
     expect(
-      hasWorklistContent({ ...empty, positionsWithoutRor: [{ itemId: "p", label: "X" }] }, oaEmpty),
+      hasWorklistContent({ ...empty, positionsWithoutRor: [{ itemId: "p", label: "X" }] }, 0),
     ).toBe(true);
-    expect(
-      hasWorklistContent(empty, {
-        ...oaEmpty,
-        counts: { ...oaEmpty.counts, "no-open-copy-found": 1 },
-      }),
-    ).toBe(true);
+    // A paper the owner can deposit today is a reason; a closed work with no
+    // ground is not (the list shows only what can be acted on).
+    expect(hasWorklistContent(empty, 1)).toBe(true);
     // A grant join is a reason.
-    expect(hasWorklistContent(empty, oaEmpty, 1)).toBe(true);
-    // The fourth reason: a ROR-linked current affiliation not yet listed
-    // under (the status line) — shown even when everything else is empty.
-    expect(hasWorklistContent(empty, oaEmpty, 0, true)).toBe(true);
-    expect(hasWorklistContent(empty, oaEmpty, 0, false)).toBe(false);
+    expect(hasWorklistContent(empty, 0, 1)).toBe(true);
+    expect(hasWorklistContent(empty, 0, 0)).toBe(false);
   });
 });

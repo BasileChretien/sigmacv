@@ -4783,6 +4783,10 @@ button.src-prov-chip.is-actionable:focus-visible {
 .cv-worklist-row-head {
   margin: 0;
 }
+/* The ground, in one sentence, under the action. */
+.cv-worklist-why {
+  margin: 0.15rem 0 0;
+}
 .cv-worklist-row-more {
   margin: 0.15rem 0 var(--space-2);
   font-size: var(--text-xs);

@@ -12,6 +12,7 @@ import {
   type DepositRoute,
 } from "@/lib/archiving/depositRoutes";
 import type { CanonicalCv, CvItem } from "@/lib/canonical/schema";
+import { isoToday, type DepositNow } from "@/lib/archiving/depositNow";
 import type { FunderRow } from "@/lib/funders/join";
 import type { Locale } from "@/lib/i18n";
 import { fill } from "@/lib/i18n/fill";
@@ -28,6 +29,10 @@ interface WorklistDepositProps {
   currentCountry?: string;
   /** The owner's funder crosswalk keyed by short OpenAlex funder id. */
   crosswalk: ReadonlyMap<string, FunderRow>;
+  /** The ground the deposit rests on today; a statutory ground names the accepted manuscript. */
+  now?: DepositNow;
+  /** Today as an ISO date — the panel's one clock, so the notes and the rows agree. */
+  today?: string;
   /** Whether a statutory rule is shown for this work (the "only if" wording names it). */
   hasStatutoryRight: boolean;
   /**
@@ -65,6 +70,8 @@ export default function WorklistDeposit({
   currentCountry,
   crosswalk,
   hasStatutoryRight,
+  now,
+  today = isoToday(),
   part,
   onCopied,
   newTabDescribedBy,
@@ -111,7 +118,7 @@ export default function WorklistDeposit({
     return (
       <div className="cv-worklist-deposit" data-worklist="deposit">
         <p className="cv-worklist-deposit-primary">
-          {line(primary, depositAction(item, primary, wu, hasStatutoryRight))}
+          {line(primary, depositAction(item, primary, wu, hasStatutoryRight, now))}
           {doi ? (
             <>
               {" "}
@@ -129,8 +136,8 @@ export default function WorklistDeposit({
     );
   }
 
-  const notes = depositNotes(item, primary, wu, locale, today());
-  if (!hasDepositDetails(item, [primary, ...others], locale)) return null;
+  const notes = depositNotes(item, primary, wu, locale, today, now);
+  if (!hasDepositDetails(item, [primary, ...others], locale, now, today)) return null;
   return (
     <div
       className="cv-worklist-deposit cv-worklist-deposit-details"
@@ -160,8 +167,6 @@ export default function WorklistDeposit({
   );
 }
 
-const today = () => new Date().toISOString().slice(0, 10);
-
 /**
  * Whether the details half has anything to show for these routes — form notes,
  * other places, or ShareYourPaper. The panel asks before rendering a row's
@@ -171,9 +176,11 @@ export function hasDepositDetails(
   item: CvItem,
   routes: readonly DepositRoute[],
   locale: Locale,
+  now?: DepositNow,
+  today: string = isoToday(),
 ): boolean {
   const [primary, ...others] = routes;
   if (!primary) return false;
   if (others.length > 0 || shareYourPaperHref(item.csl?.DOI?.trim() || undefined)) return true;
-  return depositNotes(item, primary, workspaceUi(locale), locale, today()).length > 0;
+  return depositNotes(item, primary, workspaceUi(locale), locale, today, now).length > 0;
 }

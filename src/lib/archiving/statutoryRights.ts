@@ -62,6 +62,10 @@ interface StatutoryEntryBase {
   appliesFrom?: string;
   /** The CSL item types the rule covers; absent = any type. */
   workTypes?: readonly string[];
+  /** An author right only: the longest delay the text sets before the author may
+   *  make the work public, in months from first publication (0 = none). The
+   *  worklist lists a work under the right once this has run (`depositNow`). */
+  delayMonths?: number;
   /** Short factual phrases in English, joined with "; " in the sentence. */
   statements: string[];
 }
@@ -96,6 +100,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
   {
     countryCode: "FR",
     kind: "author-right",
+    delayMonths: 12,
     instrument: "Code de la recherche, art. L533-4 (loi n° 2016-1321, art. 30)",
     sourceUrl: "https://www.legifrance.gouv.fr/codes/article_lc/LEGIARTI000033205794",
     sourceKind: "legal-text",
@@ -117,6 +122,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
   {
     countryCode: "DE",
     kind: "author-right",
+    delayMonths: 12,
     instrument: "Urheberrechtsgesetz (UrhG) § 38 Abs. 4",
     sourceUrl: "https://www.gesetze-im-internet.de/urhg/__38.html",
     sourceKind: "legal-text",
@@ -140,6 +146,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
   {
     countryCode: "AT",
     kind: "author-right",
+    delayMonths: 12,
     instrument: "Urheberrechtsgesetz (UrhG) § 37a",
     sourceUrl: "https://www.jusline.at/gesetz/urhg/paragraf/37a",
     sourceKind: "legal-text",
@@ -160,6 +167,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
   {
     countryCode: "NL",
     kind: "author-right",
+    delayMonths: 6,
     instrument: "Auteurswet, art. 25fa (Taverne amendment)",
     sourceUrl: "https://wetten.overheid.nl/BWBR0001886",
     sourceKind: "legal-text",
@@ -179,6 +187,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
   {
     countryCode: "BE",
     kind: "author-right",
+    delayMonths: 12,
     instrument: "Code de droit économique / Wetboek van economisch recht, art. XI.196 § 2/1",
     sourceUrl: "https://www.ejustice.just.fgov.be/eli/loi/2013/02/28/2013A11134/justel",
     sourceKind: "legal-text",
@@ -200,6 +209,7 @@ export const STATUTORY_ARCHIVING: readonly StatutoryArchivingEntry[] = [
   {
     countryCode: "BG",
     kind: "author-right",
+    delayMonths: 0,
     instrument:
       "Закон за авторското право и сродните му права, чл. 60, ал. 2–4 (ДВ, бр. 100 от 2023 г.)",
     sourceUrl: "https://dv.parliament.bg/DVWeb/showMaterialDV.jsp?idMat=201485",
