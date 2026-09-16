@@ -105,9 +105,6 @@ export default function WorklistPanel({
 }: WorklistPanelProps) {
   const wu = workspaceUi(locale);
   const gaps = useMemo(() => affiliationGaps(cv), [cv]);
-  // The closed journal articles the owner can deposit TODAY, with their ground —
-  // the worklist's rows, and the chips' (`depositChips` reads the same list).
-  const readyRows = useMemo(() => depositReadyRows(cv, today), [cv, today]);
   const crosswalk = useMemo(() => toCrosswalk(funderCrosswalk), [funderCrosswalk]);
   const funding = useMemo(() => joinOwnerFunding(cv, crosswalk), [cv, crosswalk]);
   // Which affiliation the deposit routes follow: the one printed on each paper by
@@ -132,6 +129,17 @@ export default function WorklistPanel({
     const timer = window.setTimeout(() => setAnnounce((a) => ({ text: "", tick: a.tick })), 2000);
     return () => window.clearTimeout(timer);
   }, [announce]);
+  // The closed journal articles the owner can deposit TODAY, with their ground —
+  // the worklist's rows, and the chips' (`depositChips` reads the same list).
+  const readyRows = useMemo(
+    () =>
+      depositReadyRows(cv, today, {
+        basis: depositBasis,
+        currentCountry: currentAffiliationCountry,
+        crosswalk,
+      }),
+    [cv, today, depositBasis, currentAffiliationCountry, crosswalk],
+  );
   // Rows in the order of what the owner can do now: a statutory ground or a
   // named version first, then no record, then "only if" — document order within
   // each. The rank reads the same routes the action shows, computed once per
@@ -140,10 +148,8 @@ export default function WorklistPanel({
   // does not re-route sixty works.
   const closedRows = useMemo(() => {
     const RANK: Record<DepositActionKind, number> = { version: 0, unrecorded: 1, conditional: 2 };
-    const ctx = { basis: depositBasis, currentCountry: currentAffiliationCountry, crosswalk };
     return readyRows
-      .map(({ row: r, item, now }, i) => {
-        const routes = depositRoutes(cv, item, ctx);
+      .map(({ row: r, item, now, routes }, i) => {
         return {
           r,
           i,
@@ -154,7 +160,7 @@ export default function WorklistPanel({
         };
       })
       .sort((a, b) => a.rank - b.rank || a.i - b.i);
-  }, [readyRows, cv, depositBasis, currentAffiliationCountry, crosswalk, locale, today]);
+  }, [readyRows, locale, today]);
   if (!hasWorklistContent(gaps, closedRows.length, funding.length)) {
     return whenEmpty;
   }

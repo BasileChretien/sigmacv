@@ -1,5 +1,7 @@
 import { itemEffectiveYear, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import { openAccessStates, type OpenAccessRow } from "@/lib/cv/worklist";
+import { depositRoutes, type DepositContext, type DepositRoute } from "./depositRoutes";
+import { placeFitsLocations, placeKindOf, type PlaceKind } from "./repositoryDirectory";
 import type { StatutoryArchivingEntry } from "./statutoryRights";
 
 /**
@@ -42,6 +44,8 @@ export interface DepositReadyRow {
   row: OpenAccessRow;
   item: CvItem;
   now: DepositNow;
+  /** The deposit routes (first = the action), when a context was given. */
+  routes: DepositRoute[];
 }
 
 const VERSION_ORDER: readonly DepositVersion[] = [
@@ -140,23 +144,30 @@ function byStatute(
 }
 
 /**
- * The ground on which `item` can be deposited today, or null. When both hold,
- * the one that allows the better version — a right to the accepted manuscript
- * outranks a record that allows only the submitted one.
+ * The ground on which `item` can be deposited today, or null. `place` is where
+ * the action would deposit: a recorded permission that does not cover that
+ * place is no ground for it — a right that has run is, whatever the record
+ * names. When both hold, the one allowing the better version wins (a right to
+ * the accepted manuscript outranks a record that allows only the submitted one).
  */
 export function depositNow(
   item: CvItem,
   statutory: readonly StatutoryArchivingEntry[],
   today: string,
+  place?: PlaceKind,
 ): DepositNow | null {
   const publisher = byPublisher(item, today);
   const statute = byStatute(item, statutory, today);
   if (!publisher) return statute;
-  if (
-    statute &&
-    VERSION_ORDER.indexOf(statute.version) < VERSION_ORDER.indexOf(publisher.version)
-  ) {
-    return statute;
+  if (statute) {
+    const covers =
+      place === undefined || placeFitsLocations(place, item.meta.selfArchiving!.locations);
+    if (
+      !covers ||
+      VERSION_ORDER.indexOf(statute.version) < VERSION_ORDER.indexOf(publisher.version)
+    ) {
+      return statute;
+    }
   }
   return publisher;
 }
@@ -166,10 +177,15 @@ export const isoToday = (): string => new Date().toISOString().slice(0, 10);
 
 /**
  * The worklist's rows: every countable journal article with no open copy found
- * that can be deposited today, in document order. The chips on the publication
- * rows read the same list, so the two never disagree.
+ * that can be deposited today, in document order, with its routes — the ground
+ * is judged for the action's place. The chips on the publication rows read the
+ * same list, so the two never disagree.
  */
-export function depositReadyRows(cv: CanonicalCv, today: string): DepositReadyRow[] {
+export function depositReadyRows(
+  cv: CanonicalCv,
+  today: string,
+  ctx: DepositContext,
+): DepositReadyRow[] {
   const itemsById = new Map<string, CvItem>(
     cv.sections.flatMap((s) => s.items).map((it) => [it.id, it]),
   );
@@ -178,8 +194,11 @@ export function depositReadyRows(cv: CanonicalCv, today: string): DepositReadyRo
     if (row.state !== "no-open-copy-found") continue;
     const item = depositCandidate(itemsById.get(row.itemId));
     if (!item) continue;
-    const now = depositNow(item, row.statutory, today);
-    if (now) ready.push({ row, item, now });
+    const routes = depositRoutes(cv, item, ctx);
+    /* v8 ignore next -- Zenodo closes every route list; kept for the type. */
+    if (!routes[0]) continue;
+    const now = depositNow(item, row.statutory, today, placeKindOf(routes[0].href));
+    if (now) ready.push({ row, item, now, routes });
   }
   return ready;
 }

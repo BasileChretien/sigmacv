@@ -118,6 +118,9 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // can show one (`depositChipContext.ts`).
   const [depositBasis, setDepositBasis] = useState<DepositBasis>("paper");
   const crosswalk = useMemo(() => toCrosswalk(funderCrosswalk), [funderCrosswalk]);
+  // One date for the chips and the worklist's rows, fixed for the mount: the
+  // two must never disagree, and a day rolling over mid-session is a reload away.
+  const [today] = useState(isoToday);
   const chips = useMemo(
     () =>
       anonymous
@@ -125,9 +128,9 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
         : depositChips(
             cv,
             { basis: depositBasis, currentCountry: currentAffiliationCountry, crosswalk },
-            isoToday(),
+            today,
           ),
-    [anonymous, cv, depositBasis, currentAffiliationCountry, crosswalk],
+    [anonymous, cv, depositBasis, currentAffiliationCountry, crosswalk, today],
   );
   // The reverse jump: a chip opens the Open access tab at that work's worklist
   // row. The panel is always mounted (only hidden), so one frame after the tab
@@ -212,6 +215,7 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       currentAffiliationCountry={currentAffiliationCountry}
       depositBasis={depositBasis}
       onDepositBasisChange={setDepositBasis}
+      today={today}
       onJump={jumpToItem}
       defaultOpen={variant === "regions"}
       whenEmpty={

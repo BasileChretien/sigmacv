@@ -157,6 +157,19 @@ describe("WorklistPanel — the deposit action", () => {
       "Deposit in Zenodo only if your publishing agreement allows it",
     );
     rendered.unmount();
+    // The record names another place, and the French right HAS run (2023): the law
+    // is the ground for HAL, and the action names the accepted manuscript outright.
+    const covered = render(
+      <WorklistPanel
+        cv={makeCv(work({ selfArchiving: elsewhere, workCountries: ["FR"] }))}
+        locale="en-US"
+      />,
+    );
+    expect(primaryText(covered.container)).toContain("Deposit the accepted manuscript in HAL");
+    expect(covered.container.querySelector('[data-worklist="why"]')!.textContent).toContain(
+      "Allowed by law",
+    );
+    covered.unmount();
     // A refusal on record, but the French right has run: the law is the ground,
     // and the action names the accepted manuscript outright.
     const refused = { ...ACCEPTED, canArchive: false, versions: [], locations: [] };

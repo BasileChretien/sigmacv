@@ -1,11 +1,6 @@
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { depositCandidate, depositReadyRows } from "./depositNow";
-import {
-  depositActionKind,
-  depositRoutes,
-  type DepositActionKind,
-  type DepositContext,
-} from "./depositRoutes";
+import { depositActionKind, type DepositActionKind, type DepositContext } from "./depositRoutes";
 
 export { depositCandidate };
 
@@ -33,10 +28,8 @@ export function depositChips(
   today: string,
 ): ReadonlyMap<string, DepositChip> {
   const chips = new Map<string, DepositChip>();
-  for (const { row, item, now } of depositReadyRows(cv, today)) {
-    const [primary] = depositRoutes(cv, item, ctx);
-    /* v8 ignore next -- Zenodo closes every route list; kept for the type. */
-    if (!primary) continue;
+  for (const { row, item, now, routes } of depositReadyRows(cv, today, ctx)) {
+    const primary = routes[0]!;
     chips.set(row.itemId, {
       destination: primary.destination,
       kind: now.basis === "statute" ? "version" : depositActionKind(item, primary),

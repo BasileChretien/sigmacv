@@ -7,6 +7,7 @@ import {
   publishedBy,
   publishedFrom,
 } from "@/lib/archiving/depositNow";
+import type { DepositContext } from "@/lib/archiving/depositRoutes";
 import { STATUTORY_ARCHIVING, statutoryArchivingFor } from "@/lib/archiving/statutoryRights";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 
@@ -45,6 +46,7 @@ function work(meta: CvItem["meta"] = {}, csl: Record<string, unknown> = {}): CvI
 const entry = (code: string) => STATUTORY_ARCHIVING.find((e) => e.countryCode === code)!;
 const FR = [entry("FR")];
 const TODAY = "2026-09-16";
+const CTX: DepositContext = { basis: "paper", crosswalk: new Map() };
 
 describe("publishedBy / addMonths", () => {
   it("fills the publication date to the end of what is known", () => {
@@ -218,6 +220,24 @@ describe("depositNow — a statutory right", () => {
     ).toBe("publisher");
   });
 
+  it("judges a recorded permission for the action's place: a right that has run covers HAL when the record names only a preprint server", () => {
+    const elsewhere = record({ locations: ["Preprint Server"] });
+    expect(
+      depositNow(work({ year: 2020, selfArchiving: elsewhere }), FR, TODAY, "hal")?.basis,
+    ).toBe("statute");
+    // Without a place to judge, the record stands; where it covers the place too, it wins.
+    expect(depositNow(work({ year: 2020, selfArchiving: elsewhere }), FR, TODAY)?.basis).toBe(
+      "publisher",
+    );
+    expect(
+      depositNow(work({ year: 2020, selfArchiving: elsewhere }), FR, TODAY, "arxiv")?.basis,
+    ).toBe("publisher");
+    // No right: the record is the only ground, whatever the place — the action then says "only if".
+    expect(
+      depositNow(work({ year: 2020, selfArchiving: elsewhere }), [], TODAY, "hal")?.basis,
+    ).toBe("publisher");
+  });
+
   it("carries the delays the table sets", () => {
     const delays = Object.fromEntries(
       STATUTORY_ARCHIVING.filter((e) => e.kind === "author-right").map((e) => [
@@ -261,12 +281,14 @@ describe("depositReadyRows", () => {
         },
       ]),
       TODAY,
+      CTX,
     );
     expect(ready.map((r) => [r.row.itemId, r.now.basis])).toEqual([
       ["W-fr", "statute"],
       ["W-rec", "publisher"],
     ]);
     expect(ready[0]!.item.id).toBe("W-fr");
+    expect(ready[0]!.routes[0]!.destination).toBe("HAL");
     expect(ready[0]!.row.statutory).toEqual(
       statutoryArchivingFor(["FR"], { year: 2023, type: "article-journal" }),
     );
