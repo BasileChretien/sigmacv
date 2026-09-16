@@ -1,4 +1,9 @@
-import { degreeLabel, renderStrings, supervisionRoleLabel } from "@/lib/i18n/render";
+import {
+  degreeLabel,
+  renderStrings,
+  superviseeNoun,
+  supervisionRoleLabel,
+} from "@/lib/i18n/render";
 import { proseStarterStrings, type ProseStarterStrings } from "@/lib/i18n/proseStarter";
 import {
   PROSE_BODY_MAX,
@@ -230,18 +235,25 @@ function contributionsDraft(cv: CanonicalCv, s: ProseStarterStrings): string {
   return paragraphs(s.draftNote, s.contribIntro, ...stubs);
 }
 
-/** One supervision record as a bullet: "PhD, primary supervisor: Name (thesis; institution; years)". */
+/**
+ * One supervision record as a bullet: "PhD, primary supervisor: Name (thesis;
+ * institution; years)". The supervisee's name is third-party personal data: when
+ * the owner has `display.hideSuperviseeNames` on, the degree-level noun stands in
+ * for it, exactly as the supervision renderer does, so a draft the owner keeps
+ * cannot leak a name the toggle hides everywhere else.
+ */
 function supervisionBullet(cv: CanonicalCv, item: CvItem, s: ProseStarterStrings): string {
   if (!hasStructuredSupervision(item)) return textBullet(item);
   const rs = renderStrings(cv.display.locale);
   const m = item.meta;
+  const hideNames = cv.display.hideSuperviseeNames === true;
   const lead = [
     m.degreeLevel ? degreeLabel(rs, m.degreeLevel) : "",
     m.supervisionRole ? supervisionRoleLabel(rs, m.supervisionRole) : "",
   ]
     .filter(Boolean)
     .join(", ");
-  const name = m.superviseeName?.trim();
+  const name = hideNames ? superviseeNoun(rs, m.degreeLevel) : m.superviseeName?.trim();
   const tail = [
     m.thesisTitle?.trim(),
     itemInstitution(item)?.trim(),
@@ -281,8 +293,10 @@ function recordsDraft(
   );
 }
 
-/** The heading the CV gives a list section (its current title), else the type. */
+/** The heading the CV gives a list section (its current title). An item of `type`
+ *  only ever lives in a section of that type, so the section always exists. */
 function sectionHeading(cv: CanonicalCv, type: CvSectionType): string {
+  /* v8 ignore next -- a section holding the items always exists */
   return cv.sections.find((s) => s.type === type)?.title ?? type;
 }
 

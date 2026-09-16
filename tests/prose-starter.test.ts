@@ -266,6 +266,24 @@ describe("starter drafts for the prose sections", () => {
   });
 });
 
+describe("supervisee names in the people draft", () => {
+  it("stand in with the degree-level noun when the owner hides supervisee names, in the CV's language", () => {
+    const hidden = {
+      ...makeCv("fr-FR"),
+      display: { ...makeCv("fr-FR").display, hideSuperviseeNames: true },
+    };
+    const body = starterProseBody(hidden, "narrative-individuals");
+    expect(body).not.toContain("Priya Kaur");
+    expect(body).toMatch(
+      /- Doctorat, [^:]+: [^(]+ \(Université du Saint-Laurent; 2021–aujourd'hui\)/,
+    );
+    // Free-text supervision lines (no structured record) are the owner's own words and pass through.
+    expect(body).toContain("- Stagiaires de premier cycle (6)");
+    // With the toggle off the name is printed, as the FRQ asks.
+    expect(starterProseBody(makeCv("fr-FR"), "narrative-individuals")).toContain("Priya Kaur");
+  });
+});
+
 describe("prefillEmptyProse", () => {
   it("fills the empty visible prose sections a layout shows, leaves written ones and hidden ones alone, and is immutable", () => {
     const applied = applyCvModel(makeCv("fr-FR"), "frq");
