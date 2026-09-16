@@ -517,6 +517,9 @@ const BOUNDED_ENRICHMENT_KEYS = [
   "selfArchiving",
   "selfArchivingCheckedAt",
   "selfArchivingTriedAt",
+  "repositoryCopies",
+  "repositoryCopiesCheckedAt",
+  "repositoryCopiesTriedAt",
 ] as const satisfies readonly (keyof CvItem["meta"])[];
 
 /** {@link BOUNDED_ENRICHMENT_KEYS} carried from `prev` (defined values only). */
@@ -2090,6 +2093,10 @@ function buildWorkCvItem(
             selfArchiving: undefined,
             selfArchivingCheckedAt: undefined,
             selfArchivingTriedAt: undefined,
+            // The repository copies are DOI-keyed too.
+            repositoryCopies: undefined,
+            repositoryCopiesCheckedAt: undefined,
+            repositoryCopiesTriedAt: undefined,
           }
         : {}),
       year: work.publication_year ?? undefined,

@@ -52,6 +52,9 @@ export interface DepositRoute {
   destination: string;
   href: string;
   reason: { key: ReasonKey; params: Readonly<Record<string, string>> };
+  /** HAL already holds a notice of this work without a file: `href` is that
+   *  notice, and the action is to add the file to it. */
+  notice?: { id: string; url: string };
 }
 
 export interface DepositContext {
@@ -138,6 +141,18 @@ export function depositRoutes(cv: CanonicalCv, item: CvItem, ctx: DepositContext
     href: ZENODO.href,
     reason: zenodoReason(routes.length, country, ctx.basis),
   });
+  // A HAL notice without a file (the owner sync's repository-copies pass): the
+  // HAL route goes to that notice — a fresh deposit would duplicate it.
+  const notice = (item.meta.repositoryCopies ?? []).find(
+    (copy) => copy.source === "hal" && !copy.hasFile,
+  );
+  if (notice) {
+    return routes.map((route) =>
+      route.href === HAL.href
+        ? { ...route, href: notice.url, notice: { id: notice.id, url: notice.url } }
+        : route,
+    );
+  }
   return routes;
 }
 
@@ -211,6 +226,12 @@ export function depositActionKind(item: CvItem, route: DepositRoute): DepositAct
     : "unrecorded";
 }
 
+const VERSION_LABEL = {
+  submittedVersion: "wlArchivingVersionSubmitted",
+  acceptedVersion: "wlArchivingVersionAccepted",
+  publishedVersion: "wlArchivingVersionPublished",
+} as const satisfies Record<Version, keyof WorkspaceUiStrings>;
+
 export function depositAction(
   item: CvItem,
   route: DepositRoute,
@@ -219,6 +240,15 @@ export function depositAction(
   now?: DepositNow,
 ): string {
   const destination = route.destination;
+  // HAL holds a notice of the work without a file: the action is to add the
+  // file — the version the ground allows — to it.
+  if (route.notice) {
+    const version = now?.version ?? "acceptedVersion";
+    return fill(wu.wlDepositHalNotice, {
+      version: wu[VERSION_LABEL[version]],
+      id: route.notice.id,
+    });
+  }
   // A statutory right that has run names the accepted manuscript outright —
   // the ground is the law, whatever the publisher records.
   if (now?.basis === "statute" && route.kind !== "funder") {
@@ -288,6 +318,7 @@ export function depositNotes(
   const hasDoi = Boolean(item.csl?.DOI?.trim());
   if (hasDoi && route.href === ZENODO.href) notes.push(wu.wlDepositZenodoDoi);
   if (hasDoi && route.href === HAL.href) notes.push(wu.wlDepositHalDoi);
+  if (route.notice) notes.push(wu.wlDepositHalNoticeNote);
   return notes;
 }
 

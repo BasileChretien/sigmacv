@@ -45,7 +45,8 @@ const KNOWN_DESTINATIONS: ReadonlyMap<string, DepositDestination> = new Map([
 export type PlaceKind = "hal" | "zenodo" | "arxiv" | "other";
 
 export function placeKindOf(href: string): PlaceKind {
-  if (href === HAL.href) return "hal";
+  // A HAL notice page (the action "add the file to hal-…") is HAL too.
+  if (href === HAL.href || href.startsWith("https://hal.science/")) return "hal";
   if (href === ZENODO.href) return "zenodo";
   if (href === ARXIV.href) return "arxiv";
   return "other";

@@ -73,6 +73,27 @@ A `maintainer-pending` entry is recorded but **never routed to**: confirm it on 
 
 UKRI is deliberately absent: its policy asks for a repository without naming one, so the own / national / Zenodo rules apply.
 
+## Already in a repository — the copies the owner sync finds
+
+OpenAlex, whose word "no open copy" was, misses deposits routinely: on one CV read on 2026-09-16, 17 of 51 closed articles had a HAL record it did not know — 3 with a file (one since 2021), 14 notices without one — and Unpaywall saw none of them either. So the owner sync (`archiving/repositoryCopiesPass.ts`, never the anonymous preview) asks the repositories themselves: one closed journal article with a DOI at a time, the sources below in order, stopping at the first that holds a **file**. What they answer is stored on the item as `meta.repositoryCopies` (source, id, link, whether a file is open on it, the host's name, the date recorded) with the same attempt / answer stamps as the OA.Works record, and is stripped from every public surface with it (`tests/repository-copies-fields.test.ts`).
+
+| Source     | Call (keyless; the `mailto` travels in the User-Agent)               | A copy is                                                        | A file is                               |
+| ---------- | -------------------------------------------------------------------- | ---------------------------------------------------------------- | --------------------------------------- |
+| HAL        | `api.archives-ouvertes.fr/search/?q=doiId_s:"<doi>"`                 | each record for the DOI, the ones with a file first              | `openAccess_bool`                       |
+| Europe PMC | `www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:<doi>`    | a result with `inEPMC` = Y and a PMCID                           | always — the full text is in Europe PMC |
+| OpenAIRE   | `api.openaire.eu/search/publications?doi=<doi>`                      | an OPEN instance whose link is not the DOI, named after its host | always                                  |
+| Zenodo     | `zenodo.org/api/records?q=related.identifier:"<doi>" OR doi:"<doi>"` | a record carrying or citing the DOI                              | `access_right` = open                   |
+
+Bounds: at most 20 works per sync inside 12 seconds of wall clock, the never-examined works first, then the ones answered longest ago; a work answered within 7 days is not asked again; at most 3 copies kept per source and 8 per work; Zenodo calls are spaced 1.1 seconds apart (its guest limit — it answers 429 at two calls a second). A source that fails with nothing found stamps the attempt only, keeps the old copies, and is retried behind the never-examined works; copies found before a later failure count as an answer. A work that stops being a candidate (turns open, loses its DOI, changes type) loses its copies, and a corrected DOI drops them at the next build.
+
+What the worklist does with them:
+
+- **A copy with a file anywhere** — the paper is open in a repository, whatever OpenAlex says: it leaves both lists of the Open access tab (`inRepositoryAlready` in `depositNow.ts`). It is the only ground on which a closed paper is dropped without a deposit.
+- **A HAL notice without a file** — the HAL route goes to that notice instead of the deposit form (`DepositRoute.notice`), a fresh deposit would duplicate it. The action reads "Add the _version_ to your HAL notice hal-…" with the version the ground allows, and the form note says why; the paste-the-DOI note is not shown. The notice page counts as HAL for the record's locations and the per-paper chips (`placeKindOf`).
+- A notice in Europe PMC, OpenAIRE or Zenodo without a file changes nothing: none of them takes a file added to someone else's record.
+
+Known limitations: a Zenodo record that only _cites_ the DOI (a dataset, a slide deck) matches the `related.identifier` clause — the repository is asked last, so a file found earlier wins, and an open unrelated record would wrongly drop the paper; OpenAIRE's "OPEN" instance may be a mirror of the publisher's page rather than a deposit; the pass runs only on a sync, so the lists update as the owner syncs, twenty works at a time.
+
 ## Analytics
 
 A click on any place sends one cookieless Plausible event, `Deposit route`, with a single property `kind` (`funder`, `own`, `national`, `zenodo` or `shareyourpaper`) — never the DOI, the destination or anything about the person (`src/lib/analytics/track.ts`). To see it in Plausible, add a custom-event goal named `Deposit route` and the custom property `kind`.

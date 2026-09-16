@@ -26,6 +26,7 @@ import { buildCanonicalCv } from "@/lib/canonical/build";
 import { attachDataciteLinks } from "@/lib/canonical/dataLinks";
 import { enrichCvWithSelfArchiving } from "@/lib/archiving/selfArchivingPass";
 import { enrichCvWithDepositRepositories } from "@/lib/archiving/depositRepositoriesPass";
+import { enrichCvWithRepositoryCopies } from "@/lib/archiving/repositoryCopiesPass";
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
@@ -644,7 +645,12 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // The places the owner's works already sit, for the worklist's deposit routes:
   // two small OpenAlex calls, weekly, fail-soft (`archiving/depositRepositoriesPass.ts`).
   // Owner sync only, like the pass above.
-  const cv = await enrichCvWithDepositRepositories(withRights);
+  const withPlaces = await enrichCvWithDepositRepositories(withRights);
+  // Whether a closed article already sits in a repository OpenAlex does not know
+  // (HAL, Europe PMC, OpenAIRE, Zenodo): one work at a time, capped, budgeted,
+  // fail-soft (`archiving/repositoryCopiesPass.ts`). Owner sync only, like the
+  // two passes above; adds or removes no item.
+  const cv = await enrichCvWithRepositoryCopies(withPlaces, getEnv().OPENALEX_MAILTO);
 
   // The OAI affiliation-set key follows the document on every write (see
   // `currentRorKey`): a re-sync that changes or drops the current position

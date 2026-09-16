@@ -55,6 +55,14 @@ const VERSION_ORDER: readonly DepositVersion[] = [
   "submittedVersion",
 ];
 
+/**
+ * A copy with a FILE in a repository the owner sync found (`meta.repositoryCopies`):
+ * the paper is open there, whatever OpenAlex says — nothing to deposit.
+ */
+export function inRepositoryAlready(item: Pick<CvItem, "meta">): boolean {
+  return (item.meta.repositoryCopies ?? []).some((copy) => copy.hasFile);
+}
+
 /** A closed journal article gets a deposit action; nothing else does. */
 export function depositCandidate(item: CvItem | undefined): CvItem | undefined {
   return item?.csl?.type === "article-journal" ? item : undefined;
@@ -219,7 +227,7 @@ function collectRows(
   const ready: DepositReadyRow[] = [];
   for (const row of openAccessStates(cv).rows) {
     const item = depositCandidate(itemsById.get(row.itemId));
-    if (!item || !wanted(row, item)) continue;
+    if (!item || !wanted(row, item) || inRepositoryAlready(item)) continue;
     const routes = depositRoutes(cv, item, ctx);
     /* v8 ignore next -- Zenodo closes every route list; kept for the type. */
     if (!routes[0]) continue;

@@ -200,6 +200,10 @@ export interface WorkspaceUiStrings {
   wlDepositZenodoDoi: string;
   /** Form note for HAL: paste the DOI where the form loads metadata from an identifier. HAL ignores a DOI in the link (checked 2026-09-15). Only HAL's French labels were read, so fr-FR quotes them and the other locales describe the box. */
   wlDepositHalDoi: string;
+  /** HAL already holds a notice of the work without a file: {version}, {id} = the notice. */
+  wlDepositHalNotice: string;
+  /** The form note beside it. */
+  wlDepositHalNoticeNote: string;
   /** Disclosure summary listing the remaining places. */
   wlDepositOtherPlaces: string;
   /** Button: copy the work's DOI to paste into a deposit form. */
@@ -402,6 +406,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "In Zenodo, answer “No” to “Do you already have a DOI for this upload?” and add this DOI under “Related works”.",
     wlDepositHalDoi:
       "In HAL's form, paste this DOI into the box that loads metadata from an identifier and fetch the metadata: HAL fills in the form from it.",
+    wlDepositHalNotice: "Add the {version} to your HAL notice {id}",
+    wlDepositHalNoticeNote:
+      "HAL already has a notice of this paper without a file: add the file to it rather than making a new deposit.",
     wlDepositOtherPlaces: "Other places",
     wlDepositCopyDoi: "Copy DOI",
     wlDepositDoiCopied: "DOI copied",
@@ -563,6 +570,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "在 Zenodo 中，对“Do you already have a DOI for this upload?”选择“No”，并在“Related works”中添加此 DOI。",
     wlDepositHalDoi:
       "在 HAL 的表单中，将此 DOI 粘贴到通过标识符加载元数据的输入框，并获取元数据：HAL 会据此填写表单。",
+    wlDepositHalNotice: "将{version}添加到您的 HAL 记录 {id}",
+    wlDepositHalNoticeNote:
+      "HAL 已有这篇论文的记录但没有文件：请将文件添加到该记录，而不要新建存缴。",
     wlDepositOtherPlaces: "其他存缴去处",
     wlDepositCopyDoi: "复制 DOI",
     wlDepositDoiCopied: "已复制 DOI",
@@ -738,6 +748,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "En Zenodo, responde «No» a «Do you already have a DOI for this upload?» y añade este DOI en «Related works».",
     wlDepositHalDoi:
       "En el formulario de HAL, pega este DOI en la casilla que carga los metadatos a partir de un identificador y recupera los metadatos: HAL rellena el formulario con ellos.",
+    wlDepositHalNotice: "Añada el {version} a su registro HAL {id}",
+    wlDepositHalNoticeNote:
+      "HAL ya tiene un registro de este artículo sin archivo: añada el archivo a ese registro en lugar de hacer un depósito nuevo.",
     wlDepositOtherPlaces: "Otros lugares",
     wlDepositCopyDoi: "Copiar DOI",
     wlDepositDoiCopied: "DOI copiado",
@@ -920,6 +933,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Dans Zenodo, répondez « No » à « Do you already have a DOI for this upload? » et ajoutez ce DOI dans « Related works ».",
     wlDepositHalDoi:
       "Dans le formulaire de HAL, collez ce DOI sous « Chargez les métadonnées à partir d'un identifiant » puis cliquez sur « Récupérer les métadonnées » : HAL remplit le formulaire à partir de ces informations.",
+    wlDepositHalNotice: "Ajoutez le {version} à votre notice HAL {id}",
+    wlDepositHalNoticeNote:
+      "HAL a déjà une notice de cet article sans fichier : ajoutez-y le fichier plutôt que de créer un nouveau dépôt.",
     wlDepositOtherPlaces: "Autres lieux de dépôt",
     wlDepositCopyDoi: "Copier le DOI",
     wlDepositDoiCopied: "DOI copié",
@@ -1102,6 +1118,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Antworten Sie in Zenodo auf „Do you already have a DOI for this upload?“ mit „No“ und fügen Sie diese DOI unter „Related works“ hinzu.",
     wlDepositHalDoi:
       "Fügen Sie diese DOI im HAL-Formular in das Feld ein, das Metadaten aus einer Kennung lädt, und rufen Sie die Metadaten ab: HAL füllt das Formular damit aus.",
+    wlDepositHalNotice: "Fügen Sie das {version} Ihrem HAL-Eintrag {id} hinzu",
+    wlDepositHalNoticeNote:
+      "HAL hat bereits einen Eintrag zu diesem Artikel ohne Datei: Fügen Sie die Datei dort hinzu, statt neu zu hinterlegen.",
     wlDepositOtherPlaces: "Weitere Ablageorte",
     wlDepositCopyDoi: "DOI kopieren",
     wlDepositDoiCopied: "DOI kopiert",
@@ -1279,6 +1298,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Zenodo では「Do you already have a DOI for this upload?」に「No」と答え、この DOI を「Related works」に追加してください。",
     wlDepositHalDoi:
       "HAL の登録フォームでは、識別子からメタデータを読み込む欄にこの DOI を貼り付けて、メタデータを取得してください。HAL がその情報でフォームを入力します。",
+    wlDepositHalNotice: "{version}を HAL のレコード {id} に追加",
+    wlDepositHalNoticeNote:
+      "HAL にはこの論文のファイルなしのレコードが既にあります。新規登録ではなく、そのレコードにファイルを追加してください。",
     wlDepositOtherPlaces: "その他の登録先",
     wlDepositCopyDoi: "DOI をコピー",
     wlDepositDoiCopied: "DOI をコピーしました",
@@ -1457,6 +1479,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "No Zenodo, responda “No” à pergunta “Do you already have a DOI for this upload?” e adicione este DOI em “Related works”.",
     wlDepositHalDoi:
       "No formulário do HAL, cole este DOI no campo que carrega metadados a partir de um identificador e recupere os metadados: o HAL preenche o formulário com eles.",
+    wlDepositHalNotice: "Adicione o {version} ao seu registro HAL {id}",
+    wlDepositHalNoticeNote:
+      "O HAL já tem um registro deste artigo sem arquivo: adicione o arquivo a ele em vez de fazer um novo depósito.",
     wlDepositOtherPlaces: "Outros lugares",
     wlDepositCopyDoi: "Copiar DOI",
     wlDepositDoiCopied: "DOI copiado",
@@ -1637,6 +1662,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Su Zenodo, rispondi “No” a “Do you already have a DOI for this upload?” e aggiungi questo DOI in “Related works”.",
     wlDepositHalDoi:
       "Nel modulo di HAL, incolla questo DOI nel campo che carica i metadati da un identificativo e recupera i metadati: HAL compila il modulo con questi dati.",
+    wlDepositHalNotice: "Aggiungi il {version} alla tua scheda HAL {id}",
+    wlDepositHalNoticeNote:
+      "HAL ha già una scheda di questo articolo senza file: aggiungi il file a quella scheda invece di fare un nuovo deposito.",
     wlDepositOtherPlaces: "Altri archivi",
     wlDepositCopyDoi: "Copia DOI",
     wlDepositDoiCopied: "DOI copiato",
@@ -1812,6 +1840,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "Zenodo에서 “Do you already have a DOI for this upload?”에 “No”로 답하고 이 DOI를 “Related works”에 추가하세요.",
     wlDepositHalDoi:
       "HAL 기탁 양식에서 식별자로 메타데이터를 불러오는 칸에 이 DOI를 붙여 넣고 메타데이터를 가져오세요. HAL이 그 정보로 양식을 채웁니다.",
+    wlDepositHalNotice: "{version}을 HAL 레코드 {id}에 추가",
+    wlDepositHalNoticeNote:
+      "HAL에 이미 파일 없는 이 논문의 레코드가 있습니다. 새로 기탁하지 말고 그 레코드에 파일을 추가하세요.",
     wlDepositOtherPlaces: "다른 기탁처",
     wlDepositCopyDoi: "DOI 복사",
     wlDepositDoiCopied: "DOI 복사됨",
@@ -1990,6 +2021,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "В Zenodo ответьте «No» на вопрос «Do you already have a DOI for this upload?» и добавьте этот DOI в раздел «Related works».",
     wlDepositHalDoi:
       "В форме HAL вставьте этот DOI в поле загрузки метаданных по идентификатору и получите метаданные: HAL заполнит форму на их основе.",
+    wlDepositHalNotice: "Добавьте {version} к своей записи HAL {id}",
+    wlDepositHalNoticeNote:
+      "В HAL уже есть запись об этой статье без файла: добавьте файл к ней, а не создавайте новое размещение.",
     wlDepositOtherPlaces: "Другие места размещения",
     wlDepositCopyDoi: "Копировать DOI",
     wlDepositDoiCopied: "DOI скопирован",

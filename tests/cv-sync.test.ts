@@ -145,6 +145,11 @@ const depositRepositoriesPass = vi.hoisted(() => vi.fn(async (cv: unknown) => cv
 vi.mock("@/lib/archiving/depositRepositoriesPass", () => ({
   enrichCvWithDepositRepositories: depositRepositoriesPass,
 }));
+// And the repository-copies pass (repository-copies-pass.test.ts): a pass-through spy.
+const repositoryCopiesPass = vi.hoisted(() => vi.fn(async (cv: unknown, _mailto: string) => cv));
+vi.mock("@/lib/archiving/repositoryCopiesPass", () => ({
+  enrichCvWithRepositoryCopies: repositoryCopiesPass,
+}));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
@@ -407,6 +412,32 @@ describe("syncCvForUser", () => {
     depositRepositoriesPass.mockClear();
     await buildCvFromOrcid({ orcid: RESOLVED.orcid });
     expect(depositRepositoriesPass).not.toHaveBeenCalled();
+  });
+
+  it("runs the repository-copies pass after the repository pass on the owner sync, with the mailto — the preview build never runs it", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    depositRepositoriesPass.mockClear();
+    repositoryCopiesPass.mockClear();
+    depositRepositoriesPass.mockImplementationOnce(async (doc: unknown) => ({
+      ...(doc as CanonicalCv),
+      notes: "repositories",
+    }));
+    repositoryCopiesPass.mockImplementationOnce(async (doc: unknown) => ({
+      ...(doc as CanonicalCv),
+      notes: (doc as CanonicalCv).notes + " then copies",
+    }));
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(repositoryCopiesPass).toHaveBeenCalledTimes(1);
+    expect(repositoryCopiesPass.mock.calls[0]![1]).toBe(process.env.OPENALEX_MAILTO);
+    expect(cv.notes).toBe("repositories then copies");
+    const arg = mocks.upsert.mock.calls[0]![0] as { update: { document: CanonicalCv } };
+    expect(arg.update.document.notes).toBe("repositories then copies");
+
+    repositoryCopiesPass.mockClear();
+    await buildCvFromOrcid({ orcid: RESOLVED.orcid });
+    expect(repositoryCopiesPass).not.toHaveBeenCalled();
   });
 
   it("denormalises the current affiliation's ROR id on sync (and the resync that reuses it)", async () => {

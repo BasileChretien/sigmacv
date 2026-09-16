@@ -1576,6 +1576,50 @@
                     "selfArchivingTriedAt": {
                       "type": "string"
                     },
+                    "repositoryCopies": {
+                      "maxItems": 8,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "source": {
+                            "type": "string",
+                            "enum": ["hal", "europepmc", "openaire", "zenodo"]
+                          },
+                          "id": {
+                            "type": "string",
+                            "maxLength": 100
+                          },
+                          "url": {
+                            "type": "string",
+                            "maxLength": 2048,
+                            "pattern": "^https:\\/\\/"
+                          },
+                          "hasFile": {
+                            "type": "boolean"
+                          },
+                          "name": {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "recorded": {
+                            "type": "string",
+                            "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                          },
+                          "retrievedAt": {
+                            "type": "string",
+                            "maxLength": 64
+                          }
+                        },
+                        "required": ["source", "id", "url", "hasFile", "retrievedAt"]
+                      }
+                    },
+                    "repositoryCopiesCheckedAt": {
+                      "type": "string"
+                    },
+                    "repositoryCopiesTriedAt": {
+                      "type": "string"
+                    },
                     "workCountries": {
                       "maxItems": 10,
                       "type": "array",
