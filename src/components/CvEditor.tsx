@@ -2,8 +2,10 @@
 
 import {
   forwardRef,
+  useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
   type KeyboardEvent,
@@ -18,8 +20,11 @@ import ProfilePanel from "./ProfilePanel";
 import SectionsList, { type SectionsListHandle } from "./SectionsList";
 import StyleControls from "./StyleControls";
 import WorklistPanel from "./WorklistPanel";
+import { DepositChipsContext, type DepositChips } from "./depositChipContext";
+import { depositChips } from "@/lib/archiving/depositChips";
+import type { DepositBasis } from "@/lib/archiving/depositRoutes";
 import type { InstitutionListing } from "./InstitutionListingRow";
-import type { FunderRow } from "@/lib/funders/join";
+import { toCrosswalk, type FunderRow } from "@/lib/funders/join";
 
 /** The task clusters of the subdivided ("regions") editor layout. The fourth,
  *  "openAccess", holds the owner worklist — help with depositing closed papers,
@@ -110,6 +115,53 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
   // Bumped by jumpToPublicStyle() to (re)trigger the reveal effect below.
   const [publicStyleFocusTick, setPublicStyleFocusTick] = useState(0);
 
+  // The deposit routes' basis — each paper's affiliation, or the owner's
+  // current one — lives here so the chips on the publication rows and the
+  // worklist's actions read ONE choice. The chips exist for the owner only:
+  // the anonymous preview computes none and provides no context, so no row
+  // can show one (`depositChipContext.ts`).
+  const [depositBasis, setDepositBasis] = useState<DepositBasis>("paper");
+  const crosswalk = useMemo(() => toCrosswalk(funderCrosswalk), [funderCrosswalk]);
+  const chips = useMemo(
+    () =>
+      anonymous
+        ? null
+        : depositChips(cv, {
+            basis: depositBasis,
+            currentCountry: currentAffiliationCountry,
+            crosswalk,
+          }),
+    [anonymous, cv, depositBasis, currentAffiliationCountry, crosswalk],
+  );
+  // The reverse jump: a chip opens the Open access tab at that work's worklist
+  // row. The panel is always mounted (only hidden), so one frame after the tab
+  // switch the row is laid out; the panel's disclosure is opened in case the
+  // owner had folded it. A fresh object per jump re-runs the effect even for
+  // the row already focused.
+  const [worklistFocus, setWorklistFocus] = useState<{ itemId: string } | null>(null);
+  const jumpToWorklist = useCallback((itemId: string) => {
+    setActivePart("openAccess");
+    setWorklistFocus({ itemId });
+  }, []);
+  useEffect(() => {
+    if (!worklistFocus) return;
+    const frame = window.requestAnimationFrame(() => {
+      const row = [...document.querySelectorAll<HTMLElement>("[data-worklist-item]")].find(
+        (el) => el.dataset.worklistItem === worklistFocus.itemId,
+      );
+      if (!row) return;
+      const panel = row.closest<HTMLDetailsElement>("details.cv-worklist");
+      if (panel) panel.open = true;
+      row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.focus({ preventScroll: true });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [worklistFocus]);
+  const depositChipsValue = useMemo<DepositChips | null>(
+    () => (chips ? { chips, jumpToWorklist } : null),
+    [chips, jumpToWorklist],
+  );
+
   // A jump to a specific item (the sync banner in CvWorkspace, the owner
   // worklist's rows) routes through the Content part first so the target row is
   // mounted before it scrolls.
@@ -162,6 +214,8 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       locale={locale}
       funderCrosswalk={funderCrosswalk}
       currentAffiliationCountry={currentAffiliationCountry}
+      depositBasis={depositBasis}
+      onDepositBasisChange={setDepositBasis}
       onJump={jumpToItem}
       listing={institutionListing}
       defaultOpen={variant === "regions"}
@@ -173,14 +227,16 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     />
   );
   const sectionsList = (
-    <SectionsList
-      ref={sectionsRef}
-      cv={cv}
-      locale={locale}
-      onChange={onChange}
-      onClaimAdded={onClaimAdded}
-      anonymous={anonymous}
-    />
+    <DepositChipsContext.Provider value={depositChipsValue}>
+      <SectionsList
+        ref={sectionsRef}
+        cv={cv}
+        locale={locale}
+        onChange={onChange}
+        onClaimAdded={onClaimAdded}
+        anonymous={anonymous}
+      />
+    </DepositChipsContext.Provider>
   );
 
   if (variant === "classic") {

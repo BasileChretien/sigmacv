@@ -205,6 +205,12 @@ export interface WorkspaceUiStrings {
   wlRowDetails: string;
   /** Hidden note every external link is described by (WCAG: a new tab is a change of context). */
   wlOpensNewTab: string;
+  /** The deposit chip on a publication row: `{destination}` = the route's name. */
+  wlChipDeposit: string;
+  /** The same when the publisher's record allows no deposit outright. */
+  wlChipDepositIf: string;
+  /** The chip's hint: it opens the Open access tab at this work. */
+  wlChipHint: string;
   /** Legend of the choice between the two affiliations. */
   wlDepositBasisLabel: string;
   /** Choice: route by the affiliation printed on each paper (default). */
@@ -403,6 +409,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copied",
     wlRowDetails: "Policy record, rights and form notes",
     wlOpensNewTab: "Opens in a new tab",
+    wlChipDeposit: "Deposit in {destination}",
+    wlChipDepositIf: "Deposit in {destination} if allowed",
+    wlChipHint: "Opens this work in the Open access tab",
     wlDepositBasisLabel: "Suggest places by",
     wlDepositBasisPaper: "the affiliation on each paper",
     wlDepositBasisCurrent: "your current affiliation ({country})",
@@ -565,6 +574,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "已复制 DOI",
     wlRowDetails: "政策记录、权利与表单说明",
     wlOpensNewTab: "在新标签页中打开",
+    wlChipDeposit: "存入 {destination}",
+    wlChipDepositIf: "如获许可，存入 {destination}",
+    wlChipHint: "在“开放获取”标签页中打开此作品",
     wlDepositBasisLabel: "推荐依据",
     wlDepositBasisPaper: "各篇论文上的署名单位",
     wlDepositBasisCurrent: "您目前的单位（{country}）",
@@ -740,6 +752,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiado",
     wlRowDetails: "Registro de la política, derechos y notas para el formulario",
     wlOpensNewTab: "Se abre en una pestaña nueva",
+    wlChipDeposit: "Depositar en {destination}",
+    wlChipDepositIf: "Depositar en {destination} si está permitido",
+    wlChipHint: "Abre este trabajo en la pestaña Acceso abierto",
     wlDepositBasisLabel: "Sugerir lugares según",
     wlDepositBasisPaper: "la afiliación de cada artículo",
     wlDepositBasisCurrent: "tu afiliación actual ({country})",
@@ -921,6 +936,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copié",
     wlRowDetails: "Politique enregistrée, droits et notes pour le formulaire",
     wlOpensNewTab: "S’ouvre dans un nouvel onglet",
+    wlChipDeposit: "Déposer dans {destination}",
+    wlChipDepositIf: "Déposer dans {destination} si c’est permis",
+    wlChipHint: "Ouvre ce travail dans l’onglet Accès ouvert",
     wlDepositBasisLabel: "Proposer des lieux selon",
     wlDepositBasisPaper: "l'affiliation de chaque article",
     wlDepositBasisCurrent: "votre affiliation actuelle ({country})",
@@ -1104,6 +1122,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI kopiert",
     wlRowDetails: "Aufgezeichnete Policy, Rechte und Hinweise zum Formular",
     wlOpensNewTab: "Öffnet sich in einem neuen Tab",
+    wlChipDeposit: "In {destination} hinterlegen",
+    wlChipDepositIf: "In {destination} hinterlegen, falls erlaubt",
+    wlChipHint: "Öffnet diese Arbeit im Tab „Open Access“",
     wlDepositBasisLabel: "Ablageorte vorschlagen nach",
     wlDepositBasisPaper: "der Affiliation auf dem jeweiligen Artikel",
     wlDepositBasisCurrent: "Ihrer aktuellen Affiliation ({country})",
@@ -1280,6 +1301,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI をコピーしました",
     wlRowDetails: "ポリシーの記録、権利、フォームの注記",
     wlOpensNewTab: "新しいタブで開きます",
+    wlChipDeposit: "{destination} に登録",
+    wlChipDepositIf: "許可されていれば {destination} に登録",
+    wlChipHint: "この論文を「オープンアクセス」タブで開きます",
     wlDepositBasisLabel: "登録先の提案基準",
     wlDepositBasisPaper: "各論文での所属",
     wlDepositBasisCurrent: "現在の所属（{country}）",
@@ -1460,6 +1484,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiado",
     wlRowDetails: "Registro da política, direitos e notas para o formulário",
     wlOpensNewTab: "Abre em uma nova aba",
+    wlChipDeposit: "Depositar em {destination}",
+    wlChipDepositIf: "Depositar em {destination} se permitido",
+    wlChipHint: "Abre este trabalho na aba Acesso aberto",
     wlDepositBasisLabel: "Sugerir lugares com base em",
     wlDepositBasisPaper: "a afiliação de cada artigo",
     wlDepositBasisCurrent: "sua afiliação atual ({country})",
@@ -1642,6 +1669,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiato",
     wlRowDetails: "Politica registrata, diritti e note per il modulo",
     wlOpensNewTab: "Si apre in una nuova scheda",
+    wlChipDeposit: "Depositare in {destination}",
+    wlChipDepositIf: "Depositare in {destination} se consentito",
+    wlChipHint: "Apre questo lavoro nella scheda Accesso aperto",
     wlDepositBasisLabel: "Suggerisci archivi in base a",
     wlDepositBasisPaper: "l'affiliazione di ciascun articolo",
     wlDepositBasisCurrent: "la tua affiliazione attuale ({country})",
@@ -1817,6 +1847,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI 복사됨",
     wlRowDetails: "정책 기록, 권리, 양식 안내",
     wlOpensNewTab: "새 탭에서 열립니다",
+    wlChipDeposit: "{destination}에 기탁",
+    wlChipDepositIf: "허용되는 경우 {destination}에 기탁",
+    wlChipHint: "이 저작물을 오픈 액세스 탭에서 엽니다",
     wlDepositBasisLabel: "기탁처 추천 기준",
     wlDepositBasisPaper: "각 논문의 소속",
     wlDepositBasisCurrent: "현재 소속({country})",
@@ -1998,6 +2031,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI скопирован",
     wlRowDetails: "Запись о политике, права и заметки к форме",
     wlOpensNewTab: "Откроется в новой вкладке",
+    wlChipDeposit: "Разместить в {destination}",
+    wlChipDepositIf: "Разместить в {destination}, если это разрешено",
+    wlChipHint: "Открывает эту работу на вкладке «Открытый доступ»",
     wlDepositBasisLabel: "Предлагать места по",
     wlDepositBasisPaper: "аффилиации в каждой статье",
     wlDepositBasisCurrent: "вашей текущей аффилиации ({country})",

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import {
   DEGREE_LEVELS,
   SUPERVISION_ROLES,
@@ -36,6 +36,8 @@ import {
 } from "@/lib/i18n/render";
 import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
+import { fill } from "@/lib/i18n/fill";
+import { useDepositChips } from "./depositChipContext";
 import { localePrivacyPath } from "@/lib/seo";
 import { itemReviewState, needsReview } from "@/lib/canonical/review";
 
@@ -454,6 +456,14 @@ export default function ItemRow({
 }: ItemRowProps) {
   const u = ui(locale);
   const wu = workspaceUi(locale);
+  // The deposit chip — owner only: with no provider (the anonymous preview)
+  // there is no chip. The one action's destination, jumping to the work's
+  // row in the Open access tab.
+  const depositChips = useDepositChips();
+  const depositChip = depositChips?.chips.get(item.id);
+  // Its hidden note: the chip's label is the action, so the note says the
+  // button opens the tab (a title alone is not read by every screen reader).
+  const depositChipNoteId = useId();
   const ds = dupStrings(locale);
   // The compare panel is open when the editor focuses this duplicate (controlled
   // via `dupOpen`), or when the user clicks the badge (uncontrolled fallback).
@@ -898,6 +908,25 @@ export default function ItemRow({
             ) : null}
             {dupBadge}
             {sourceBadge}
+            {depositChip && depositChips ? (
+              <>
+                <button
+                  type="button"
+                  className="cv-deposit-chip"
+                  title={wu.wlChipHint}
+                  aria-describedby={depositChipNoteId}
+                  onClick={() => depositChips.jumpToWorklist(item.id)}
+                >
+                  {fill(
+                    depositChip.kind === "conditional" ? wu.wlChipDepositIf : wu.wlChipDeposit,
+                    { destination: depositChip.destination },
+                  )}
+                </button>
+                <span id={depositChipNoteId} className="visually-hidden">
+                  {wu.wlChipHint}
+                </span>
+              </>
+            ) : null}
           </div>
         ) : (
           <div className="cv-item-meta">
