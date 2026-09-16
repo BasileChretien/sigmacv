@@ -74,7 +74,16 @@ test("a closed work shows the publisher's recorded policy, the statutory rule an
   // The worklist has its own tab and opens at once there: no summary to click.
   const worklist = page.locator('details[data-owner-only="worklist"]');
   await expect(worklist).toBeVisible({ timeout: 15_000 });
-  const rights = worklist.locator('[data-worklist="rights"]');
+  // Two lines per work; the record, the rights and the form notes wait behind the
+  // row's disclosure.
+  const closedRow = worklist
+    .locator("li.cv-worklist-row")
+    .filter({ has: page.locator('[data-worklist="rights"]') })
+    .first();
+  await expect(closedRow.locator(".cv-worklist-row-head")).toBeVisible();
+  const rights = closedRow.locator('[data-worklist="rights"]');
+  await expect(rights).toBeHidden();
+  await closedRow.locator("details.cv-worklist-row-more > summary").click();
   await expect(rights).toBeVisible();
 
   await expect(rights).toContainText(
@@ -97,23 +106,22 @@ test("a closed work shows the publisher's recorded policy, the statutory rule an
 
   await rights.screenshot({ path: test.info().outputPath("worklist-rights.png") });
 
-  // One deposit action under the same work: the national repository of the country
-  // on the paper, with its reason, and the other places behind a disclosure.
-  const closedRow = worklist
-    .locator("li")
-    .filter({ has: page.locator('[data-worklist="rights"]') });
+  // One deposit action under the same work — the visible line: the national
+  // repository of the country on the paper, with its reason; the other places
+  // behind their own disclosure inside the row's.
   const deposit = closedRow.locator('[data-worklist="deposit"]');
   await expect(deposit).toBeVisible();
   const primary = deposit.locator(".cv-worklist-deposit-primary");
   await expect(primary.getByRole("link")).toHaveAttribute("href", "https://hal.science/submit");
   await expect(primary).toContainText("HAL");
   await expect(primary).toContainText("France");
-  await deposit.locator("summary").click();
-  await expect(deposit.getByRole("link", { name: "Zenodo" })).toHaveAttribute(
+  const depositDetails = closedRow.locator('[data-worklist="deposit-details"]');
+  await depositDetails.locator("summary").click();
+  await expect(depositDetails.getByRole("link", { name: "Zenodo" })).toHaveAttribute(
     "href",
     "https://zenodo.org/uploads/new",
   );
-  await expect(deposit).not.toContainText("%");
+  await expect(closedRow).not.toContainText("%");
 
-  await deposit.screenshot({ path: test.info().outputPath("worklist-deposit.png") });
+  await closedRow.screenshot({ path: test.info().outputPath("worklist-deposit.png") });
 });

@@ -12,6 +12,8 @@ interface WorklistRightsProps {
   selfArchiving?: NonNullable<CvItem["meta"]["selfArchiving"]>;
   /** The statutory entries for the countries printed on the owner's authorship. */
   statutory: readonly StatutoryArchivingEntry[];
+  /** id of the panel's hidden "opens in a new tab" note, described-by every link. */
+  newTabDescribedBy?: string;
 }
 
 /**
@@ -22,7 +24,12 @@ interface WorklistRightsProps {
  * verdict; the sentences are built in `lib/archiving/rightsSentences.ts`. Renders
  * nothing when neither exists.
  */
-export default function WorklistRights({ locale, selfArchiving, statutory }: WorklistRightsProps) {
+export default function WorklistRights({
+  locale,
+  selfArchiving,
+  statutory,
+  newTabDescribedBy,
+}: WorklistRightsProps) {
   if (!selfArchiving && statutory.length === 0) return null;
   const wu = workspaceUi(locale);
   const publisher = selfArchiving ? publisherPolicyLines(selfArchiving, wu, locale) : undefined;
@@ -35,7 +42,12 @@ export default function WorklistRights({ locale, selfArchiving, statutory }: Wor
             {publisher.policyUrl ? (
               <>
                 {" "}
-                <a href={publisher.policyUrl} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={publisher.policyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-describedby={newTabDescribedBy}
+                >
                   {wu.wlArchivingPolicyLink}
                 </a>
               </>
@@ -57,13 +69,23 @@ export default function WorklistRights({ locale, selfArchiving, statutory }: Wor
         return (
           <p key={entry.countryCode} className="muted cv-worklist-rights-statutory">
             {line.text} {line.verification}{" "}
-            <a href={line.sourceUrl} target="_blank" rel="noopener noreferrer">
+            <a
+              href={line.sourceUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-describedby={newTabDescribedBy}
+            >
               {line.sourceLabel}
             </a>
             {line.guidanceUrl ? (
               <>
                 {" · "}
-                <a href={line.guidanceUrl} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={line.guidanceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-describedby={newTabDescribedBy}
+                >
                   {wu.wlStatutoryGuidanceLink}
                 </a>
               </>

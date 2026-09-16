@@ -4707,7 +4707,7 @@ button.src-prov-chip.is-actionable:focus-visible {
 .cv-worklist-group {
   margin-top: var(--space-2);
 }
-.cv-worklist-group h4 {
+.cv-worklist-group h3 {
   margin: 0 0 var(--space-1);
   font-size: var(--text-sm);
 }
@@ -4753,6 +4753,20 @@ button.src-prov-chip.is-actionable:focus-visible {
 .cv-worklist-funders {
   font-size: var(--text-xs);
 }
+/* One closed work = two visible lines (title · journal · chip; the action with
+   Copy DOI) and one disclosure holding the policy record, the rights and the
+   form notes — so sixty works stay scannable. */
+.cv-worklist-row-head {
+  margin: 0;
+}
+.cv-worklist-row-more {
+  margin: 0.15rem 0 var(--space-2);
+  font-size: var(--text-xs);
+}
+.cv-worklist-row-more > summary {
+  cursor: pointer;
+  color: var(--text-secondary);
+}
 /* The rights lines under a closed work: the publisher's policy as OA.Works
    recorded it and the statutory rule that may also apply — prose beside the
    work, never a badge or a colour. The publisher's own statement is quoted. */
@@ -4786,6 +4800,7 @@ button.src-prov-chip.is-actionable:focus-visible {
 .cv-worklist-deposit-copy {
   margin-left: var(--space-1);
   padding: 0 var(--space-2);
+  min-height: 24px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: none;

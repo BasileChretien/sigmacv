@@ -84,7 +84,8 @@ export interface WorkspaceUiStrings {
   tbPublished: string;
   tbShare: string;
   // ── Owner worklist: affiliations & open access (editor-only) ─────────────
-  /** Collapsible panel title. */
+  /** Panel title — inside the "Open access" tab, it says what the list is: things
+   *  the owner can act on (a position to link, a paper to deposit, a choice open). */
   wlTitle: string;
   /** Owner-only framing: help, not a verdict; never on the CV or public page. */
   wlIntro: string;
@@ -197,8 +198,13 @@ export interface WorkspaceUiStrings {
   wlDepositOtherPlaces: string;
   /** Button: copy the work's DOI to paste into a deposit form. */
   wlDepositCopyDoi: string;
-  /** Button state after copying. */
+  /** Button state after copying; also announced once in the panel's status region. */
   wlDepositDoiCopied: string;
+  /** Summary of the one disclosure under a closed work: the OA.Works record, the
+   *  statutory rule, the form notes, the other places. */
+  wlRowDetails: string;
+  /** Hidden note every external link is described by (WCAG: a new tab is a change of context). */
+  wlOpensNewTab: string;
   /** Legend of the choice between the two affiliations. */
   wlDepositBasisLabel: string;
   /** Choice: route by the affiliation printed on each paper (default). */
@@ -318,7 +324,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publish",
     tbPublished: "Published",
     tbShare: "Share",
-    wlTitle: "Affiliations & open access",
+    wlTitle: "What you can act on",
     wlIntro:
       "For you only — help with the record, not a verdict. Nothing here appears on your CV or your public page.",
     wlPositionsHeading: "Current positions without an institution record",
@@ -330,7 +336,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "Open, Creative Commons licence",
     wlStateOpenOther: "Open, other or unknown licence",
     wlStateClosed: "No open copy found",
-    wlStateUnknown: "Not determined",
+    wlStateUnknown: "Unknown",
     wlPolicyLink: "Check the journal's policy (Open Policy Finder)",
     wlFunders: "Funders named on the work: {names}",
     wlArchivingAllowed:
@@ -395,6 +401,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "Other places",
     wlDepositCopyDoi: "Copy DOI",
     wlDepositDoiCopied: "DOI copied",
+    wlRowDetails: "Policy record, rights and form notes",
+    wlOpensNewTab: "Opens in a new tab",
     wlDepositBasisLabel: "Suggest places by",
     wlDepositBasisPaper: "the affiliation on each paper",
     wlDepositBasisCurrent: "your current affiliation ({country})",
@@ -488,7 +496,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "发布",
     tbPublished: "已发布",
     tbShare: "分享",
-    wlTitle: "机构隶属与开放获取",
+    wlTitle: "您可以处理的事项",
     wlIntro:
       "仅供您本人查看——这是对您记录的帮助，不是评判。这里的内容不会出现在您的简历或公开页面上。",
     wlPositionsHeading: "没有机构记录的当前职位",
@@ -498,7 +506,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "开放，知识共享（CC）许可",
     wlStateOpenOther: "开放，其他或未知许可",
     wlStateClosed: "未找到开放副本",
-    wlStateUnknown: "未确定",
+    wlStateUnknown: "未知",
     wlPolicyLink: "查看期刊政策（Open Policy Finder）",
     wlFunders: "作品上列出的资助方：{names}",
     wlArchivingAllowed: "出版方政策（据 OA.Works 记录）：允许自存档（{versions}）。",
@@ -555,6 +563,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "其他存缴去处",
     wlDepositCopyDoi: "复制 DOI",
     wlDepositDoiCopied: "已复制 DOI",
+    wlRowDetails: "政策记录、权利与表单说明",
+    wlOpensNewTab: "在新标签页中打开",
     wlDepositBasisLabel: "推荐依据",
     wlDepositBasisPaper: "各篇论文上的署名单位",
     wlDepositBasisCurrent: "您目前的单位（{country}）",
@@ -649,7 +659,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publicar",
     tbPublished: "Publicado",
     tbShare: "Compartir",
-    wlTitle: "Afiliaciones y acceso abierto",
+    wlTitle: "Lo que puedes hacer",
     wlIntro:
       "Solo para ti: una ayuda para tu registro, no un veredicto. Nada de esto aparece en tu CV ni en tu página pública.",
     wlPositionsHeading: "Puestos actuales sin registro de institución",
@@ -661,7 +671,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "Abierto, licencia Creative Commons",
     wlStateOpenOther: "Abierto, otra licencia o licencia desconocida",
     wlStateClosed: "No se encontró copia abierta",
-    wlStateUnknown: "Sin determinar",
+    wlStateUnknown: "Desconocido",
     wlPolicyLink: "Consultar la política de la revista (Open Policy Finder)",
     wlFunders: "Financiadores nombrados en el trabajo: {names}",
     wlArchivingAllowed:
@@ -728,6 +738,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "Otros lugares",
     wlDepositCopyDoi: "Copiar DOI",
     wlDepositDoiCopied: "DOI copiado",
+    wlRowDetails: "Registro de la política, derechos y notas para el formulario",
+    wlOpensNewTab: "Se abre en una pestaña nueva",
     wlDepositBasisLabel: "Sugerir lugares según",
     wlDepositBasisPaper: "la afiliación de cada artículo",
     wlDepositBasisCurrent: "tu afiliación actual ({country})",
@@ -826,7 +838,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publier",
     tbPublished: "Publié",
     tbShare: "Partager",
-    wlTitle: "Affiliations et accès ouvert",
+    wlTitle: "Ce que vous pouvez faire",
     wlIntro:
       "Pour vous seulement — une aide pour votre dossier, pas un verdict. Rien de ceci n’apparaît sur votre CV ni sur votre page publique.",
     wlPositionsHeading: "Postes actuels sans fiche d’institution",
@@ -838,7 +850,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "Ouvert, licence Creative Commons",
     wlStateOpenOther: "Ouvert, autre licence ou licence inconnue",
     wlStateClosed: "Aucune copie ouverte trouvée",
-    wlStateUnknown: "Non déterminé",
+    wlStateUnknown: "Inconnu",
     wlPolicyLink: "Consulter la politique de la revue (Open Policy Finder)",
     wlFunders: "Financeurs nommés sur le travail : {names}",
     wlArchivingAllowed:
@@ -907,6 +919,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "Autres lieux de dépôt",
     wlDepositCopyDoi: "Copier le DOI",
     wlDepositDoiCopied: "DOI copié",
+    wlRowDetails: "Politique enregistrée, droits et notes pour le formulaire",
+    wlOpensNewTab: "S’ouvre dans un nouvel onglet",
     wlDepositBasisLabel: "Proposer des lieux selon",
     wlDepositBasisPaper: "l'affiliation de chaque article",
     wlDepositBasisCurrent: "votre affiliation actuelle ({country})",
@@ -1009,7 +1023,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Veröffentlichen",
     tbPublished: "Veröffentlicht",
     tbShare: "Teilen",
-    wlTitle: "Affiliationen & Open Access",
+    wlTitle: "Was Sie tun können",
     wlIntro:
       "Nur für Sie — eine Hilfe für Ihren Datensatz, kein Urteil. Nichts davon erscheint in Ihrem Lebenslauf oder auf Ihrer öffentlichen Seite.",
     wlPositionsHeading: "Aktuelle Positionen ohne Institutionsdatensatz",
@@ -1021,7 +1035,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "Offen, Creative-Commons-Lizenz",
     wlStateOpenOther: "Offen, andere oder unbekannte Lizenz",
     wlStateClosed: "Keine offene Kopie gefunden",
-    wlStateUnknown: "Nicht bestimmt",
+    wlStateUnknown: "Unbekannt",
     wlPolicyLink: "Richtlinie der Zeitschrift prüfen (Open Policy Finder)",
     wlFunders: "Auf der Arbeit genannte Förderer: {names}",
     wlArchivingAllowed: "Verlagsrichtlinie laut OA.Works: Selbstarchivierung erlaubt – {versions}.",
@@ -1088,6 +1102,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "Weitere Ablageorte",
     wlDepositCopyDoi: "DOI kopieren",
     wlDepositDoiCopied: "DOI kopiert",
+    wlRowDetails: "Aufgezeichnete Policy, Rechte und Hinweise zum Formular",
+    wlOpensNewTab: "Öffnet sich in einem neuen Tab",
     wlDepositBasisLabel: "Ablageorte vorschlagen nach",
     wlDepositBasisPaper: "der Affiliation auf dem jeweiligen Artikel",
     wlDepositBasisCurrent: "Ihrer aktuellen Affiliation ({country})",
@@ -1185,7 +1201,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "公開",
     tbPublished: "公開中",
     tbShare: "共有",
-    wlTitle: "所属とオープンアクセス",
+    wlTitle: "対応できる項目",
     wlIntro:
       "あなただけに表示 — 記録を整えるための手助けであり、評価ではありません。ここの内容は CV にも公開ページにも表示されません。",
     wlPositionsHeading: "機関レコードのない現在の職位",
@@ -1197,7 +1213,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "オープン、クリエイティブ・コモンズ・ライセンス",
     wlStateOpenOther: "オープン、その他または不明のライセンス",
     wlStateClosed: "オープンな複製は見つかりませんでした",
-    wlStateUnknown: "未判定",
+    wlStateUnknown: "不明",
     wlPolicyLink: "学術誌のポリシーを確認（Open Policy Finder）",
     wlFunders: "業績に記載された助成機関：{names}",
     wlArchivingAllowed: "OA.Works が記録する出版社ポリシー：セルフアーカイブ可（{versions}）。",
@@ -1262,6 +1278,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "その他の登録先",
     wlDepositCopyDoi: "DOI をコピー",
     wlDepositDoiCopied: "DOI をコピーしました",
+    wlRowDetails: "ポリシーの記録、権利、フォームの注記",
+    wlOpensNewTab: "新しいタブで開きます",
     wlDepositBasisLabel: "登録先の提案基準",
     wlDepositBasisPaper: "各論文での所属",
     wlDepositBasisCurrent: "現在の所属（{country}）",
@@ -1361,7 +1379,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Publicar",
     tbPublished: "Publicado",
     tbShare: "Compartilhar",
-    wlTitle: "Afiliações e acesso aberto",
+    wlTitle: "O que você pode fazer",
     wlIntro:
       "Somente para você: uma ajuda para o seu registro, não um veredito. Nada disto aparece no seu CV nem na sua página pública.",
     wlPositionsHeading: "Cargos atuais sem registro de instituição",
@@ -1373,7 +1391,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "Aberto, licença Creative Commons",
     wlStateOpenOther: "Aberto, outra licença ou licença desconhecida",
     wlStateClosed: "Nenhuma cópia aberta encontrada",
-    wlStateUnknown: "Não determinado",
+    wlStateUnknown: "Desconhecido",
     wlPolicyLink: "Consultar a política da revista (Open Policy Finder)",
     wlFunders: "Financiadores nomeados no trabalho: {names}",
     wlArchivingAllowed:
@@ -1440,6 +1458,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "Outros lugares",
     wlDepositCopyDoi: "Copiar DOI",
     wlDepositDoiCopied: "DOI copiado",
+    wlRowDetails: "Registro da política, direitos e notas para o formulário",
+    wlOpensNewTab: "Abre em uma nova aba",
     wlDepositBasisLabel: "Sugerir lugares com base em",
     wlDepositBasisPaper: "a afiliação de cada artigo",
     wlDepositBasisCurrent: "sua afiliação atual ({country})",
@@ -1540,7 +1560,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Pubblica",
     tbPublished: "Pubblicato",
     tbShare: "Condividi",
-    wlTitle: "Affiliazioni e accesso aperto",
+    wlTitle: "Cosa puoi fare",
     wlIntro:
       "Solo per te: un aiuto per il tuo profilo, non un verdetto. Nulla di questo compare nel tuo CV né nella tua pagina pubblica.",
     wlPositionsHeading: "Posizioni attuali senza scheda dell’istituzione",
@@ -1552,7 +1572,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "Aperto, licenza Creative Commons",
     wlStateOpenOther: "Aperto, altra licenza o licenza sconosciuta",
     wlStateClosed: "Nessuna copia aperta trovata",
-    wlStateUnknown: "Non determinato",
+    wlStateUnknown: "Sconosciuto",
     wlPolicyLink: "Verifica la politica della rivista (Open Policy Finder)",
     wlFunders: "Finanziatori indicati sul lavoro: {names}",
     wlArchivingAllowed:
@@ -1620,6 +1640,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "Altri archivi",
     wlDepositCopyDoi: "Copia DOI",
     wlDepositDoiCopied: "DOI copiato",
+    wlRowDetails: "Politica registrata, diritti e note per il modulo",
+    wlOpensNewTab: "Si apre in una nuova scheda",
     wlDepositBasisLabel: "Suggerisci archivi in base a",
     wlDepositBasisPaper: "l'affiliazione di ciascun articolo",
     wlDepositBasisCurrent: "la tua affiliazione attuale ({country})",
@@ -1719,7 +1741,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "게시",
     tbPublished: "게시됨",
     tbShare: "공유",
-    wlTitle: "소속 및 오픈 액세스",
+    wlTitle: "할 수 있는 일",
     wlIntro:
       "본인에게만 표시 — 기록을 정리하는 데 도움을 주는 것이지 판정이 아닙니다. 여기의 내용은 CV나 공개 페이지에 나타나지 않습니다.",
     wlPositionsHeading: "기관 레코드가 없는 현재 직위",
@@ -1731,7 +1753,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "공개, 크리에이티브 커먼즈 라이선스",
     wlStateOpenOther: "공개, 기타 또는 알 수 없는 라이선스",
     wlStateClosed: "공개 사본을 찾지 못함",
-    wlStateUnknown: "판정되지 않음",
+    wlStateUnknown: "알 수 없음",
     wlPolicyLink: "학술지 정책 확인 (Open Policy Finder)",
     wlFunders: "연구물에 명시된 지원 기관: {names}",
     wlArchivingAllowed: "OA.Works에 기록된 출판사 정책: 셀프 아카이빙 허용({versions}).",
@@ -1793,6 +1815,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "다른 기탁처",
     wlDepositCopyDoi: "DOI 복사",
     wlDepositDoiCopied: "DOI 복사됨",
+    wlRowDetails: "정책 기록, 권리, 양식 안내",
+    wlOpensNewTab: "새 탭에서 열립니다",
     wlDepositBasisLabel: "기탁처 추천 기준",
     wlDepositBasisPaper: "각 논문의 소속",
     wlDepositBasisCurrent: "현재 소속({country})",
@@ -1893,7 +1917,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     tbPublish: "Опубликовать",
     tbPublished: "Опубликовано",
     tbShare: "Поделиться",
-    wlTitle: "Аффилиации и открытый доступ",
+    wlTitle: "Что вы можете сделать",
     wlIntro:
       "Только для вас — помощь с вашей записью, а не вердикт. Ничего из этого не появляется в вашем CV или на публичной странице.",
     wlPositionsHeading: "Текущие должности без записи об организации",
@@ -1905,7 +1929,7 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateOpenCc: "Открыто, лицензия Creative Commons",
     wlStateOpenOther: "Открыто, другая или неизвестная лицензия",
     wlStateClosed: "Открытая копия не найдена",
-    wlStateUnknown: "Не определено",
+    wlStateUnknown: "Неизвестно",
     wlPolicyLink: "Проверить политику журнала (Open Policy Finder)",
     wlFunders: "Спонсоры, указанные в работе: {names}",
     wlArchivingAllowed:
@@ -1972,6 +1996,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositOtherPlaces: "Другие места размещения",
     wlDepositCopyDoi: "Копировать DOI",
     wlDepositDoiCopied: "DOI скопирован",
+    wlRowDetails: "Запись о политике, права и заметки к форме",
+    wlOpensNewTab: "Откроется в новой вкладке",
     wlDepositBasisLabel: "Предлагать места по",
     wlDepositBasisPaper: "аффилиации в каждой статье",
     wlDepositBasisCurrent: "вашей текущей аффилиации ({country})",

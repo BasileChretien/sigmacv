@@ -114,7 +114,7 @@ describe("WorklistPanel (component)", () => {
     render(<WorklistPanel cv={cv} locale="en-US" onJump={onJump} />);
 
     // Owner-only framing + collapsible.
-    const details = screen.getByText("Affiliations & open access").closest("details");
+    const details = document.querySelector("details.cv-worklist");
     expect(details).toBeTruthy();
     expect(screen.getByText(/Nothing here appears on your CV/)).toBeTruthy();
 
@@ -131,8 +131,11 @@ describe("WorklistPanel (component)", () => {
     expect(screen.queryByRole("button", { name: /Work W-elsewhere/ })).toBeNull();
     expect(screen.queryByRole("button", { name: /Work W-nodata/ })).toBeNull();
 
-    // (b) closed works: chip; funders; policy link.
+    // (b) closed works: chip; funders and the policy link behind the row's disclosure.
     expect(screen.getByText("Works with no open copy found")).toBeTruthy();
+    document
+      .querySelectorAll<HTMLDetailsElement>("details.cv-worklist-row-more")
+      .forEach((d) => (d.open = true));
     expect(screen.getByText(/Funders named on the work: Wellcome Trust/)).toBeTruthy();
     const link = screen.getByRole("link", { name: /Open Policy Finder/ }) as HTMLAnchorElement;
     expect(link.href).toBe(`${OPEN_POLICY_FINDER_URL}?q=Journal%20%26%20Co`);
@@ -181,13 +184,16 @@ describe("WorklistPanel (component)", () => {
   it("renders rows as plain text without a jump callback, and omits the policy link without a venue", () => {
     const closed = work("W-closed", { year: 2021, oaIsOpen: false });
     const cv = makeCv([{ ...closed, csl: { id: "W-closed", type: "article-journal" } }], []);
-    render(<WorklistPanel cv={cv} locale="en-US" />);
+    const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
     expect(screen.queryByRole("button")).toBeNull();
+    container
+      .querySelectorAll<HTMLDetailsElement>("details.cv-worklist-row-more")
+      .forEach((d) => (d.open = true));
     // The only links are the deposit places under the closed work (no DOI here, so
     // no Copy DOI button): the row itself and the journal policy stay plain.
     const links = screen.queryAllByRole("link");
     expect(links.length).toBeGreaterThan(0);
-    expect(links.every((a) => a.closest('[data-worklist="deposit"]'))).toBe(true);
+    expect(links.every((a) => a.closest('[data-worklist^="deposit"]'))).toBe(true);
     expect(screen.getByText("(untitled) (2021)")).toBeTruthy();
     expect(screen.getByText("No open copy found")).toBeTruthy();
   });
@@ -195,7 +201,9 @@ describe("WorklistPanel (component)", () => {
   it("localizes the panel", () => {
     const cv = makeCv([work("W-closed", { year: 2021, oaIsOpen: false })], []);
     render(<WorklistPanel cv={cv} locale="fr-FR" />);
-    expect(screen.getByText("Affiliations et accès ouvert")).toBeTruthy();
+    expect(
+      screen.getByRole("heading", { level: 2, name: "Ce que vous pouvez faire" }),
+    ).toBeTruthy();
   });
 });
 

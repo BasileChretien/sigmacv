@@ -83,7 +83,7 @@ export default function InstitutionListingRow({
 
   return (
     <section className="cv-worklist-group cv-worklist-listing" data-worklist="listing">
-      <h4>{wu.wlListingHeading}</h4>
+      <h3>{wu.wlListingHeading}</h3>
       <p className="muted">{wu.wlListingHelp}</p>
       {listed.length > 0 ? (
         <p className="cv-worklist-listing-status">

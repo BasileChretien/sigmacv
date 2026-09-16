@@ -191,6 +191,25 @@ const ACTION_BY_VERSION: ReadonlyArray<readonly [Version, ActionKey]> = [
  *    statutory right shown above the work — allows it;
  *  - otherwise the version the record allows, the publisher's own first.
  */
+/**
+ * Which of the three wordings the action takes — a version the record (or the
+ * funder's policy) names, no usable record, or "only if your agreement allows".
+ * The worklist orders closed works by it: what the owner can do now, first.
+ */
+export type DepositActionKind = "version" | "unrecorded" | "conditional";
+
+export function depositActionKind(item: CvItem, route: DepositRoute): DepositActionKind {
+  if (route.kind === "funder") return "version";
+  const record = item.meta.selfArchiving;
+  if (!record) return "unrecorded";
+  if (!record.canArchive || !placeFitsLocations(placeKindOf(route.href), record.locations)) {
+    return "conditional";
+  }
+  return ACTION_BY_VERSION.some(([version]) => record.versions.includes(version))
+    ? "version"
+    : "unrecorded";
+}
+
 export function depositAction(
   item: CvItem,
   route: DepositRoute,
@@ -198,16 +217,18 @@ export function depositAction(
   hasStatutoryRight: boolean,
 ): string {
   const destination = route.destination;
-  if (route.kind === "funder") return fill(wu.wlDepositAccepted, { destination });
-  const record = item.meta.selfArchiving;
-  if (!record) return fill(wu.wlDepositUnrecorded, { destination });
-  if (!record.canArchive || !placeFitsLocations(placeKindOf(route.href), record.locations)) {
+  const kind = depositActionKind(item, route);
+  if (kind === "conditional") {
     return fill(hasStatutoryRight ? wu.wlDepositIfRightOrAgreement : wu.wlDepositIfAgreement, {
       destination,
     });
   }
-  const named = ACTION_BY_VERSION.find(([version]) => record.versions.includes(version));
-  return fill(named ? wu[named[1]] : wu.wlDepositUnrecorded, { destination });
+  if (kind === "unrecorded") return fill(wu.wlDepositUnrecorded, { destination });
+  if (route.kind === "funder") return fill(wu.wlDepositAccepted, { destination });
+  // A named version: the kind says the record exists and names one.
+  const record = item.meta.selfArchiving!;
+  const named = ACTION_BY_VERSION.find(([version]) => record.versions.includes(version))!;
+  return fill(wu[named[1]], { destination });
 }
 
 /**

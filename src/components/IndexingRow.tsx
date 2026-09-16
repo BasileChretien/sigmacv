@@ -67,7 +67,7 @@ export default function IndexingRow({ locale, state, onPublishStateChange }: Ind
       data-testid="worklist-indexing"
       data-state={kind}
     >
-      <h4>{wu.wlIndexingHeading}</h4>
+      <h3>{wu.wlIndexingHeading}</h3>
       <p className="muted">{wu.wlIndexingHelp}</p>
       <p className="cv-worklist-listing-status">
         {status}{" "}
