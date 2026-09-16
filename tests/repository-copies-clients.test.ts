@@ -235,7 +235,7 @@ describe("Zenodo", () => {
     related_identifiers: [{ identifier: "https://doi.org/10.1111/BJH.17863", relation }],
   });
 
-  it("keeps only a publication record that IS the article — its own DOI, or related as identical / a version — open with files = a file", async () => {
+  it("keeps only a publication record that IS the article — its own DOI, or related as identical / a version — open with listed files = a file", async () => {
     const fetch = stub(
       json({
         hits: {
@@ -275,6 +275,10 @@ describe("Zenodo", () => {
               files: [{ key: "x" }],
             },
             {
+              id: 11,
+              metadata: { access_right: "open", ...publication, ...same("isIdenticalTo") },
+            },
+            {
               id: "abc",
               metadata: { access_right: "open", ...publication, ...same("isIdenticalTo") },
             },
@@ -305,6 +309,14 @@ describe("Zenodo", () => {
           source: "zenodo",
           id: "8",
           url: "https://zenodo.org/records/8",
+          hasFile: false,
+          name: "Zenodo",
+          recorded: undefined,
+        },
+        {
+          source: "zenodo",
+          id: "11",
+          url: "https://zenodo.org/records/11",
           hasFile: false,
           name: "Zenodo",
           recorded: undefined,

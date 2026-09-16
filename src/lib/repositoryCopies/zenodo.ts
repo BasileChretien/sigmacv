@@ -19,7 +19,8 @@ import {
  * the DOI as "is identical to", "is version of" or "is variant form of" — the
  * way a deposited manuscript carries the publisher's DOI. The dataset, code or
  * slides of a paper cite its DOI too ("is supplement to", "cites") and are not
- * a copy of it; a metadata-only record (allowed since 2023) has no file.
+ * a copy of it; a metadata-only record (allowed since 2023), or one whose files
+ * the answer does not list, has no file.
  *
  *   GET https://zenodo.org/api/records?q=related.identifier:"<doi>" OR doi:"<doi>"&size=3
  *   → `{ hits: { hits: [{ id, metadata: { access_right, publication_date },
@@ -96,8 +97,7 @@ export async function lookupZenodoCopy(
       url:
         page && /^https:\/\/zenodo\.org\//.test(page) ? page : `https://zenodo.org/records/${id}`,
       hasFile:
-        raw.metadata?.access_right === "open" &&
-        (raw.files === undefined || (Array.isArray(raw.files) && raw.files.length > 0)),
+        raw.metadata?.access_right === "open" && Array.isArray(raw.files) && raw.files.length > 0,
       name: "Zenodo",
       recorded: isoDate(raw.metadata?.publication_date),
     });
