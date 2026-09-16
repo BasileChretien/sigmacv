@@ -41,7 +41,7 @@ export async function lookupEuropePmcCopy(
   const bare = bareDoi(doi);
   if (!bare) return NONE;
   const url = new URL(EPMC_API);
-  url.searchParams.set("query", `DOI:"${bare.replace(/"/g, "")}"`);
+  url.searchParams.set("query", `DOI:"${bare.toLowerCase().replace(/"/g, "")}"`);
   url.searchParams.set("format", "json");
   url.searchParams.set("resultType", "lite");
   url.searchParams.set("pageSize", "3");

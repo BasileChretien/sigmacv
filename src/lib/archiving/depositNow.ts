@@ -153,7 +153,8 @@ function byStatute(
 }
 
 /** The open-access statuses whose free copy sits AT THE PUBLISHER (green = in a repository). */
-const AT_PUBLISHER = new Set(["gold", "hybrid", "bronze", "diamond"]);
+/** Open at the publisher only — the second list's works (the repository-copies pass asks for them too). */
+export const AT_PUBLISHER: ReadonlySet<string> = new Set(["gold", "hybrid", "bronze", "diamond"]);
 
 /** A work under a Creative Commons licence may be deposited as published, anywhere. */
 function byLicence(item: CvItem): DepositNow | null {

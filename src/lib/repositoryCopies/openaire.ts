@@ -24,9 +24,10 @@ import {
  *     HAL notices as "Unknown Repository:UNKNOWN").
  *
  * Keyless, polite by the User-Agent. A copy is an instance with access right
- * OPEN whose page is not the DOI itself: on a work OpenAlex calls closed, an open
- * instance OpenAIRE knows is almost always a repository copy the aggregator saw
- * and OpenAlex did not. The host's name is kept, so the worklist can say where.
+ * OPEN hosted by an OpenDOAR-registered repository (`hostedby.@id` starts with
+ * `opendoar____::`; journals come as `doajarticles::` and are the publisher's
+ * own page, which OpenAIRE also marks OPEN) whose https page is not the DOI
+ * itself. The host's name is kept, so the worklist can say where.
  */
 
 const OPENAIRE_API = "https://api.openaire.eu/search/publications";
@@ -63,12 +64,14 @@ export async function lookupOpenaireCopy(
       .metadata?.["oaf:entity"]?.["oaf:result"] as { children?: { instance?: One<Instance> } };
     for (const inst of list(entity?.children?.instance)) {
       if (inst.accessright?.["@classid"] !== "OPEN") continue;
+      const id = text(inst.hostedby?.["@id"], COPY_LIMITS.id);
+      if (!id?.startsWith("opendoar____::")) continue;
+      // The schema keeps https links only: an http handle would void the whole array.
       const page = list(inst.webresource)
         .map((w) => text(w.url, COPY_LIMITS.url))
-        .find((u): u is string => u !== undefined && /^https?:\/\//i.test(u));
-      if (!page || /^https?:\/\/(dx\.)?doi\.org\//i.test(page)) continue;
+        .find((u): u is string => u !== undefined && /^https:\/\//.test(u));
+      if (!page || /^https:\/\/(dx\.)?doi\.org\//i.test(page)) continue;
       const name = text(inst.hostedby?.["@name"], COPY_LIMITS.name);
-      const id = text(inst.hostedby?.["@id"], COPY_LIMITS.id) ?? page.slice(0, COPY_LIMITS.id);
       copies.push({ source: "openaire", id, url: page, hasFile: true, name });
     }
   }

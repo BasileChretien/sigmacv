@@ -61,7 +61,7 @@ describe("HAL", () => {
         },
       }),
     );
-    const r = await lookupHalCopy(DOI, "ci@example.org");
+    const r = await lookupHalCopy("10.1111/BJH.17863", "ci@example.org");
     expect(r).toEqual({
       status: "found",
       copies: [
@@ -84,6 +84,7 @@ describe("HAL", () => {
     const url = new URL(fetch.mock.calls[0]![0] as string);
     expect(url.origin + url.pathname).toBe("https://api.archives-ouvertes.fr/search/");
     expect(url.searchParams.get("q")).toBe('doiId_s:"10.1111/bjh.17863"');
+    expect(url.searchParams.get("fl")).toBe("halId_s,submittedDate_s,openAccess_bool");
     expect(url.searchParams.get("wt")).toBe("json");
     const init = fetch.mock.calls[0]![1] as RequestInit;
     expect((init.headers as Record<string, string>)["User-Agent"]).toContain(
@@ -95,6 +96,10 @@ describe("HAL", () => {
   it("answers none for no record and for a DOI it cannot key; failed on a 5xx, a 429 or a broken body — never throws", async () => {
     stub(json({ response: { numFound: 0, docs: [] } }));
     expect(await lookupHalCopy(DOI)).toEqual({ status: "none" });
+    stub(json({}, 404));
+    expect(await lookupHalCopy(DOI)).toEqual({ status: "none" });
+    stub(new Response("x".repeat(1_200_000), { status: 200 }));
+    expect(await lookupHalCopy(DOI)).toEqual({ status: "failed" });
     expect(await lookupHalCopy("junk")).toEqual({ status: "none" });
     stub(json({}, 503));
     expect(await lookupHalCopy(DOI)).toEqual({ status: "failed" });
@@ -155,7 +160,7 @@ describe("OpenAIRE", () => {
       },
     },
   });
-  it("keeps only OPEN instances that are not the DOI itself, with the host's name; one instance may come alone", async () => {
+  it("keeps only OPEN instances in OpenDOAR-registered repositories, over https, not the DOI itself; one instance may come alone", async () => {
     stub(
       json(
         record([
@@ -200,28 +205,84 @@ describe("OpenAIRE", () => {
     expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
     stub(json({ response: { results: null } }));
     expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
+    // A journal's own page (DOAJ) marked OPEN, and a repository reached over http
+    // (the schema keeps https links only): neither is a copy.
+    stub(
+      json(
+        record([
+          {
+            hostedby: { "@name": "Journal X", "@id": "doajarticles::9" },
+            accessright: { "@classid": "OPEN" },
+            webresource: { url: "https://journalx.example/article/1" },
+          },
+          {
+            hostedby: { "@name": "EPrints Y", "@id": "opendoar____::7" },
+            accessright: { "@classid": "OPEN" },
+            webresource: { url: "http://hdl.handle.net/1/2" },
+          },
+        ]),
+      ),
+    );
+    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
     stub(json({}, 500));
     expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "failed" });
   });
 });
 
 describe("Zenodo", () => {
-  it("finds a record citing the DOI, open = a file, and reads a 429 as a failure to retry", async () => {
+  const publication = { resource_type: { type: "publication" } };
+  const same = (relation: string) => ({
+    related_identifiers: [{ identifier: "https://doi.org/10.1111/BJH.17863", relation }],
+  });
+
+  it("keeps only a publication record that IS the article — its own DOI, or related as identical / a version — open with files = a file", async () => {
     const fetch = stub(
       json({
         hits: {
           hits: [
             {
               id: 123456,
-              metadata: { access_right: "open", publication_date: "2024-03-01" },
+              metadata: {
+                access_right: "open",
+                publication_date: "2024-03-01",
+                ...publication,
+                ...same("isIdenticalTo"),
+              },
+              files: [{ key: "manuscript.pdf" }],
               links: { self_html: "https://zenodo.org/records/123456" },
             },
-            { id: "7", metadata: { access_right: "restricted" } },
+            {
+              id: "7",
+              metadata: { access_right: "restricted", doi: "10.1111/BJH.17863", ...publication },
+            },
+            {
+              id: 8,
+              metadata: { access_right: "open", ...publication, ...same("isVersionOf") },
+              files: [],
+            },
+            {
+              id: 9,
+              metadata: {
+                access_right: "open",
+                resource_type: { type: "dataset" },
+                ...same("isSupplementTo"),
+              },
+              files: [{ key: "data.csv" }],
+            },
+            {
+              id: 10,
+              metadata: { access_right: "open", ...publication, ...same("cites") },
+              files: [{ key: "x" }],
+            },
+            {
+              id: "abc",
+              metadata: { access_right: "open", ...publication, ...same("isIdenticalTo") },
+            },
           ],
         },
       }),
     );
-    expect(await lookupZenodoCopy(DOI)).toEqual({
+    expect(await lookupZenodoCopy("10.1111/BJH.17863")).toEqual({
       status: "found",
       copies: [
         {
@@ -240,13 +301,43 @@ describe("Zenodo", () => {
           name: "Zenodo",
           recorded: undefined,
         },
+        {
+          source: "zenodo",
+          id: "8",
+          url: "https://zenodo.org/records/8",
+          hasFile: false,
+          name: "Zenodo",
+          recorded: undefined,
+        },
       ],
     });
     const url = new URL(fetch.mock.calls[0]![0] as string);
     expect(url.searchParams.get("q")).toBe(
       'related.identifier:"10.1111/bjh.17863" OR doi:"10.1111/bjh.17863"',
     );
+  });
+
+  it("answers none for a dataset alone, failed on a 429 or a shapeless body", async () => {
+    stub(
+      json({
+        hits: {
+          hits: [
+            {
+              id: 9,
+              metadata: {
+                access_right: "open",
+                resource_type: { type: "dataset" },
+                ...same("isSupplementTo"),
+              },
+            },
+          ],
+        },
+      }),
+    );
+    expect(await lookupZenodoCopy(DOI)).toEqual({ status: "none" });
     stub(json({}, 429));
+    expect(await lookupZenodoCopy(DOI)).toEqual({ status: "failed" });
+    stub(json({ hits: { hits: "nope" } }));
     expect(await lookupZenodoCopy(DOI)).toEqual({ status: "failed" });
     stub(json({ hits: { hits: [] } }));
     expect(await lookupZenodoCopy(DOI)).toEqual({ status: "none" });

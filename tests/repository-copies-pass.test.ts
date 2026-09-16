@@ -156,8 +156,10 @@ describe("enrichCvWithRepositoryCopies", () => {
     expect(item(answered, "W1").meta.repositoryCopiesCheckedAt).toBe(NOW);
   });
 
-  it("asks only closed journal articles with a DOI, never-checked first, within the cap, and not again within the refresh window", async () => {
+  it("asks the closed journal articles with a DOI first, then the ones open at the publisher only; never-checked first, within the cap, not again within the refresh window", async () => {
     const works = [
+      work("W-gold", { oaIsOpen: true, oaStatus: "gold" }),
+      work("W-green", { oaIsOpen: true, oaStatus: "green" }),
       work("W-open", { oaIsOpen: true }),
       work("W-nodoi", {}, { DOI: undefined }),
       work("W-chapter", {}, { type: "chapter" }),
@@ -169,7 +171,7 @@ describe("enrichCvWithRepositoryCopies", () => {
     const s = sources({});
     await run(makeCv(works), s);
     const askedHal = s.asked.filter((a) => a.startsWith("hal:")).map((a) => a.slice(12));
-    expect(askedHal).toEqual(["W-never", "W-stale", "W-tried"]);
+    expect(askedHal).toEqual(["W-never", "W-gold", "W-stale", "W-tried"]);
     expect(REPOSITORY_COPIES_MAX_WORKS).toBeGreaterThan(0);
   });
 
@@ -189,5 +191,61 @@ describe("enrichCvWithRepositoryCopies", () => {
     expect(item(cv, "W-now-open").meta.repositoryCopies).toBeUndefined();
     expect(item(cv, "W-now-open").meta.repositoryCopiesCheckedAt).toBeUndefined();
     expect(s.asked).toEqual([]);
+  });
+
+  it("treats a source that throws as a failure of that source: old copies kept, attempt stamped, sync unbroken", async () => {
+    const old = { ...halNotice, retrievedAt: daysAgo(30) };
+    const s = sources({
+      hal: () => {
+        throw new Error("unforeseen shape");
+      },
+    });
+    const cv = await run(
+      makeCv([work("W1", { repositoryCopies: [old], repositoryCopiesCheckedAt: daysAgo(30) })]),
+      s,
+    );
+    expect(item(cv, "W1").meta.repositoryCopies).toEqual([old]);
+    expect(item(cv, "W1").meta.repositoryCopiesCheckedAt).toBe(daysAgo(30));
+    expect(item(cv, "W1").meta.repositoryCopiesTriedAt).toBe(NOW);
+    expect(s.asked).toEqual([
+      "hal:10.1234/W1",
+      "europepmc:10.1234/W1",
+      "openaire:10.1234/W1",
+      "zenodo:10.1234/W1",
+    ]);
+  });
+
+  it("spaces its Zenodo calls by the interval it is given", async () => {
+    const at: number[] = [];
+    const s = sources({
+      zenodo: () => {
+        at.push(Date.now());
+        return { status: "none" };
+      },
+    });
+    await enrichCvWithRepositoryCopies(makeCv([work("W1"), work("W2")]), MAILTO, {
+      lookups: s.lookups,
+      now: NOW,
+      zenodoIntervalMs: 60,
+    });
+    expect(at).toHaveLength(2);
+    expect(at[1]! - at[0]!).toBeGreaterThanOrEqual(50);
+  });
+
+  it("stops asking a work's remaining sources once the budget is spent, keeping what was found", async () => {
+    const start = Date.now();
+    const s = sources({
+      hal: () => {
+        vi.spyOn(Date, "now").mockImplementation(() => start + 60_000);
+        return { status: "found", copies: [halNotice] };
+      },
+    });
+    try {
+      const cv = await run(makeCv([work("W1")]), s);
+      expect(s.asked).toEqual(["hal:10.1234/W1"]);
+      expect(item(cv, "W1").meta.repositoryCopies?.map((c) => c.id)).toEqual(["hal-05745947"]);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 });

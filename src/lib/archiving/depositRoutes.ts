@@ -226,10 +226,11 @@ export function depositActionKind(item: CvItem, route: DepositRoute): DepositAct
     : "unrecorded";
 }
 
-const VERSION_LABEL = {
-  submittedVersion: "wlArchivingVersionSubmitted",
-  acceptedVersion: "wlArchivingVersionAccepted",
-  publishedVersion: "wlArchivingVersionPublished",
+/** One string per version: the version noun declines with the verb in most locales. */
+const NOTICE_ACTION = {
+  submittedVersion: "wlDepositHalNoticeSubmitted",
+  acceptedVersion: "wlDepositHalNoticeAccepted",
+  publishedVersion: "wlDepositHalNoticePublished",
 } as const satisfies Record<Version, keyof WorkspaceUiStrings>;
 
 export function depositAction(
@@ -243,11 +244,7 @@ export function depositAction(
   // HAL holds a notice of the work without a file: the action is to add the
   // file — the version the ground allows — to it.
   if (route.notice) {
-    const version = now?.version ?? "acceptedVersion";
-    return fill(wu.wlDepositHalNotice, {
-      version: wu[VERSION_LABEL[version]],
-      id: route.notice.id,
-    });
+    return fill(wu[NOTICE_ACTION[now?.version ?? "acceptedVersion"]], { id: route.notice.id });
   }
   // A statutory right that has run names the accepted manuscript outright —
   // the ground is the law, whatever the publisher records.

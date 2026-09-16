@@ -442,11 +442,11 @@ describe("a HAL notice without a file (the owner sync's repository copies)", () 
     expect(hal!.href).toBe("https://hal.science/hal-05745947");
     expect(hal!.notice).toEqual({ id: "hal-05745947", url: "https://hal.science/hal-05745947" });
     expect(depositAction(item, hal!, EN, true)).toBe(
-      "Add the accepted manuscript to your HAL notice hal-05745947",
+      "Add the accepted manuscript to the HAL notice hal-05745947",
     );
     expect(
       depositAction(item, hal!, EN, true, { basis: "licence", version: "publishedVersion" }),
-    ).toBe("Add the published version to your HAL notice hal-05745947");
+    ).toBe("Add the published version to the HAL notice hal-05745947");
     // The notice page counts as HAL for the record's locations and the chips.
     expect(placeKindOf(hal!.href)).toBe("hal");
     // The form notes: the notice note instead of the paste-the-DOI one.

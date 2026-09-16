@@ -16,9 +16,11 @@ import {
  * HAL — the French national open archive, asked directly by DOI.
  *
  *   GET https://api.archives-ouvertes.fr/search/?q=doiId_s:"<doi>"
- *       &fl=halId_s,submittedDate_s,openAccess_bool,docType_s&wt=json
+ *       &fl=halId_s,submittedDate_s,openAccess_bool&wt=json
  *   → `{ response: { numFound, docs: [{ halId_s, submittedDate_s,
- *       openAccess_bool, docType_s }] } }` (verified live 2026-09-16 on 51 DOIs).
+ *       openAccess_bool }] } }` (verified live 2026-09-16 on 51 DOIs). HAL
+ *     indexes `doiId_s` in lower case, so the term is lowered (a DOI is
+ *     case-insensitive).
  *
  * Keyless, no documented rate limit (the pass makes one call per work,
  * sequentially, under a budget). `openAccess_bool` says whether a FILE is open
@@ -46,8 +48,8 @@ export async function lookupHalCopy(
   if (!bare) return NONE;
   const url = new URL(HAL_API);
   // A quoted Solr term: the DOI's own quotes and backslashes escaped.
-  url.searchParams.set("q", `doiId_s:"${bare.replace(/(["\\])/g, "\\$1")}"`);
-  url.searchParams.set("fl", "halId_s,submittedDate_s,openAccess_bool,docType_s");
+  url.searchParams.set("q", `doiId_s:"${bare.toLowerCase().replace(/(["\\])/g, "\\$1")}"`);
+  url.searchParams.set("fl", "halId_s,submittedDate_s,openAccess_bool");
   url.searchParams.set("wt", "json");
   url.searchParams.set("rows", "5");
   const data = await getJson(url, mailto, timeoutMs);

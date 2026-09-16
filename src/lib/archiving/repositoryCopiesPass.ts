@@ -10,13 +10,15 @@ import { countableWorks } from "@/lib/render/countable";
 import { lookupEuropePmcCopy } from "@/lib/repositoryCopies/europepmc";
 import { lookupHalCopy } from "@/lib/repositoryCopies/hal";
 import { lookupOpenaireCopy } from "@/lib/repositoryCopies/openaire";
-import type { CopyLookup, RepositoryCopy } from "@/lib/repositoryCopies/shared";
+import { FAILED, type CopyLookup, type RepositoryCopy } from "@/lib/repositoryCopies/shared";
+import { AT_PUBLISHER } from "./depositNow";
 import { lookupZenodoCopy, ZENODO_MIN_INTERVAL_MS } from "@/lib/repositoryCopies/zenodo";
 import { answeredWithin } from "./freshness";
 
 /**
  * The OWNER sync's repository-copies pass: for each countable journal article
- * with no open copy found and a DOI, whether a copy already sits in a repository
+ * with a DOI in either worklist list — closed, or open at the publisher only —
+ * the closed ones first, whether a copy already sits in a repository
  * OpenAlex does not know about (`meta.repositoryCopies`) — HAL, Europe PMC, an
  * OpenAIRE-harvested repository, Zenodo, asked in that order, the order that
  * found the most on a real CV (2026-09-16: 17 of 51 in HAL, one in Europe PMC,
@@ -60,11 +62,12 @@ export interface RepositoryCopiesOptions {
   zenodoIntervalMs?: number;
 }
 
-/** A countable journal article with no open copy found and a DOI. */
+/** A countable journal article with a DOI, closed or open at the publisher only. */
 function isCandidate(item: CvItem, countable: ReadonlySet<CvItem>): boolean {
   return (
     countable.has(item) &&
-    item.meta.oaIsOpen === false &&
+    (item.meta.oaIsOpen === false ||
+      (item.meta.oaIsOpen === true && AT_PUBLISHER.has(item.meta.oaStatus ?? ""))) &&
     item.csl?.type === "article-journal" &&
     typeof item.csl.DOI === "string" &&
     item.csl.DOI.trim() !== ""
@@ -120,7 +123,14 @@ async function lookupCopies(
       if (wait > 0) await sleep(Math.min(wait, remainingMs()));
       pace.lastZenodo = Date.now();
     }
-    const result = await lookup(doi, mailto, Math.max(1, remainingMs()));
+    // A client answers found / none / failed; should one ever throw (a shape no
+    // guard foresaw), that is a failure of this source, never of the sync.
+    let result: CopyLookup;
+    try {
+      result = await lookup(doi, mailto, Math.max(1, remainingMs()));
+    } catch {
+      result = FAILED;
+    }
     if (result.status === "failed") {
       failed = true;
       continue;
@@ -145,7 +155,8 @@ export async function enrichCvWithRepositoryCopies(
     zenodoIntervalMs: options.zenodoIntervalMs ?? ZENODO_MIN_INTERVAL_MS,
   };
   const countable = new Set(countableWorks(cv));
-  const candidates: Array<RotationTarget & { doi: string; answeredAt?: string }> = [];
+  type Candidate = RotationTarget & { doi: string; answeredAt?: string; open: boolean };
+  const candidates: Candidate[] = [];
   cv.sections.forEach((section, s) => {
     section.items.forEach((item, i) => {
       if (!isCandidate(item, countable)) return;
@@ -153,13 +164,15 @@ export async function enrichCvWithRepositoryCopies(
         s,
         i,
         doi: item.csl!.DOI!,
+        open: item.meta.oaIsOpen === true,
         // The rotation reads the last ATTEMPT; the refresh window keys on the ANSWER.
         checkedAt: item.meta.repositoryCopiesTriedAt ?? item.meta.repositoryCopiesCheckedAt,
         answeredAt: item.meta.repositoryCopiesCheckedAt,
       });
     });
   });
-  const due = candidates.filter(
+  // The closed works first: the first list is the one a deposit is asked for.
+  const due = [...candidates.filter((c) => !c.open), ...candidates.filter((c) => c.open)].filter(
     (t) => !answeredWithin(t.answeredAt, now, REPOSITORY_COPIES_REFRESH_DAYS),
   );
   const targets = rotationQueue(due, REPOSITORY_COPIES_MAX_WORKS);
