@@ -56,18 +56,32 @@ export function superviseePrintedForms(rawName: string): string[] {
 }
 
 /**
- * The printed-name variants of every supervisee on the CV (included, not
- * "not mine" supervision records that carry a name), longest first, deduplicated.
+ * The printed-name variants of every supervisee on the CV, longest first,
+ * deduplicated. A supervision record counts only when it is on THIS view of the
+ * document: included, not "not mine", and not excluded from the current view
+ * (`display.excludedItems`, the same per-view filter the renderers apply), so a
+ * view that leaves a record out never marks that person's name elsewhere in it.
+ * A record carrying the owner's own name (a data-entry slip, or a namesake
+ * student) is skipped: the account holder is never marked as their own student.
  */
 export function superviseeNameVariants(cv: CanonicalCv): string[] {
+  const ownForms = new Set(
+    [cv.owner.displayName, cv.owner.publicationName?.family, cv.owner.publicationName?.given]
+      .filter((v): v is string => typeof v === "string" && v.trim().length > 0)
+      .flatMap((v) => superviseePrintedForms(v))
+      .map((v) => v.toLowerCase()),
+  );
   const out = new Set<string>();
   for (const section of cv.sections) {
     if (section.type !== "supervision") continue;
+    const excluded = new Set(cv.display.excludedItems?.[section.id] ?? []);
     for (const item of section.items) {
-      if (isHidden(item)) continue;
+      if (isHidden(item) || excluded.has(item.id)) continue;
       const name = item.meta.superviseeName?.trim();
       if (!name) continue;
-      for (const v of superviseePrintedForms(name)) out.add(v);
+      const forms = superviseePrintedForms(name);
+      if (forms.some((f) => ownForms.has(f.toLowerCase()))) continue;
+      for (const v of forms) out.add(v);
     }
   }
   return [...out].sort((a, b) => b.length - a.length);

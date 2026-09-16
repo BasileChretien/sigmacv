@@ -125,6 +125,38 @@ describe("supervisee printed forms", () => {
     expect(variants[0]!.length).toBeGreaterThanOrEqual(variants[variants.length - 1]!.length);
   });
 
+  it("skips a record excluded from the current view, and one carrying the owner's own name", () => {
+    const cv = makeCv();
+    const supervision = cv.sections.find((s) => s.type === "supervision")!;
+    // The view leaves Priya Kaur's record out: her name is not marked in that view.
+    const excluded = updateDisplay(cv, { excludedItems: { [supervision.id]: ["sup:1"] } });
+    expect(superviseeNameVariants(excluded)).not.toContain("Kaur, P.");
+    // A record typed with the owner's own name never marks the owner.
+    const selfRecord = {
+      ...cv,
+      sections: cv.sections.map((s) =>
+        s.type !== "supervision"
+          ? s
+          : {
+              ...s,
+              items: [
+                ...s.items,
+                item("sup:me", {
+                  authoredBySelf: false,
+                  selfNameVariants: [],
+                  displayText: "Basile Chrétien",
+                  meta: { superviseeName: "Basile Chrétien" },
+                }),
+              ],
+            },
+      ),
+    };
+    const variants = superviseeNameVariants(selfRecord);
+    expect(variants).toContain("Kaur, P.");
+    expect(variants).not.toContain("Chrétien, B.");
+    expect(variants).not.toContain("Chrétien");
+  });
+
   it("mark only when asked and while names are not hidden", () => {
     const cv = makeCv();
     expect(shouldMarkSupervisees(cv.display)).toBe(false);
