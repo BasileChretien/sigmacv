@@ -262,6 +262,18 @@ services:
       MB_DB_HOST: metabase_db
       # Public URL of the dashboard, e.g. https://admin.sigmacv.org
       MB_SITE_URL: ${METABASE_SITE_URL:-}
+      # Metabase's AI assistant ("Metabot") is ON by default from v0.63.18 and
+      # needs an LLM key we deliberately do not set. Left enabled, its scheduled
+      # generators run on every start and fail, logging a red herring on a healthy
+      # instance:
+      #   ERROR task.suggested-prompts-generator :: Suggested prompts generation
+      #   failed: No Anthropic API key is set
+      # We do not use the feature, and sending this instance's schema or questions
+      # to a third-party LLM is not something to switch on by accident, so turn it
+      # off explicitly rather than leaving it half-configured.
+      MB_AI_FEATURES_ENABLED: "false"
+      MB_METABOT_ENABLED: "false"
+      MB_EMBEDDED_METABOT_ENABLED: "false"
     expose:
       - "3000"
 
