@@ -409,7 +409,7 @@ const CV_MODELS_SOURCE = [
     id: "frq-en",
     category: "grant",
     region: "CA-QC",
-    name: "FRQ CV — narrative CV (Fonds de recherche du Québec, English)",
+    name: "CV-FRQ — narrative CV (Fonds de recherche du Québec, English)",
     description:
       "Fonds de recherche du Québec narrative CV in English — three sections, 5 pages maximum, no word limit: Background and skills; up to ten Most significant contributions and experiences (each with its period, your role, its impact and its audience A/B/C); Supervisory and mentorship activities. Written in the FRQ Word template and attached as a PDF to the FRQnet form, which collects education, employment and languages itself.",
     sections: ["statement", "narrative-knowledge", "narrative-individuals"],

@@ -2,7 +2,7 @@
  *
  * Style feature animation — a self-contained CSS loop (server component). A real
  * CV card (name highlighted by identifier in the author lists) cycles through
- * templates while the accent recolours (@property --sy-ac); a "58 one-click
+ * templates while the accent recolours (@property --sy-ac); a "61 one-click
  * layouts" badge sits by the template thumbnails, an opt-in field-normalized
  * metrics row reads "Metrics, done responsibly", and the citation style
  * cross-fades (APA → Vancouver → Nature). Loops 12s. Reduced-motion freezes it.
@@ -60,7 +60,7 @@ export default function StyleSwitch() {
             </span>
           </div>
           <span className="sy-layouts">
-            <b>58</b> one-click layouts
+            <b>61</b> one-click layouts
           </span>
         </div>
 
