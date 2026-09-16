@@ -65,6 +65,10 @@ describe("localizeContentHref", () => {
     expect(localizeContentHref("/guides/x", "fr-FR")).toBe("/fr/guides/x");
     expect(localizeContentHref("/glossary/orcid", "fr-FR")).toBe("/fr/glossary/orcid");
     expect(localizeContentHref("/orcid-to-cv", "fr-FR")).toBe("/fr/orcid-to-cv");
+    // An example CV has one URL, in the language of the CV itself.
+    expect(localizeContentHref("/examples/cv-frq-pharmacologie", "fr-FR")).toBe(
+      "/examples/cv-frq-pharmacologie",
+    );
   });
 
   it("is a no-op for the default locale and for external links", () => {

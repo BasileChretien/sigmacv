@@ -81,6 +81,7 @@ export const GUIDE_SLUGS = [
   "academic-cv-for-grad-school",
   "responsible-metrics-on-an-academic-cv",
   "academic-cv-format-by-country",
+  "frq-narrative-cv",
 ] as const;
 export type GuideSlug = (typeof GUIDE_SLUGS)[number];
 
@@ -136,7 +137,14 @@ const GUIDE_META: Record<GuideSlug, GuideMeta> = {
     datePublished: "2026-06-10",
     dateModified: "2026-06-10",
     relatedPages: ["academic-cv-template", "funder-cv-templates"],
-    relatedGuides: ["how-to-write-an-academic-cv", "academic-cv-vs-resume"],
+    relatedGuides: ["how-to-write-an-academic-cv", "academic-cv-vs-resume", "frq-narrative-cv"],
+  },
+  "frq-narrative-cv": {
+    slug: "frq-narrative-cv",
+    datePublished: "2026-09-16",
+    dateModified: "2026-09-16",
+    relatedPages: ["funder-cv-templates", "academic-cv-template"],
+    relatedGuides: ["academic-cv-format-by-country", "how-to-list-publications-on-a-cv"],
   },
 };
 

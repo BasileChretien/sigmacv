@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import ExamplePage from "@/components/ExamplePage";
 import { EXAMPLE_SLUGS, getExample } from "@/lib/examples/examples";
 
-/** The illustrative example CVs are a fixed, English-only set of static pages. */
+/** The illustrative example CVs are a fixed set of static pages, each in its own language. */
 export const dynamicParams = false;
 
 export function generateStaticParams(): { slug: string }[] {

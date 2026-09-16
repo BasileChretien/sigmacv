@@ -1,3 +1,4 @@
+import type { Locale } from "@/lib/i18n";
 import type { AnyLandingPageId } from "@/lib/i18n/landingAll";
 import { EXAMPLE_CONTENT } from "./examplesContent";
 
@@ -8,9 +9,11 @@ import { EXAMPLE_CONTENT } from "./examplesContent";
  *
  * Each example is an ILLUSTRATIVE, FICTIONAL CV: a made-up researcher with
  * fabricated publications (never a real person/paper/DOI), shown with a visible
- * disclaimer. English-first (a CV's structure is largely language-agnostic);
- * localization can come later. Structure (slug, field, stage, cross-links) lives
- * here in `EXAMPLE_META`; the prose lives in `examplesContent.ts`.
+ * disclaimer. English-first (a CV's structure is largely language-agnostic); an
+ * example written in another language sets `locale` on its meta and the page
+ * chrome follows it (`src/lib/i18n/examplesChrome.ts`). Structure (slug, field,
+ * stage, cross-links) lives here in `EXAMPLE_META`; the prose lives in
+ * `examplesContent.ts` (one module per non-English example, e.g. `examplesContentFrq.ts`).
  */
 
 export const EXAMPLE_SLUGS = [
@@ -22,6 +25,7 @@ export const EXAMPLE_SLUGS = [
   "faculty-cv-physics",
   "faculty-cv-history",
   "research-cv-public-health",
+  "cv-frq-pharmacologie",
 ] as const;
 export type ExampleSlug = (typeof EXAMPLE_SLUGS)[number];
 
@@ -50,6 +54,9 @@ export interface ExampleContent {
   person: ExamplePerson;
   citationStyle: string;
   templateLabel: string;
+  /** Replaces the generated "field · stage · citations · template" byline when
+   *  the example's language needs its own wording (the meta labels are English). */
+  byline?: string;
   sections: ExampleSection[];
 }
 
@@ -62,6 +69,8 @@ export interface ExampleMeta {
   stage: string;
   /** Hub-and-spoke cross-links to the relevant persona / landing pages. */
   related: readonly AnyLandingPageId[];
+  /** Language of the CV content and of the page chrome (default en-US). */
+  locale?: Locale;
 }
 
 export const EXAMPLE_META: Record<ExampleSlug, ExampleMeta> = {
@@ -112,6 +121,13 @@ export const EXAMPLE_META: Record<ExampleSlug, ExampleMeta> = {
     field: "Public Health",
     stage: "Research scientist",
     related: ["research-cv", "nih-biosketch", "publication-list"],
+  },
+  "cv-frq-pharmacologie": {
+    slug: "cv-frq-pharmacologie",
+    field: "Clinical pharmacology",
+    stage: "Early-career faculty (Assistant Professor)",
+    related: ["funder-cv-templates", "research-cv", "publication-list"],
+    locale: "fr-FR",
   },
 };
 
