@@ -4,7 +4,7 @@
 # runs in the runtime stage. Do NOT move to trixie (OpenSSL 3.5) without checking
 # that Prisma still emits a matching engine target.
 #
-# Node 24 matches the runtime: mcr.microsoft.com/playwright:v1.62.1-noble ships
+# Node 24 matches the runtime: mcr.microsoft.com/playwright:v1.63.0-noble ships
 # NODE_VERSION=24, so building on 22 meant compiling on one major and running on
 # another. This pairing is load-bearing, so Dependabot is configured to ignore
 # Node MAJOR bumps for this image (.github/dependabot.yml) — bump it by hand when
@@ -65,7 +65,7 @@ RUN npm run build
 # `tests/dockerfile-playwright-sync.test.ts` fails CI if this drifts — a Playwright
 # bump that doesn't bump this tag ships a Chromium revision the npm package can't
 # launch, and every PDF export 500s ("Export failed").
-FROM mcr.microsoft.com/playwright:v1.62.1-noble AS runner
+FROM mcr.microsoft.com/playwright:v1.63.0-noble AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
