@@ -23,7 +23,7 @@ const USER_AGENT = "SigmaCV (+https://github.com/BasileChretien/sigmacv)";
 /** NCBI accepts a few hundred ids per esummary call; keep the URL well-bounded. */
 export const PUBMED_BATCH_SIZE = 200;
 /** Without an API key NCBI allows three requests a second: space the batches. */
-export const PUBMED_MIN_INTERVAL_MS = 350;
+const PUBMED_MIN_INTERVAL_MS = 350;
 
 /**
  * The PubMed publication types that make a record a clinical practice guideline
