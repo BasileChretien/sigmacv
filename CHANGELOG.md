@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **HAL's answer reaches every paper sooner.** The owner's sync now asks HAL — fast, and where nearly every copy was — for every paper due before it asks Europe PMC, OpenAIRE and Zenodo about the ones HAL did not settle. One sync used to ask all four repositories about one paper before moving to the next and reached seven papers in its time budget; now the HAL answer for the whole batch comes first, and the slower repositories fill in behind it. What each repository said is kept until it answers again, so a notice found on the way shows in the Open access tab at once.
 - **A citation marker in a narrative section now reads as a citation.** Choosing an entry to cite used to drop `[[W2741809807]]` into the text, an opaque identifier the writer had to trust. The marker now carries the entry's short reference after a pipe, `[[W2741809807 | Chrétien et al. 2022]]`, so the text box reads like prose. Only the identifier counts: exports keep printing the entry's own reference, the label may be edited or deleted without effect, and every marker written before (bare identifier) is read exactly as before.
 
 ### Fixed
