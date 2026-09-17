@@ -3,7 +3,6 @@ import {
   COPY_LOOKUPS,
   defaultLookups,
   enrichCvWithRepositoryCopies,
-  REPOSITORY_COPIES_MAX_WORKS,
   REPOSITORY_COPIES_REFRESH_DAYS,
 } from "@/lib/archiving/repositoryCopiesPass";
 import type { CopyLookup, RepositoryCopy } from "@/lib/repositoryCopies/shared";
@@ -15,7 +14,14 @@ import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonica
 vi.mock("@/lib/db", () => ({ prisma: {} }));
 vi.mock("@/lib/openaire/auth", () => ({ getOpenaireAccessToken: async () => null }));
 const openaire = vi.hoisted(() => ({
-  lookup: vi.fn(async (): Promise<CopyLookup> => ({ status: "none" })),
+  lookup: vi.fn(
+    async (
+      _doi: string,
+      _mailto?: string,
+      _timeoutMs?: number,
+      _token?: string | null,
+    ): Promise<CopyLookup> => ({ status: "none" }),
+  ),
 }));
 vi.mock("@/lib/repositoryCopies/openaire", () => ({ lookupOpenaireCopy: openaire.lookup }));
 
@@ -97,13 +103,21 @@ function sources(answers: Partial<Record<RepositoryCopy["source"], (doi: string)
 }
 
 const item = (cv: CanonicalCv, id: string) => cv.sections[0]!.items.find((i) => i.id === id)!;
+const within = <T>(p: Promise<T>, ms: number, fallback: T) =>
+  Promise.race([p, new Promise<T>((r) => setTimeout(() => r(fallback), ms))]);
 const run = (cv: CanonicalCv, s: ReturnType<typeof sources>, now = NOW) =>
   enrichCvWithRepositoryCopies(cv, MAILTO, { lookups: s.lookups, now });
 
 describe("enrichCvWithRepositoryCopies", () => {
-  it("asks HAL, Europe PMC and OpenAIRE — never Zenodo, which OpenAIRE harvests — with a cap a whole CV fits under", () => {
+  it("asks HAL, Europe PMC and OpenAIRE — never Zenodo, which OpenAIRE harvests — for every work due, with no cap", async () => {
     expect(COPY_LOOKUPS.map(([source]) => source)).toEqual(["hal", "europepmc", "openaire"]);
-    expect(REPOSITORY_COPIES_MAX_WORKS).toBeGreaterThanOrEqual(300);
+    const s = sources({ hal: () => ({ status: "found", copies: [halFile] }) });
+    const many = Array.from({ length: 450 }, (_, i) => work(`W${i}`));
+    const cv = await run(makeCv(many), s);
+    expect(s.asked).toHaveLength(450);
+    expect(cv.sections[0]!.items.every((it) => it.meta.repositoryCopiesCheckedAt === NOW)).toBe(
+      true,
+    );
   });
 
   it("asks the sources in order and stops at the first file, storing the copies with their retrieval date", async () => {
@@ -405,5 +419,23 @@ describe("enrichCvWithRepositoryCopies", () => {
     await defaultLookups(async () => null)[2]![1]("10.1234/W3", MAILTO, 500);
     expect(openaire.lookup).toHaveBeenLastCalledWith("10.1234/W3", MAILTO, 500, null);
     expect(defaultLookups()[0]![1]).toBe(COPY_LOOKUPS[0]![1]);
+  });
+
+  it("bounds the token exchange by the call's timeout: a slow exchange goes anonymous with the time left, or fails when none is", async () => {
+    const never = () => new Promise<string | null>(() => {});
+    // A generous timeout: the exchange is late, the call goes on anonymously with the rest.
+    const slow = defaultLookups(() => within(never(), 30, "late"));
+    openaire.lookup.mockClear();
+    await slow[2]![1]("10.1234/W1", MAILTO, 400);
+    const [doi, mailto, left, bearer] = openaire.lookup.mock.calls[0]!;
+    expect([doi, mailto, bearer]).toEqual(["10.1234/W1", MAILTO, "late"]);
+    expect(left).toBeGreaterThan(0);
+    expect(left).toBeLessThanOrEqual(400);
+    // No time left once the exchange gave up: the source failed, no call made.
+    openaire.lookup.mockClear();
+    expect(await defaultLookups(never)[2]![1]("10.1234/W2", MAILTO, 20)).toEqual({
+      status: "failed",
+    });
+    expect(openaire.lookup).not.toHaveBeenCalled();
   });
 });

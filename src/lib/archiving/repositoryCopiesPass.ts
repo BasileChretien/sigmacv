@@ -10,7 +10,12 @@ import { countableWorks } from "@/lib/render/countable";
 import { lookupEuropePmcCopy } from "@/lib/repositoryCopies/europepmc";
 import { lookupHalCopy } from "@/lib/repositoryCopies/hal";
 import { lookupOpenaireCopy } from "@/lib/repositoryCopies/openaire";
-import { FAILED, type CopyLookup, type RepositoryCopy } from "@/lib/repositoryCopies/shared";
+import {
+  COPY_TIMEOUT_MS,
+  FAILED,
+  type CopyLookup,
+  type RepositoryCopy,
+} from "@/lib/repositoryCopies/shared";
 import { getOpenaireAccessToken } from "@/lib/openaire/auth";
 import { AT_PUBLISHER } from "./depositNow";
 import { answeredWithin } from "./freshness";
@@ -60,8 +65,7 @@ import { answeredWithin } from "./freshness";
  * candidate loses its copies.
  */
 
-/** Larger than any CV the pass has met: the budget, not the cap, is the bound. */
-export const REPOSITORY_COPIES_MAX_WORKS = 400;
+/** No cap on the works: every work due is queued; the budget is the bound. */
 const REPOSITORY_COPIES_BUDGET_MS = 25_000;
 /** Phase 1 may spend this share of the budget; the rest is phase 2's at least. */
 const FIRST_PHASE_SHARE = 1 / 2;
@@ -92,10 +96,22 @@ export interface RepositoryCopiesOptions {
   now?: string;
 }
 
+/** `promise`, or `fallback` once `ms` have passed — the timer never outlives the race. */
+function within<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([promise, late]).finally(() => clearTimeout(timer));
+}
+
 /**
  * The default sources, OpenAIRE bound to the access token of this sync — asked
  * for once, at the first OpenAIRE call, so a sync with nothing left for phase 2
- * never exchanges it (null = anonymous). Exported for its test.
+ * never exchanges it (null = anonymous). The exchange is bounded by the call's
+ * own timeout: past it the call goes anonymous with what time is left, or fails
+ * when none is, so a slow token endpoint never stretches the pass beyond its
+ * budget. Exported for its test.
  */
 export function defaultLookups(
   getToken: () => Promise<string | null> = () => getOpenaireAccessToken().catch(() => null),
@@ -105,8 +121,12 @@ export function defaultLookups(
     source === "openaire"
       ? ([
           source,
-          async (doi: string, mailto?: string, timeoutMs?: number) =>
-            lookupOpenaireCopy(doi, mailto, timeoutMs, await (token ??= getToken())),
+          async (doi: string, mailto?: string, timeoutMs: number = COPY_TIMEOUT_MS) => {
+            const started = Date.now();
+            const bearer = await within((token ??= getToken()), timeoutMs, null);
+            const left = timeoutMs - (Date.now() - started);
+            return left > 0 ? lookupOpenaireCopy(doi, mailto, left, bearer) : FAILED;
+          },
         ] as const)
       : ([source, lookup] as const),
   );
@@ -258,7 +278,7 @@ export async function enrichCvWithRepositoryCopies(
   );
   const [first, ...rest] = lookups;
   /* v8 ignore next -- COPY_LOOKUPS is never empty; an injected empty list asks nothing */
-  const targets = first ? rotationQueue(due, REPOSITORY_COPIES_MAX_WORKS) : [];
+  const targets = first ? rotationQueue(due, due.length) : [];
   const order = lookups.map(([source]) => source);
 
   const started = Date.now();
