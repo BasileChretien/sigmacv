@@ -169,6 +169,90 @@ describe("migrateContributionStubs", () => {
     expect(k.body).toBe("");
   });
 
+  it("turns a paragraph of nothing but citation markers into cards, in order, before the picked stubs", () => {
+    // What the old picker left at the top of the section, then a picked stub for W1.
+    // Exactly as the old picker left them: glued onto the starter note, no separator.
+    const body = [
+      `[[dataset:datacite:10-5281-zenodo-1 | Dolladille, C., &…]] [[W3 | Vigne et al. 2022]]${en.draftNote}`,
+      en.contribIntro,
+      "Prose that cites [[W2 | Morice 2020]] in a sentence stays prose.",
+      "[[W2 | Morice 2020]] showed this, and a sentence starting with a marker stays prose.",
+      "1. Immune Checkpoint Inhibitor Rechallenge (a study) (2020 · Audience : A / B / C) [[W1 | D]]",
+    ].join("\n\n");
+    const k = section(migrateContributionStubs(rawDoc(body)));
+    expect(k.contributions).toEqual([
+      { id: "c1", itemId: "dataset:datacite:10-5281-zenodo-1" },
+      { id: "c2", itemId: "W3" },
+      { id: "c3", itemId: "W1", period: "2020" },
+    ]);
+    expect(k.body).toBe(
+      [
+        en.draftNote,
+        en.contribIntro,
+        "Prose that cites [[W2 | Morice 2020]] in a sentence stays prose.",
+        "[[W2 | Morice 2020]] showed this, and a sentence starting with a marker stays prose.",
+      ].join("\n\n"),
+    );
+  });
+
+  it("converts a marker paragraph even with no stub left, and never duplicates a card", () => {
+    // The owner already saved once: no numbered stub, one card for W3, the markers still there.
+    const body = ["[[W3 | Vigne]]", "[[W3]]  [[W2 | Morice]]", en.pickPrompt].join("\n\n");
+    const k = section(
+      migrateContributionStubs(rawDoc(body, { contributions: [{ id: "c1", itemId: "W3" }] })),
+    );
+    expect(k.contributions).toEqual([
+      { id: "c1", itemId: "W3" },
+      { id: "c2", itemId: "W2" },
+    ]);
+    expect(k.body).toBe("");
+    // A duplicate-only marker paragraph still goes (the card exists already).
+    const dup = section(
+      migrateContributionStubs(rawDoc("[[W3]]", { contributions: [{ id: "c1", itemId: "W3" }] })),
+    );
+    expect(dup.contributions).toEqual([{ id: "c1", itemId: "W3" }]);
+    expect(dup.body).toBe("");
+    // A marker with an empty id is not a marker paragraph.
+    const blank = rawDoc("[[ | nothing]]");
+    expect(migrateContributionStubs(blank)).toBe(blank);
+  });
+
+  it("a card made from a marker starts like a picked one: year and guideline citations, malformed values left out", () => {
+    const doc = rawDoc("[[W2 | Morice]] [[W1 | D]]");
+    const items = (doc.sections[0] as { items: { meta: Record<string, unknown> }[] }).items;
+    items[1]!.meta = {
+      year: 2020,
+      guidelineCitations: [
+        {
+          pmid: "39413835",
+          title: "NCCN Guidelines.",
+          source: "J Natl Compr Canc Netw",
+          year: 2024,
+        },
+        { pmid: 12, title: "Bad pmid" },
+        { pmid: "1", title: "Bare" },
+        "junk",
+      ],
+    };
+    const k = section(migrateContributionStubs(doc));
+    expect(k.contributions).toEqual([
+      {
+        id: "c1",
+        itemId: "W2",
+        period: "2020",
+        citedIn: [
+          {
+            text: "NCCN Guidelines (J Natl Compr Canc Netw, 2024)",
+            url: "https://pubmed.ncbi.nlm.nih.gov/39413835/",
+          },
+          { text: "Bare", url: "https://pubmed.ncbi.nlm.nih.gov/1/" },
+        ],
+      },
+      { id: "c2", itemId: "W1" },
+    ]);
+    expect(safeParseCanonicalCv(doc).success).toBe(true);
+  });
+
   it("is idempotent: a migrated document is passed through on the next read", () => {
     const body = [
       "1. Myelodysplastic syndrome and PARP inhibitors (2020 · Audience : A / B / C) [[W2 | M]]",

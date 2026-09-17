@@ -15,6 +15,10 @@ import { PROSE_STARTER_STRINGS } from "@/lib/i18n/proseStarter";
  *  - a guessed stub the owner WORKED ON (a role or an impact was written) becomes
  *    a contribution too, linked by its title when an entry of the record matches;
  *  - a guessed stub nobody touched is dropped — it was never the owner's choice;
+ *  - citation markers at the start of a paragraph, alone or glued onto one of
+ *    our bracketed prompts (what the picker left before #512: entries the owner
+ *    chose, sitting at the top of the section), become one card per entry;
+ *  - an entry that already has a card never gets a second one;
  *  - the stub text leaves the body, the stale intro prompt is reworded, and the
  *    "pick your publications" prompt goes once there is a contribution.
  * Works on the RAW stored JSON (before validation), defensively, and returns the
@@ -78,20 +82,93 @@ function parseStub(paragraph: string): ParsedStub | null {
   return stub;
 }
 
-/** id by printed title over every item of the raw document (first wins). */
-function titleIndex(sections: any[]): Map<string, string> {
-  const index = new Map<string, string>();
-  for (const section of sections) {
-    for (const item of Array.isArray(section?.items) ? section.items : []) {
-      const raw = item?.displayTextOverride ?? item?.csl?.title ?? item?.displayText;
-      const title = typeof raw === "string" ? raw.trim() : "";
-      if (title && typeof item?.id === "string" && !index.has(title)) index.set(title, item.id);
-    }
+/**
+ * `[[id]]` / `[[id | label]]` markers at the START of a paragraph, followed by
+ * nothing or by one of our bracketed prompts. The old picker inserted at the
+ * caret, which sat at the very start of the draft, so its markers landed glued
+ * onto "[Starter draft …]". A sentence that merely begins with a marker ("[[W1]]
+ * showed …") does not match: the lookahead wants the end or a single `[`.
+ */
+const LEADING_MARKERS_RE = /^\s*((?:\[\[[^[\]\n]{1,1100}\]\]\s*)+)(?=$|\[[^[])/;
+/** One marker; group 1 is the id (before any `|`). */
+const MARKER_RE = /\[\[([^[\]|\n]+?)(?:\s*\|[^[\]\n]*)?\]\]/g;
+/** The cheap gate's test for such a paragraph (at any line start). */
+const MARKER_LINE_RE = /(^|\n)[ \t]*(?:\[\[[^[\]\n]+\]\][ \t]*)+(?=\n|$|\[[^[])/;
+
+/**
+ * The entry ids of a paragraph's leading markers, in order, unique, capped, and
+ * what is left of the paragraph after them; null when there are none.
+ */
+function leadingMarkers(text: string): { ids: string[]; rest: string } | null {
+  const m = LEADING_MARKERS_RE.exec(text);
+  if (!m) return null;
+  const ids: string[] = [];
+  for (const marker of m[1]!.matchAll(MARKER_RE)) {
+    const id = marker[1]!.trim().slice(0, 1024);
+    if (id && !ids.includes(id)) ids.push(id);
   }
-  return index;
+  return ids.length > 0 ? { ids, rest: text.slice(m[0].length) } : null;
 }
 
-function migrateSection(section: any, titles: Map<string, string>): any {
+interface RawIndex {
+  /** id by printed title (first wins). */
+  byTitle: Map<string, string>;
+  /** raw item by id. */
+  byId: Map<string, any>;
+}
+
+/** The raw document's items, by printed title and by id. */
+function rawIndex(sections: any[]): RawIndex {
+  const byTitle = new Map<string, string>();
+  const byId = new Map<string, any>();
+  for (const section of sections) {
+    for (const item of Array.isArray(section?.items) ? section.items : []) {
+      if (typeof item?.id !== "string") continue;
+      if (!byId.has(item.id)) byId.set(item.id, item);
+      const raw = item?.displayTextOverride ?? item?.csl?.title ?? item?.displayText;
+      const title = typeof raw === "string" ? raw.trim() : "";
+      if (title && !byTitle.has(title)) byTitle.set(title, item.id);
+    }
+  }
+  return { byTitle, byId };
+}
+
+/**
+ * What a card made from a marker starts with, like a card made with the picker
+ * (`contributions.ts` `contributionFromItem`): the entry's year as the period and
+ * the clinical guidelines that cite it as "cited in" lines. Read defensively from
+ * the raw item — anything not of the expected shape is simply left out.
+ */
+function prefillFromRaw(item: any): Record<string, unknown> {
+  const out: Record<string, unknown> = {};
+  const meta = item?.meta ?? {};
+  const year = [meta.yearOverride, meta.year, item?.csl?.issued?.["date-parts"]?.[0]?.[0]].find(
+    (y) => typeof y === "number" && Number.isInteger(y),
+  );
+  if (year !== undefined) out.period = String(year);
+  const guidelines = Array.isArray(meta.guidelineCitations) ? meta.guidelineCitations : [];
+  const citedIn = guidelines
+    .filter((g: any) => typeof g?.pmid === "string" && typeof g?.title === "string")
+    .slice(0, 5)
+    .map((g: any) => {
+      const tail = [
+        typeof g.source === "string" ? g.source.trim() : "",
+        typeof g.year === "number" ? String(g.year) : "",
+      ]
+        .filter(Boolean)
+        .join(", ");
+      const title = g.title.trim().replace(/\.$/, "");
+      return {
+        text: (tail ? `${title} (${tail})` : title).slice(0, 600),
+        url: `https://pubmed.ncbi.nlm.nih.gov/${encodeURIComponent(g.pmid.trim())}/`,
+      };
+    });
+  if (citedIn.length > 0) out.citedIn = citedIn;
+  return out;
+}
+
+function migrateSection(section: any, raw: RawIndex): any {
+  const titles = raw.byTitle;
   if (section?.type !== "narrative-knowledge" || typeof section.body !== "string") return section;
   const paragraphs = section.body.replace(/\r\n?/g, "\n").split(/\n[ \t]*\n+/);
   const existing: any[] = Array.isArray(section.contributions) ? section.contributions : [];
@@ -115,9 +192,28 @@ function migrateSection(section: any, titles: Map<string, string>): any {
     }
     if (current.length > 0) chunks.push({ text: current.join("\n"), stub: isStub });
   }
+  // A new card takes the next free id; an entry that already has a card gets no second one.
+  const push = (card: Record<string, unknown>) => {
+    const all = [...existing, ...added];
+    if (card.itemId && all.some((c) => c?.itemId === card.itemId)) return;
+    const taken = new Set(all.map((c) => c?.id));
+    let n = all.length + 1;
+    while (taken.has(`c${n}`)) n += 1;
+    added.push({ id: `c${n}`, ...card });
+  };
   for (const chunk of chunks) {
     const stub = chunk.stub ? parseStub(chunk.text.trim()) : null;
     if (!stub) {
+      // Citation markers at the start of a paragraph are what the picker left before
+      // contributions were cards ("they appear only at the top"): each marked
+      // entry becomes a card, in order, and the markers leave the text.
+      const lead = chunk.stub ? null : leadingMarkers(chunk.text);
+      if (lead) {
+        changed = true;
+        for (const itemId of lead.ids) push({ itemId, ...prefillFromRaw(raw.byId.get(itemId)) });
+        if (lead.rest.trim()) kept.push(lead.rest);
+        continue;
+      }
       kept.push(chunk.text);
       continue;
     }
@@ -125,11 +221,7 @@ function migrateSection(section: any, titles: Map<string, string>): any {
     const worked = Boolean(stub.role || stub.impact);
     if (!stub.itemId && !worked) continue; // a guess nobody touched
     const itemId = stub.itemId ?? titles.get(stub.title);
-    const taken = new Set([...existing, ...added].map((c) => c?.id));
-    let n = existing.length + added.length + 1;
-    while (taken.has(`c${n}`)) n += 1;
-    added.push({
-      id: `c${n}`,
+    push({
       ...(itemId ? { itemId } : { title: stub.title.slice(0, 1000) }),
       ...(stub.year ? { period: stub.year } : {}),
       ...(stub.role ? { role: stub.role.slice(0, 3000) } : {}),
@@ -159,18 +251,19 @@ export function migrateContributionStubs(doc: unknown): unknown {
   if (!doc || typeof doc !== "object") return doc;
   const sections = (doc as any).sections;
   if (!Array.isArray(sections)) return doc;
-  // Cheap gate: nothing to do unless a contributions body holds a numbered head.
+  // Cheap gate: nothing to do unless a contributions body holds a numbered head
+  // or a line of nothing but citation markers.
   const candidate = sections.some(
     (s: any) =>
       s?.type === "narrative-knowledge" &&
       typeof s.body === "string" &&
-      /(^|\n)\d{1,3}\. .+ : A \/ B \/ C\)/.test(s.body),
+      (/(^|\n)\d{1,3}\. .+ : A \/ B \/ C\)/.test(s.body) || MARKER_LINE_RE.test(s.body)),
   );
   if (!candidate) return doc;
-  const titles = titleIndex(sections);
+  const raw = rawIndex(sections);
   let changed = false;
   const next = sections.map((s: any) => {
-    const m = migrateSection(s, titles);
+    const m = migrateSection(s, raw);
     if (m !== s) changed = true;
     return m;
   });
