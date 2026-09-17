@@ -8,6 +8,7 @@ import type { CanonicalCv } from "@/lib/canonical/schema";
 import { sectionTitle } from "@/lib/i18n";
 import { narrativeGuidance } from "@/lib/i18n/narrativeGuidance";
 import {
+  CALL_TEXT_MAX,
   buildNarrativeMessages,
   generateNarrativeDraft,
   isNarrativeAiSection,
@@ -108,6 +109,30 @@ describe("buildNarrativeMessages", () => {
     expect(user.content).toContain("I work on drug-safety signal detection."); // self-summary
     expect(user.content).toContain("Pharmacology, Oncology"); // research areas
     expect(user.content).toContain("J. Pharmacovigilance, 2024"); // venue + year on an entry
+  });
+
+  it("carries the pasted call text as fenced reference material, and nothing of it otherwise", () => {
+    const [system, user] = buildNarrativeMessages(makeCv(), "narrative-knowledge", {
+      callText: "  We assess: (1) contributions to the field; (2) mentoring.  ",
+    });
+    expect(system.content).toMatch(/reference material only/);
+    expect(user.content).toContain(
+      "The text of the call the researcher is answering:\n===\nWe assess: (1) contributions to the field; (2) mentoring.\n===",
+    );
+    expect(user.content).toContain("speaking to what the call assesses");
+    // Without a call text the prompt is exactly the plain one.
+    const plain = buildNarrativeMessages(makeCv(), "narrative-knowledge");
+    expect(plain).toEqual(
+      buildNarrativeMessages(makeCv(), "narrative-knowledge", { callText: "   " }),
+    );
+    expect(plain[0].content).not.toMatch(/reference material only/);
+    expect(plain[1].content).not.toContain("===");
+    // Bounded: a pasted document is cut to CALL_TEXT_MAX characters.
+    const long = buildNarrativeMessages(makeCv(), "narrative-knowledge", {
+      callText: "x".repeat(CALL_TEXT_MAX + 100),
+    });
+    expect(long[1].content).toContain("x".repeat(CALL_TEXT_MAX));
+    expect(long[1].content).not.toContain("x".repeat(CALL_TEXT_MAX + 1));
   });
 
   it("still builds a valid prompt with no outputs or headline", () => {

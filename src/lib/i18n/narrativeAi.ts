@@ -28,6 +28,9 @@ export interface NarrativeAiStrings {
   storedNote: string;
   /** Hint listing example compatible providers. */
   keyHint: string;
+  /** Label + hint for the pasted text of the call being answered (optional). */
+  callLabel: string;
+  callHint: string;
   /** Clear the stored key/config from this browser. */
   forgetKey: string;
   /** Confirm button that sends the request. */
@@ -59,6 +62,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Your API key is kept only in memory for this session — never saved to this browser or our servers — and sent only to the provider you choose. Reloading or “Forget key” clears it.",
     keyHint:
       "Works with Mistral, OpenAI, OpenRouter, a self-hosted server, or any OpenAI-compatible endpoint.",
+    callLabel: "Text of the call you are answering (optional)",
+    callHint:
+      "Paste the funder's criteria, the job posting or the programme's guidance. The draft then speaks to what that call assesses, in its words. Sent with the summary to your provider; remembered in this browser only.",
     forgetKey: "Forget key",
     generate: "Generate draft",
     cancel: "Cancel",
@@ -80,6 +86,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
     storedNote:
       "你的 API 密钥仅在本次会话的内存中保留——绝不会保存到本浏览器或我们的服务器——且只发送给你选择的提供商。刷新或“清除密钥”即可清除。",
     keyHint: "支持 Mistral、OpenAI、OpenRouter、自建服务器或任何兼容 OpenAI 的接口。",
+    callLabel: "您所申请的征集/招聘文本（可选）",
+    callHint:
+      "粘贴资助方的评审标准、招聘启事或项目指南。初稿会据此针对该征集所考察的内容、用其措辞来写。它会与摘要一起发送给您的提供商，仅保存在本浏览器中。",
     forgetKey: "清除密钥",
     generate: "生成初稿",
     cancel: "取消",
@@ -103,6 +112,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Tu clave API se mantiene solo en memoria durante esta sesión —nunca se guarda en este navegador ni en nuestros servidores— y se envía solo al proveedor que elijas. Se borra al recargar o con «Olvidar clave».",
     keyHint:
       "Funciona con Mistral, OpenAI, OpenRouter, un servidor propio o cualquier endpoint compatible con OpenAI.",
+    callLabel: "Texto de la convocatoria a la que respondes (opcional)",
+    callHint:
+      "Pega los criterios del financiador, la oferta de empleo o la guía del programa. El borrador se dirigirá entonces a lo que esa convocatoria evalúa, con sus palabras. Se envía junto al resumen a tu proveedor; solo se recuerda en este navegador.",
     forgetKey: "Olvidar clave",
     generate: "Generar borrador",
     cancel: "Cancelar",
@@ -126,6 +138,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Votre clé API n’est conservée qu’en mémoire pour cette session — jamais enregistrée dans ce navigateur ni sur nos serveurs — et envoyée uniquement au fournisseur que vous choisissez. Elle disparaît au rechargement ou via « Oublier la clé ».",
     keyHint:
       "Fonctionne avec Mistral, OpenAI, OpenRouter, un serveur auto-hébergé ou tout point d’accès compatible OpenAI.",
+    callLabel: "Texte de l'appel auquel vous répondez (facultatif)",
+    callHint:
+      "Collez les critères du bailleur, l'offre de poste ou le guide du programme. Le brouillon répond alors à ce que cet appel évalue, dans ses mots. Envoyé avec le résumé à votre fournisseur ; mémorisé dans ce navigateur seulement.",
     forgetKey: "Oublier la clé",
     generate: "Générer le brouillon",
     cancel: "Annuler",
@@ -149,6 +164,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Ihr API-Schlüssel wird nur im Speicher dieser Sitzung gehalten – nie in diesem Browser oder auf unseren Servern gespeichert – und nur an den von Ihnen gewählten Anbieter gesendet. Neuladen oder „Schlüssel vergessen“ löscht ihn.",
     keyHint:
       "Funktioniert mit Mistral, OpenAI, OpenRouter, einem selbst gehosteten Server oder jedem OpenAI-kompatiblen Endpunkt.",
+    callLabel: "Text der Ausschreibung, auf die Sie antworten (optional)",
+    callHint:
+      "Fügen Sie die Kriterien des Förderers, die Stellenanzeige oder den Programmleitfaden ein. Der Entwurf geht dann auf das ein, was diese Ausschreibung bewertet, in ihren Worten. Wird mit der Zusammenfassung an Ihren Anbieter gesendet; nur in diesem Browser gespeichert.",
     forgetKey: "Schlüssel vergessen",
     generate: "Entwurf erzeugen",
     cancel: "Abbrechen",
@@ -172,6 +190,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "API キーはこのセッションのメモリー内にのみ保持され——このブラウザーや当方のサーバーには保存されません——選んだプロバイダーにのみ送信されます。再読み込みまたは「キーを削除」で消去されます。",
     keyHint:
       "Mistral、OpenAI、OpenRouter、自己ホストのサーバー、その他 OpenAI 互換のエンドポイントで利用できます。",
+    callLabel: "応募先の公募文（任意）",
+    callHint:
+      "助成機関の審査基準、求人票、プログラムの手引きを貼り付けてください。下書きはその公募が評価する点に、その言葉づかいで応えます。要約とともにご自身のプロバイダーへ送信され、このブラウザーにのみ記憶されます。",
     forgetKey: "キーを削除",
     generate: "下書きを生成",
     cancel: "キャンセル",
@@ -195,6 +216,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Sua chave de API é mantida apenas na memória durante esta sessão — nunca salva neste navegador ou em nossos servidores — e enviada somente ao provedor que você escolher. Recarregar ou “Esquecer chave” a apaga.",
     keyHint:
       "Funciona com Mistral, OpenAI, OpenRouter, um servidor próprio ou qualquer endpoint compatível com OpenAI.",
+    callLabel: "Texto da chamada à qual você responde (opcional)",
+    callHint:
+      "Cole os critérios do financiador, o anúncio da vaga ou as orientações do programa. O rascunho então responde ao que essa chamada avalia, com as palavras dela. Enviado com o resumo ao seu provedor; lembrado apenas neste navegador.",
     forgetKey: "Esquecer chave",
     generate: "Gerar rascunho",
     cancel: "Cancelar",
@@ -218,6 +242,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "La tua chiave API è mantenuta solo in memoria per questa sessione — mai salvata in questo browser o sui nostri server — e inviata solo al fornitore che scegli. Si cancella ricaricando o con «Dimentica chiave».",
     keyHint:
       "Funziona con Mistral, OpenAI, OpenRouter, un server self-hosted o qualsiasi endpoint compatibile con OpenAI.",
+    callLabel: "Testo del bando a cui rispondi (facoltativo)",
+    callHint:
+      "Incolla i criteri del finanziatore, l'annuncio di lavoro o la guida del programma. La bozza risponderà a ciò che quel bando valuta, con le sue parole. Inviato insieme al riepilogo al tuo provider; ricordato solo in questo browser.",
     forgetKey: "Dimentica chiave",
     generate: "Genera bozza",
     cancel: "Annulla",
@@ -241,6 +268,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "API 키는 이 세션의 메모리에만 보관되며 — 이 브라우저나 당사 서버에는 저장되지 않고 — 선택한 제공자에게만 전송됩니다. 새로고침하거나 ‘키 삭제’로 지워집니다.",
     keyHint:
       "Mistral, OpenAI, OpenRouter, 자체 호스팅 서버 또는 OpenAI 호환 엔드포인트에서 작동합니다.",
+    callLabel: "지원하는 공모의 본문(선택)",
+    callHint:
+      "지원 기관의 평가 기준, 채용 공고 또는 프로그램 안내를 붙여 넣으세요. 초안은 그 공모가 평가하는 내용을 그 표현으로 다룹니다. 요약과 함께 사용자의 제공자에게 전송되며, 이 브라우저에만 기억됩니다.",
     forgetKey: "키 삭제",
     generate: "초안 생성",
     cancel: "취소",
@@ -264,6 +294,9 @@ const NARRATIVE_AI_I18N: Record<Locale, NarrativeAiStrings> = {
       "Ваш API-ключ хранится только в памяти в течение этой сессии — никогда не сохраняется в этом браузере или на наших серверах — и отправляется только выбранному вами поставщику. Он стирается при перезагрузке или через «Забыть ключ».",
     keyHint:
       "Работает с Mistral, OpenAI, OpenRouter, собственным сервером или любым OpenAI-совместимым эндпоинтом.",
+    callLabel: "Текст конкурса, на который вы отвечаете (необязательно)",
+    callHint:
+      "Вставьте критерии фонда, текст вакансии или руководство программы. Тогда черновик будет отвечать на то, что оценивает этот конкурс, его словами. Отправляется вместе со сводкой вашему провайдеру; запоминается только в этом браузере.",
     forgetKey: "Забыть ключ",
     generate: "Создать черновик",
     cancel: "Отмена",

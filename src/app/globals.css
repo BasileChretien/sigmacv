@@ -1790,9 +1790,14 @@ textarea.prose-body {
 .narrative-ai-field > span {
   font-size: var(--text-xs);
 }
-.narrative-ai-field > input {
+.narrative-ai-field > input,
+.narrative-ai-field > textarea {
   width: 100%;
   font: inherit;
+}
+.narrative-ai-field > textarea {
+  resize: vertical;
+  line-height: 1.5;
 }
 .narrative-ai-stored {
   line-height: 1.4;

@@ -69,6 +69,45 @@ describe("NarrativeAiDraft (bring-your-own-key)", () => {
     expect(onInsert).toHaveBeenCalledWith("My key contributions.");
   });
 
+  it("sends the pasted call text with the request and remembers it for the next module", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValue(new Response(JSON.stringify({ draft: "draft" }), { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    render(<NarrativeAiDraft section={section} locale="en-US" onInsert={vi.fn()} />);
+    fireEvent.click(screen.getByText(/Draft with AI/));
+    fillConfig();
+    fireEvent.change(screen.getByLabelText(/Text of the call you are answering/i), {
+      target: { value: "  We assess mentoring.  " },
+    });
+    fireEvent.click(screen.getByText("Generate draft"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalled());
+    const [, init] = fetchMock.mock.calls[0]!;
+    expect(JSON.parse((init as RequestInit).body as string)).toMatchObject({
+      callText: "We assess mentoring.",
+    });
+    expect(localStorage.getItem("sigmacv.ai.callText")).toBe("We assess mentoring.");
+    // Emptying the box forgets it.
+    cleanup();
+    render(<NarrativeAiDraft section={section} locale="en-US" onInsert={vi.fn()} />);
+    fireEvent.click(screen.getByText(/Draft with AI/));
+    await waitFor(() =>
+      expect(
+        (screen.getByLabelText(/Text of the call you are answering/i) as HTMLTextAreaElement).value,
+      ).toBe("We assess mentoring."),
+    );
+    fillConfig();
+    fireEvent.change(screen.getByLabelText(/Text of the call you are answering/i), {
+      target: { value: "" },
+    });
+    fireEvent.click(screen.getByText("Generate draft"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    expect(
+      JSON.parse((fetchMock.mock.calls[1]![1] as RequestInit).body as string),
+    ).not.toHaveProperty("callText");
+    expect(localStorage.getItem("sigmacv.ai.callText")).toBeNull();
+  });
+
   it("remembers the endpoint + model but NEVER persists the API key", async () => {
     const fetchMock = vi
       .fn()
