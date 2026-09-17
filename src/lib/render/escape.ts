@@ -57,6 +57,22 @@ const MD_URL_RE = /(https?:\/\/\S+)/g;
  * same trade `sanitizeUrlForLatex` makes against what would close a LaTeX
  * `\url{}` argument early.
  */
+/**
+ * A URL for a Markdown link DESTINATION written in the angle-bracket form
+ * (`[label](<url>)`). `safeHref` vets the scheme, not the characters: a `>`
+ * would end the destination early and let whatever follows read as Markdown (a
+ * second link, with any scheme). Percent-encode the characters that can break
+ * the form — angle brackets, parentheses, backslash, whitespace — leaving the
+ * rest of the URL as the user wrote it.
+ */
+export function markdownHref(href: string): string {
+  // Explicit codes: encodeURIComponent leaves "(" and ")" as they are.
+  return href.replace(
+    /[<>()\\\s]/g,
+    (c) => `%${c.charCodeAt(0).toString(16).toUpperCase().padStart(2, "0")}`,
+  );
+}
+
 export function escapeMarkdownEntry(s: string): string {
   return s
     .split(MD_URL_RE)

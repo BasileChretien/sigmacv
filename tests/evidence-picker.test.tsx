@@ -70,9 +70,13 @@ describe("EvidencePicker", () => {
       />,
     );
     fireEvent.click(screen.getByText("Cite one of my entries"));
-    // Publications support "knowledge"; supervision does not; the not-mine work is never offered.
+    // Publications support "knowledge" and come first; the rest of the record follows
+    // (a supervision record is still citable from here); the not-mine work is never offered.
     expect(screen.getByText("Signal detection in pharmacovigilance")).toBeTruthy();
-    expect(screen.queryByText("PhD supervision: J. Doe")).toBeNull();
+    expect(screen.getByText("PhD supervision: J. Doe")).toBeTruthy();
+    expect(
+      [...document.querySelectorAll(".evidence-option-title")].map((el) => el.textContent),
+    ).toEqual(["Signal detection in pharmacovigilance", "PhD supervision: J. Doe"]);
     expect(screen.queryByText("A study of mentoring")).toBeNull();
 
     fireEvent.change(screen.getByLabelText("Search your publications, datasets, students…"), {

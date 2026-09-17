@@ -11,6 +11,7 @@ import {
   evidenceRefCounts,
   evidenceRefIds,
   evidenceRefLabel,
+  evidenceUrl,
   parseEvidenceRefs,
   resolveEvidenceRefs,
   EVIDENCE_TOKEN_LABEL_MAX,
@@ -163,7 +164,7 @@ describe("resolveEvidenceRefs", () => {
     expect(segs[3]).toMatchObject({ resolved: true, label: "Professor, X" });
   });
 
-  it("does NOT resolve a hidden, not-mine, hidden-section, view-excluded or unknown entry", () => {
+  it("does NOT resolve a hidden, not-mine, view-excluded or unknown entry; a hidden SECTION's entry still does", () => {
     const c = cv(
       [
         section("publications", [
@@ -178,10 +179,12 @@ describe("resolveEvidenceRefs", () => {
     );
     const body = "[[hid]] [[nm]] [[ds]] [[excl]] [[nope]] [[ok]]";
     const refs = resolveEvidenceRefs(c, body).filter((s) => s.kind === "ref");
+    // The dataset's SECTION is hidden by the layout, but the dataset is still on
+    // the record, so a claim may still cite it (it prints as a label, not a page link).
     expect(refs.map((r) => (r.kind === "ref" ? r.resolved : null))).toEqual([
       false,
       false,
-      false,
+      true,
       false,
       false,
       true,
@@ -189,11 +192,31 @@ describe("resolveEvidenceRefs", () => {
   });
 
   it("honours a renderer's listed-id set (an export never links an anchor it didn't emit)", () => {
-    const c = cv([section("publications", [item("W1"), item("W2")])]);
+    const c = cv([section("publications", [item("W1"), item("W2", { meta: { doi: "10.1/w2" } })])]);
     const segs = resolveEvidenceRefs(c, "[[W1]] [[W2]]", { listedIds: new Set(["W2"]) });
-    expect(segs.filter((s) => s.kind === "ref").map((s) => s.kind === "ref" && s.resolved)).toEqual(
-      [false, true],
+    const refs = segs.filter((s) => s.kind === "ref");
+    // Both are on the record, so both resolve; only the listed one may link to an anchor.
+    expect(refs.map((s) => s.kind === "ref" && s.resolved)).toEqual([true, true]);
+    expect(refs.map((s) => s.kind === "ref" && s.resolved && s.listed)).toEqual([false, true]);
+    expect(refs.map((s) => (s.kind === "ref" && s.resolved ? s.url : null))).toEqual([
+      undefined,
+      "https://doi.org/10.1/w2",
+    ]);
+    // Without a listed set (the editor) everything resolved counts as listed.
+    const all = resolveEvidenceRefs(c, "[[W1]]").filter((s) => s.kind === "ref");
+    expect(all[0]).toMatchObject({ resolved: true, listed: true });
+  });
+
+  it("evidenceUrl: the entry's own link first, else its DOI as a doi.org URL", () => {
+    expect(evidenceUrl(item("a", { meta: { doi: "10.1/x" } }))).toBe("https://doi.org/10.1/x");
+    expect(evidenceUrl(item("b", { meta: { doi: "doi:10.1/x" } }))).toBe("https://doi.org/10.1/x");
+    expect(evidenceUrl(item("c", { meta: { doi: "https://doi.org/10.1/x" } }))).toBe(
+      "https://doi.org/10.1/x",
     );
+    expect(
+      evidenceUrl(item("d", { meta: { doi: "10.1/x", entryUrl: "https://example.org/rec" } })),
+    ).toBe("https://example.org/rec");
+    expect(evidenceUrl(item("e"))).toBeUndefined();
   });
 
   it("resolves only the first EVIDENCE_REF_MAX tokens of a body", () => {
@@ -281,13 +304,29 @@ describe("evidenceCandidates", () => {
         title: "Title of W1",
         sectionType: "publications",
         sectionTitle: "publications",
+        relevant: true,
       },
+      // The rest of the record follows, flagged as not the module's own evidence.
+      expect.objectContaining({ id: "s1", relevant: false }),
     ]);
-    expect(evidenceCandidates(c, "narrative-individuals").map((e) => e.id)).toEqual(["s1"]);
+    expect(evidenceCandidates(c, "narrative-individuals").map((e) => e.id)).toEqual(["s1", "W1"]);
   });
 
-  it("offers a free statement every listed entry (never a hidden one or a prose section)", () => {
-    expect(evidenceCandidates(c, "statement").map((e) => e.id)).toEqual(["W1", "s1"]);
+  it("offers the entries of a section the layout hides (the record, not the page)", () => {
+    const hidden = cv([
+      section("publications", [item("W1")], { visible: false }),
+      section("supervision", [item("s1", { csl: undefined, displayText: "PhD: J. Doe" })]),
+    ]);
+    expect(evidenceCandidates(hidden, "narrative-knowledge").map((e) => e.id)).toEqual([
+      "W1",
+      "s1",
+    ]);
+  });
+
+  it("offers a free statement every entry, all relevant (never a hidden one or a prose section)", () => {
+    const all = evidenceCandidates(c, "statement");
+    expect(all.map((e) => e.id)).toEqual(["W1", "s1"]);
+    expect(all.every((e) => e.relevant)).toBe(true);
   });
 
   it("falls back to the id as title for an entry with no title / display line", () => {

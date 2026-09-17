@@ -359,9 +359,11 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-prose-body p:last-child { margin-bottom: 0; }
   ul.cv-prose-list { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
   ul.cv-prose-list > li { margin: 0 0 0.2rem; line-height: 1.5; color: var(--cv-ink-2); }
-  /* An evidence reference inside prose: a small inline link to the entry it cites. */
-  a.cv-evidence { font-size: 0.8em; vertical-align: 0.15em; white-space: nowrap; text-decoration: none; border-bottom: 1px dotted currentColor; }
-  a.cv-evidence::before { content: "["; } a.cv-evidence::after { content: "]"; }
+  /* An evidence reference inside prose: a small inline marker — a link to the
+     entry on the page, an outbound link to its DOI when the page does not list
+     it, or a plain span when it has neither. */
+  .cv-evidence { font-size: 0.8em; vertical-align: 0.15em; white-space: nowrap; text-decoration: none; border-bottom: 1px dotted currentColor; }
+  .cv-evidence::before { content: "["; } .cv-evidence::after { content: "]"; }
 
   ol.cv-bib { list-style: none; margin: 0; padding: 0; }
   /* overflow-wrap:anywhere lets a long unbreakable token — a DOI/URL has no

@@ -99,7 +99,7 @@ describe.skipIf(!hasApa)("evidence references in the renderers (needs vendored C
     expect(html).not.toContain("gone");
     expect(html).toContain('<li>bullet <a class="cv-evidence"'); // inside a prose list too
     expect(html).toContain("<li>other</li>"); // hidden entry: reference dropped
-    expect(html).toContain("a.cv-evidence"); // the style is emitted
+    expect(html).toContain(".cv-evidence {"); // the style is emitted
     // In-page links are NOT externalized (no target=_blank), external ones still are.
     expect(html).not.toMatch(/<a class="cv-evidence" href="#item-w1"[^>]*target=/);
     expect(html).toMatch(/<a href="https:\/\/orcid\.org\/[^"]+" target="_blank"/);
