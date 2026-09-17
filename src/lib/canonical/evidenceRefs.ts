@@ -296,14 +296,19 @@ export interface EvidenceCandidate {
  * hides is still there to cite), the ones from the sections that support this
  * module first (publications / datasets for "contributions to knowledge",
  * supervision / teaching for "individuals", …), then everything else. A free
- * statement has no preferred sections: everything is relevant. A picked reference
- * always resolves.
+ * statement has no preferred sections: everything is relevant. For a
+ * contributions module the preferred entries come most cited first (a work cited
+ * in a clinical guideline before the rest), since that is the order a writer
+ * picks contributions in; other modules keep the record's order. A picked
+ * reference always resolves.
  */
 export function evidenceCandidates(cv: CanonicalCv, type: CvSectionType): EvidenceCandidate[] {
   const preferred = narrativeEvidenceSectionTypes(type);
   const first: EvidenceCandidate[] = [];
   const rest: EvidenceCandidate[] = [];
+  const byId = new Map<string, CvItem>();
   for (const { item, section } of evidenceIndex(cv).values()) {
+    byId.set(item.id, item);
     const relevant = !preferred || preferred.includes(section.type);
     const raw = item.displayTextOverride ?? item.csl?.title ?? item.displayText ?? item.id;
     (relevant ? first : rest).push({
@@ -315,5 +320,19 @@ export function evidenceCandidates(cv: CanonicalCv, type: CvSectionType): Eviden
       relevant,
     });
   }
+  if (type === "narrative-knowledge")
+    first.sort((a, b) => impactOrder(byId.get(a.id)!, byId.get(b.id)!));
   return [...first, ...rest];
+}
+
+/** Most cited first: a work cited in a clinical guideline, then citations, then year. */
+function impactOrder(a: CvItem, b: CvItem): number {
+  const guided = (it: CvItem) => ((it.meta.guidelineCitations?.length ?? 0) > 0 ? 1 : 0);
+  const year = (it: CvItem) =>
+    it.meta.yearOverride ?? it.meta.year ?? it.csl?.issued?.["date-parts"]?.[0]?.[0] ?? 0;
+  return (
+    guided(b) - guided(a) ||
+    (b.meta.citedByCount ?? 0) - (a.meta.citedByCount ?? 0) ||
+    Number(year(b)) - Number(year(a))
+  );
 }

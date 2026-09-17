@@ -358,6 +358,11 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-prose-body p { margin: 0 0 0.55rem; line-height: 1.55; color: var(--cv-ink-2); }
   .cv-prose-body p:last-child { margin-bottom: 0; }
   ul.cv-prose-list { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
+  /* A bracketed placeholder line in prose ("[to complete]", a starter prompt). In
+     the editor preview it is a link back to the section (a.cv-prose-prompt-link);
+     exports never carry the link, so the rule below is inert there. */
+  a.cv-prose-prompt-link { display: block; padding: 0.3rem 0.6rem; border: 1px dashed currentColor; border-radius: 6px; color: inherit; text-decoration: none; background: rgba(0, 0, 0, 0.035); cursor: pointer; }
+  a.cv-prose-prompt-link:hover, a.cv-prose-prompt-link:focus-visible { background: rgba(0, 0, 0, 0.08); }
   ul.cv-prose-list > li { margin: 0 0 0.2rem; line-height: 1.5; color: var(--cv-ink-2); }
   /* An evidence reference inside prose: a small inline marker — a link to the
      entry on the page, an outbound link to its DOI when the page does not list
@@ -1202,8 +1207,15 @@ ${hatBindings}
  * the single chokepoint; every renderer that shows a prose body uses it. `inline`
  * transforms each text run (default: plain escaping; the section list passes the
  * evidence-reference transform, which escapes AND links `[[id]]` references).
+ * A paragraph that is ONE bracketed line ("[to complete]", a starter prompt) is a
+ * placeholder: `<p class="cv-prose-prompt">`, and with `promptHref` (the editor
+ * preview) a link to the section in the editor, `target="_top"`.
  */
-function proseBodyHtml(body: string, inline: (text: string) => string = escapeHtml): string {
+function proseBodyHtml(
+  body: string,
+  inline: (text: string) => string = escapeHtml,
+  promptHref?: string,
+): string {
   // Normalise newlines, then split into paragraphs on one-or-more blank lines.
   const paragraphs = body
     .replace(/\r\n?/g, "\n")
@@ -1228,7 +1240,17 @@ function proseBodyHtml(body: string, inline: (text: string) => string = escapeHt
       let textRun: string[] = [];
       const flushText = () => {
         if (textRun.length === 0) return;
-        out.push(`<p>${textRun.map((t) => inline(t)).join("<br />")}</p>`);
+        const only = textRun.length === 1 ? textRun[0]!.trim() : "";
+        if (only && /^\[[^\]]*\]$/.test(only)) {
+          const text = inline(only);
+          out.push(
+            promptHref
+              ? `<p class="cv-prose-prompt"><a class="cv-prose-prompt-link" href="${escapeHtml(promptHref)}" target="_top">${text}</a></p>`
+              : `<p class="cv-prose-prompt">${text}</p>`,
+          );
+        } else {
+          out.push(`<p>${textRun.map((t) => inline(t)).join("<br />")}</p>`);
+        }
         textRun = [];
       };
       for (const rawLine of lines) {
@@ -1309,7 +1331,11 @@ function sectionHeadingHtml(sectionId: string, title: string): string {
  * its own `<main>` (the Sidebar two-column layout wraps sections + footers in one
  * `<main class="cv-main">`). Everything else should use `sectionsHtml`.
  */
-export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): string {
+export function sectionsHtmlRaw(
+  cv: CanonicalCv,
+  sections: RenderedSection[],
+  opts: Pick<RenderOpts, "editorPreview"> = {},
+): string {
   // Prose evidence references (`[[id]]`) link to the `id="item-…"` of an entry this
   // render lists; one resolver for every prose section of the document.
   const inline = evidenceHtmlInline(cv, listedItemIds(sections), itemAnchorId);
@@ -1324,7 +1350,11 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
         return `<section class="cv-section cv-prose${brk}">${sectionHeadingHtml(
           rs.section.id,
           rs.section.title,
-        )}<div class="cv-prose-body">${proseBodyHtml(rs.section.body ?? "", inline)}</div></section>`;
+        )}<div class="cv-prose-body">${proseBodyHtml(
+          rs.section.body ?? "",
+          inline,
+          opts.editorPreview ? `#cv-edit=${encodeURIComponent(rs.section.id)}` : undefined,
+        )}</div></section>`;
       }
       // Positions/Education render structured two-line records (a block .cv-entry),
       // so they skip the inline .csl-entry wrapper and tag the list .cv-history (the
@@ -1370,8 +1400,12 @@ export function sectionsHtmlRaw(cv: CanonicalCv, sections: RenderedSection[]): s
  * relies on sections being direct children of `.cv`, so the wrapper is layout-
  * neutral; `.cv-main` carries no shared styling (only Sidebar styles its own).
  */
-export function sectionsHtml(cv: CanonicalCv, sections: RenderedSection[]): string {
-  return `<main class="cv-main">${sectionsHtmlRaw(cv, sections)}</main>`;
+export function sectionsHtml(
+  cv: CanonicalCv,
+  sections: RenderedSection[],
+  opts: Pick<RenderOpts, "editorPreview"> = {},
+): string {
+  return `<main class="cv-main">${sectionsHtmlRaw(cv, sections, opts)}</main>`;
 }
 
 /**

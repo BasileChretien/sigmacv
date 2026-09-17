@@ -9,6 +9,13 @@ interface CvPreviewProps {
   locale: string;
   /** Paper size — sets the preview width so it stays WYSIWYG with the PDF. */
   pageFormat?: "a4" | "letter";
+  /**
+   * The editor's own preview: a placeholder line in the CV is a link back to its
+   * section (`#cv-edit=<sectionId>`, `target="_top"`), which needs the sandbox
+   * to allow top navigation ON A USER CLICK. A same-document fragment change of
+   * the editor page, nothing more; see the sandbox note below.
+   */
+  editable?: boolean;
 }
 
 /** A4 page width in CSS px (210mm at 96 px/in) — the width the PDF prints at, so
@@ -29,7 +36,7 @@ export function fitScale(availWidth: number, pageWidth: number = A4_WIDTH_PX): n
   return Math.min(1, availWidth / pageWidth);
 }
 
-export default function CvPreview({ html, loading, locale, pageFormat }: CvPreviewProps) {
+export default function CvPreview({ html, loading, locale, pageFormat, editable }: CvPreviewProps) {
   const u = ui(locale);
   const pageWidth = pageWidthPx(pageFormat);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -79,12 +86,21 @@ export default function CvPreview({ html, loading, locale, pageFormat }: CvPrevi
               are required so a publication's DOI/URL link can open in a NEW TAB from
               inside the sandbox (a bare `sandbox=""` silently blocks the click); the
               opened tab escapes the sandbox so the destination loads as a normal page.
-              Neither token grants the CV frame script or same-origin access. */}
+              Neither token grants the CV frame script or same-origin access.
+              `allow-top-navigation-by-user-activation` (editor only) lets a placeholder
+              line in the CV, rendered by OUR renderer as `<a href="#cv-edit=…"
+              target="_top">`, change the editor page's fragment on a real click — the
+              editor listens for it and opens that section. A fragment change of the
+              same document never reloads it, the token needs a user gesture, and it
+              grants no script or same-origin access either; every other href the
+              renderer emits still goes through `safeHref`. */}
           <iframe
             title={u.previewTitle}
             className={`cv-preview-frame${loading ? " is-loading" : ""}`}
             srcDoc={html}
-            sandbox="allow-popups allow-popups-to-escape-sandbox"
+            sandbox={`allow-popups allow-popups-to-escape-sandbox${
+              editable ? " allow-top-navigation-by-user-activation" : ""
+            }`}
             style={{
               width: pageWidth,
               // Unscaled height chosen so the scaled iframe fills the pane height

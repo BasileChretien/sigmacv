@@ -735,6 +735,7 @@ export default function CvWorkspace({
                 loading={previewLoading}
                 locale={uiLocale}
                 pageFormat={cv.display.pageFormat}
+                editable
               />
             </section>
           </div>

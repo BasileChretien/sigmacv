@@ -9,7 +9,9 @@ import {
 } from "@/lib/canonical/schema";
 import { applyCvModel } from "@/lib/canonical/cvModels";
 import {
-  STARTER_MAX_CONTRIBUTIONS,
+  appendContributionStub,
+  contributionStub,
+  contributionStubCount,
   prefillEmptyProse,
   starterProseBody,
   starterReferenceLine,
@@ -186,38 +188,57 @@ describe("starter drafts for the prose sections", () => {
     expect(en).toContain("(2021–present)");
   });
 
-  it("numbers up to ten contribution stubs: the six most cited publications first, then the most recent other outputs, then the rest", () => {
+  it("starts the contributions section on its prompts alone, ending on where to pick the publications", () => {
     const body = starterProseBody(makeCv("fr-FR"), "narrative-knowledge");
-    const heads = body.split("\n").filter((l) => /^\d+\. /.test(l));
-    expect(heads).toHaveLength(STARTER_MAX_CONTRIBUTIONS);
-    // Most cited first (Article 1 has 80 citations), never the hidden or "not mine" work.
-    expect(heads[0]).toMatch(/^1\. Article 1 \(2015 · Clientèle : A \/ B \/ C\)/);
-    expect(heads.slice(0, 6).map((h) => h.replace(/^\d+\. /, "").split(" (")[0])).toEqual([
-      "Article 1",
-      "Article 2",
-      "Article 3",
-      "Article 4",
-      "Article 5",
-      "Article 6",
-    ]);
-    // Then the dataset and the software (most recent first), then the remaining publications.
-    expect(heads[6]).toContain("QC-ADR-ONCO");
-    expect(heads[7]).toContain("SIGNALTRI");
-    expect(heads[8]).toContain("Article 7");
-    expect(heads[9]).toContain("Article 8");
-    expect(body).not.toContain("Hidden article");
-    expect(body).not.toContain("Not my article");
-    // Each stub carries the four FRQ slots and a checkable reference.
-    expect(body).toContain("Rôle : [à compléter]");
-    expect(body).toContain("Retombées : [à compléter]");
-    expect(body).toContain(
-      "Référence : Chrétien, B., & Kaur, P. (2015). Article 1. Revue fictive. https://doi.org/10.0000/w1",
-    );
-    // A stub with no year says so instead of printing "undefined".
-    expect(body).not.toContain("undefined");
+    expect(body.split("\n").filter((l) => /^\d+\. /.test(l))).toEqual([]);
+    expect(body).toContain(proseStarterStrings("fr-FR").contribIntro);
+    expect(body).toContain(proseStarterStrings("fr-FR").pickPrompt);
+    expect(body).toContain("panneau Contenu");
+    expect(contributionStubCount(body)).toBe(0);
   });
 
-  it("puts a publication cited in a clinical guideline first and names the guideline with its PubMed link", () => {
+  it("appends a numbered stub per picked entry: slots, reference, the entry's token; the pick prompt gives way", () => {
+    const cv = makeCv("fr-FR");
+    const knowledge = cv.sections.find((s) => s.type === "narrative-knowledge")!;
+    const pubs = cv.sections.find((s) => s.type === "publications")!;
+    const w1 = pubs.items.find((it) => it.id === "W1")!;
+    const start = { ...knowledge, body: starterProseBody(cv, "narrative-knowledge") };
+    const first = appendContributionStub(cv, start, w1);
+    expect(first.body).not.toContain(proseStarterStrings("fr-FR").pickPrompt);
+    expect(first.body).toContain(proseStarterStrings("fr-FR").contribIntro);
+    expect(first.body).toContain(
+      "1. Article 1 (2015 · Clientèle : A / B / C) [[W1 | Chrétien et al. 2015]]",
+    );
+    expect(first.body).toContain("Rôle : [à compléter]");
+    expect(first.body).toContain("Retombées : [à compléter]");
+    expect(first.body).toContain(
+      "Référence : Chrétien, B., & Kaur, P. (2015). Article 1. Revue fictive. https://doi.org/10.0000/w1",
+    );
+    // The role slot's placeholder is what the editor selects.
+    expect(first.body.slice(first.selectStart, first.selectEnd)).toBe("[à compléter]");
+    expect(first.body.slice(0, first.selectStart)).toMatch(/Rôle : $/);
+    // A second pick is numbered 2 and lands after the first.
+    const dataset = cv.sections.find((s) => s.type === "datasets")!.items[0]!;
+    const second = appendContributionStub(cv, { ...knowledge, body: first.body }, dataset);
+    expect(contributionStubCount(second.body)).toBe(2);
+    expect(second.body.indexOf("1. Article 1")).toBeLessThan(second.body.indexOf("2. QC-ADR-ONCO"));
+    expect(second.body).toContain(
+      "2. QC-ADR-ONCO (2023 · Clientèle : A / B / C) [[dataset:1 | QC-ADR-ONCO]]",
+    );
+    // An entry with no CSL falls back to its display line, and the stub stays bounded.
+    const software = cv.sections.find((s) => s.type === "software")!.items[0]!;
+    expect(contributionStub(cv, software, 7)).toContain(
+      "7. SIGNALTRI (version 1.4), Zenodo, 2021 (2021 · Clientèle : A / B / C)",
+    );
+    expect(contributionStub(cv, software, 7)).toContain(
+      "Référence : SIGNALTRI (version 1.4), Zenodo, 2021",
+    );
+    // A body with no prompt at all (the owner wrote their own text) just grows.
+    const own = appendContributionStub(cv, { ...knowledge, body: "Mon texte." }, w1);
+    expect(own.body.startsWith("Mon texte.\n\n1. Article 1")).toBe(true);
+  });
+
+  it("a stub names the clinical guidelines that cite the work, between the impact slot and the reference", () => {
     const cv = CanonicalCvSchema.parse({
       schemaVersion: 2,
       id: "guided",
@@ -229,7 +250,6 @@ describe("starter drafts for the prose sections", () => {
       display: { locale: "fr-FR" },
       sections: [
         section("publications", [
-          pub("W1", "Most cited", 2015, 80),
           pub("W2", "Taken up in practice", 2020, 3, {
             meta: {
               year: 2020,
@@ -255,18 +275,13 @@ describe("starter drafts for the prose sections", () => {
       ],
       provenance: { generatedAt: "2026-09-17T00:00:00.000Z", sources: ["manual"] },
     });
-    const body = starterProseBody(cv, "narrative-knowledge");
-    const heads = body.split("\n").filter((l) => /^\d+\. /.test(l));
-    expect(heads[0]).toContain("Taken up in practice");
-    expect(heads[1]).toContain("Most cited");
-    expect(body).toContain(
+    const stub = contributionStub(cv, cv.sections[0]!.items[0]!, 1);
+    expect(stub).toContain(
       "Cité dans le guide de pratique : ASCO Guideline Update (J Clin Oncol, 2021). https://pubmed.ncbi.nlm.nih.gov/34724392/",
     );
-    expect(body).toContain(
+    expect(stub).toContain(
       "Cité dans le guide de pratique : Position statement (Gastroenterol Hepatol, 2024). https://pubmed.ncbi.nlm.nih.gov/38228461/",
     );
-    // The guideline lines sit between the impact slot and the reference.
-    const stub = body.slice(body.indexOf("1. Taken up"), body.indexOf("2. Most cited"));
     expect(stub.indexOf("Retombées")).toBeLessThan(stub.indexOf("Cité dans le guide"));
     expect(stub.indexOf("Cité dans le guide")).toBeLessThan(stub.indexOf("Référence :"));
   });
@@ -362,7 +377,7 @@ describe("prefillEmptyProse", () => {
     const refilled = prefillEmptyProse(written);
     expect(refilled.sections.find((s) => s.type === "statement")!.body).toBe("Mon texte.");
     expect(refilled.sections.find((s) => s.type === "narrative-knowledge")!.body).toContain(
-      "1. Article 1",
+      proseStarterStrings("fr-FR").pickPrompt,
     );
   });
 
@@ -451,8 +466,8 @@ describe("starter-draft edge cases", () => {
       ]),
       section("narrative-knowledge", [], true),
     ]);
-    const stubs = starterProseBody(cv2, "narrative-knowledge");
-    expect(stubs).toContain("1. Overridden title ([to complete] · Audience : A / B / C)");
+    const stub = contributionStub(cv2, cv2.sections[0]!.items[0]!, 1);
+    expect(stub).toContain("1. Overridden title ([to complete] · Audience : A / B / C)");
     // A community draft on a CV that has no such sections at all: prompt only, headings fall back to the type.
     const cv3 = makeCv("en-US", [
       section("service", [item("svc:1", { displayText: "Board member" })]),

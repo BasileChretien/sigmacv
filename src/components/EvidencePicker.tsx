@@ -17,8 +17,14 @@ interface EvidencePickerProps {
   /** Its current body — the linked / unresolved summary is derived from it. */
   body: string;
   locale: string;
-  /** Insert a `[[id]]` token into the body (the parent owns the text box + caret). */
-  onInsert: (token: string) => void;
+  /**
+   * The chosen entry: its `[[id | label]]` token (a citation to insert at the
+   * caret) and its id (a contributions section builds a whole stub from it —
+   * the parent owns the text box, the caret and that choice).
+   */
+  onInsert: (token: string, itemId: string) => void;
+  /** "contribution": the button says the entry becomes a numbered contribution. */
+  variant?: "cite" | "contribution";
 }
 
 /** How many candidates the list shows at once (search narrows it). */
@@ -40,6 +46,7 @@ export default function EvidencePicker({
   body,
   locale,
   onInsert,
+  variant = "cite",
 }: EvidencePickerProps) {
   const eu = editorUi(locale);
   const [query, setQuery] = useState("");
@@ -68,7 +75,7 @@ export default function EvidencePicker({
     <div className="evidence-tools">
       <Popover
         locale={locale}
-        trigger={eu.evInsert}
+        trigger={variant === "contribution" ? eu.evInsertContribution : eu.evInsert}
         triggerClassName="btn btn-ghost"
         panelLabel={eu.evPanel}
         panelClassName="evidence-picker"
@@ -96,7 +103,7 @@ export default function EvidencePicker({
                       onClick={() => {
                         // A readable marker: the id (authoritative) plus the entry's
                         // short reference, so the text box shows "[[W… | Smith 2021]]".
-                        onInsert(evidenceToken(c.id, c.label));
+                        onInsert(evidenceToken(c.id, c.label), c.id);
                         close();
                       }}
                     >

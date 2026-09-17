@@ -80,7 +80,8 @@ export async function POST(req: Request) {
     // person can be rendered anonymously, whatever the body says (the same
     // stripping the build path applies before anything reaches the browser).
     const doc = projectCvForPreview(parsed.data);
-    const html = surface === "public" ? renderPublicCvHtml(doc) : renderCvHtml(doc);
+    const html =
+      surface === "public" ? renderPublicCvHtml(doc) : renderCvHtml(doc, { editorPreview: true });
     return NextResponse.json({ html });
   } catch (err) {
     logger.error("api.preview_render_failed", { err });

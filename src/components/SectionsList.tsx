@@ -18,7 +18,7 @@ import {
 } from "@/lib/canonical/schema";
 import { isHidden } from "@/lib/canonical/schema";
 import { publicationSortActive, sortPublicationItems } from "@/lib/canonical/publicationSort";
-import { starterProseBody } from "@/lib/canonical/proseStarter";
+import { appendContributionStub, starterProseBody } from "@/lib/canonical/proseStarter";
 import { proseSectionPages } from "@/lib/canonical/pageEstimate";
 import {
   addManualEntry,
@@ -168,6 +168,9 @@ export interface SectionsListHandle {
   /** Expand + scroll to a SPECIFIC item by id — used by the sync banner's
    *  "to review" jump. No-op if the id isn't in the current CV. */
   jumpToItem: (itemId: string) => void;
+  /** Expand a prose section and focus its text box — the preview's placeholder
+   *  links (`#cv-edit=<sectionId>`) land here. No-op if the id isn't a section. */
+  jumpToSection: (sectionId: string) => void;
 }
 
 interface SectionsListProps {
@@ -388,6 +391,32 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
     });
   };
 
+  /**
+   * A contributions section: the picked entry becomes a numbered stub at the end
+   * of the list (role, impact, guidelines, reference), the "pick your publications"
+   * prompt gives way, and the role slot is selected so typing fills it.
+   */
+  const addContributionStub = (sectionId: string, itemId: string) => {
+    const section = cv.sections.find((s) => s.id === sectionId);
+    const item = cv.sections.flatMap((s) => s.items).find((it) => it.id === itemId);
+    if (!section || !item) return;
+    const { body, selectStart, selectEnd } = appendContributionStub(cv, section, item);
+    onChange(setSectionBody(cv, sectionId, body));
+    requestAnimationFrame(() => {
+      const box = proseRefs.current.get(sectionId);
+      box?.focus();
+      box?.setSelectionRange(selectStart, selectEnd);
+    });
+  };
+
+  /** Expand a prose section and focus its text box (the preview's placeholder
+   *  links land here: `#cv-edit=<sectionId>`). No-op for an unknown id. */
+  const jumpToSection = (sectionId: string) => {
+    if (!cv.sections.some((s) => s.id === sectionId)) return;
+    setExpanded((prev) => new Set(prev).add(sectionId));
+    setFocusItem((prev) => ({ id: sectionId, n: (prev?.n ?? 0) + 1 }));
+  };
+
   /** Expand the section holding `itemId` and scroll+flash that row (the sync
    *  banner's "to review" jump targets a specific item, not a health category). */
   const jumpToItem = (itemId: string) => {
@@ -400,7 +429,7 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
   // Expose the cross-region jumps to the editor (the persistent CV-health panel
   // and the sync banner live outside this component and drive them). Re-created
   // each render so they always close over the current `healthTargets`/index.
-  useImperativeHandle(ref, () => ({ resolveHealth, jumpToItem }));
+  useImperativeHandle(ref, () => ({ resolveHealth, jumpToItem, jumpToSection }));
 
   const hasSection = (type: string): boolean => cv.sections.some((s) => s.type === type);
 
@@ -833,7 +862,12 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                           sectionType={section.type}
                           body={section.body ?? ""}
                           locale={locale}
-                          onInsert={(token) => insertEvidenceToken(section.id, token)}
+                          variant={section.type === "narrative-knowledge" ? "contribution" : "cite"}
+                          onInsert={(token, itemId) =>
+                            section.type === "narrative-knowledge"
+                              ? addContributionStub(section.id, itemId)
+                              : insertEvidenceToken(section.id, token)
+                          }
                         />
                         {/* Optional AI first-draft — BRING-YOUR-OWN-KEY (opt-in,
                             consented, the user's own provider). Only the four
