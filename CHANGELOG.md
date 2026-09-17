@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **The contributions section is built from the entries you pick, not guessed.** Under a contributions section (the FRQ's second section, the Tri-agency's "Most significant contributions", R4RI's knowledge module) the picker now reads "Add one of my entries as a contribution", and each entry you choose arrives at the end of the list as a numbered stub: the period, the audience slot, the role and impact slots, the clinical guidelines that cite it, and its reference, with the role slot selected so your first keystroke fills it. The starter draft no longer lists ten guessed candidates; it ends on "pick your publications in the Content panel" until the first pick. The picker offers your most cited works first there. Choosing an entry in any other prose section still inserts a citation at the cursor.
-- **Placeholders in the preview lead back to the editor.** A bracketed placeholder line in a prose section ("[to complete]", a starter prompt) is highlighted in the editor's preview and, when clicked, opens that section in the Content panel with its text box focused. Exports and public pages print the placeholder as plain text and carry no link.
+- **Placeholders in the preview lead back to the editor.** A bracketed placeholder line in a prose section ("[to complete]", a starter prompt) is highlighted in the editor's preview, signed in or on the anonymous preview page alike, and, when clicked, opens that section in the Content panel with its text box focused. Exports and public pages print the placeholder as plain text and carry no link.
 
 ### Added
 

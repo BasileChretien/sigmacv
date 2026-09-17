@@ -87,7 +87,8 @@ export default function CvPreview({ html, loading, locale, pageFormat, editable 
               inside the sandbox (a bare `sandbox=""` silently blocks the click); the
               opened tab escapes the sandbox so the destination loads as a normal page.
               Neither token grants the CV frame script or same-origin access.
-              `allow-top-navigation-by-user-activation` (editor only) lets a placeholder
+              `allow-top-navigation-by-user-activation` (the editors, signed in or
+              anonymous — never the style thumbnails) lets a placeholder
               line in the CV, rendered by OUR renderer as `<a href="#cv-edit=…"
               target="_top">`, change the editor page's fragment on a real click — the
               editor listens for it and opens that section. A fragment change of the
