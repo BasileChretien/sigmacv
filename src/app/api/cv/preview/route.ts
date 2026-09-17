@@ -82,7 +82,7 @@ export async function POST(req: Request) {
       const ps = await getPublishState(session.user.id);
       const publicPageUrl =
         ps.published && ps.publicSlug ? absoluteUrl(`p/${ps.publicSlug}`) : undefined;
-      html = renderCvHtml(parsed.data, { publicPageUrl });
+      html = renderCvHtml(parsed.data, { publicPageUrl, editorPreview: true });
     }
     return NextResponse.json({ html });
   } catch (err) {

@@ -312,6 +312,32 @@ describe("evidenceCandidates", () => {
     expect(evidenceCandidates(c, "narrative-individuals").map((e) => e.id)).toEqual(["s1", "W1"]);
   });
 
+  it("offers a contributions module its publications most cited first, a guideline-cited one before all", () => {
+    const c2 = cv([
+      section("publications", [
+        item("low", { meta: { citedByCount: 2, year: 2024 } }),
+        item("high", { meta: { citedByCount: 90, year: 2015 } }),
+        item("guided", {
+          meta: { citedByCount: 5, guidelineCitations: [{ pmid: "1", title: "G" }] },
+        }),
+        item("mid", { meta: { citedByCount: 40 } }),
+      ]),
+    ]);
+    expect(evidenceCandidates(c2, "narrative-knowledge").map((e) => e.id)).toEqual([
+      "guided",
+      "high",
+      "mid",
+      "low",
+    ]);
+    // Other modules keep the record's order.
+    expect(evidenceCandidates(c2, "statement").map((e) => e.id)).toEqual([
+      "low",
+      "high",
+      "guided",
+      "mid",
+    ]);
+  });
+
   it("offers the entries of a section the layout hides (the record, not the page)", () => {
     const hidden = cv([
       section("publications", [item("W1")], { visible: false }),

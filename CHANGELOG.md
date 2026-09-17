@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **The contributions section is built from the entries you pick, not guessed.** Under a contributions section (the FRQ's second section, the Tri-agency's "Most significant contributions", R4RI's knowledge module) the picker now reads "Add one of my entries as a contribution", and each entry you choose arrives at the end of the list as a numbered stub: the period, the audience slot, the role and impact slots, the clinical guidelines that cite it, and its reference, with the role slot selected so your first keystroke fills it. The starter draft no longer lists ten guessed candidates; it ends on "pick your publications in the Content panel" until the first pick. The picker offers your most cited works first there. Choosing an entry in any other prose section still inserts a citation at the cursor.
+- **Placeholders in the preview lead back to the editor.** A bracketed placeholder line in a prose section ("[to complete]", a starter prompt) is highlighted in the editor's preview and, when clicked, opens that section in the Content panel with its text box focused. Exports and public pages print the placeholder as plain text and carry no link.
+
 ### Added
 
 - **The clinical guidelines that cite your work, named where you write about it.** For each of your works PubMed indexes, SigmaCV now asks NIH iCite which clinical articles cite it and PubMed which of those are practice guidelines or consensus statements. A publication row in the editor shows "Cited in 2 clinical guidelines" with the guidelines in its tooltip, and the starter draft of a contributions section names each one, with its journal, year and PubMed link, so a reviewer can follow it. It is what a narrative CV means by a contribution taken up in practice, in one checkable line. Nothing is added to the CV itself unless you write it, nothing appears on a public page, and the anonymous preview makes no such call. Partial by construction: a guideline PubMed does not index is not seen, and the tooltip says so.

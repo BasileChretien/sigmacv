@@ -4,7 +4,12 @@ import {
   superviseeNoun,
   supervisionRoleLabel,
 } from "@/lib/i18n/render";
-import { proseStarterStrings, type ProseStarterStrings } from "@/lib/i18n/proseStarter";
+import {
+  PROSE_STARTER_STRINGS,
+  proseStarterStrings,
+  type ProseStarterStrings,
+} from "@/lib/i18n/proseStarter";
+import { evidenceRefLabel, evidenceToken } from "./evidenceRefs";
 import { guidelineCitationLine, pubmedUrl } from "@/lib/pubmed/guidelineText";
 import {
   PROSE_BODY_MAX,
@@ -19,6 +24,7 @@ import {
   itemVenue,
   type CanonicalCv,
   type CvItem,
+  type CvSection,
   type CvSectionType,
 } from "./schema";
 
@@ -34,13 +40,14 @@ import {
  *
  *  - `statement` (background): education, positions, recognitions and funding
  *    as bullet lists, between two prompts;
- *  - `narrative-knowledge` (contributions): up to ten numbered stubs, each with
- *    the period, an audience slot (A / B / C), a role slot, an impact slot and
- *    a plain-text reference, seeded from the most cited publications and the
- *    most recent datasets, software, patents and trials — a publication cited
- *    in a clinical practice guideline (`meta.guidelineCitations`, the owner
- *    sync's PubMed pass) comes first and names the guideline, with its PubMed
- *    link, as something the reviewer can check;
+ *  - `narrative-knowledge` (contributions): the prompts alone, ending on "pick
+ *    your publications in the Content panel" — the numbered stubs come from the
+ *    entries the owner PICKS with the picker under the section
+ *    (`appendContributionStub`): each arrives with the period, an audience slot
+ *    (A / B / C), a role slot, an impact slot, the clinical guidelines that cite
+ *    it (`meta.guidelineCitations`, the owner sync's PubMed pass) with their
+ *    PubMed links, and a plain-text reference, plus the entry's `[[id | label]]`
+ *    token so every export links the stub to the entry;
  *  - `narrative-individuals` (people): supervision and teaching records;
  *  - `narrative-community` / `narrative-society`: the relevant service records.
  *
@@ -52,10 +59,6 @@ import {
  * so a frozen document cannot pick up a scaffold with prompts in it.
  */
 
-/** Cap on the contribution stubs, the FRQ's own maximum. */
-export const STARTER_MAX_CONTRIBUTIONS = 10;
-/** How many of the stubs come from publications before other output types fill in. */
-const STARTER_MAX_PUBLICATIONS = 6;
 /** Author names printed before "et al." in a stub's reference line. */
 const REFERENCE_MAX_AUTHORS = 7;
 
@@ -197,58 +200,93 @@ function backgroundDraft(cv: CanonicalCv, s: ProseStarterStrings): string {
   );
 }
 
-/** How many starter lines name a guideline that cites the work. */
-const STARTER_MAX_GUIDELINES = 3;
+/** How many stub lines name a guideline that cites the work. */
+const STUB_MAX_GUIDELINES = 3;
 
-/** Publications cited in a guideline first, then by citations, then recency;
- *  other outputs by recency. */
-function contributionCandidates(cv: CanonicalCv): CvItem[] {
-  const inGuideline = (it: CvItem) => ((it.meta.guidelineCitations?.length ?? 0) > 0 ? 1 : 0);
-  const byCitations = (a: CvItem, b: CvItem) =>
-    inGuideline(b) - inGuideline(a) ||
-    (b.meta.citedByCount ?? 0) - (a.meta.citedByCount ?? 0) ||
-    (itemYear(b) ?? 0) - (itemYear(a) ?? 0);
-  const byRecency = (a: CvItem, b: CvItem) => (itemYear(b) ?? 0) - (itemYear(a) ?? 0);
-  const pubs = liveItems(cv, "publications").filter(itemTitle).sort(byCitations);
-  const others = (["datasets", "software", "patents", "clinical-trials"] as const)
-    .flatMap((t) => liveItems(cv, t))
-    .filter(itemTitle)
-    .sort(byRecency);
-  const picked = pubs.slice(0, STARTER_MAX_PUBLICATIONS);
-  for (const it of others) {
-    if (picked.length >= STARTER_MAX_CONTRIBUTIONS) break;
-    picked.push(it);
-  }
-  // Publications beyond the first six fill any room the other types left.
-  for (const it of pubs.slice(STARTER_MAX_PUBLICATIONS)) {
-    if (picked.length >= STARTER_MAX_CONTRIBUTIONS) break;
-    picked.push(it);
-  }
-  return picked;
+/**
+ * Section 2 (contributions): the prompts alone. The numbered stubs are not
+ * guessed from the record any more — the owner picks the entries, one by one,
+ * with the picker under the section (`appendContributionStub`), and until the
+ * first pick the last prompt says where to do that. The editor's preview turns
+ * that prompt into a link back to this section.
+ */
+function contributionsDraft(s: ProseStarterStrings): string {
+  return paragraphs(s.draftNote, s.contribIntro, s.pickPrompt);
 }
 
-/** Section 2: numbered contribution stubs with the FRQ's four slots. */
-function contributionsDraft(cv: CanonicalCv, s: ProseStarterStrings): string {
-  const stubs = contributionCandidates(cv).map((item, i) => {
-    const year = itemYear(item);
-    const head = `${i + 1}. ${itemTitle(item)} (${year ?? s.todo} · ${s.audience} : ${s.audienceKey})`;
-    const ref = starterReferenceLine(item);
-    // A guideline that cites the work is impact a reviewer can check: one line
-    // each, title, journal and year, with the PubMed record to follow.
-    const guidelines = (item.meta.guidelineCitations ?? [])
-      .slice(0, STARTER_MAX_GUIDELINES)
-      .map((g) => `${s.guidelineCited} : ${guidelineCitationLine(g)}. ${pubmedUrl(g.pmid)}`);
-    return [
-      head,
-      `${s.role} : ${s.todo}`,
-      `${s.impact} : ${s.todo}`,
-      ...guidelines,
-      ref ? `${s.reference} : ${ref}` : "",
-    ]
-      .filter(Boolean)
-      .join("\n");
-  });
-  return paragraphs(s.draftNote, s.contribIntro, ...stubs);
+/**
+ * The number the next contribution takes: one past the highest "N. " line already
+ * in the body — a stub's head or a line the owner numbered by hand, so a pick
+ * never repeats a number the reader can already see. 1 for a body with none.
+ */
+export function nextContributionNumber(body: string): number {
+  let max = 0;
+  for (const line of body.split(/\r?\n/)) {
+    const m = /^(\d{1,3})\. /.exec(line);
+    if (m) max = Math.max(max, Number(m[1]));
+  }
+  return max + 1;
+}
+
+/**
+ * One numbered contribution stub for a PICKED entry: the FRQ's slots (period,
+ * audience A / B / C, role, impact), the clinical guidelines that cite the work
+ * (impact a reviewer can check, with the PubMed record to follow), and a
+ * plain-text reference. The head line ends with the entry's `[[id | label]]`
+ * token, so every export links the stub to the entry (a DOI link when the list
+ * is off the page, as under a narrative layout) and the editor counts it as cited.
+ */
+export function contributionStub(cv: CanonicalCv, item: CvItem, index: number): string {
+  const s = proseStarterStrings(cv.display.locale);
+  const year = itemYear(item);
+  const title = itemTitle(item) ?? itemDisplayText(item)?.trim() ?? item.id;
+  const head = `${index}. ${title} (${year ?? s.todo} · ${s.audience} : ${s.audienceKey}) ${evidenceToken(
+    item.id,
+    evidenceRefLabel(item),
+  )}`;
+  const guidelines = (item.meta.guidelineCitations ?? [])
+    .slice(0, STUB_MAX_GUIDELINES)
+    .map((g) => `${s.guidelineCited} : ${guidelineCitationLine(g)}. ${pubmedUrl(g.pmid)}`);
+  const ref = starterReferenceLine(item);
+  return [
+    head,
+    `${s.role} : ${s.todo}`,
+    `${s.impact} : ${s.todo}`,
+    ...guidelines,
+    ref ? `${s.reference} : ${ref}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
+/** The "pick your publications" prompt in any locale — removed once a stub arrives. */
+const PICK_PROMPTS = new Set(Object.values(PROSE_STARTER_STRINGS).map((x) => x.pickPrompt));
+
+/**
+ * The contributions body after the owner picks `item`: the "pick your
+ * publications" prompt (in whatever language it was written) gives way, and the
+ * entry's stub is appended with the next number. Returns the new body and the
+ * range of the role slot's placeholder, so the editor can select it and the
+ * owner's first keystroke replaces it. Pure; bounded by the prose cap.
+ */
+export function appendContributionStub(
+  cv: CanonicalCv,
+  section: CvSection,
+  item: CvItem,
+): { body: string; selectStart: number; selectEnd: number } {
+  const s = proseStarterStrings(cv.display.locale);
+  const kept = (section.body ?? "")
+    .split(/\r?\n/)
+    .filter((l) => !PICK_PROMPTS.has(l.trim()))
+    .join("\n")
+    .replace(/\s+$/, "");
+  const stub = contributionStub(cv, item, nextContributionNumber(kept));
+  const body = (kept ? `${kept}\n\n${stub}` : stub).slice(0, PROSE_BODY_MAX);
+  const roleLine = `${s.role} : ${s.todo}`;
+  const at = body.lastIndexOf(roleLine);
+  const selectEnd = at >= 0 ? at + roleLine.length : body.length;
+  const selectStart = at >= 0 ? selectEnd - s.todo.length : body.length;
+  return { body, selectStart, selectEnd };
 }
 
 /**
@@ -329,7 +367,7 @@ export function starterProseBody(cv: CanonicalCv, type: CvSectionType): string {
       body = backgroundDraft(cv, s);
       break;
     case "narrative-knowledge":
-      body = contributionsDraft(cv, s);
+      body = contributionsDraft(s);
       break;
     case "narrative-individuals":
       body = peopleDraft(cv, s);

@@ -107,6 +107,15 @@ export type RenderOpts = PublicExtrasOpts & {
    * reachable from a saved document.
    */
   readerMode?: boolean;
+  /**
+   * The EDITOR's live preview (`/api/cv/preview`, `/api/preview/render`). A prose
+   * paragraph that is only a bracketed placeholder ("[to complete]", the starter
+   * drafts' prompts) is then a link to that section in the editor
+   * (`#cv-edit=<sectionId>`, `target="_top"`, which the preview's sandbox allows
+   * on a user click). Exports and the public page never set it, so no PDF, DOCX
+   * or public page ever carries the link; the placeholder prints as plain text.
+   */
+  editorPreview?: boolean;
 };
 
 export interface RenderInput {

@@ -169,7 +169,7 @@ export const rirekishoTemplate: CvTemplate = {
   <h1 class="rk-title">履歴書</h1>
   ${headerTable(cv)}
   ${historyTable(sections)}
-  ${sectionsHtml(cv, rest)}
+  ${sectionsHtml(cv, rest, opts)}
   ${provenanceFooter(cv, opts)}
   ${licenseFooter(cv)}
   ${coauthorLinksFooter(cv, opts)}${attributionFooter(cv, opts)}${docQrFooter(cv, opts)}

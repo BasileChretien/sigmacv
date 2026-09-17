@@ -161,6 +161,32 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     [chips, jumpToWorklist],
   );
 
+  // A placeholder line in the preview links to `#cv-edit=<sectionId>` (see
+  // CvPreview's sandbox note): open the Content part at that section, then clear
+  // the fragment so the next click on the same placeholder fires again.
+  useEffect(() => {
+    const onHash = () => {
+      const m = /^#cv-edit=(.+)$/.exec(window.location.hash);
+      if (!m) return;
+      // A malformed %-escape in a typed or shared URL makes decodeURIComponent
+      // throw; treat it as no section, but still clear the fragment.
+      let sectionId: string | null = null;
+      try {
+        sectionId = decodeURIComponent(m[1]!);
+      } catch {
+        sectionId = null;
+      }
+      if (sectionId) {
+        setActivePart("content");
+        sectionsRef.current?.jumpToSection(sectionId);
+      }
+      window.history.replaceState(null, "", window.location.pathname + window.location.search);
+    };
+    onHash();
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
+
   // A jump to a specific item (the sync banner in CvWorkspace, the owner
   // worklist's rows) routes through the Content part first so the target row is
   // mounted before it scrolls.

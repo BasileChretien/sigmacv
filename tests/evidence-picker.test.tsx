@@ -87,7 +87,22 @@ describe("EvidencePicker", () => {
       target: { value: "signal" },
     });
     fireEvent.click(screen.getByText("Signal detection in pharmacovigilance"));
-    expect(onInsert).toHaveBeenCalledWith("[[W1 | Smith 2021]]");
+    expect(onInsert).toHaveBeenCalledWith("[[W1 | Smith 2021]]", "W1");
+  });
+
+  it("under a contributions section the button says the entry becomes a contribution", () => {
+    render(
+      <EvidencePicker
+        cv={cv}
+        sectionType="narrative-knowledge"
+        body=""
+        locale="en-US"
+        variant="contribution"
+        onInsert={vi.fn()}
+      />,
+    );
+    expect(screen.getByText("Add one of my entries as a contribution")).toBeTruthy();
+    expect(screen.queryByText("Cite one of my entries")).toBeNull();
   });
 
   it("offers every listed entry to a free statement", () => {
