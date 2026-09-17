@@ -204,6 +204,10 @@ export interface WorkspaceUiStrings {
   wlDepositHalNoticeAccepted: string;
   wlDepositHalNoticePublished: string;
   wlDepositHalNoticeSubmitted: string;
+  /** The same when the ground is the publisher's record and that record does not cover HAL: add a file only if the publishing agreement allows it — no version named; {id}. */
+  wlDepositHalNoticeIfAgreement: string;
+  /** The same when a statutory rule is shown above the work; {id}. */
+  wlDepositHalNoticeIfRightOrAgreement: string;
   /** The form note beside it. */
   wlDepositHalNoticeNote: string;
   /** Disclosure summary listing the remaining places. */
@@ -424,6 +428,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "Add the accepted manuscript to the HAL notice {id}",
     wlDepositHalNoticePublished: "Add the published version to the HAL notice {id}",
     wlDepositHalNoticeSubmitted: "Add the submitted manuscript to the HAL notice {id}",
+    wlDepositHalNoticeIfAgreement:
+      "Add your file to the HAL notice {id} only if your publishing agreement allows it",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "Add your file to the HAL notice {id} only if a right shown above or your publishing agreement allows it",
     wlDepositHalNoticeNote:
       "HAL already has a notice of this paper without a file: add the file to it rather than making a new deposit.",
     wlDepositOtherPlaces: "Other places",
@@ -604,6 +612,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "将最终审定稿添加到 HAL 记录 {id}",
     wlDepositHalNoticePublished: "将出版版本添加到 HAL 记录 {id}",
     wlDepositHalNoticeSubmitted: "将投稿稿添加到 HAL 记录 {id}",
+    wlDepositHalNoticeIfAgreement: "仅在您的出版协议允许时将您的文件添加到 HAL 记录 {id}",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "仅在上方所示权利或您的出版协议允许时将您的文件添加到 HAL 记录 {id}",
     wlDepositHalNoticeNote:
       "HAL 已有这篇论文的记录但没有文件：请将文件添加到该记录，而不要新建存缴。",
     wlDepositOtherPlaces: "其他存缴去处",
@@ -797,6 +808,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "Añada el manuscrito aceptado al registro HAL {id}",
     wlDepositHalNoticePublished: "Añada la versión publicada al registro HAL {id}",
     wlDepositHalNoticeSubmitted: "Añada el manuscrito enviado al registro HAL {id}",
+    wlDepositHalNoticeIfAgreement:
+      "Añade tu archivo al registro HAL {id} solo si tu contrato de publicación lo permite",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "Añade tu archivo al registro HAL {id} solo si un derecho indicado arriba o tu contrato de publicación lo permite",
     wlDepositHalNoticeNote:
       "HAL ya tiene un registro de este artículo sin archivo: añada el archivo a ese registro en lugar de hacer un depósito nuevo.",
     wlDepositOtherPlaces: "Otros lugares",
@@ -998,6 +1013,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "Ajoutez le manuscrit accepté à la notice HAL {id}",
     wlDepositHalNoticePublished: "Ajoutez la version éditeur à la notice HAL {id}",
     wlDepositHalNoticeSubmitted: "Ajoutez le manuscrit soumis à la notice HAL {id}",
+    wlDepositHalNoticeIfAgreement:
+      "Ajoutez votre fichier à la notice HAL {id} seulement si votre contrat d'édition le permet",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "Ajoutez votre fichier à la notice HAL {id} seulement si un droit indiqué ci-dessus ou votre contrat d'édition le permet",
     wlDepositHalNoticeNote:
       "HAL a déjà une notice de cet article sans fichier : ajoutez-y le fichier plutôt que de créer un nouveau dépôt.",
     wlDepositOtherPlaces: "Autres lieux de dépôt",
@@ -1198,6 +1217,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "Akzeptierte Manuskriptversion dem HAL-Eintrag {id} hinzufügen",
     wlDepositHalNoticePublished: "Verlagsversion dem HAL-Eintrag {id} hinzufügen",
     wlDepositHalNoticeSubmitted: "Eingereichte Manuskriptversion dem HAL-Eintrag {id} hinzufügen",
+    wlDepositHalNoticeIfAgreement:
+      "Ihre Datei dem HAL-Eintrag {id} nur hinzufügen, wenn Ihr Verlagsvertrag es erlaubt",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "Ihre Datei dem HAL-Eintrag {id} nur hinzufügen, wenn ein oben genanntes Recht oder Ihr Verlagsvertrag es erlaubt",
     wlDepositHalNoticeNote:
       "HAL hat bereits einen Eintrag zu diesem Artikel ohne Datei: Fügen Sie die Datei dort hinzu, statt neu zu hinterlegen.",
     wlDepositOtherPlaces: "Weitere Ablageorte",
@@ -1393,6 +1416,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "著者最終稿を HAL のレコード {id} に追加する",
     wlDepositHalNoticePublished: "出版社版を HAL のレコード {id} に追加する",
     wlDepositHalNoticeSubmitted: "投稿原稿を HAL のレコード {id} に追加する",
+    wlDepositHalNoticeIfAgreement:
+      "出版契約が認める場合に限りファイルを HAL のレコード {id} に追加する",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "上記の権利または出版契約が認める場合に限りファイルを HAL のレコード {id} に追加する",
     wlDepositHalNoticeNote:
       "HAL にはこの論文のファイルなしのレコードが既にあります。新規登録ではなく、そのレコードにファイルを追加してください。",
     wlDepositOtherPlaces: "その他の登録先",
@@ -1590,6 +1617,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "Adicione o manuscrito aceito ao registro HAL {id}",
     wlDepositHalNoticePublished: "Adicione a versão publicada ao registro HAL {id}",
     wlDepositHalNoticeSubmitted: "Adicione o manuscrito submetido ao registro HAL {id}",
+    wlDepositHalNoticeIfAgreement:
+      "Adicione seu arquivo ao registro HAL {id} somente se seu contrato de publicação permitir",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "Adicione seu arquivo ao registro HAL {id} somente se um direito indicado acima ou seu contrato de publicação permitir",
     wlDepositHalNoticeNote:
       "O HAL já tem um registro deste artigo sem arquivo: adicione o arquivo a ele em vez de fazer um novo depósito.",
     wlDepositOtherPlaces: "Outros lugares",
@@ -1788,6 +1819,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "Aggiungi il manoscritto accettato alla scheda HAL {id}",
     wlDepositHalNoticePublished: "Aggiungi la versione editoriale alla scheda HAL {id}",
     wlDepositHalNoticeSubmitted: "Aggiungi il manoscritto inviato alla scheda HAL {id}",
+    wlDepositHalNoticeIfAgreement:
+      "Aggiungi il tuo file alla scheda HAL {id} solo se il tuo contratto di pubblicazione lo consente",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "Aggiungi il tuo file alla scheda HAL {id} solo se un diritto indicato sopra o il tuo contratto di pubblicazione lo consente",
     wlDepositHalNoticeNote:
       "HAL ha già una scheda di questo articolo senza file: aggiungi il file a quella scheda invece di fare un nuovo deposito.",
     wlDepositOtherPlaces: "Altri archivi",
@@ -1982,6 +2017,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "게재 승인 원고를 HAL 레코드 {id}에 추가하기",
     wlDepositHalNoticePublished: "출판사 최종본을 HAL 레코드 {id}에 추가하기",
     wlDepositHalNoticeSubmitted: "투고 원고를 HAL 레코드 {id}에 추가하기",
+    wlDepositHalNoticeIfAgreement:
+      "출판 계약이 허용하는 경우에만 파일을 HAL 레코드 {id}에 추가하기",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "위에 표시된 권리나 출판 계약이 허용하는 경우에만 파일을 HAL 레코드 {id}에 추가하기",
     wlDepositHalNoticeNote:
       "HAL에 이미 파일 없는 이 논문의 레코드가 있습니다. 새로 기탁하지 말고 그 레코드에 파일을 추가하세요.",
     wlDepositOtherPlaces: "다른 기탁처",
@@ -2178,6 +2217,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositHalNoticeAccepted: "Добавьте принятую к публикации рукопись к записи HAL {id}",
     wlDepositHalNoticePublished: "Добавьте опубликованную версию к записи HAL {id}",
     wlDepositHalNoticeSubmitted: "Добавьте поданную рукопись к записи HAL {id}",
+    wlDepositHalNoticeIfAgreement:
+      "Добавьте свой файл к записи HAL {id}, только если это допускает ваш издательский договор",
+    wlDepositHalNoticeIfRightOrAgreement:
+      "Добавьте свой файл к записи HAL {id}, только если это допускает указанное выше право или ваш издательский договор",
     wlDepositHalNoticeNote:
       "В HAL уже есть запись об этой статье без файла: добавьте файл к ней, а не создавайте новое размещение.",
     wlDepositOtherPlaces: "Другие места размещения",

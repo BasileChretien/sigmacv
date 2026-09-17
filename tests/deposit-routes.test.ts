@@ -456,6 +456,51 @@ describe("a HAL notice without a file (the owner sync's repository copies)", () 
     expect(notes).not.toContain(EN.wlDepositHalDoi);
   });
 
+  it("says “only if” on the notice when the ground is a record that does not cover HAL — naming a right only when one is shown", () => {
+    const outside = work({
+      workCountries: ["FR"],
+      repositoryCopies: [notice],
+      selfArchiving: record({ versions: ["publishedVersion"], locations: ["Preprint Server"] }),
+    });
+    const [hal] = depositRoutes(cvWith(), outside, ctx);
+    expect(hal!.notice?.id).toBe("hal-05745947");
+    expect(depositActionKind(outside, hal!)).toBe("conditional");
+    const byRecord = { basis: "publisher" as const, version: "publishedVersion" as const };
+    expect(depositAction(outside, hal!, EN, false, byRecord)).toBe(
+      "Add your file to the HAL notice hal-05745947 only if your publishing agreement allows it",
+    );
+    expect(depositAction(outside, hal!, EN, true, byRecord)).toBe(
+      "Add your file to the HAL notice hal-05745947 only if a right shown above or your publishing agreement allows it",
+    );
+    // A right that has run, or the work's own licence, is not the record's to limit.
+    expect(
+      depositAction(outside, hal!, EN, true, { basis: "statute", version: "acceptedVersion" }),
+    ).toBe("Add the accepted manuscript to the HAL notice hal-05745947");
+    expect(
+      depositAction(outside, hal!, EN, false, { basis: "licence", version: "publishedVersion" }),
+    ).toBe("Add the published version to the HAL notice hal-05745947");
+    // A record that covers HAL keeps the version it allows.
+    const inside = work({
+      workCountries: ["FR"],
+      repositoryCopies: [notice],
+      selfArchiving: record({
+        versions: ["publishedVersion"],
+        locations: ["Institutional Repository"],
+      }),
+    });
+    const [covered] = depositRoutes(cvWith(), inside, ctx);
+    expect(depositAction(inside, covered!, EN, false, byRecord)).toBe(
+      "Add the published version to the HAL notice hal-05745947",
+    );
+    // Every locale words the hedge with the notice id and no version.
+    for (const loc of ["fr-FR", "ja-JP"] as const) {
+      const wu = workspaceUi(loc);
+      const text = depositAction(outside, hal!, wu, false, byRecord);
+      expect(text, loc).toBe(wu.wlDepositHalNoticeIfAgreement.replace("{id}", "hal-05745947"));
+      expect(text, loc).not.toBe(wu.wlDepositHalNoticePublished.replace("{id}", "hal-05745947"));
+    }
+  });
+
   it("leaves the other routes alone, and a notice WITH a file changes nothing here (the row is gone by then)", () => {
     const routes = depositRoutes(cvWith(), item, ctx);
     expect(routes.slice(1).every((r) => r.notice === undefined)).toBe(true);
@@ -517,14 +562,15 @@ describe("the file the action names (depositActionVersion)", () => {
     }
   });
 
+  const notice = {
+    source: "hal" as const,
+    id: "hal-05745947",
+    url: "https://hal.science/hal-05745947",
+    hasFile: false,
+    retrievedAt: "2026-09-16T00:00:00.000Z",
+  };
+
   it("follows a HAL notice's ground, and takes the ground's version when the action names none", () => {
-    const notice = {
-      source: "hal" as const,
-      id: "hal-05745947",
-      url: "https://hal.science/hal-05745947",
-      hasFile: false,
-      retrievedAt: "2026-09-16T00:00:00.000Z",
-    };
     const item = work({ workCountries: ["FR"], repositoryCopies: [notice] });
     const [hal] = depositRoutes(cvWith(), item, ctx);
     expect(
@@ -544,6 +590,37 @@ describe("the file the action names (depositActionVersion)", () => {
     // No file named where the action names no version: the place is not covered.
     expect(depositActionVersion(conditional, route!, now)).toBeUndefined();
     expect(depositActionVersion(conditional, route!)).toBeUndefined();
+  });
+
+  it("names no file on a HAL notice whose ground is a record that does not cover HAL — the action names no version either", () => {
+    const item = work({
+      workCountries: ["FR"],
+      repositoryCopies: [notice],
+      selfArchiving: record(["publishedVersion"], ["Preprint Server"]),
+    });
+    const [hal] = depositRoutes(cvWith(), item, ctx);
+    expect(hal!.notice).toBeDefined();
+    const byRecord = { basis: "publisher" as const, version: "publishedVersion" as const };
+    expect(depositActionVersion(item, hal!, byRecord)).toBeUndefined();
+    const text = depositAction(item, hal!, EN, false, byRecord);
+    for (const label of Object.values(LABEL)) expect(text).not.toContain(label);
+    // The law or the work's licence is the ground: the notice and the file take its version.
+    for (const [now, expected] of [
+      [{ basis: "statute", version: "acceptedVersion" }, "acceptedVersion"],
+      [{ basis: "licence", version: "publishedVersion" }, "publishedVersion"],
+    ] as const) {
+      expect(depositActionVersion(item, hal!, now)).toBe(expected);
+      expect(depositAction(item, hal!, EN, false, now)).toContain(LABEL[expected]);
+    }
+    // A record that covers HAL: the notice names the version it allows, and so does the file.
+    const covered = work({
+      workCountries: ["FR"],
+      repositoryCopies: [notice],
+      selfArchiving: record(["publishedVersion"], ["Institutional Repository"]),
+    });
+    const [route] = depositRoutes(cvWith(), covered, ctx);
+    expect(depositActionVersion(covered, route!, byRecord)).toBe("publishedVersion");
+    expect(depositAction(covered, route!, EN, false, byRecord)).toContain(LABEL.publishedVersion);
   });
 
   it("names the accepted manuscript on a funder route whatever the ground, and on an unrecorded action", () => {

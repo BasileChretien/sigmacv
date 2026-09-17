@@ -205,7 +205,10 @@ const ACTION_BY_VERSION: ReadonlyArray<readonly [Version, ActionKey]> = [
  *  - a record that allows no deposit, or names only places this destination is not
  *    (`placeFitsLocations`): deposit only if the publishing agreement — or a
  *    statutory right shown above the work — allows it;
- *  - otherwise the version the record allows, the publisher's own first.
+ *  - otherwise the version the record allows, the publisher's own first;
+ *  - a HAL notice without a file: add the version the ground allows to it — or,
+ *    when the ground is a record that does not cover HAL, a file only if the
+ *    agreement (or a right shown above) allows it.
  */
 /**
  * Which of the three wordings the action takes — a version the record (or the
@@ -244,14 +247,22 @@ const ACTION_KEY = Object.fromEntries(ACTION_BY_VERSION) as Record<Version, Acti
  * repository, the accepted manuscript; a record, the best version it names.
  * An action that names no version (only if the agreement allows it: the record
  * does not cover this place) names no file either — the record's version is
- * not known to be allowed there.
+ * not known to be allowed there. That holds for a HAL notice too when its
+ * ground is the publisher's record: the notice is still the place (a fresh
+ * deposit would duplicate it), but the record does not reach it. A right that
+ * has run, or the work's own licence, is not the record's to limit.
  */
 export function depositActionVersion(
   item: CvItem,
   route: DepositRoute,
   now?: DepositNow,
 ): Version | undefined {
-  if (route.notice) return now?.version ?? "acceptedVersion";
+  if (route.notice) {
+    if (now?.basis === "publisher" && depositActionKind(item, route) === "conditional") {
+      return undefined;
+    }
+    return now?.version ?? "acceptedVersion";
+  }
   if (route.kind !== "funder" && now?.basis === "statute") return "acceptedVersion";
   if (route.kind !== "funder" && now?.basis === "licence") return "publishedVersion";
   const kind = depositActionKind(item, route);
@@ -272,9 +283,19 @@ export function depositAction(
   const destination = route.destination;
   const version = depositActionVersion(item, route, now);
   // HAL holds a notice of the work without a file: the action is to add the
-  // file — the version the ground allows — to it.
+  // file — the version the ground allows — to it. No version means the ground
+  // is a record that does not cover HAL: add a file only if the agreement allows it.
   if (route.notice) {
-    return fill(wu[NOTICE_ACTION[version!]], { id: route.notice.id });
+    const id = route.notice.id;
+    if (version === undefined) {
+      return fill(
+        hasStatutoryRight
+          ? wu.wlDepositHalNoticeIfRightOrAgreement
+          : wu.wlDepositHalNoticeIfAgreement,
+        { id },
+      );
+    }
+    return fill(wu[NOTICE_ACTION[version]], { id });
   }
   // A statutory right that has run names the accepted manuscript outright —
   // the ground is the law, whatever the publisher records; a work under its

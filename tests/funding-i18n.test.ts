@@ -223,6 +223,8 @@ const DEPOSIT_PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> 
   wlDepositHalNoticeAccepted: ["{id}"],
   wlDepositHalNoticePublished: ["{id}"],
   wlDepositHalNoticeSubmitted: ["{id}"],
+  wlDepositHalNoticeIfAgreement: ["{id}"],
+  wlDepositHalNoticeIfRightOrAgreement: ["{id}"],
   wlDepositAccepted: ["{destination}"],
   wlDepositPublished: ["{destination}"],
   wlDepositSubmitted: ["{destination}"],
@@ -251,7 +253,7 @@ const DEPOSIT_PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> 
  */
 describe("worklist deposit strings (workspaceUi wlDeposit*)", () => {
   it("exist, are translated and keep exactly their placeholders, in every locale", () => {
-    expect(DEPOSIT_KEYS).toHaveLength(31);
+    expect(DEPOSIT_KEYS).toHaveLength(33);
     const en = workspaceUi("en-US");
     for (const loc of SUPPORTED_LOCALES) {
       const s = workspaceUi(loc);
@@ -266,6 +268,7 @@ describe("worklist deposit strings (workspaceUi wlDeposit*)", () => {
         "wlDepositAccepted",
         "wlDepositUnrecorded",
         "wlDepositIfAgreement",
+        "wlDepositHalNoticeIfAgreement",
         "wlDepositBecauseOwn",
         "wlDepositZenodoAny",
       ] as const) {
