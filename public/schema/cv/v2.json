@@ -1620,6 +1620,39 @@
                     "repositoryCopiesTriedAt": {
                       "type": "string"
                     },
+                    "guidelineCitations": {
+                      "maxItems": 20,
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "pmid": {
+                            "type": "string",
+                            "maxLength": 20
+                          },
+                          "title": {
+                            "type": "string",
+                            "maxLength": 500
+                          },
+                          "source": {
+                            "type": "string",
+                            "maxLength": 200
+                          },
+                          "year": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          }
+                        },
+                        "required": ["pmid", "title"]
+                      }
+                    },
+                    "guidelineCitationsCheckedAt": {
+                      "type": "string"
+                    },
+                    "guidelineCitationsTriedAt": {
+                      "type": "string"
+                    },
                     "workCountries": {
                       "maxItems": 10,
                       "type": "array",

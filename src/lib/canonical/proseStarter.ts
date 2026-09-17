@@ -5,6 +5,7 @@ import {
   supervisionRoleLabel,
 } from "@/lib/i18n/render";
 import { proseStarterStrings, type ProseStarterStrings } from "@/lib/i18n/proseStarter";
+import { guidelineCitationLine, pubmedUrl } from "@/lib/pubmed/guidelineText";
 import {
   PROSE_BODY_MAX,
   hasStructuredSupervision,
@@ -36,7 +37,10 @@ import {
  *  - `narrative-knowledge` (contributions): up to ten numbered stubs, each with
  *    the period, an audience slot (A / B / C), a role slot, an impact slot and
  *    a plain-text reference, seeded from the most cited publications and the
- *    most recent datasets, software, patents and trials;
+ *    most recent datasets, software, patents and trials — a publication cited
+ *    in a clinical practice guideline (`meta.guidelineCitations`, the owner
+ *    sync's PubMed pass) comes first and names the guideline, with its PubMed
+ *    link, as something the reviewer can check;
  *  - `narrative-individuals` (people): supervision and teaching records;
  *  - `narrative-community` / `narrative-society`: the relevant service records.
  *
@@ -193,9 +197,15 @@ function backgroundDraft(cv: CanonicalCv, s: ProseStarterStrings): string {
   );
 }
 
-/** Publications ranked by citations, then recency; other outputs by recency. */
+/** How many starter lines name a guideline that cites the work. */
+const STARTER_MAX_GUIDELINES = 3;
+
+/** Publications cited in a guideline first, then by citations, then recency;
+ *  other outputs by recency. */
 function contributionCandidates(cv: CanonicalCv): CvItem[] {
+  const inGuideline = (it: CvItem) => ((it.meta.guidelineCitations?.length ?? 0) > 0 ? 1 : 0);
   const byCitations = (a: CvItem, b: CvItem) =>
+    inGuideline(b) - inGuideline(a) ||
     (b.meta.citedByCount ?? 0) - (a.meta.citedByCount ?? 0) ||
     (itemYear(b) ?? 0) - (itemYear(a) ?? 0);
   const byRecency = (a: CvItem, b: CvItem) => (itemYear(b) ?? 0) - (itemYear(a) ?? 0);
@@ -223,10 +233,16 @@ function contributionsDraft(cv: CanonicalCv, s: ProseStarterStrings): string {
     const year = itemYear(item);
     const head = `${i + 1}. ${itemTitle(item)} (${year ?? s.todo} · ${s.audience} : ${s.audienceKey})`;
     const ref = starterReferenceLine(item);
+    // A guideline that cites the work is impact a reviewer can check: one line
+    // each, title, journal and year, with the PubMed record to follow.
+    const guidelines = (item.meta.guidelineCitations ?? [])
+      .slice(0, STARTER_MAX_GUIDELINES)
+      .map((g) => `${s.guidelineCited} : ${guidelineCitationLine(g)}. ${pubmedUrl(g.pmid)}`);
     return [
       head,
       `${s.role} : ${s.todo}`,
       `${s.impact} : ${s.todo}`,
+      ...guidelines,
       ref ? `${s.reference} : ${ref}` : "",
     ]
       .filter(Boolean)

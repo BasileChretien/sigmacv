@@ -217,6 +217,60 @@ describe("starter drafts for the prose sections", () => {
     expect(body).not.toContain("undefined");
   });
 
+  it("puts a publication cited in a clinical guideline first and names the guideline with its PubMed link", () => {
+    const cv = CanonicalCvSchema.parse({
+      schemaVersion: 2,
+      id: "guided",
+      owner: {
+        orcid: "0000-0002-7483-2489",
+        openAlexAuthorIds: [],
+        displayName: "Basile Chrétien",
+      },
+      display: { locale: "fr-FR" },
+      sections: [
+        section("publications", [
+          pub("W1", "Most cited", 2015, 80),
+          pub("W2", "Taken up in practice", 2020, 3, {
+            meta: {
+              year: 2020,
+              citedByCount: 3,
+              guidelineCitations: [
+                {
+                  pmid: "34724392",
+                  title: "ASCO Guideline Update.",
+                  source: "J Clin Oncol",
+                  year: 2021,
+                },
+                {
+                  pmid: "38228461",
+                  title: "Position statement.",
+                  source: "Gastroenterol Hepatol",
+                  year: 2024,
+                },
+              ],
+            },
+          }),
+        ]),
+        section("narrative-knowledge", []),
+      ],
+      provenance: { generatedAt: "2026-09-17T00:00:00.000Z", sources: ["manual"] },
+    });
+    const body = starterProseBody(cv, "narrative-knowledge");
+    const heads = body.split("\n").filter((l) => /^\d+\. /.test(l));
+    expect(heads[0]).toContain("Taken up in practice");
+    expect(heads[1]).toContain("Most cited");
+    expect(body).toContain(
+      "Cité dans le guide de pratique : ASCO Guideline Update (J Clin Oncol, 2021). https://pubmed.ncbi.nlm.nih.gov/34724392/",
+    );
+    expect(body).toContain(
+      "Cité dans le guide de pratique : Position statement (Gastroenterol Hepatol, 2024). https://pubmed.ncbi.nlm.nih.gov/38228461/",
+    );
+    // The guideline lines sit between the impact slot and the reference.
+    const stub = body.slice(body.indexOf("1. Taken up"), body.indexOf("2. Most cited"));
+    expect(stub.indexOf("Retombées")).toBeLessThan(stub.indexOf("Cité dans le guide"));
+    expect(stub.indexOf("Cité dans le guide")).toBeLessThan(stub.indexOf("Référence :"));
+  });
+
   it("writes the people section from supervision and teaching records, with the owner's own labels", () => {
     const body = starterProseBody(makeCv("fr-FR"), "narrative-individuals");
     expect(body).toContain("Encadrement\n- ");

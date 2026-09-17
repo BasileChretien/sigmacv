@@ -520,6 +520,10 @@ const BOUNDED_ENRICHMENT_KEYS = [
   "repositoryCopies",
   "repositoryCopiesCheckedAt",
   "repositoryCopiesTriedAt",
+  // PubMed guideline citations (the OWNER sync's pass only; PMID-keyed)
+  "guidelineCitations",
+  "guidelineCitationsCheckedAt",
+  "guidelineCitationsTriedAt",
 ] as const satisfies readonly (keyof CvItem["meta"])[];
 
 /** {@link BOUNDED_ENRICHMENT_KEYS} carried from `prev` (defined values only). */

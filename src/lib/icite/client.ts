@@ -137,6 +137,59 @@ async function fetchBatch(pmids: string[]): Promise<Map<string, IciteRecord>> {
   return out;
 }
 
+/** The PMIDs in iCite's citing-clinical list, whatever its spelling: an array of
+ *  numbers or strings, or a delimited string. Anything else → none. */
+function citerList(v: unknown): string[] {
+  if (Array.isArray(v)) {
+    return v
+      .map((x) => (typeof x === "number" ? String(x) : typeof x === "string" ? x.trim() : ""))
+      .filter((x) => /^\d+$/.test(x));
+  }
+  if (typeof v === "string") return v.split(/[\s,;|]+/).filter((t) => /^\d+$/.test(t));
+  return [];
+}
+
+/**
+ * Map PMID → the PMIDs of the CLINICAL articles citing it (iCite `cited_by_clin`,
+ * returned as `citingClinicalPmids`), as a list rather than the count the RCR
+ * pass keeps — for the guideline-citations pass, which asks PubMed which of them
+ * are practice guidelines. Batched like {@link fetchIciteByPmids}. `null` when a
+ * call failed, so the caller can tell "no citers" from "no answer"; a work iCite
+ * does not know is simply absent from the map. One attempt per batch (no retry)
+ * within `timeoutMs`, so the caller's pass budget is real.
+ */
+export async function fetchClinicalCitersByPmids(
+  pmids: readonly string[],
+  opts: { timeoutMs?: number } = {},
+): Promise<Map<string, string[]> | null> {
+  const valid = [...new Set(pmids.map((p) => p.trim()).filter((p) => /^\d+$/.test(p)))];
+  const out = new Map<string, string[]>();
+  for (let i = 0; i < valid.length; i += ICITE_BATCH_SIZE) {
+    const url = new URL(ICITE_API);
+    url.searchParams.set("pmids", valid.slice(i, i + ICITE_BATCH_SIZE).join(","));
+    url.searchParams.set("fl", "pmid,cited_by_clin");
+    url.searchParams.set("legacy", "false");
+    try {
+      const res = await resilientFetch(url, {
+        headers: { Accept: "application/json", "User-Agent": USER_AGENT },
+        timeoutMs: opts.timeoutMs ?? 12_000,
+        retries: 0,
+      });
+      if (!res.ok) throw new Error(`iCite request failed (${res.status})`);
+      const data = (await res.json()) as any;
+      for (const rec of Array.isArray(data?.data) ? data.data : []) {
+        const pmid = rec?.pmid;
+        const key = typeof pmid === "number" ? String(pmid) : typeof pmid === "string" ? pmid : "";
+        if (key) out.set(key, citerList(rec?.citingClinicalPmids ?? rec?.cited_by_clin));
+      }
+    } catch (err) {
+      logger.warn("icite.citers_fetch_failed", { err });
+      return null;
+    }
+  }
+  return out;
+}
+
 /**
  * Map PMID → {@link IciteRecord} for the given PubMed ids. Bare numeric PMIDs only
  * (others are ignored). Batched + de-duplicated; a failing batch is skipped, never

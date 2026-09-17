@@ -235,6 +235,10 @@ export interface WorkspaceUiStrings {
   /** The fold's label; the list is closed on every visit. */
   wlElsewhereShow: string;
   /** The deposit chip on a publication row: `{destination}` = the route's name. */
+  /** Chip on a publication row: the clinical guidelines citing it, one and many, plus the hint. */
+  guidelineChipOne: string;
+  guidelineChipMany: string;
+  guidelineChipHint: string;
   wlChipDeposit: string;
   /** The same when the publisher's record allows no deposit outright. */
   wlChipDepositIf: string;
@@ -430,6 +434,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Free to read at the publisher and not in a repository yet: the work's licence or the law lets you deposit a copy.",
     wlElsewhereShow: "Show these papers",
+    guidelineChipOne: "Cited in 1 clinical guideline",
+    guidelineChipMany: "Cited in {n} clinical guidelines",
+    guidelineChipHint:
+      "Practice guidelines indexed in PubMed that cite this work, found through NIH iCite. A guideline PubMed does not index is not seen.",
     wlChipDeposit: "Deposit in {destination}",
     wlChipDepositIf: "Deposit in {destination} if allowed",
     wlChipHint: "Opens this work in the Open access tab",
@@ -595,6 +603,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHeading: "在出版社处开放的论文 — 也在知识库中存一份",
     wlElsewhereHelp: "在出版社处可免费阅读，但尚未进入知识库：作品的许可或法律允许您存入一份副本。",
     wlElsewhereShow: "显示这些论文",
+    guidelineChipOne: "被 1 部临床指南引用",
+    guidelineChipMany: "被 {n} 部临床指南引用",
+    guidelineChipHint:
+      "PubMed 收录、引用本文的临床实践指南，经 NIH iCite 找到。PubMed 未收录的指南不在其中。",
     wlChipDeposit: "存入 {destination}",
     wlChipDepositIf: "如获许可，存入 {destination}",
     wlChipHint: "在“开放获取”标签页中打开此作品",
@@ -778,6 +790,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "De lectura libre en la editorial y aún no en un repositorio: la licencia de la obra o la ley le permiten depositar una copia.",
     wlElsewhereShow: "Mostrar estos artículos",
+    guidelineChipOne: "Citado en 1 guía clínica",
+    guidelineChipMany: "Citado en {n} guías clínicas",
+    guidelineChipHint:
+      "Guías de práctica clínica indexadas en PubMed que citan este trabajo, halladas mediante NIH iCite. Una guía que PubMed no indexa no aparece.",
     wlChipDeposit: "Depositar en {destination}",
     wlChipDepositIf: "Depositar en {destination} si está permitido",
     wlChipHint: "Abre este trabajo en la pestaña Acceso abierto",
@@ -965,6 +981,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Lisibles gratuitement chez l’éditeur et pas encore dans une archive : la licence de l’œuvre ou la loi vous permettent d’en déposer une copie.",
     wlElsewhereShow: "Afficher ces articles",
+    guidelineChipOne: "Cité dans 1 guide de pratique clinique",
+    guidelineChipMany: "Cité dans {n} guides de pratique clinique",
+    guidelineChipHint:
+      "Guides de pratique clinique indexés dans PubMed qui citent ce travail, trouvés via NIH iCite. Un guide que PubMed n'indexe pas n'apparaît pas.",
     wlChipDeposit: "Déposer dans {destination}",
     wlChipDepositIf: "Déposer dans {destination} si c’est permis",
     wlChipHint: "Ouvre ce travail dans l’onglet Accès ouvert",
@@ -1152,6 +1172,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Beim Verlag frei lesbar und noch in keinem Repositorium: die Lizenz des Werks oder das Gesetz erlauben Ihnen, eine Kopie zu hinterlegen.",
     wlElsewhereShow: "Diese Artikel anzeigen",
+    guidelineChipOne: "In 1 klinischen Leitlinie zitiert",
+    guidelineChipMany: "In {n} klinischen Leitlinien zitiert",
+    guidelineChipHint:
+      "In PubMed indexierte Leitlinien, die diese Arbeit zitieren, gefunden über NIH iCite. Eine Leitlinie, die PubMed nicht indexiert, fehlt hier.",
     wlChipDeposit: "In {destination} hinterlegen",
     wlChipDepositIf: "In {destination} hinterlegen, falls erlaubt",
     wlChipHint: "Öffnet diese Arbeit im Tab „Open Access“",
@@ -1332,6 +1356,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "出版社側では無料で読めるが、まだリポジトリにはない論文：著作物のライセンスまたは法律により、複製を登録できます。",
     wlElsewhereShow: "これらの論文を表示",
+    guidelineChipOne: "1 件の臨床ガイドラインに引用",
+    guidelineChipMany: "{n} 件の臨床ガイドラインに引用",
+    guidelineChipHint:
+      "PubMed に収載され、この論文を引用している診療ガイドライン（NIH iCite 経由で検出）。PubMed 未収載のガイドラインは含まれません。",
     wlChipDeposit: "{destination} に登録",
     wlChipDepositIf: "許可されていれば {destination} に登録",
     wlChipHint: "この論文を「オープンアクセス」タブで開きます",
@@ -1516,6 +1544,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "De leitura livre na editora e ainda fora de um repositório: a licença da obra ou a lei permitem depositar uma cópia.",
     wlElsewhereShow: "Mostrar estes artigos",
+    guidelineChipOne: "Citado em 1 diretriz clínica",
+    guidelineChipMany: "Citado em {n} diretrizes clínicas",
+    guidelineChipHint:
+      "Diretrizes de prática clínica indexadas no PubMed que citam este trabalho, encontradas via NIH iCite. Uma diretriz que o PubMed não indexa não aparece.",
     wlChipDeposit: "Depositar em {destination}",
     wlChipDepositIf: "Depositar em {destination} se permitido",
     wlChipHint: "Abre este trabalho na aba Acesso aberto",
@@ -1702,6 +1734,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Leggibili gratuitamente presso l’editore e non ancora in un archivio: la licenza dell’opera o la legge ti permettono di depositarne una copia.",
     wlElsewhereShow: "Mostra questi articoli",
+    guidelineChipOne: "Citato in 1 linea guida clinica",
+    guidelineChipMany: "Citato in {n} linee guida cliniche",
+    guidelineChipHint:
+      "Linee guida di pratica clinica indicizzate in PubMed che citano questo lavoro, trovate tramite NIH iCite. Una linea guida non indicizzata da PubMed non compare.",
     wlChipDeposit: "Depositare in {destination}",
     wlChipDepositIf: "Depositare in {destination} se consentito",
     wlChipHint: "Apre questo lavoro nella scheda Accesso aperto",
@@ -1880,6 +1916,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "출판사에서 무료로 읽을 수 있지만 아직 리포지터리에는 없는 논문: 저작물의 라이선스나 법률에 따라 사본을 기탁할 수 있습니다.",
     wlElsewhereShow: "이 논문 표시",
+    guidelineChipOne: "임상 진료 지침 1건에 인용",
+    guidelineChipMany: "임상 진료 지침 {n}건에 인용",
+    guidelineChipHint:
+      "PubMed에 색인된, 이 논문을 인용하는 진료 지침으로 NIH iCite를 통해 찾았습니다. PubMed에 색인되지 않은 지침은 보이지 않습니다.",
     wlChipDeposit: "{destination}에 기탁",
     wlChipDepositIf: "허용되는 경우 {destination}에 기탁",
     wlChipHint: "이 저작물을 오픈 액세스 탭에서 엽니다",
@@ -2063,6 +2103,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Свободно читаются у издателя, но ещё не в репозитории: лицензия работы или закон позволяют разместить копию.",
     wlElsewhereShow: "Показать эти статьи",
+    guidelineChipOne: "Цитируется в 1 клиническом руководстве",
+    guidelineChipMany: "Цитируется в {n} клинических руководствах",
+    guidelineChipHint:
+      "Клинические руководства в PubMed, цитирующие эту работу, найденные через NIH iCite. Руководство, не индексируемое PubMed, здесь не видно.",
     wlChipDeposit: "Разместить в {destination}",
     wlChipDepositIf: "Разместить в {destination}, если это разрешено",
     wlChipHint: "Открывает эту работу на вкладке «Открытый доступ»",

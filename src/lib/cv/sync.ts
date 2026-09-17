@@ -27,6 +27,7 @@ import { attachDataciteLinks } from "@/lib/canonical/dataLinks";
 import { enrichCvWithSelfArchiving } from "@/lib/archiving/selfArchivingPass";
 import { enrichCvWithDepositRepositories } from "@/lib/archiving/depositRepositoriesPass";
 import { enrichCvWithRepositoryCopies } from "@/lib/archiving/repositoryCopiesPass";
+import { enrichCvWithGuidelineCitations } from "@/lib/pubmed/guidelineCitationsPass";
 import {
   canonicalizeInstitutions,
   enrichCvWithAbstracts,
@@ -650,7 +651,12 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // (HAL, Europe PMC, OpenAIRE, Zenodo): one work at a time, capped, budgeted,
   // fail-soft (`archiving/repositoryCopiesPass.ts`). Owner sync only, like the
   // two passes above; adds or removes no item.
-  const cv = await enrichCvWithRepositoryCopies(withPlaces, getEnv().OPENALEX_MAILTO);
+  const withCopies = await enrichCvWithRepositoryCopies(withPlaces, getEnv().OPENALEX_MAILTO);
+  // The clinical practice guidelines citing each PubMed-indexed work (iCite's
+  // clinical citers typed through PubMed): one iCite call + spaced PubMed batches,
+  // capped, budgeted, fail-soft (`pubmed/guidelineCitationsPass.ts`). Owner sync
+  // only, like the three passes above; adds or removes no item.
+  const cv = await enrichCvWithGuidelineCitations(withCopies, getEnv().OPENALEX_MAILTO);
 
   // The OAI affiliation-set key follows the document on every write (see
   // `currentRorKey`): a re-sync that changes or drops the current position

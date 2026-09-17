@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **The clinical guidelines that cite your work, named where you write about it.** For each of your works PubMed indexes, SigmaCV now asks NIH iCite which clinical articles cite it and PubMed which of those are practice guidelines or consensus statements. A publication row in the editor shows "Cited in 2 clinical guidelines" with the guidelines in its tooltip, and the starter draft of a contributions section names each one, with its journal, year and PubMed link, so a reviewer can follow it. It is what a narrative CV means by a contribution taken up in practice, in one checkable line. Nothing is added to the CV itself unless you write it, nothing appears on a public page, and the anonymous preview makes no such call. Partial by construction: a guideline PubMed does not index is not seen, and the tooltip says so.
+
 ### Fixed
 
 - **"Cite one of my entries" had nothing to offer under the CV-FRQ layouts, and its panel was cut off.** A narrative layout hides the publication, dataset and supervision lists and keeps only the prose, and the picker only offered entries from sections on the page, so under CV-FRQ it showed "No matching entry" and a pasted reference would have been dropped at export. Your entries are now citable whether or not their list is on the page: a reference to an entry the document lists still links to it on the page; a reference to one it does not list prints the entry's short reference and links to its DOI or record page instead (HTML, PDF, DOCX and Markdown; LaTeX prints the label). The picker offers the whole record, the entries that fit the section first. The panel also opened inside a card that clips its overflow, so a long list was cut to its first line; the card lets it through now.
