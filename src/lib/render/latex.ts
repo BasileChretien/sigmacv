@@ -1,5 +1,9 @@
 import type { ResolvedEvidenceSegment } from "@/lib/canonical/evidenceRefs";
-import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
+import {
+  isProseSectionType,
+  proseSectionHasContent,
+  type CanonicalCv,
+} from "@/lib/canonical/schema";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { bibtexCiteKeys } from "./bibtex";
 import { proseEvidence } from "./evidenceRefs";
@@ -101,7 +105,7 @@ function latexifyEntry(entry: string, bold: ((s: string) => string) | null): str
  */
 function evidenceMacros(sections: PreparedSection[]): string {
   const hasProse = sections.some(
-    ({ section }) => isProseSectionType(section.type) && (section.body ?? "").trim().length > 0,
+    ({ section }) => isProseSectionType(section.type) && proseSectionHasContent(section),
   );
   if (!hasProse) return "";
   return [
@@ -197,7 +201,11 @@ function sectionBlocks(cv: CanonicalCv, sections: PreparedSection[]): string[] {
           [
             `\\section{${title}}`,
             body ? proseBodyLatex(body, evidence.resolve, keys) : "",
-            list.length > 0 ? contributionsLatex(cv, list, escapeLatex, sanitizeUrlForLatex) : "",
+            list.length > 0
+              ? contributionsLatex(cv, list, escapeLatex, sanitizeUrlForLatex, (t) =>
+                  proseLineLatex(evidence.resolve(t), keys),
+                )
+              : "",
           ]
             .filter(Boolean)
             .join("\n"),

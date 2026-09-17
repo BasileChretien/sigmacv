@@ -13,6 +13,7 @@ import { renderCvDocxBuffer } from "@/lib/render/docx";
 import { renderCvLatex } from "@/lib/render/latex";
 import { renderGrantCv } from "@/lib/render/grantCv";
 import { prepareSections } from "@/lib/render/prepare";
+import { computeCvHealth } from "@/lib/cv/health";
 
 /**
  * The structured contributions in every export: numbered, titled, with the
@@ -193,6 +194,41 @@ describe.skipIf(!hasApa)("contributions in the exports", () => {
   it("the funder draft prints them after the prose", () => {
     const md = renderGrantCv(makeCv("apa", "Intro."), "erc");
     expect(md).toContain("Intro.\n\n1. **Signal detection W1**");
+  });
+});
+
+describe.skipIf(!hasApa)("a citation marker typed into a card", () => {
+  const withMarker = () =>
+    makeCv("apa", "", [
+      { id: "c1", itemId: "W1", impact: "Adopted by the network [[W2 | Chrétien 2020]]." },
+      { id: "c2", title: "Dangling", role: "See [[W-gone]]." },
+    ]);
+
+  it("resolves in every format and never prints raw brackets", async () => {
+    const html = renderCvHtml(withMarker());
+    expect(html).toContain('class="cv-evidence"');
+    expect(html).toContain("Adopted by the network");
+    const md = renderCvMarkdown(withMarker());
+    expect(md).toContain("Adopted by the network");
+    expect(md).not.toContain("[[");
+    const tex = renderCvLatex(withMarker());
+    expect(tex).toContain("\\cvevidence");
+    expect(tex).not.toContain("[[");
+    // The macro is defined even though the section has no prose body.
+    expect(tex).toContain(String.raw`\newcommand{\cvevidence}`);
+    const zip = await JSZip.loadAsync(await renderCvDocxBuffer(withMarker()));
+    const doc = await zip.file("word/document.xml")!.async("string");
+    expect(doc).toContain("(Chrétien et al. 2020)");
+    expect(doc).not.toContain("[[");
+    const grant = renderGrantCv(withMarker(), "erc");
+    expect(grant).toContain("Adopted by the network");
+    expect(grant).not.toContain("[[");
+  });
+
+  it("counts in the health panel: a dangling marker in a card is unresolved", () => {
+    const health = computeCvHealth(withMarker());
+    expect(health.unresolvedEvidenceRefs).toBe(1);
+    expect(health.narrativesWithoutEvidence).toBe(0);
   });
 });
 

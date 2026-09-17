@@ -14,6 +14,7 @@ import {
   contributionItem,
   contributionTitle,
   isPrintableContribution,
+  sectionProseTexts,
   moveContribution,
   removeContribution,
   updateContribution,
@@ -164,6 +165,21 @@ describe("the card operations", () => {
     expect(moveContribution(cv, "k", "c1", -1)).toBe(cv);
     expect(moveContribution(cv, "k", "c3", 1)).toBe(cv);
     expect(moveContribution(cv, "k", "zz", 1)).toBe(cv);
+  });
+});
+
+describe("the prose a section holds", () => {
+  it("is the body, then each card's role and impact, blanks left out", () => {
+    expect(
+      sectionProseTexts({
+        body: "Intro",
+        contributions: [
+          { id: "c1", role: "R1", impact: " " },
+          { id: "c2", impact: "I2" },
+        ],
+      }),
+    ).toEqual(["Intro", "R1", "I2"]);
+    expect(sectionProseTexts({})).toEqual([]);
   });
 });
 

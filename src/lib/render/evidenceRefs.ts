@@ -1,3 +1,4 @@
+import { sectionProseTexts } from "@/lib/canonical/contributions";
 import { evidenceResolver, type ResolvedEvidenceSegment } from "@/lib/canonical/evidenceRefs";
 import type { CanonicalCv } from "@/lib/canonical/schema";
 import { escapeHtml, escapeMarkdown, markdownHref, safeHref } from "./escape";
@@ -96,8 +97,10 @@ export function proseEvidence(
   const resolve = evidenceResolver(cv, { listedIds: listedItemIds(sections) });
   const referenced = new Set<string>();
   for (const { section } of sections) {
-    for (const seg of resolve(section.body ?? "")) {
-      if (seg.kind === "ref" && seg.resolved && seg.listed) referenced.add(seg.id);
+    for (const text of sectionProseTexts(section)) {
+      for (const seg of resolve(text)) {
+        if (seg.kind === "ref" && seg.resolved && seg.listed) referenced.add(seg.id);
+      }
     }
   }
   return { resolve, referenced };

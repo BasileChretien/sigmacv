@@ -169,6 +169,21 @@ describe("migrateContributionStubs", () => {
     expect(k.body).toBe("");
   });
 
+  it("is idempotent: a migrated document is passed through on the next read", () => {
+    const body = [
+      "1. Myelodysplastic syndrome and PARP inhibitors (2020 · Audience : A / B / C) [[W2 | M]]",
+      "Role : Lead",
+    ].join("\n");
+    const once = migrateContributionStubs(rawDoc(body));
+    expect(migrateContributionStubs(once)).toBe(once);
+    // An oversized token id is capped to the schema's limit.
+    const long = "x".repeat(2000);
+    const capped = section(
+      migrateContributionStubs(rawDoc(`1. T (2020 · Audience : A / B / C) [[${long} | L]]`)),
+    );
+    expect((capped.contributions![0] as { itemId: string }).itemId).toHaveLength(1024);
+  });
+
   it("passes a clean document, another section type, and non-documents through untouched", () => {
     const clean = rawDoc("Just prose.\n\n1. A numbered line of my own");
     expect(migrateContributionStubs(clean)).toBe(clean);

@@ -82,7 +82,7 @@ export default function EvidencePicker({
       <Popover
         locale={locale}
         trigger={variant === "contribution" ? eu.evInsertContribution : eu.evInsert}
-        triggerClassName="btn btn-ghost"
+        triggerClassName={variant === "contribution" ? "btn btn-sm" : "btn btn-ghost"}
         panelLabel={eu.evPanel}
         panelClassName="evidence-picker"
         align="start"

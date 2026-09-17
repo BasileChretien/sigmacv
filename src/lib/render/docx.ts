@@ -170,6 +170,8 @@ function proseSectionParagraphs(
 function contributionParagraphs(
   cv: CanonicalCv,
   list: readonly PreparedContribution[],
+  resolve: (text: string) => ResolvedEvidenceSegment[],
+  bookmarkOf: (itemId: string) => string | undefined,
 ): Paragraph[] {
   const s = proseStarterStrings(cv.display.locale);
   const out: Paragraph[] = [];
@@ -193,7 +195,7 @@ function contributionParagraphs(
         new Paragraph({
           children: [
             new TextRun({ text: `${label} : `, bold: true }),
-            new TextRun(value.replace(/\s*\n+\s*/g, " ")),
+            ...proseRuns(resolve(value.replace(/\s*\n+\s*/g, " ")), bookmarkOf),
           ],
           indent,
           spacing: { after: 60 },
@@ -396,7 +398,7 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
       const list = contributions ?? [];
       if (body || list.length > 0) {
         children.push(...proseSectionParagraphs(section.title, body, evidence.resolve, bookmarkOf));
-        children.push(...contributionParagraphs(cv, list));
+        children.push(...contributionParagraphs(cv, list, evidence.resolve, bookmarkOf));
       }
       continue;
     }

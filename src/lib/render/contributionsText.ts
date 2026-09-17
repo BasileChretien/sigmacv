@@ -22,10 +22,15 @@ export function contributionMeta(p: PreparedContribution, s: ProseStarterStrings
     .join(" · ");
 }
 
-/** Markdown: a numbered list, one item per contribution, its facts as a nested list. */
+/**
+ * Markdown: a numbered list, one item per contribution, its facts as a nested
+ * list. `prose` turns a role / impact line into Markdown with its `[[id]]` markers
+ * resolved (the caller's evidence transform, the same one the body uses).
+ */
 export function contributionsMarkdown(
   cv: CanonicalCv,
   list: readonly PreparedContribution[],
+  prose: (text: string) => string = escapeMarkdown,
 ): string {
   const s = proseStarterStrings(cv.display.locale);
   return list
@@ -38,7 +43,7 @@ export function contributionsMarkdown(
         const value = text?.trim();
         if (value)
           lines.push(
-            `   - **${escapeMarkdown(label)} :** ${escapeMarkdown(value).replace(/\n+/g, " ")}`,
+            `   - **${escapeMarkdown(label)} :** ${prose(value.replace(/\s*\n+\s*/g, " "))}`,
           );
       };
       fact(s.role, p.contribution.role);
@@ -64,12 +69,16 @@ export function contributionsMarkdown(
     .join("\n");
 }
 
-/** LaTeX: an `enumerate`, the facts as labelled lines under each title. */
+/**
+ * LaTeX: an `enumerate`, the facts as labelled lines under each title. `prose`
+ * turns a role / impact line into LaTeX with its `[[id]]` markers resolved.
+ */
 export function contributionsLatex(
   cv: CanonicalCv,
   list: readonly PreparedContribution[],
   escapeLatex: (text: string) => string,
   sanitizeUrl: (href: string) => string,
+  prose: (text: string) => string = escapeLatex,
 ): string {
   const s = proseStarterStrings(cv.display.locale);
   const items = list.map((p) => {
@@ -80,9 +89,7 @@ export function contributionsLatex(
     const fact = (label: string, text: string | undefined) => {
       const value = text?.trim();
       if (value)
-        lines.push(
-          `\\textit{${escapeLatex(label)}} : ${escapeLatex(value.replace(/\s*\n+\s*/g, " "))}`,
-        );
+        lines.push(`\\textit{${escapeLatex(label)}} : ${prose(value.replace(/\s*\n+\s*/g, " "))}`);
     };
     fact(s.role, p.contribution.role);
     fact(s.impact, p.contribution.impact);

@@ -59,7 +59,11 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
         if (!prose && list.length === 0) return "";
         const body = [
           prose ? evidenceMarkdown(cv, prose, { listedIds: listed, anchorId: itemAnchorId }) : "",
-          list.length > 0 ? contributionsMarkdown(cv, list) : "",
+          list.length > 0
+            ? contributionsMarkdown(cv, list, (t) =>
+                evidenceMarkdown(cv, t, { listedIds: listed, anchorId: itemAnchorId }),
+              )
+            : "",
         ]
           .filter(Boolean)
           .join("\n\n");

@@ -10,7 +10,7 @@ import { selfReferenceNotice, type SelfReferenceShare } from "./selfReference";
 import { narrativePageEstimate, type NarrativePageEstimate } from "@/lib/canonical/pageEstimate";
 import { evidenceRefCounts, type EvidenceRefCounts } from "@/lib/canonical/evidenceRefs";
 import { isNarrativeModuleType } from "@/lib/canonical/narrativeEvidence";
-import { contributionItem } from "@/lib/canonical/contributions";
+import { contributionItem, sectionProseTexts } from "@/lib/canonical/contributions";
 
 /** The categories the "needs your attention" checklist surfaces. Declared here,
  *  beside the counts and the jump targets, so all three stay one definition. */
@@ -76,7 +76,9 @@ export interface CvHealth {
 function proseEvidenceOf(cv: CanonicalCv, section: CvSection): EvidenceRefCounts | null {
   if (!section.visible || !isProseSectionType(section.type)) return null;
   if (!proseSectionHasContent(section)) return null;
-  const counts = evidenceRefCounts(cv, (section.body ?? "").trim());
+  // Markers in the body and in the cards' role / impact, as one text (a token
+  // never spans a line, so joining on blank lines changes nothing).
+  const counts = evidenceRefCounts(cv, sectionProseTexts(section).join("\n\n"));
   // A structured contribution linked to an entry IS evidence; one whose entry has
   // left the record is an unresolved reference, like a dangling token.
   let { linked, unresolved } = counts;

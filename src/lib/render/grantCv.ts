@@ -185,7 +185,7 @@ function narrativeBlocks(cv: CanonicalCv): string[] {
       const list = prepared.get(s.id) ?? [];
       const body = [
         prose ? evidenceMarkdown(cv, prose, {}) : "",
-        list.length > 0 ? contributionsMarkdown(cv, list) : "",
+        list.length > 0 ? contributionsMarkdown(cv, list, (t) => evidenceMarkdown(cv, t, {})) : "",
       ]
         .filter(Boolean)
         .join("\n\n");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import {
   CONTRIBUTIONS_MAX,
   type CanonicalCv,
@@ -82,7 +82,10 @@ export default function ContributionsEditor({
   const patch = (id: string, p: Partial<Omit<Contribution, "id">>) =>
     onChange(updateContribution(cv, section.id, id, p));
   const full = list.length >= CONTRIBUTIONS_MAX;
-  const picked = new Set(list.map((c) => c.itemId).filter((x): x is string => Boolean(x)));
+  const picked = useMemo(
+    () => new Set(list.map((c) => c.itemId).filter((x): x is string => Boolean(x))),
+    [list],
+  );
 
   return (
     <div className="contrib-editor" ref={rootRef}>

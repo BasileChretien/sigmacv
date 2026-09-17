@@ -56,6 +56,18 @@ export function isPrintableContribution(cv: CanonicalCv, c: Contribution): boole
   return contributionTitle(cv, c).length > 0;
 }
 
+/**
+ * Every piece of owner-written prose a section holds, in document order: its
+ * body, then each card's role and impact. What the evidence tooling scans, so a
+ * `[[id]]` marker typed into a card counts and resolves like one in the body.
+ */
+export function sectionProseTexts(section: Pick<CvSection, "body" | "contributions">): string[] {
+  return [
+    section.body ?? "",
+    ...(section.contributions ?? []).flatMap((c) => [c.role ?? "", c.impact ?? ""]),
+  ].filter((t) => t.trim().length > 0);
+}
+
 /** A fresh id not used by the section yet ("c1", "c2", …) — pure, no randomness. */
 function nextId(existing: readonly Contribution[]): string {
   const taken = new Set(existing.map((c) => c.id));

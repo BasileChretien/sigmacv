@@ -57,7 +57,7 @@ function parseStub(paragraph: string): ParsedStub | null {
   if (!head) return null;
   const stub: ParsedStub = { title: head[1]!.trim(), citedIn: [] };
   if (/^\d{4}$/.test(head[2]!.trim())) stub.year = head[2]!.trim();
-  if (head[3]) stub.itemId = head[3].trim();
+  if (head[3]) stub.itemId = head[3].trim().slice(0, 1024);
   for (const line of lines.slice(1)) {
     const m = /^(.+?) : (.*)$/.exec(line.trim());
     if (!m) continue;
