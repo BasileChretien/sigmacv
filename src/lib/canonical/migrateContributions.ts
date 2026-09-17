@@ -19,7 +19,7 @@ import { PROSE_STARTER_STRINGS } from "@/lib/i18n/proseStarter";
  *    our bracketed prompts (what the picker left before #512: entries the owner
  *    chose, sitting at the top of the section), become one card per entry;
  *  - an entry never gets two cards: a second source for it is merged into the
- *    first, what the owner wrote winning over what was prefilled;
+ *    first, nothing the owner wrote lost and a prefill never overriding it;
  *  - the stub text leaves the body, the stale intro prompt is reworded, and the
  *    "pick your publications" prompt goes once there is a contribution.
  * Works on the RAW stored JSON (before validation), defensively, and returns the
@@ -190,6 +190,62 @@ function prefillFromRaw(item: any): Record<string, unknown> {
   return out;
 }
 
+/** Two texts for one field: both kept when both are the owner's and they differ. */
+function joinText(a: unknown, b: unknown, max: number): string | undefined {
+  const x = typeof a === "string" && a.trim() ? a : undefined;
+  const y = typeof b === "string" && b.trim() ? b : undefined;
+  if (!x || !y) return x ?? y;
+  // Already there (the same words from an earlier copy): nothing to add.
+  if (x.split("\n\n").includes(y)) return x;
+  return `${x}\n\n${y}`.slice(0, max);
+}
+
+/** Two "cited in" lists: concatenated, the same line (text + link) once, capped. */
+function joinCited(a: unknown, b: unknown): unknown[] | undefined {
+  const list = [...(Array.isArray(a) ? a : []), ...(Array.isArray(b) ? b : [])];
+  const seen = new Set<string>();
+  const out = list.filter((c) => {
+    const key = JSON.stringify([c?.text, c?.url]);
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+  return out.length > 0 ? out.slice(0, 20) : undefined;
+}
+
+/**
+ * Merge a second source for an entry into its card. Ranks: a stored card (3), a
+ * text stub (2), a marker's prefill (1). What the OWNER wrote is never lost:
+ * when both sources are owner-written (rank ≥ 2), differing roles and impacts are
+ * kept one after the other and the "cited in" lists are joined. A prefill (rank
+ * 1) only fills what the other lacks. Scalar fields (title, period, audience)
+ * come from the higher rank, the other filling gaps. The card keeps its id.
+ */
+function mergeCards(prev: any, prevRank: number, next: any, nextRank: number): any {
+  const hi = nextRank > prevRank ? next : prev;
+  const lo = nextRank > prevRank ? prev : next;
+  const bothOwner = prevRank >= 2 && nextRank >= 2;
+  const pick = (k: string) => hi?.[k] ?? lo?.[k];
+  const merged: Record<string, unknown> = {
+    ...lo,
+    ...hi,
+    id: prev?.id,
+    itemId: prev?.itemId ?? next?.itemId,
+  };
+  for (const k of ["title", "period", "audience"]) {
+    if (pick(k) !== undefined) merged[k] = pick(k);
+  }
+  for (const k of ["role", "impact"]) {
+    const v = bothOwner ? joinText(prev?.[k], next?.[k], 3000) : pick(k);
+    if (v === undefined) delete merged[k];
+    else merged[k] = v;
+  }
+  const cited = bothOwner ? joinCited(prev?.citedIn, next?.citedIn) : pick("citedIn");
+  if (cited === undefined) delete merged.citedIn;
+  else merged.citedIn = cited;
+  return merged;
+}
+
 function migrateSection(section: any, raw: RawIndex): any {
   const titles = raw.byTitle;
   if (section?.type !== "narrative-knowledge" || typeof section.body !== "string") return section;
@@ -215,18 +271,21 @@ function migrateSection(section: any, raw: RawIndex): any {
     if (current.length > 0) chunks.push({ text: current.join("\n"), stub: isStub });
   }
   // One card per entry. A second source for the same entry is MERGED into the
-  // first, never dropped: what the owner wrote wins over what was prefilled —
-  // a stored card (rank 3) over a text stub (2) over a marker's prefill (1) —
-  // and the lower-ranked source only fills the fields the other lacks. A new
-  // card takes the next free id, in the order the entries first appear.
+  // first, never dropped (see `mergeCards`). A new card takes the next free id,
+  // in the order the entries first appear.
   const cards: { card: any; rank: number }[] = existing.map((c) => ({ card: c, rank: 3 }));
   const push = (card: Record<string, unknown>, rank: 1 | 2) => {
-    const at = card.itemId ? cards.findIndex((e) => e.card?.itemId === card.itemId) : -1;
+    const at = card.itemId
+      ? cards.findIndex(
+          (e) => e.card && typeof e.card === "object" && e.card.itemId === card.itemId,
+        )
+      : -1;
     if (at >= 0) {
       const prev = cards[at]!;
-      const merged =
-        rank > prev.rank ? { ...prev.card, ...card, id: prev.card.id } : { ...card, ...prev.card };
-      cards[at] = { card: merged, rank: Math.max(rank, prev.rank) };
+      cards[at] = {
+        card: mergeCards(prev.card, prev.rank, card, rank),
+        rank: Math.max(rank, prev.rank),
+      };
       return;
     }
     const taken = new Set(cards.map((e) => e.card?.id));

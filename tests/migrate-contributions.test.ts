@@ -246,7 +246,31 @@ describe("migrateContributionStubs", () => {
     ).toEqual([expected]);
   });
 
-  it("a stored card keeps its own text; a stub for the same entry only fills what it lacks", () => {
+  it("keeps both texts when the same entry was picked twice with different words", () => {
+    const stub = (role: string, cited: string) =>
+      [
+        "1. Myelodysplastic syndrome and PARP inhibitors (2020 · Audience : A / B / C) [[W2 | M]]",
+        `Role : ${role}`,
+        `Cited in the guideline : ${cited}`,
+      ].join("\n");
+    const body = [
+      stub("First wording", "Shared line"),
+      stub("Second wording", "Shared line"),
+      stub("First wording", "Another line"),
+    ].join("\n\n");
+    const k = section(migrateContributionStubs(rawDoc(body)));
+    expect(k.contributions).toEqual([
+      {
+        id: "c1",
+        itemId: "W2",
+        period: "2020",
+        role: "First wording\n\nSecond wording",
+        citedIn: [{ text: "Shared line" }, { text: "Another line" }],
+      },
+    ]);
+  });
+
+  it("a stored card keeps its own text, and a stub's differing text is added after it", () => {
     const body = [
       "1. Myelodysplastic syndrome and PARP inhibitors (2020 · Audience : A / B / C) [[W2 | M]]",
       "Role : Stub role",
@@ -258,7 +282,13 @@ describe("migrateContributionStubs", () => {
       ),
     );
     expect(k.contributions).toEqual([
-      { id: "c7", itemId: "W2", period: "2020", role: "Card role", impact: "Stub impact" },
+      {
+        id: "c7",
+        itemId: "W2",
+        period: "2020",
+        role: "Card role\n\nStub role",
+        impact: "Stub impact",
+      },
     ]);
   });
 
