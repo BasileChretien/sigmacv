@@ -214,9 +214,18 @@ function contributionsDraft(s: ProseStarterStrings): string {
   return paragraphs(s.draftNote, s.contribIntro, s.pickPrompt);
 }
 
-/** How many numbered stubs a contributions body holds ("1. ", "2. ", … lines). */
-export function contributionStubCount(body: string): number {
-  return body.split(/\r?\n/).filter((l) => /^\d+\. /.test(l)).length;
+/**
+ * The number the next contribution takes: one past the highest "N. " line already
+ * in the body — a stub's head or a line the owner numbered by hand, so a pick
+ * never repeats a number the reader can already see. 1 for a body with none.
+ */
+export function nextContributionNumber(body: string): number {
+  let max = 0;
+  for (const line of body.split(/\r?\n/)) {
+    const m = /^(\d{1,3})\. /.exec(line);
+    if (m) max = Math.max(max, Number(m[1]));
+  }
+  return max + 1;
 }
 
 /**
@@ -271,7 +280,7 @@ export function appendContributionStub(
     .filter((l) => !PICK_PROMPTS.has(l.trim()))
     .join("\n")
     .replace(/\s+$/, "");
-  const stub = contributionStub(cv, item, contributionStubCount(kept) + 1);
+  const stub = contributionStub(cv, item, nextContributionNumber(kept));
   const body = (kept ? `${kept}\n\n${stub}` : stub).slice(0, PROSE_BODY_MAX);
   const roleLine = `${s.role} : ${s.todo}`;
   const at = body.lastIndexOf(roleLine);

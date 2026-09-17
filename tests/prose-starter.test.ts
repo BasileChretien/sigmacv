@@ -11,7 +11,7 @@ import { applyCvModel } from "@/lib/canonical/cvModels";
 import {
   appendContributionStub,
   contributionStub,
-  contributionStubCount,
+  nextContributionNumber,
   prefillEmptyProse,
   starterProseBody,
   starterReferenceLine,
@@ -194,7 +194,7 @@ describe("starter drafts for the prose sections", () => {
     expect(body).toContain(proseStarterStrings("fr-FR").contribIntro);
     expect(body).toContain(proseStarterStrings("fr-FR").pickPrompt);
     expect(body).toContain("panneau Contenu");
-    expect(contributionStubCount(body)).toBe(0);
+    expect(nextContributionNumber(body)).toBe(1);
   });
 
   it("appends a numbered stub per picked entry: slots, reference, the entry's token; the pick prompt gives way", () => {
@@ -220,7 +220,7 @@ describe("starter drafts for the prose sections", () => {
     // A second pick is numbered 2 and lands after the first.
     const dataset = cv.sections.find((s) => s.type === "datasets")!.items[0]!;
     const second = appendContributionStub(cv, { ...knowledge, body: first.body }, dataset);
-    expect(contributionStubCount(second.body)).toBe(2);
+    expect(nextContributionNumber(second.body)).toBe(3);
     expect(second.body.indexOf("1. Article 1")).toBeLessThan(second.body.indexOf("2. QC-ADR-ONCO"));
     expect(second.body).toContain(
       "2. QC-ADR-ONCO (2023 · Clientèle : A / B / C) [[dataset:1 | QC-ADR-ONCO]]",
@@ -236,6 +236,10 @@ describe("starter drafts for the prose sections", () => {
     // A body with no prompt at all (the owner wrote their own text) just grows.
     const own = appendContributionStub(cv, { ...knowledge, body: "Mon texte." }, w1);
     expect(own.body.startsWith("Mon texte.\n\n1. Article 1")).toBe(true);
+    // A number the owner typed by hand is never repeated: the pick takes the next one.
+    const numbered = appendContributionStub(cv, { ...knowledge, body: "5. Ma note\nRôle : x" }, w1);
+    expect(numbered.body).toContain("6. Article 1 (2015");
+    expect(nextContributionNumber("12. a\n3. b\n1.c (not a head)")).toBe(13);
   });
 
   it("a stub names the clinical guidelines that cite the work, between the impact slot and the reference", () => {

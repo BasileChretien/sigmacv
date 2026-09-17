@@ -168,9 +168,18 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
     const onHash = () => {
       const m = /^#cv-edit=(.+)$/.exec(window.location.hash);
       if (!m) return;
-      const sectionId = decodeURIComponent(m[1]!);
-      setActivePart("content");
-      sectionsRef.current?.jumpToSection(sectionId);
+      // A malformed %-escape in a typed or shared URL makes decodeURIComponent
+      // throw; treat it as no section, but still clear the fragment.
+      let sectionId: string | null = null;
+      try {
+        sectionId = decodeURIComponent(m[1]!);
+      } catch {
+        sectionId = null;
+      }
+      if (sectionId) {
+        setActivePart("content");
+        sectionsRef.current?.jumpToSection(sectionId);
+      }
       window.history.replaceState(null, "", window.location.pathname + window.location.search);
     };
     onHash();

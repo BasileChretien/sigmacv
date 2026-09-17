@@ -191,7 +191,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[Expertise, Führung, frühere Kooperationen zum Thema, konkrete Wirkungen bisheriger Arbeit, Kompetenzen aus persönlicher Erfahrung.]",
     contribIntro:
-      "[Bis zu zehn Beiträge. Für jeden: Zeitraum, Zielgruppe (A wissenschaftliche Gemeinschaft, B Praxisgemeinschaft, C breite Öffentlichkeit), Ihre Rolle und die Wirkung mit etwas, das die Leserin prüfen kann. Fügen Sie jeden mit „Einen meiner Einträge als Beitrag hinzufügen“ unter diesem Abschnitt hinzu: er erscheint hier nummeriert, mit Rolle, Wirkung und Referenz zum Ausfüllen.]",
+      "[Bis zu zehn Beiträge. Für jeden: Zeitraum, Zielgruppe (A wissenschaftliche Gemeinschaft, B Praxisgemeinschaft, C breite Öffentlichkeit), Ihre Rolle und die Wirkung mit etwas, das die Lesenden prüfen können. Fügen Sie jeden mit „Einen meiner Einträge als Beitrag hinzufügen“ unter diesem Abschnitt hinzu: er erscheint hier nummeriert, mit Rolle, Wirkung und Referenz zum Ausfüllen.]",
     pickPrompt:
       "[Noch kein Beitrag gewählt. Wählen Sie Ihre Publikationen im Bereich Inhalt: „Einen meiner Einträge als Beitrag hinzufügen“ unter diesem Abschnitt.]",
     audience: "Zielgruppe",
