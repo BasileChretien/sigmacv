@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import {
   addMonths,
   depositElsewhereNow,
+  copiesUnchecked,
   inRepositoryAlready,
+  uncheckedRows,
   depositElsewhereRows,
   depositNow,
   depositReadyRows,
@@ -42,7 +44,12 @@ function work(meta: CvItem["meta"] = {}, csl: Record<string, unknown> = {}): CvI
     authoredBySelf: true,
     selfNameVariants: [],
     csl: { id: "W1", type: "article-journal", title: "One", DOI: "10.1234/w1", ...csl },
-    meta: { year: 2023, oaIsOpen: false, ...meta },
+    meta: {
+      year: 2023,
+      oaIsOpen: false,
+      repositoryCopiesCheckedAt: "2026-09-01T00:00:00.000Z",
+      ...meta,
+    },
   };
 }
 
@@ -406,5 +413,76 @@ describe("repository copies the owner sync found", () => {
     ]);
     expect(depositReadyRows(cv, TODAY, CTX).map((r) => r.row.itemId)).toEqual(["W-notice"]);
     expect(depositElsewhereRows(cv, TODAY, CTX)).toEqual([]);
+  });
+});
+
+describe("works the sync has not asked the repositories about yet", () => {
+  it("sit in neither list but in the unchecked fold until an answer is stamped; no DOI = nothing to ask; a file found = in a repository", () => {
+    const fresh = {
+      ...work(
+        { workCountries: ["FR"], repositoryCopiesCheckedAt: undefined },
+        { DOI: "10.1/fresh" },
+      ),
+      id: "W-fresh",
+    };
+    const openFresh = {
+      ...work(
+        {
+          oaIsOpen: true,
+          oaStatus: "gold",
+          license: "cc-by",
+          repositoryCopiesCheckedAt: undefined,
+        },
+        { DOI: "10.1/open" },
+      ),
+      id: "W-open-fresh",
+    };
+    const noDoi = {
+      ...work({ workCountries: ["FR"], repositoryCopiesCheckedAt: undefined }, { DOI: undefined }),
+      id: "W-nodoi",
+    };
+    const fileNoStamp = {
+      ...work(
+        {
+          workCountries: ["FR"],
+          repositoryCopiesCheckedAt: undefined,
+          repositoryCopies: [
+            {
+              source: "hal",
+              id: "hal-1",
+              url: "https://hal.science/hal-1",
+              hasFile: true,
+              retrievedAt: "2026-09-16T00:00:00.000Z",
+            },
+          ],
+        },
+        { DOI: "10.1/file" },
+      ),
+      id: "W-file",
+    };
+    // Asked, but not fully answered (a source failed, or the budget cut the last one):
+    // the sync did ask, so the work stays in its list with what was found.
+    const attempted = {
+      ...work(
+        {
+          workCountries: ["FR"],
+          repositoryCopiesCheckedAt: undefined,
+          repositoryCopiesTriedAt: "2026-09-16T00:00:00.000Z",
+        },
+        { DOI: "10.1/attempted" },
+      ),
+      id: "W-attempted",
+    };
+    expect(copiesUnchecked(fresh)).toBe(true);
+    expect(copiesUnchecked(attempted)).toBe(false);
+    expect(copiesUnchecked(noDoi)).toBe(false);
+    expect(copiesUnchecked(fileNoStamp)).toBe(false);
+    expect(depositReadyRows(makeCv([attempted]), TODAY, CTX).map((r) => r.row.itemId)).toEqual([
+      "W-attempted",
+    ]);
+    const cv = makeCv([fresh, openFresh, noDoi, fileNoStamp]);
+    expect(depositReadyRows(cv, TODAY, CTX).map((r) => r.row.itemId)).toEqual(["W-nodoi"]);
+    expect(depositElsewhereRows(cv, TODAY, CTX)).toEqual([]);
+    expect(uncheckedRows(cv).map((r) => r.itemId)).toEqual(["W-fresh", "W-open-fresh"]);
   });
 });

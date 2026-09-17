@@ -13,6 +13,7 @@ import {
   depositElsewhereRows,
   depositReadyRows,
   isoToday,
+  uncheckedRows,
   type DepositReadyRow,
 } from "@/lib/archiving/depositNow";
 import { depositNowLine } from "@/lib/archiving/rightsSentences";
@@ -190,7 +191,18 @@ export default function WorklistPanel({
       ),
     [cv, today, depositBasis, currentAffiliationCountry, crosswalk, locale],
   );
-  if (!hasWorklistContent(gaps, closedRows.length, funding.length, elsewhereRows.length)) {
+  // The third fold: works the sync has not yet asked the repositories about —
+  // by title only, so nothing claims "no open copy found" before the answer.
+  const unchecked = useMemo(() => uncheckedRows(cv), [cv]);
+  if (
+    !hasWorklistContent(
+      gaps,
+      closedRows.length,
+      funding.length,
+      elsewhereRows.length,
+      unchecked.length,
+    )
+  ) {
     return whenEmpty;
   }
 
@@ -388,6 +400,31 @@ export default function WorklistPanel({
             <details className="cv-worklist-elsewhere">
               <summary>{wu.wlElsewhereShow}</summary>
               <ul>{elsewhereRows.map(renderRow)}</ul>
+            </details>
+          </section>
+        ) : null}
+        {unchecked.length > 0 ? (
+          <section className="cv-worklist-group" data-worklist="unchecked">
+            <h3>{wu.wlUncheckedHeading}</h3>
+            <p className="muted">{wu.wlUncheckedHelp}</p>
+            {/* Folded on every visit; title and venue only — no action, no claim. */}
+            <details className="cv-worklist-unchecked">
+              <summary>{wu.wlUncheckedShow}</summary>
+              <ul>
+                {unchecked.map((r) => (
+                  <li
+                    key={r.itemId}
+                    className="cv-worklist-row"
+                    data-worklist-item={r.itemId}
+                    tabIndex={-1}
+                  >
+                    <p className="cv-worklist-row-head">
+                      {jump(r.itemId, rowText(r))}
+                      {r.venue ? <span className="muted"> · {r.venue}</span> : null}
+                    </p>
+                  </li>
+                ))}
+              </ul>
             </details>
           </section>
         ) : null}

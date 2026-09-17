@@ -4810,7 +4810,8 @@ button.src-prov-chip.is-actionable:focus-visible {
   margin: 0;
 }
 /* The second list's fold: closed on every visit. */
-.cv-worklist-elsewhere > summary {
+.cv-worklist-elsewhere > summary,
+.cv-worklist-unchecked > summary {
   cursor: pointer;
   font-weight: var(--weight-medium);
   margin: 0.25rem 0;

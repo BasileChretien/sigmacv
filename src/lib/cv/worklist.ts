@@ -206,11 +206,13 @@ export function hasWorklistContent(
   readyDeposits: number,
   joinedFunding = 0,
   elsewhereDeposits = 0,
+  uncheckedDeposits = 0,
 ): boolean {
   return (
     gaps.positionsWithoutRor.length > 0 ||
     readyDeposits > 0 ||
     joinedFunding > 0 ||
-    elsewhereDeposits > 0
+    elsewhereDeposits > 0 ||
+    uncheckedDeposits > 0
   );
 }

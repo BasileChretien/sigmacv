@@ -33,7 +33,13 @@ function work(id: string, meta: CvItem["meta"] = {}): CvItem {
     authoredBySelf: true,
     selfNameVariants: [],
     csl: { id, type: "article-journal", title: `Work ${id}`, DOI: `10.1234/${id}` },
-    meta: { year: 2023, oaIsOpen: false, workCountries: ["FR"], ...meta },
+    meta: {
+      year: 2023,
+      oaIsOpen: false,
+      workCountries: ["FR"],
+      repositoryCopiesCheckedAt: "2026-09-01T00:00:00.000Z",
+      ...meta,
+    },
   };
 }
 

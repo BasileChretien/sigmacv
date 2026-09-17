@@ -37,7 +37,12 @@ function work(meta: CvItem["meta"], csl: Record<string, unknown> = {}): CvItem {
     authoredBySelf: true,
     selfNameVariants: [],
     csl: { id: "W1", type: "article-journal", title: "Work W1", DOI: "10.1234/w1", ...csl },
-    meta: { year: 2023, oaIsOpen: false, ...meta },
+    meta: {
+      year: 2023,
+      oaIsOpen: false,
+      repositoryCopiesCheckedAt: "2026-09-01T00:00:00.000Z",
+      ...meta,
+    },
   };
 }
 
@@ -544,5 +549,36 @@ describe("WorklistPanel — papers open at the publisher, to put in a repository
       />,
     );
     expect(container.querySelector("details.cv-worklist")).toBeNull();
+  });
+});
+
+describe("WorklistPanel — works not yet checked for a copy", () => {
+  it("lists them by title in a closed fold, with no action and no claim, and keeps the checked ones in the lists", () => {
+    const unchecked = withId(
+      work({ workCountries: ["FR"], repositoryCopiesCheckedAt: undefined }),
+      "W-unchecked",
+      "Not yet asked",
+    );
+    const checked = withId(work({ workCountries: ["FR"] }), "W-checked", "Asked already");
+    const { container } = render(
+      <WorklistPanel cv={makeCv([unchecked, checked])} locale="en-US" />,
+    );
+    const fold = container.querySelector<HTMLDetailsElement>("details.cv-worklist-unchecked")!;
+    expect(fold).not.toBeNull();
+    expect(fold.open).toBe(false);
+    expect(fold.querySelector("summary")!.textContent).toBe(EN.wlUncheckedShow);
+    const row = fold.querySelector<HTMLElement>('[data-worklist-item="W-unchecked"]')!;
+    expect(row.textContent).toContain("Not yet asked");
+    expect(row.querySelector('[data-worklist="deposit"]')).toBeNull();
+    expect(
+      container.querySelector('[data-worklist-item="W-checked"] [data-worklist="deposit"]'),
+    ).not.toBeNull();
+    expect(container.textContent).toContain(EN.wlUncheckedHeading);
+    // The first list never carries the unchecked work.
+    expect(
+      container.querySelector(
+        '.cv-worklist-group:not([data-worklist]) [data-worklist-item="W-unchecked"]',
+      ),
+    ).toBeNull();
   });
 });

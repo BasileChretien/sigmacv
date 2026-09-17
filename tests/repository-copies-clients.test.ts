@@ -3,10 +3,9 @@ import { lookupEuropePmcCopy } from "@/lib/repositoryCopies/europepmc";
 import { lookupHalCopy } from "@/lib/repositoryCopies/hal";
 import { lookupOpenaireCopy } from "@/lib/repositoryCopies/openaire";
 import { bareDoi, COPY_LIMITS, isoDate } from "@/lib/repositoryCopies/shared";
-import { lookupZenodoCopy } from "@/lib/repositoryCopies/zenodo";
 
 /**
- * The four repository clients: one DOI → the copies the worklist prints, or an
+ * The three repository clients: one DOI → the copies the worklist prints, or an
  * honest `none` / `failed`. Mocked fetch only. The fixtures are trimmed copies
  * of live answers of 2026-09-16 (HAL and Europe PMC on the owner's own DOIs).
  */
@@ -152,223 +151,76 @@ describe("Europe PMC", () => {
   });
 });
 
-describe("OpenAIRE", () => {
-  const record = (instance: unknown) => ({
-    response: {
-      results: {
-        result: [{ metadata: { "oaf:entity": { "oaf:result": { children: { instance } } } } }],
-      },
-    },
+describe("OpenAIRE (Graph API)", () => {
+  const product = (over: Record<string, unknown>) => ({
+    id: "doi_dedup___::488a8e8dabcbd74433b55b7f51a5b33e",
+    isGreen: true,
+    bestAccessRight: { label: "OPEN" },
+    publicationDate: "2021-10-05",
+    instances: [
+      { urls: ["https://doi.org/10.1111/bjh.17863"] },
+      { urls: ["https://pubmed.ncbi.nlm.nih.gov/34611896"] },
+      { urls: ["http://hdl.handle.net/1/2", "https://hal.science/hal-03474586v1"] },
+    ],
+    ...over,
   });
-  it("keeps only OPEN instances in OpenDOAR-registered repositories, over https, not the DOI itself; one instance may come alone", async () => {
-    stub(
-      json(
-        record([
-          {
-            hostedby: { "@name": "Therapies", "@id": "doajarticles::1" },
-            accessright: { "@classid": "CLOSED" },
-            webresource: { url: "https://doi.org/10.1/x" },
-          },
-          {
-            hostedby: { "@name": "DSpace@MIT", "@id": "opendoar____::42" },
-            accessright: { "@classid": "OPEN" },
-            webresource: [{ url: "https://dspace.mit.edu/handle/1/2" }],
-          },
-          {
-            hostedby: { "@name": "Journal X" },
-            accessright: { "@classid": "OPEN" },
-            webresource: { url: "https://doi.org/10.1/x" },
-          },
-        ]),
-      ),
+  const answer = (results: unknown[]) => json({ header: { numFound: results.length }, results });
+
+  it("takes OpenAIRE's own verdict — a green record is a copy with a file — pointed at the OpenAIRE record page (the instances mix the publisher's PDF with the repository's), and sends the token", async () => {
+    const fetch = stub(
+      answer([
+        product({
+          instances: [
+            { urls: ["https://onlinelibrary.wiley.com/doi/pdfdirect/10.1111/bjh.17863"] },
+            { urls: ["https://hal.science/hal-03474586v1"] },
+          ],
+        }),
+      ]),
     );
-    expect(await lookupOpenaireCopy(DOI)).toEqual({
+    expect(await lookupOpenaireCopy(DOI, "ci@example.org", 8000, "tok-123")).toEqual({
       status: "found",
       copies: [
         {
           source: "openaire",
-          id: "opendoar____::42",
-          url: "https://dspace.mit.edu/handle/1/2",
+          id: "doi_dedup___::488a8e8dabcbd74433b55b7f51a5b33e",
+          url: "https://explore.openaire.eu/search/result?id=doi_dedup___%3A%3A488a8e8dabcbd74433b55b7f51a5b33e",
           hasFile: true,
-          name: "DSpace@MIT",
-        },
-      ],
-    });
-    stub(
-      json(
-        record({
-          hostedby: { "@name": "Unknown Repository" },
-          accessright: { "@classid": "UNKNOWN" },
-        }),
-      ),
-    );
-    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
-    stub(json({ response: { results: null } }));
-    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
-    // A journal's own page (DOAJ) marked OPEN, and a repository reached over http
-    // (the schema keeps https links only): neither is a copy.
-    stub(
-      json(
-        record([
-          {
-            hostedby: { "@name": "Journal X", "@id": "doajarticles::9" },
-            accessright: { "@classid": "OPEN" },
-            webresource: { url: "https://journalx.example/article/1" },
-          },
-          {
-            hostedby: { "@name": "EPrints Y", "@id": "opendoar____::7" },
-            accessright: { "@classid": "OPEN" },
-            webresource: { url: "http://hdl.handle.net/1/2" },
-          },
-        ]),
-      ),
-    );
-    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
-    stub(json({}, 500));
-    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "failed" });
-  });
-});
-
-describe("Zenodo", () => {
-  const publication = { resource_type: { type: "publication" } };
-  const same = (relation: string) => ({
-    related_identifiers: [{ identifier: "https://doi.org/10.1111/BJH.17863", relation }],
-  });
-
-  it("keeps only a publication record that IS the article — its own DOI, or related as identical / a version — open with listed files = a file", async () => {
-    const fetch = stub(
-      json({
-        hits: {
-          hits: [
-            {
-              id: 123456,
-              metadata: {
-                access_right: "open",
-                publication_date: "2024-03-01",
-                ...publication,
-                ...same("isIdenticalTo"),
-              },
-              files: [{ key: "manuscript.pdf" }],
-              links: { self_html: "https://zenodo.org/records/123456" },
-            },
-            {
-              id: 8,
-              metadata: { access_right: "open", ...publication, ...same("isVersionOf") },
-              files: [],
-            },
-            {
-              id: 9,
-              metadata: {
-                access_right: "open",
-                resource_type: { type: "dataset" },
-                ...same("isSupplementTo"),
-              },
-              files: [{ key: "data.csv" }],
-            },
-            {
-              id: 10,
-              metadata: { access_right: "open", ...publication, ...same("cites") },
-              files: [{ key: "x" }],
-            },
-            {
-              id: 11,
-              metadata: { access_right: "open", ...publication, ...same("isIdenticalTo") },
-            },
-            {
-              id: "abc",
-              metadata: { access_right: "open", ...publication, ...same("isIdenticalTo") },
-            },
-          ],
-        },
-      }),
-    );
-    expect(await lookupZenodoCopy("10.1111/BJH.17863")).toEqual({
-      status: "found",
-      copies: [
-        {
-          source: "zenodo",
-          id: "123456",
-          url: "https://zenodo.org/records/123456",
-          hasFile: true,
-          name: "Zenodo",
-          recorded: "2024-03-01",
-        },
-        {
-          source: "zenodo",
-          id: "8",
-          url: "https://zenodo.org/records/8",
-          hasFile: false,
-          name: "Zenodo",
-          recorded: undefined,
-        },
-        {
-          source: "zenodo",
-          id: "11",
-          url: "https://zenodo.org/records/11",
-          hasFile: false,
-          name: "Zenodo",
-          recorded: undefined,
+          name: "OpenAIRE",
+          recorded: "2021-10-05",
         },
       ],
     });
     const url = new URL(fetch.mock.calls[0]![0] as string);
-    expect(url.searchParams.get("q")).toBe(
-      'related.identifier:"10.1111/bjh.17863" OR doi:"10.1111/bjh.17863"',
-    );
+    expect(url.origin + url.pathname).toBe("https://api.openaire.eu/graph/v1/researchProducts");
+    expect(url.searchParams.get("pid")).toBe("10.1111/bjh.17863");
+    const init = fetch.mock.calls[0]![1] as RequestInit;
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok-123");
   });
 
-  it("finds a restricted record by its own DOI as a copy without a file; none for a dataset alone; failed on a 429 or a shapeless body", async () => {
-    stub(
-      json({
-        hits: {
-          hits: [
-            {
-              id: "7",
-              metadata: { access_right: "restricted", doi: "10.1111/BJH.17863", ...publication },
-            },
-          ],
-        },
-      }),
-    );
-    expect(await lookupZenodoCopy(DOI)).toEqual({
-      status: "found",
-      copies: [
-        {
-          source: "zenodo",
-          id: "7",
-          url: "https://zenodo.org/records/7",
-          hasFile: false,
-          name: "Zenodo",
-          recorded: undefined,
-        },
-      ],
-    });
-    stub(
-      json({
-        hits: {
-          hits: [
-            {
-              id: 9,
-              metadata: {
-                access_right: "open",
-                resource_type: { type: "dataset" },
-                ...same("isSupplementTo"),
-              },
-            },
-          ],
-        },
-      }),
-    );
-    expect(await lookupZenodoCopy(DOI)).toEqual({ status: "none" });
-    stub(json({}, 429));
-    expect(await lookupZenodoCopy(DOI)).toEqual({ status: "failed" });
-    stub(json({ hits: { hits: "nope" } }));
-    expect(await lookupZenodoCopy(DOI)).toEqual({ status: "failed" });
-    stub(json({ hits: { hits: [] } }));
-    expect(await lookupZenodoCopy(DOI)).toEqual({ status: "none" });
+  it("sends no token when none is held", async () => {
+    const fetch = stub(answer([product({})]));
+    expect((await lookupOpenaireCopy(DOI)).status).toBe("found");
+    const init = fetch.mock.calls[0]![1] as RequestInit;
+    expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
   });
 
-  it("caps what it keeps", () => {
-    expect(COPY_LIMITS.perSource).toBe(3);
+  it("answers none for a record that is not green (a journal page is not a repository) or unknown, failed on a 404, a 500 or a shapeless body", async () => {
+    stub(answer([product({ isGreen: false })]));
+    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
+    stub(answer([product({ bestAccessRight: { label: "CLOSED" } })]));
+    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
+    stub(answer([]));
+    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "none" });
+    stub(json({}, 404));
+    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "failed" });
+    stub(json({}, 500));
+    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "failed" });
+    stub(json({ results: "nope" }));
+    expect(await lookupOpenaireCopy(DOI)).toEqual({ status: "failed" });
+    expect(await lookupOpenaireCopy("junk")).toEqual({ status: "none" });
   });
+});
+
+it("caps what each source keeps", () => {
+  expect(COPY_LIMITS.perSource).toBe(3);
 });

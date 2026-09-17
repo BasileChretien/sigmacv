@@ -27,7 +27,8 @@ function work(id: string, meta: CvItem["meta"], over: Partial<CvItem> = {}): CvI
     authoredBySelf: true,
     selfNameVariants: [],
     csl: { id, type: "article-journal", title: `Work ${id}`, "container-title": "Journal & Co" },
-    meta,
+    // The sync has answered for every fixture unless a test says otherwise.
+    meta: { repositoryCopiesCheckedAt: "2026-09-01T00:00:00.000Z", ...meta },
     ...over,
   };
 }
