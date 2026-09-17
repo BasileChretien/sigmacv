@@ -76,15 +76,18 @@ function clients(
   const asked = { citers: [] as string[][], summaries: [] as string[][] };
   return {
     asked,
-    citers: vi.fn(async (pmids: readonly string[]) => {
+    citers: vi.fn(async (pmids: readonly string[], timeoutMs: number) => {
       asked.citers.push([...pmids]);
+      // The hop is given a positive share of the pass budget.
+      expect(timeoutMs).toBeGreaterThan(0);
       if (citers === null) return null;
       const m = new Map<string, string[]>();
       for (const p of pmids) if (citers[p]) m.set(p, citers[p]);
       return m;
     }),
-    summaries: vi.fn(async (pmids: readonly string[]) => {
+    summaries: vi.fn(async (pmids: readonly string[], _mailto: string, deadline: number) => {
       asked.summaries.push([...pmids]);
+      expect(deadline).toBeGreaterThan(Date.now() - 1);
       if (summaries === null) return null;
       const m = new Map<string, PubmedSummary>();
       for (const p of pmids) if (summaries[p]) m.set(p, summaries[p]);

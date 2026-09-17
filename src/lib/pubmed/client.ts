@@ -74,15 +74,19 @@ function parseSummary(uid: string, rec: any): PubmedSummary | undefined {
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export interface PubmedSummaryOptions {
-  /** Per-request timeout. */
+  /** Per-request timeout (the remaining time to `deadline` caps it further). */
   timeoutMs?: number;
   /** Pause between batches (tests pass 0). */
   minIntervalMs?: number;
+  /** `Date.now()` value past which no batch is started and the whole lookup
+   *  answers `null` — the caller's pass budget, made real across the batches. */
+  deadline?: number;
 }
 
 /**
  * Map PMID → {@link PubmedSummary} for the given PubMed ids, bare numeric only,
- * de-duplicated, in sequential spaced batches. `null` when any batch fails: the
+ * de-duplicated, in sequential spaced batches, one attempt each (no retry).
+ * `null` when any batch fails or the deadline passes before the last one: the
  * caller then knows nothing about the whole set and must not treat the silence
  * as "no guideline". Empty input → empty map, no call.
  */
@@ -96,6 +100,11 @@ export async function fetchPubmedSummaries(
   const interval = opts.minIntervalMs ?? PUBMED_MIN_INTERVAL_MS;
   for (let i = 0; i < valid.length; i += PUBMED_BATCH_SIZE) {
     if (i > 0 && interval > 0) await sleep(interval);
+    const remaining = opts.deadline === undefined ? Infinity : opts.deadline - Date.now();
+    if (remaining <= 0) {
+      logger.info("pubmed.esummary_budget_exhausted", { done: i, total: valid.length });
+      return null;
+    }
     const url = new URL(ESUMMARY_API);
     url.searchParams.set("db", "pubmed");
     url.searchParams.set("retmode", "json");
@@ -105,7 +114,8 @@ export async function fetchPubmedSummaries(
     try {
       const res = await resilientFetch(url, {
         headers: { Accept: "application/json", "User-Agent": USER_AGENT },
-        timeoutMs: opts.timeoutMs ?? 10_000,
+        timeoutMs: Math.max(1, Math.min(opts.timeoutMs ?? 10_000, remaining)),
+        retries: 0,
       });
       if (!res.ok) throw new Error(`PubMed esummary failed (${res.status})`);
       const data = (await res.json()) as any;

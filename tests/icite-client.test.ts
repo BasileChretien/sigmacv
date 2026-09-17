@@ -236,10 +236,9 @@ describe("fetchClinicalCitersByPmids", () => {
     const fetchMock = vi.fn(async () => res({}, false, 500));
     vi.stubGlobal("fetch", fetchMock);
     expect(await fetchClinicalCitersByPmids(["111"])).toBeNull();
-    // (resilientFetch retries a 500 a few times; what matters is that no valid id → no call.)
-    const calls = fetchMock.mock.calls.length;
-    expect(calls).toBeGreaterThan(0);
+    // One attempt, no retry: the caller's budget is real. No valid id → no call.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(await fetchClinicalCitersByPmids(["abc"])).toEqual(new Map());
-    expect(fetchMock.mock.calls.length).toBe(calls);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });

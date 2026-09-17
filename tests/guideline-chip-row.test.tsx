@@ -105,5 +105,34 @@ describe("Guideline chip on a publication row", () => {
       ].join("\n"),
     );
     expect(chips()[1]!.getAttribute("title")).toContain("• Single guideline (2020)");
+    // Reachable by keyboard, and described by a hidden note with the same text.
+    expect(chips()[0]!.getAttribute("tabindex")).toBe("0");
+    const note = document.getElementById(chips()[0]!.getAttribute("aria-describedby")!)!;
+    expect(note.textContent).toBe(chips()[0]!.getAttribute("title"));
+  });
+
+  it("lists the first five guidelines and counts the rest", () => {
+    render(
+      <CvEditor
+        cv={makeCv([
+          work("W-many", {
+            guidelineCitations: Array.from({ length: 8 }, (_, i) => ({
+              pmid: String(100 + i),
+              title: `Guideline ${i + 1}`,
+              year: 2020 + i,
+            })),
+          }),
+        ])}
+        availableStyles={["apa"]}
+        uiLocale="en-US"
+        onChange={vi.fn()}
+        variant="regions"
+      />,
+    );
+    expandSections();
+    const title = chips()[0]!.getAttribute("title")!;
+    expect(title).toContain("• Guideline 5 (2024)");
+    expect(title).not.toContain("Guideline 6");
+    expect(title.trim().endsWith("… +3")).toBe(true);
   });
 });

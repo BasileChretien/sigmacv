@@ -498,6 +498,14 @@ export default function ItemRow({
   // The practice guidelines citing this work (owner sync's PubMed pass); the
   // anonymous preview never carries them, so it never shows the chip.
   const guidelineCitations = item.meta.guidelineCitations ?? [];
+  const guidelineNoteId = useId();
+  // The tooltip and the hidden note carry the same text: the coverage hint, then
+  // the first guidelines, then how many more (a title of twenty lines is unreadable).
+  const guidelineNote = [
+    wu.guidelineChipHint,
+    ...guidelineCitations.slice(0, 5).map((g) => `\u2022 ${guidelineCitationLine(g)}`),
+    ...(guidelineCitations.length > 5 ? [`\u2026 +${guidelineCitations.length - 5}`] : []),
+  ].join("\n");
   // Its hidden note: the chip's label is the action, so the note says the
   // button opens the tab (a title alone is not read by every screen reader).
   const depositChipNoteId = useId();
@@ -1023,18 +1031,25 @@ export default function ItemRow({
               </>
             ) : null}
             {guidelineCitations.length > 0 ? (
-              <span
-                className="cv-guideline-chip"
-                title={[
-                  wu.guidelineChipHint,
-                  ...guidelineCitations.map((g) => `\u2022 ${guidelineCitationLine(g)}`),
-                ].join("\n")}
-              >
-                {fill(
-                  guidelineCitations.length === 1 ? wu.guidelineChipOne : wu.guidelineChipMany,
-                  { n: String(guidelineCitations.length) },
-                )}
-              </span>
+              <>
+                <span
+                  className="cv-guideline-chip"
+                  tabIndex={0}
+                  title={guidelineNote}
+                  aria-describedby={guidelineNoteId}
+                >
+                  {fill(
+                    guidelineCitations.length === 1 ? wu.guidelineChipOne : wu.guidelineChipMany,
+                    { n: String(guidelineCitations.length) },
+                  )}
+                </span>
+                {/* A title alone is not read by every screen reader, and a static
+                    span is not reached by a keyboard: focusable, with the same
+                    text in a hidden note. */}
+                <span id={guidelineNoteId} className="visually-hidden">
+                  {guidelineNote}
+                </span>
+              </>
             ) : null}
           </div>
         ) : (

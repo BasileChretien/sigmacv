@@ -26,7 +26,9 @@ import type { GuidelineCitation } from "./guidelineText";
  * Polite by construction: one iCite call for the works of the sync, then PubMed
  * in spaced sequential batches, at most {@link GUIDELINE_CITATIONS_MAX_WORKS}
  * works and {@link GUIDELINE_CITATIONS_MAX_CITERS} citing articles per sync inside
- * {@link GUIDELINE_CITATIONS_BUDGET_MS}, never-checked works first, and a work
+ * {@link GUIDELINE_CITATIONS_BUDGET_MS} — a real bound: each hop gets the time
+ * left, one attempt per call, and a batch not started before the deadline turns
+ * the lookup into a failed one — never-checked works first, and a work
  * answered within {@link GUIDELINE_CITATIONS_REFRESH_DAYS} days is not asked
  * again (guidelines are revised over years, not weeks). Fail-soft: a failed call
  * keeps the stored list and stamps the ATTEMPT only, so the work is retried on a
@@ -44,13 +46,13 @@ export const GUIDELINE_CITATIONS_REFRESH_DAYS = 30;
 const GUIDELINE_CITATIONS_BUDGET_MS = 10_000;
 
 export interface GuidelineCitationsOptions {
-  /** The clinical citers of each work by PMID (`null` = the call failed). */
-  citers?: (pmids: readonly string[]) => Promise<Map<string, string[]> | null>;
-  /** PubMed summaries by PMID (`null` = a call failed). */
+  /** The clinical citers of each work by PMID, within `timeoutMs` (`null` = the call failed). */
+  citers?: (pmids: readonly string[], timeoutMs: number) => Promise<Map<string, string[]> | null>;
+  /** PubMed summaries by PMID, none started past `deadline` (`null` = a call failed). */
   summaries?: (
     pmids: readonly string[],
     mailto: string,
-    timeoutMs: number,
+    deadline: number,
   ) => Promise<Map<string, PubmedSummary> | null>;
   now?: string;
 }
@@ -115,11 +117,14 @@ export async function enrichCvWithGuidelineCitations(
   opts: GuidelineCitationsOptions = {},
 ): Promise<CanonicalCv> {
   const now = opts.now ?? new Date().toISOString();
-  const citersOf = opts.citers ?? fetchClinicalCitersByPmids;
+  const citersOf =
+    opts.citers ??
+    ((pmids: readonly string[], timeoutMs: number) =>
+      fetchClinicalCitersByPmids(pmids, { timeoutMs }));
   const summariesOf =
     opts.summaries ??
-    ((pmids: readonly string[], to: string, timeoutMs: number) =>
-      fetchPubmedSummaries(pmids, to, { timeoutMs }));
+    ((pmids: readonly string[], to: string, deadline: number) =>
+      fetchPubmedSummaries(pmids, to, { deadline }));
 
   const countable = new Set(countableWorks(cv));
   const candidates: Array<RotationTarget & { pmid: string; answeredAt?: string }> = [];
@@ -155,8 +160,12 @@ export async function enrichCvWithGuidelineCitations(
     ),
   });
 
-  // Hop 1: the clinical articles citing each work, one iCite call for the sync.
-  const citers = await citersOf(targets.map((t) => t.pmid));
+  // Hop 1: the clinical articles citing each work, one iCite call for the sync,
+  // given the whole budget (hop 2 gets what it leaves).
+  const citers = await citersOf(
+    targets.map((t) => t.pmid),
+    Math.max(1, deadline - Date.now()),
+  );
   if (citers === null) {
     logger.info("guidelines.citers_unavailable", { works: targets.length });
     return triedOnly(targets);
@@ -178,7 +187,7 @@ export async function enrichCvWithGuidelineCitations(
   // Hop 2: which of those citers PubMed types as guidelines.
   let summaries: ReadonlyMap<string, PubmedSummary> = new Map();
   if (wanted.size > 0) {
-    const got = await summariesOf([...wanted], mailto, Math.max(1, deadline - Date.now()));
+    const got = await summariesOf([...wanted], mailto, deadline);
     if (got === null) {
       logger.info("guidelines.summaries_unavailable", {
         works: examined.length,

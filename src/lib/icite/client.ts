@@ -155,10 +155,12 @@ function citerList(v: unknown): string[] {
  * pass keeps — for the guideline-citations pass, which asks PubMed which of them
  * are practice guidelines. Batched like {@link fetchIciteByPmids}. `null` when a
  * call failed, so the caller can tell "no citers" from "no answer"; a work iCite
- * does not know is simply absent from the map.
+ * does not know is simply absent from the map. One attempt per batch (no retry)
+ * within `timeoutMs`, so the caller's pass budget is real.
  */
 export async function fetchClinicalCitersByPmids(
   pmids: readonly string[],
+  opts: { timeoutMs?: number } = {},
 ): Promise<Map<string, string[]> | null> {
   const valid = [...new Set(pmids.map((p) => p.trim()).filter((p) => /^\d+$/.test(p)))];
   const out = new Map<string, string[]>();
@@ -170,7 +172,8 @@ export async function fetchClinicalCitersByPmids(
     try {
       const res = await resilientFetch(url, {
         headers: { Accept: "application/json", "User-Agent": USER_AGENT },
-        timeoutMs: 12_000,
+        timeoutMs: opts.timeoutMs ?? 12_000,
+        retries: 0,
       });
       if (!res.ok) throw new Error(`iCite request failed (${res.status})`);
       const data = (await res.json()) as any;

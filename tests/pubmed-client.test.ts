@@ -82,12 +82,30 @@ describe("fetchPubmedSummaries", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("answers null when the deadline has passed before a batch, and stops there", async () => {
+    const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+      const ids = new URL(String(input)).searchParams.get("id")!.split(",");
+      const result: Record<string, unknown> = { uids: ids };
+      for (const id of ids) result[id] = { uid: id, title: `T${id}`, pubtype: [] };
+      return res({ result });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+    expect(
+      await fetchPubmedSummaries(["1"], "ci@example.org", { deadline: Date.now() - 1 }),
+    ).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+    // A live deadline lets the batch through.
+    const ok = await fetchPubmedSummaries(["1"], "ci@example.org", {
+      deadline: Date.now() + 60_000,
+    });
+    expect(ok!.get("1")?.title).toBe("T1");
+  });
+
   it("answers null — never an empty map — when a call fails or the body is not what PubMed sends", async () => {
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async () => res({ error: "down" }, 503)),
-    );
+    const failing = vi.fn(async () => res({ error: "down" }, 503));
+    vi.stubGlobal("fetch", failing);
     expect(await fetchPubmedSummaries(["1"], "ci@example.org")).toBeNull();
+    expect(failing).toHaveBeenCalledTimes(1); // one attempt, no retry
     vi.stubGlobal(
       "fetch",
       vi.fn(async () => {
