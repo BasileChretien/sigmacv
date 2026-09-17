@@ -161,8 +161,8 @@ export function depositNowLine(
   }
   if (now.basis === "publisher") {
     const record = item.meta.selfArchiving!;
+    // The version is the action's and the file line's to name; this is the ground.
     const head = fill(wu.wlWhyPublisher, {
-      version: wu[VERSION_KEY[now.version]],
       date: record.recordUpdated ?? record.retrievedAt.slice(0, 10),
     });
     const tail = now.since ? fill(wu.wlWhyEmbargoEnded, { date: now.since }) : wu.wlWhyNoEmbargo;

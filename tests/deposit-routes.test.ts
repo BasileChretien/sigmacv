@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   basisChangesPrimary,
   depositAction,
+  depositActionVersion,
   depositActionKind,
   depositNotes,
   depositReason,
@@ -463,5 +464,102 @@ describe("a HAL notice without a file (the owner sync's repository copies)", () 
       repositoryCopies: [{ ...notice, hasFile: true }],
     });
     expect(depositRoutes(cvWith(), withFile, ctx)[0]!.href).toBe("https://hal.science/submit");
+  });
+});
+
+describe("the file the action names (depositActionVersion)", () => {
+  const ctx: DepositContext = { basis: "paper", crosswalk: new Map() };
+  const LABEL = {
+    acceptedVersion: EN.wlArchivingVersionAccepted,
+    publishedVersion: EN.wlArchivingVersionPublished,
+    submittedVersion: EN.wlArchivingVersionSubmitted,
+  } as const;
+  const record = (versions: Array<keyof typeof LABEL>, locations: string[] = []) => ({
+    source: "oa.works" as const,
+    canArchive: true,
+    versions,
+    locations,
+    retrievedAt: "2026-09-15T00:00:00.000Z",
+  });
+
+  it("is always the version the action text names, for every ground and route", () => {
+    const cases: Array<[CvItem, Parameters<typeof depositActionVersion>[2], keyof typeof LABEL]> = [
+      [
+        work({ selfArchiving: record(["publishedVersion", "acceptedVersion"]) }),
+        { basis: "publisher", version: "publishedVersion" },
+        "publishedVersion",
+      ],
+      [
+        work({ selfArchiving: record(["acceptedVersion"]) }),
+        { basis: "publisher", version: "acceptedVersion" },
+        "acceptedVersion",
+      ],
+      [
+        work({ selfArchiving: record(["submittedVersion"]) }),
+        { basis: "publisher", version: "submittedVersion" },
+        "submittedVersion",
+      ],
+      [
+        work({ workCountries: ["FR"] }),
+        { basis: "statute", version: "acceptedVersion" },
+        "acceptedVersion",
+      ],
+      [
+        work({ license: "cc-by" }),
+        { basis: "licence", version: "publishedVersion" },
+        "publishedVersion",
+      ],
+    ];
+    for (const [item, now, expected] of cases) {
+      const [route] = depositRoutes(cvWith(), item, ctx);
+      expect(depositActionVersion(item, route!, now), JSON.stringify(now)).toBe(expected);
+      expect(depositAction(item, route!, EN, false, now)).toContain(LABEL[expected]);
+    }
+  });
+
+  it("follows a HAL notice's ground, and takes the ground's version when the action names none", () => {
+    const notice = {
+      source: "hal" as const,
+      id: "hal-05745947",
+      url: "https://hal.science/hal-05745947",
+      hasFile: false,
+      retrievedAt: "2026-09-16T00:00:00.000Z",
+    };
+    const item = work({ workCountries: ["FR"], repositoryCopies: [notice] });
+    const [hal] = depositRoutes(cvWith(), item, ctx);
+    expect(
+      depositActionVersion(item, hal!, { basis: "licence", version: "publishedVersion" }),
+    ).toBe("publishedVersion");
+    expect(depositActionVersion(item, hal!)).toBe("acceptedVersion");
+    // A record whose places do not include HAL: "only if your agreement allows it" names no version.
+    const conditional = work({
+      workCountries: ["FR"],
+      selfArchiving: record(["acceptedVersion"], ["Preprint Server"]),
+    });
+    const [route] = depositRoutes(cvWith(), conditional, ctx);
+    const now = { basis: "publisher" as const, version: "acceptedVersion" as const };
+    expect(depositAction(conditional, route!, EN, false, now)).not.toContain(
+      EN.wlArchivingVersionAccepted,
+    );
+    // No file named where the action names no version: the place is not covered.
+    expect(depositActionVersion(conditional, route!, now)).toBeUndefined();
+    expect(depositActionVersion(conditional, route!)).toBeUndefined();
+  });
+
+  it("names the accepted manuscript on a funder route whatever the ground, and on an unrecorded action", () => {
+    const funded = work({ ...NIH_WORK, workCountries: ["FR"], license: "cc-by" });
+    const [funder] = depositRoutes(cvWith(), funded, {
+      basis: "paper",
+      crosswalk: new Map([["F100", NIH]]),
+    });
+    expect(funder!.kind).toBe("funder");
+    const licence = { basis: "licence" as const, version: "publishedVersion" as const };
+    expect(depositActionVersion(funded, funder!, licence)).toBe("acceptedVersion");
+    expect(depositAction(funded, funder!, EN, false, licence)).toContain(LABEL.acceptedVersion);
+    // No record and no ground: the action says the accepted manuscript, if the policy allows it.
+    const bare = work({});
+    const [route] = depositRoutes(cvWith(), bare, ctx);
+    expect(depositActionVersion(bare, route!)).toBe("acceptedVersion");
+    expect(depositAction(bare, route!, EN, false)).toContain("accepted manuscript");
   });
 });

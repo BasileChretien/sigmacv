@@ -233,6 +233,35 @@ const NOTICE_ACTION = {
   publishedVersion: "wlDepositHalNoticePublished",
 } as const satisfies Record<Version, keyof WorkspaceUiStrings>;
 
+const ACTION_KEY = Object.fromEntries(ACTION_BY_VERSION) as Record<Version, ActionKey>;
+
+/**
+ * The version the deposit action for this route names — the file the owner
+ * uploads, which the row spells out in plain words (`wlFile*`). The same
+ * branches as `depositAction`, in the same order, so the two never disagree:
+ * a HAL notice takes the version the ground allows; a right that has run, the
+ * accepted manuscript; the work's own licence, the published version; a funder
+ * repository, the accepted manuscript; a record, the best version it names.
+ * An action that names no version (only if the agreement allows it: the record
+ * does not cover this place) names no file either — the record's version is
+ * not known to be allowed there.
+ */
+export function depositActionVersion(
+  item: CvItem,
+  route: DepositRoute,
+  now?: DepositNow,
+): Version | undefined {
+  if (route.notice) return now?.version ?? "acceptedVersion";
+  if (route.kind !== "funder" && now?.basis === "statute") return "acceptedVersion";
+  if (route.kind !== "funder" && now?.basis === "licence") return "publishedVersion";
+  const kind = depositActionKind(item, route);
+  if (kind === "conditional") return undefined;
+  if (kind === "unrecorded" || route.kind === "funder") return "acceptedVersion";
+  // A named version: the kind says the record exists and names one.
+  const record = item.meta.selfArchiving!;
+  return ACTION_BY_VERSION.find(([version]) => record.versions.includes(version))![0];
+}
+
 export function depositAction(
   item: CvItem,
   route: DepositRoute,
@@ -241,19 +270,17 @@ export function depositAction(
   now?: DepositNow,
 ): string {
   const destination = route.destination;
+  const version = depositActionVersion(item, route, now);
   // HAL holds a notice of the work without a file: the action is to add the
   // file — the version the ground allows — to it.
   if (route.notice) {
-    return fill(wu[NOTICE_ACTION[now?.version ?? "acceptedVersion"]], { id: route.notice.id });
+    return fill(wu[NOTICE_ACTION[version!]], { id: route.notice.id });
   }
   // A statutory right that has run names the accepted manuscript outright —
-  // the ground is the law, whatever the publisher records.
-  if (now?.basis === "statute" && route.kind !== "funder") {
-    return fill(wu.wlDepositAccepted, { destination });
-  }
-  // A work under its own open licence goes in as published, anywhere.
-  if (now?.basis === "licence" && route.kind !== "funder") {
-    return fill(wu.wlDepositPublished, { destination });
+  // the ground is the law, whatever the publisher records; a work under its
+  // own open licence goes in as published, anywhere.
+  if (route.kind !== "funder" && (now?.basis === "statute" || now?.basis === "licence")) {
+    return fill(wu[ACTION_KEY[version!]], { destination });
   }
   const kind = depositActionKind(item, route);
   if (kind === "conditional") {
@@ -262,12 +289,15 @@ export function depositAction(
     });
   }
   if (kind === "unrecorded") return fill(wu.wlDepositUnrecorded, { destination });
-  if (route.kind === "funder") return fill(wu.wlDepositAccepted, { destination });
-  // A named version: the kind says the record exists and names one.
-  const record = item.meta.selfArchiving!;
-  const named = ACTION_BY_VERSION.find(([version]) => record.versions.includes(version))!;
-  return fill(wu[named[1]], { destination });
+  return fill(wu[ACTION_KEY[version!]], { destination });
 }
+
+/** The plain-words file for each version: the author's own manuscript, or the publisher's PDF. */
+export const FILE_TO_UPLOAD = {
+  submittedVersion: "wlFileSubmitted",
+  acceptedVersion: "wlFileAccepted",
+  publishedVersion: "wlFilePublished",
+} as const satisfies Record<Version, keyof WorkspaceUiStrings>;
 
 /**
  * What the recorded policy asks of the deposit form — the licence, and the embargo
