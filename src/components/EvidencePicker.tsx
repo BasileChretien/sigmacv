@@ -25,6 +25,8 @@ interface EvidencePickerProps {
   onInsert: (token: string, itemId: string) => void;
   /** "contribution": the button says the entry becomes a numbered contribution. */
   variant?: "cite" | "contribution";
+  /** Entries not to offer (a contributions section's entries already added). */
+  excludeIds?: ReadonlySet<string>;
 }
 
 /** How many candidates the list shows at once (search narrows it). */
@@ -47,10 +49,14 @@ export default function EvidencePicker({
   locale,
   onInsert,
   variant = "cite",
+  excludeIds,
 }: EvidencePickerProps) {
   const eu = editorUi(locale);
   const [query, setQuery] = useState("");
-  const candidates = useMemo(() => evidenceCandidates(cv, sectionType), [cv, sectionType]);
+  const candidates = useMemo(
+    () => evidenceCandidates(cv, sectionType).filter((c) => !excludeIds || !excludeIds.has(c.id)),
+    [cv, sectionType, excludeIds],
+  );
   const status = useMemo(() => {
     const linked = new Map<string, string>();
     let unresolved = 0;
@@ -76,7 +82,7 @@ export default function EvidencePicker({
       <Popover
         locale={locale}
         trigger={variant === "contribution" ? eu.evInsertContribution : eu.evInsert}
-        triggerClassName="btn btn-ghost"
+        triggerClassName={variant === "contribution" ? "btn btn-sm" : "btn btn-ghost"}
         panelLabel={eu.evPanel}
         panelClassName="evidence-picker"
         align="start"
@@ -119,7 +125,9 @@ export default function EvidencePicker({
           </>
         )}
       </Popover>
-      <span className="field-hint muted">{eu.evHint}</span>
+      <span className="field-hint muted">
+        {variant === "contribution" ? eu.evHintContribution : eu.evHint}
+      </span>
       {status.chips.length > 0 || status.unresolved > 0 ? (
         <p className="evidence-status">
           <span className="muted">{eu.evLinked.replace("{n}", String(status.chips.length))}</span>

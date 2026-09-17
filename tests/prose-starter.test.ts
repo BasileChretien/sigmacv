@@ -9,9 +9,6 @@ import {
 } from "@/lib/canonical/schema";
 import { applyCvModel } from "@/lib/canonical/cvModels";
 import {
-  appendContributionStub,
-  contributionStub,
-  nextContributionNumber,
   prefillEmptyProse,
   starterProseBody,
   starterReferenceLine,
@@ -194,100 +191,6 @@ describe("starter drafts for the prose sections", () => {
     expect(body).toContain(proseStarterStrings("fr-FR").contribIntro);
     expect(body).toContain(proseStarterStrings("fr-FR").pickPrompt);
     expect(body).toContain("panneau Contenu");
-    expect(nextContributionNumber(body)).toBe(1);
-  });
-
-  it("appends a numbered stub per picked entry: slots, reference, the entry's token; the pick prompt gives way", () => {
-    const cv = makeCv("fr-FR");
-    const knowledge = cv.sections.find((s) => s.type === "narrative-knowledge")!;
-    const pubs = cv.sections.find((s) => s.type === "publications")!;
-    const w1 = pubs.items.find((it) => it.id === "W1")!;
-    const start = { ...knowledge, body: starterProseBody(cv, "narrative-knowledge") };
-    const first = appendContributionStub(cv, start, w1);
-    expect(first.body).not.toContain(proseStarterStrings("fr-FR").pickPrompt);
-    expect(first.body).toContain(proseStarterStrings("fr-FR").contribIntro);
-    expect(first.body).toContain(
-      "1. Article 1 (2015 · Clientèle : A / B / C) [[W1 | Chrétien et al. 2015]]",
-    );
-    expect(first.body).toContain("Rôle : [à compléter]");
-    expect(first.body).toContain("Retombées : [à compléter]");
-    expect(first.body).toContain(
-      "Référence : Chrétien, B., & Kaur, P. (2015). Article 1. Revue fictive. https://doi.org/10.0000/w1",
-    );
-    // The role slot's placeholder is what the editor selects.
-    expect(first.body.slice(first.selectStart, first.selectEnd)).toBe("[à compléter]");
-    expect(first.body.slice(0, first.selectStart)).toMatch(/Rôle : $/);
-    // A second pick is numbered 2 and lands after the first.
-    const dataset = cv.sections.find((s) => s.type === "datasets")!.items[0]!;
-    const second = appendContributionStub(cv, { ...knowledge, body: first.body }, dataset);
-    expect(nextContributionNumber(second.body)).toBe(3);
-    expect(second.body.indexOf("1. Article 1")).toBeLessThan(second.body.indexOf("2. QC-ADR-ONCO"));
-    expect(second.body).toContain(
-      "2. QC-ADR-ONCO (2023 · Clientèle : A / B / C) [[dataset:1 | QC-ADR-ONCO]]",
-    );
-    // An entry with no CSL falls back to its display line, and the stub stays bounded.
-    const software = cv.sections.find((s) => s.type === "software")!.items[0]!;
-    expect(contributionStub(cv, software, 7)).toContain(
-      "7. SIGNALTRI (version 1.4), Zenodo, 2021 (2021 · Clientèle : A / B / C)",
-    );
-    expect(contributionStub(cv, software, 7)).toContain(
-      "Référence : SIGNALTRI (version 1.4), Zenodo, 2021",
-    );
-    // A body with no prompt at all (the owner wrote their own text) just grows.
-    const own = appendContributionStub(cv, { ...knowledge, body: "Mon texte." }, w1);
-    expect(own.body.startsWith("Mon texte.\n\n1. Article 1")).toBe(true);
-    // A number the owner typed by hand is never repeated: the pick takes the next one.
-    const numbered = appendContributionStub(cv, { ...knowledge, body: "5. Ma note\nRôle : x" }, w1);
-    expect(numbered.body).toContain("6. Article 1 (2015");
-    expect(nextContributionNumber("12. a\n3. b\n1.c (not a head)")).toBe(13);
-  });
-
-  it("a stub names the clinical guidelines that cite the work, between the impact slot and the reference", () => {
-    const cv = CanonicalCvSchema.parse({
-      schemaVersion: 2,
-      id: "guided",
-      owner: {
-        orcid: "0000-0002-7483-2489",
-        openAlexAuthorIds: [],
-        displayName: "Basile Chrétien",
-      },
-      display: { locale: "fr-FR" },
-      sections: [
-        section("publications", [
-          pub("W2", "Taken up in practice", 2020, 3, {
-            meta: {
-              year: 2020,
-              citedByCount: 3,
-              guidelineCitations: [
-                {
-                  pmid: "34724392",
-                  title: "ASCO Guideline Update.",
-                  source: "J Clin Oncol",
-                  year: 2021,
-                },
-                {
-                  pmid: "38228461",
-                  title: "Position statement.",
-                  source: "Gastroenterol Hepatol",
-                  year: 2024,
-                },
-              ],
-            },
-          }),
-        ]),
-        section("narrative-knowledge", []),
-      ],
-      provenance: { generatedAt: "2026-09-17T00:00:00.000Z", sources: ["manual"] },
-    });
-    const stub = contributionStub(cv, cv.sections[0]!.items[0]!, 1);
-    expect(stub).toContain(
-      "Cité dans le guide de pratique : ASCO Guideline Update (J Clin Oncol, 2021). https://pubmed.ncbi.nlm.nih.gov/34724392/",
-    );
-    expect(stub).toContain(
-      "Cité dans le guide de pratique : Position statement (Gastroenterol Hepatol, 2024). https://pubmed.ncbi.nlm.nih.gov/38228461/",
-    );
-    expect(stub.indexOf("Retombées")).toBeLessThan(stub.indexOf("Cité dans le guide"));
-    expect(stub.indexOf("Cité dans le guide")).toBeLessThan(stub.indexOf("Référence :"));
   });
 
   it("writes the people section from supervision and teaching records, with the owner's own labels", () => {
@@ -460,18 +363,6 @@ describe("starter-draft edge cases", () => {
     expect(body).toContain("- Cert., V (2018)");
     expect(body).toContain("- Some course");
     expect(body).not.toContain("Positions");
-    // A contribution stub for an item with a title override and no year prints the prompt for the year.
-    const cv2 = makeCv("en-US", [
-      section("publications", [
-        item("W_ov", {
-          displayTextOverride: "Overridden title",
-          csl: { id: "W_ov", type: "article-journal", title: "Original" },
-        }),
-      ]),
-      section("narrative-knowledge", [], true),
-    ]);
-    const stub = contributionStub(cv2, cv2.sections[0]!.items[0]!, 1);
-    expect(stub).toContain("1. Overridden title ([to complete] · Audience : A / B / C)");
     // A community draft on a CV that has no such sections at all: prompt only, headings fall back to the type.
     const cv3 = makeCv("en-US", [
       section("service", [item("svc:1", { displayText: "Board member" })]),

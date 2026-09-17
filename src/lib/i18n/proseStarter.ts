@@ -23,6 +23,12 @@ export interface ProseStarterStrings {
   contribIntro: string;
   /** Section 2 with no contribution chosen yet: where to pick them (a bracketed prompt). */
   pickPrompt: string;
+  /** The FRQ's three audiences, spelled out after their letter on the CV. */
+  audienceA: string;
+  audienceB: string;
+  audienceC: string;
+  /** Label of the places a contribution is cited (a guideline, a report…). */
+  citedIn: string;
   audience: string;
   audienceKey: string;
   role: string;
@@ -56,9 +62,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[Expertise, leadership, earlier collaborations on the theme, concrete effects of past work, skills acquired through personal experience.]",
     contribIntro:
-      "[Up to ten contributions. For each: the period, the audience (A academic community, B practice community, C general public), your role, and the impact with something the reader can check. Add each one with “Add one of my entries as a contribution”, under this section: it arrives here numbered, with its role, impact and reference to fill in.]",
+      "[Up to ten contributions. For each: the period, the audience (A academic community, B practice community, C general public), your role, and the impact with something the reader can check. Add them under this box with “Add one of my entries as a contribution”: each one becomes a card you fill in, reorder or delete.]",
     pickPrompt:
       "[No contribution chosen yet. Pick your publications in the Content panel: “Add one of my entries as a contribution”, under this section.]",
+    audienceA: "academic community",
+    audienceB: "practice community",
+    audienceC: "general public",
+    citedIn: "Cited in",
     audience: "Audience",
     audienceKey: "A / B / C",
     role: "Role",
@@ -90,9 +100,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[专长、领导力、在该主题上的既往合作、既往工作的具体效果、从个人经历中获得的能力。]",
     contribIntro:
-      "[最多十项贡献。每项写明：时期、受众（A 学术界，B 实务界，C 公众）、您的角色，以及附有可核查依据的影响。请在本节下方用“将我的一个条目添加为贡献”逐项添加：它会编号出现在这里，并带有待填写的角色、影响和参考文献。]",
+      "[最多十项贡献。每项写明：时期、受众（A 学术界，B 实务界，C 公众）、您的角色，以及附有可核查依据的影响。请在此文本框下方用“将我的一个条目添加为贡献”添加：每项都会成为一张卡片，可填写、调整顺序或删除。]",
     pickPrompt:
       "[尚未选择任何贡献。请在“内容”面板中选择您的出版物：本节下方的“将我的一个条目添加为贡献”。]",
+    audienceA: "学术界",
+    audienceB: "实务界",
+    audienceC: "公众",
+    citedIn: "被引用于",
     audience: "受众",
     audienceKey: "A / B / C",
     role: "角色",
@@ -123,9 +137,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[Experiencia, liderazgo, colaboraciones anteriores sobre el tema, efectos concretos del trabajo pasado, competencias adquiridas por experiencia personal.]",
     contribIntro:
-      "[Hasta diez contribuciones. Para cada una: el periodo, el público (A comunidad académica, B comunidad de práctica, C público general), tu papel y el impacto con algo que el lector pueda comprobar. Añade cada una con «Añadir una de mis entradas como contribución», bajo esta sección: llega aquí numerada, con su papel, su impacto y su referencia por completar.]",
+      "[Hasta diez contribuciones. Para cada una: el periodo, el público (A comunidad académica, B comunidad de práctica, C público general), tu papel y el impacto con algo que el lector pueda comprobar. Añádelas bajo este cuadro con «Añadir una de mis entradas como contribución»: cada una se convierte en una ficha que puedes completar, reordenar o eliminar.]",
     pickPrompt:
       "[Ninguna contribución elegida todavía. Elige tus publicaciones en el panel Contenido: «Añadir una de mis entradas como contribución», bajo esta sección.]",
+    audienceA: "comunidad académica",
+    audienceB: "comunidad de práctica",
+    audienceC: "público general",
+    citedIn: "Citado en",
     audience: "Público",
     audienceKey: "A / B / C",
     role: "Papel",
@@ -157,9 +175,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[Expertise, leadership, collaborations antérieures sur la thématique, effets concrets des travaux passés, aptitudes acquises par vos expériences personnelles.]",
     contribIntro:
-      "[Jusqu'à dix contributions. Pour chacune : la période, la clientèle (A milieu académique, B milieu de pratique, C grand public), votre rôle, et les retombées avec un élément que le lecteur peut vérifier. Ajoutez chacune avec « Ajouter une de mes entrées comme contribution », sous cette section : elle arrive ici numérotée, avec son rôle, ses retombées et sa référence à compléter.]",
+      "[Jusqu'à dix contributions. Pour chacune : la période, la clientèle (A milieu académique, B milieu de pratique, C grand public), votre rôle, et les retombées avec un élément que le lecteur peut vérifier. Ajoutez-les sous cette zone avec « Ajouter une de mes entrées comme contribution » : chacune devient une fiche à compléter, à réordonner ou à supprimer.]",
     pickPrompt:
       "[Aucune contribution choisie pour l'instant. Choisissez vos publications dans le panneau Contenu : « Ajouter une de mes entrées comme contribution », sous cette section.]",
+    audienceA: "milieu académique",
+    audienceB: "milieu de pratique",
+    audienceC: "grand public",
+    citedIn: "Cité dans",
     audience: "Clientèle",
     audienceKey: "A / B / C",
     role: "Rôle",
@@ -191,9 +213,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[Expertise, Führung, frühere Kooperationen zum Thema, konkrete Wirkungen bisheriger Arbeit, Kompetenzen aus persönlicher Erfahrung.]",
     contribIntro:
-      "[Bis zu zehn Beiträge. Für jeden: Zeitraum, Zielgruppe (A wissenschaftliche Gemeinschaft, B Praxisgemeinschaft, C breite Öffentlichkeit), Ihre Rolle und die Wirkung mit etwas, das die Lesenden prüfen können. Fügen Sie jeden mit „Einen meiner Einträge als Beitrag hinzufügen“ unter diesem Abschnitt hinzu: er erscheint hier nummeriert, mit Rolle, Wirkung und Referenz zum Ausfüllen.]",
+      "[Bis zu zehn Beiträge. Für jeden: Zeitraum, Zielgruppe (A wissenschaftliche Gemeinschaft, B Praxisgemeinschaft, C breite Öffentlichkeit), Ihre Rolle und die Wirkung mit etwas, das die Lesenden prüfen können. Fügen Sie sie unter diesem Feld mit „Einen meiner Einträge als Beitrag hinzufügen“ hinzu: Jeder wird eine Karte, die Sie ausfüllen, verschieben oder löschen können.]",
     pickPrompt:
       "[Noch kein Beitrag gewählt. Wählen Sie Ihre Publikationen im Bereich Inhalt: „Einen meiner Einträge als Beitrag hinzufügen“ unter diesem Abschnitt.]",
+    audienceA: "wissenschaftliche Gemeinschaft",
+    audienceB: "Praxisgemeinschaft",
+    audienceC: "breite Öffentlichkeit",
+    citedIn: "Zitiert in",
     audience: "Zielgruppe",
     audienceKey: "A / B / C",
     role: "Rolle",
@@ -225,9 +251,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[専門性、リーダーシップ、テーマに関する過去の共同研究、これまでの研究の具体的な効果、個人的経験から得た能力。]",
     contribIntro:
-      "[最多 10 件の貢献。各件に：期間、対象（A 学術コミュニティ、B 実務コミュニティ、C 一般市民）、あなたの役割、読者が確認できる根拠を添えたインパクト。このセクション下の「自分の項目を貢献として追加」で 1 件ずつ追加してください。番号付きで、役割・インパクト・参考文献の記入欄とともにここに入ります。]",
+      "[最多 10 件の貢献。各件に：期間、対象（A 学術コミュニティ、B 実務コミュニティ、C 一般市民）、あなたの役割、読者が確認できる根拠を添えたインパクト。この欄の下の「自分の項目を貢献として追加」で追加してください。各件がカードになり、記入・並べ替え・削除ができます。]",
     pickPrompt:
       "[貢献はまだ選ばれていません。「コンテンツ」パネルで出版物を選んでください：このセクション下の「自分の項目を貢献として追加」。]",
+    audienceA: "学術コミュニティ",
+    audienceB: "実務コミュニティ",
+    audienceC: "一般市民",
+    citedIn: "引用先",
     audience: "対象",
     audienceKey: "A / B / C",
     role: "役割",
@@ -259,9 +289,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[Expertise, liderança, colaborações anteriores sobre o tema, efeitos concretos do trabalho passado, competências adquiridas por experiência pessoal.]",
     contribIntro:
-      "[Até dez contribuições. Para cada uma: o período, o público (A comunidade acadêmica, B comunidade de prática, C público em geral), seu papel e o impacto com algo que o leitor possa verificar. Adicione cada uma com “Adicionar uma das minhas entradas como contribuição”, abaixo desta seção: ela chega aqui numerada, com papel, impacto e referência a preencher.]",
+      "[Até dez contribuições. Para cada uma: o período, o público (A comunidade acadêmica, B comunidade de prática, C público em geral), seu papel e o impacto com algo que o leitor possa verificar. Adicione-as abaixo desta caixa com “Adicionar uma das minhas entradas como contribuição”: cada uma vira um cartão que você preenche, reordena ou exclui.]",
     pickPrompt:
       "[Nenhuma contribuição escolhida ainda. Escolha suas publicações no painel Conteúdo: “Adicionar uma das minhas entradas como contribuição”, abaixo desta seção.]",
+    audienceA: "comunidade acadêmica",
+    audienceB: "comunidade de prática",
+    audienceC: "público em geral",
+    citedIn: "Citado em",
     audience: "Público",
     audienceKey: "A / B / C",
     role: "Papel",
@@ -293,9 +327,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[Competenza, leadership, collaborazioni precedenti sul tema, effetti concreti del lavoro passato, abilità acquisite con l'esperienza personale.]",
     contribIntro:
-      "[Fino a dieci contributi. Per ciascuno: il periodo, il pubblico (A comunità accademica, B comunità di pratica, C pubblico generale), il tuo ruolo e l'impatto con qualcosa che il lettore possa verificare. Aggiungi ciascuno con «Aggiungi una delle mie voci come contributo», sotto questa sezione: arriva qui numerato, con ruolo, impatto e riferimento da completare.]",
+      "[Fino a dieci contributi. Per ciascuno: il periodo, il pubblico (A comunità accademica, B comunità di pratica, C pubblico generale), il tuo ruolo e l'impatto con qualcosa che il lettore possa verificare. Aggiungili sotto questo riquadro con «Aggiungi una delle mie voci come contributo»: ognuno diventa una scheda da compilare, riordinare o eliminare.]",
     pickPrompt:
       "[Nessun contributo scelto finora. Scegli le tue pubblicazioni nel pannello Contenuto: «Aggiungi una delle mie voci come contributo», sotto questa sezione.]",
+    audienceA: "comunità accademica",
+    audienceB: "comunità di pratica",
+    audienceC: "pubblico generale",
+    citedIn: "Citato in",
     audience: "Pubblico",
     audienceKey: "A / B / C",
     role: "Ruolo",
@@ -327,9 +365,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[전문성, 리더십, 주제에 관한 이전 협력, 과거 연구의 구체적 효과, 개인적 경험으로 얻은 역량.]",
     contribIntro:
-      "[최대 열 개의 기여. 각각: 기간, 대상(A 학술 공동체, B 실무 공동체, C 일반 대중), 본인의 역할, 독자가 확인할 수 있는 근거를 갖춘 영향. 이 섹션 아래의 “내 항목을 기여로 추가”로 하나씩 추가하세요. 번호가 붙어 역할·영향·참고문헌 기입란과 함께 여기에 들어옵니다.]",
+      "[최대 열 개의 기여. 각각: 기간, 대상(A 학술 공동체, B 실무 공동체, C 일반 대중), 본인의 역할, 독자가 확인할 수 있는 근거를 갖춘 영향. 이 입력란 아래의 “내 항목을 기여로 추가”로 추가하세요. 각 기여는 작성·순서 변경·삭제가 가능한 카드가 됩니다.]",
     pickPrompt:
       "[아직 선택한 기여가 없습니다. 콘텐츠 패널에서 출판물을 선택하세요: 이 섹션 아래의 “내 항목을 기여로 추가”.]",
+    audienceA: "학술 공동체",
+    audienceB: "실무 공동체",
+    audienceC: "일반 대중",
+    citedIn: "인용처",
     audience: "대상",
     audienceKey: "A / B / C",
     role: "역할",
@@ -360,9 +402,13 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     skillsPrompt:
       "[Экспертиза, лидерство, предыдущие коллаборации по теме, конкретные эффекты прошлой работы, компетенции из личного опыта.]",
     contribIntro:
-      "[До десяти вкладов. Для каждого: период, аудитория (A академическое сообщество, B профессиональное сообщество, C широкая публика), ваша роль и влияние с тем, что читатель может проверить. Добавляйте каждый через «Добавить одну из моих записей как вклад» под этим разделом: он появится здесь с номером, ролью, влиянием и ссылкой для заполнения.]",
+      "[До десяти вкладов. Для каждого: период, аудитория (A академическое сообщество, B профессиональное сообщество, C широкая публика), ваша роль и влияние с тем, что читатель может проверить. Добавляйте их под этим полем через «Добавить одну из моих записей как вклад»: каждый станет карточкой, которую можно заполнить, переместить или удалить.]",
     pickPrompt:
       "[Вклады пока не выбраны. Выберите публикации на панели «Содержание»: «Добавить одну из моих записей как вклад» под этим разделом.]",
+    audienceA: "академическое сообщество",
+    audienceB: "профессиональное сообщество",
+    audienceC: "широкая публика",
+    citedIn: "Цитируется в",
     audience: "Аудитория",
     audienceKey: "A / B / C",
     role: "Роль",

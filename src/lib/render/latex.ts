@@ -1,5 +1,9 @@
 import type { ResolvedEvidenceSegment } from "@/lib/canonical/evidenceRefs";
-import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
+import {
+  isProseSectionType,
+  proseSectionHasContent,
+  type CanonicalCv,
+} from "@/lib/canonical/schema";
 import { authorshipRoleLabel, renderStrings } from "@/lib/i18n/render";
 import { bibtexCiteKeys } from "./bibtex";
 import { proseEvidence } from "./evidenceRefs";
@@ -7,6 +11,7 @@ import { authorshipCounts } from "./authorship";
 import { curatedCountsByYear } from "./charts";
 import { wrapSelf } from "./emphasize";
 import { textHeader, type TextHeader } from "./headerText";
+import { contributionsLatex } from "./contributionsText";
 import { safeHref } from "./escape";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
@@ -100,7 +105,7 @@ function latexifyEntry(entry: string, bold: ((s: string) => string) | null): str
  */
 function evidenceMacros(sections: PreparedSection[]): string {
   const hasProse = sections.some(
-    ({ section }) => isProseSectionType(section.type) && (section.body ?? "").trim().length > 0,
+    ({ section }) => isProseSectionType(section.type) && proseSectionHasContent(section),
   );
   if (!hasProse) return "";
   return [
@@ -186,12 +191,25 @@ function sectionBlocks(cv: CanonicalCv, sections: PreparedSection[]): string[] {
   const evidence = proseEvidence(cv, sections);
   const keys = evidence.referenced.size > 0 ? bibtexCiteKeys(cv) : new Map<string, string>();
   const blocks: string[] = [];
-  for (const { section, intro, items } of sections) {
+  for (const { section, intro, items, contributions } of sections) {
     const title = escapeLatex(section.title);
     if (isProseSectionType(section.type)) {
       const body = (section.body ?? "").trim();
-      if (body) {
-        blocks.push(`\\section{${title}}\n${proseBodyLatex(body, evidence.resolve, keys)}`);
+      const list = contributions ?? [];
+      if (body || list.length > 0) {
+        blocks.push(
+          [
+            `\\section{${title}}`,
+            body ? proseBodyLatex(body, evidence.resolve, keys) : "",
+            list.length > 0
+              ? contributionsLatex(cv, list, escapeLatex, sanitizeUrlForLatex, (t) =>
+                  proseLineLatex(evidence.resolve(t), keys),
+                )
+              : "",
+          ]
+            .filter(Boolean)
+            .join("\n"),
+        );
       }
       continue;
     }

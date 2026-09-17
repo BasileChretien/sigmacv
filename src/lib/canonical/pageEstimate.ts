@@ -1,4 +1,10 @@
-import { isProseSectionType, type CanonicalCv, type CvSection } from "./schema";
+import {
+  isProseSectionType,
+  proseSectionHasContent,
+  type CanonicalCv,
+  type Contribution,
+  type CvSection,
+} from "./schema";
 
 /**
  * Page estimates for the narrative sections.
@@ -25,12 +31,36 @@ export function estimatePages(chars: number): number {
   return Math.round((chars / CHARS_PER_PAGE) * 10) / 10;
 }
 
-/** Pages one prose section takes (0 for a blank or non-prose section). */
-export function proseSectionPages(section: Pick<CvSection, "type" | "body">): number {
-  if (!isProseSectionType(section.type)) return 0;
-  const body = (section.body ?? "").trim();
-  if (!body) return 0;
-  return estimatePages(body.length + HEADING_ALLOWANCE);
+/** What a linked entry's title + reference add to a contribution, on average. */
+const CONTRIBUTION_ENTRY_ALLOWANCE = 380;
+
+/** Characters one structured contribution prints, roughly. */
+function contributionChars(c: Contribution): number {
+  return (
+    (c.title?.length ?? 0) +
+    (c.itemId ? CONTRIBUTION_ENTRY_ALLOWANCE : 0) +
+    (c.period?.length ?? 0) +
+    (c.role?.length ?? 0) +
+    (c.impact?.length ?? 0) +
+    (c.citedIn ?? []).reduce((sum, x) => sum + x.text.length + 20, 0) +
+    60
+  );
+}
+
+/** Characters a prose section prints: its body plus its structured contributions. */
+function proseSectionChars(section: Pick<CvSection, "body" | "contributions">): number {
+  return (
+    (section.body ?? "").trim().length +
+    (section.contributions ?? []).reduce((sum, c) => sum + contributionChars(c), 0)
+  );
+}
+
+/** Pages one prose section takes (0 for an empty or non-prose section). */
+export function proseSectionPages(
+  section: Pick<CvSection, "type" | "body" | "contributions">,
+): number {
+  if (!isProseSectionType(section.type) || !proseSectionHasContent(section)) return 0;
+  return estimatePages(proseSectionChars(section) + HEADING_ALLOWANCE);
 }
 
 export interface NarrativePageEstimate {
@@ -48,8 +78,8 @@ export interface NarrativePageEstimate {
  */
 export function narrativePageEstimate(cv: CanonicalCv): NarrativePageEstimate {
   const chars = cv.sections
-    .filter((s) => s.visible && isProseSectionType(s.type) && (s.body ?? "").trim().length > 0)
-    .reduce((sum, s) => sum + (s.body ?? "").trim().length + HEADING_ALLOWANCE, 0);
+    .filter((s) => s.visible && isProseSectionType(s.type) && proseSectionHasContent(s))
+    .reduce((sum, s) => sum + proseSectionChars(s) + HEADING_ALLOWANCE, 0);
   const pages = estimatePages(chars);
   const limit = cv.display.pageLimit;
   return { pages, ...(limit ? { limit } : {}), over: limit ? pages > limit : false };

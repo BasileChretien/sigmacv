@@ -18,7 +18,8 @@ import {
 } from "@/lib/canonical/schema";
 import { isHidden } from "@/lib/canonical/schema";
 import { publicationSortActive, sortPublicationItems } from "@/lib/canonical/publicationSort";
-import { appendContributionStub, starterProseBody } from "@/lib/canonical/proseStarter";
+import { starterProseBody } from "@/lib/canonical/proseStarter";
+import ContributionsEditor from "./ContributionsEditor";
 import { proseSectionPages } from "@/lib/canonical/pageEstimate";
 import {
   addManualEntry,
@@ -391,24 +392,6 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
     });
   };
 
-  /**
-   * A contributions section: the picked entry becomes a numbered stub at the end
-   * of the list (role, impact, guidelines, reference), the "pick your publications"
-   * prompt gives way, and the role slot is selected so typing fills it.
-   */
-  const addContributionStub = (sectionId: string, itemId: string) => {
-    const section = cv.sections.find((s) => s.id === sectionId);
-    const item = cv.sections.flatMap((s) => s.items).find((it) => it.id === itemId);
-    if (!section || !item) return;
-    const { body, selectStart, selectEnd } = appendContributionStub(cv, section, item);
-    onChange(setSectionBody(cv, sectionId, body));
-    requestAnimationFrame(() => {
-      const box = proseRefs.current.get(sectionId);
-      box?.focus();
-      box?.setSelectionRange(selectStart, selectEnd);
-    });
-  };
-
   /** Expand a prose section and focus its text box (the preview's placeholder
    *  links land here: `#cv-edit=<sectionId>`). No-op for an unknown id. */
   const jumpToSection = (sectionId: string) => {
@@ -767,126 +750,136 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                     </div>
 
                     {isExpanded && isProseSectionType(section.type) ? (
-                      <label className="field prose-body-field">
-                        <span className="muted">{eu.proseBody}</span>
-                        {/* R4RI/Royal-Society narrative modules get a writing prompt
+                      <>
+                        <label className="field prose-body-field">
+                          <span className="muted">{eu.proseBody}</span>
+                          {/* R4RI/Royal-Society narrative modules get a writing prompt
                             (what belongs in this module) — a narrative CV is hard to
                             start from a blank box. Other prose types (statement) have
                             none. Editor-only; never rendered on the CV. */}
-                        {narrativeGuidance(locale, section.type) ? (
-                          <span className="field-hint narrative-guidance muted">
-                            {narrativeGuidance(locale, section.type)}
-                          </span>
-                        ) : null}
-                        {/* Evidence to draw on: counts of the owner's relevant outputs
+                          {narrativeGuidance(locale, section.type) ? (
+                            <span className="field-hint narrative-guidance muted">
+                              {narrativeGuidance(locale, section.type)}
+                            </span>
+                          ) : null}
+                          {/* Evidence to draw on: counts of the owner's relevant outputs
                             for this module (publications/datasets for "knowledge", etc.),
                             so concrete contributions are at hand. Editor-only. */}
-                        {(() => {
-                          const ev = narrativeEvidence(cv, section.type);
-                          if (ev.length === 0) return null;
-                          return (
-                            <span className="field-hint narrative-evidence muted">
-                              {narrativeEvidenceLabel(locale)}{" "}
-                              {ev
-                                .map((e) => `${e.count} ${sectionTitle(locale, e.type)}`)
-                                .join(" · ")}
-                            </span>
-                          );
-                        })()}
-                        <textarea
-                          ref={(el) => {
-                            if (el) proseRefs.current.set(section.id, el);
-                            else proseRefs.current.delete(section.id);
-                          }}
-                          className="prose-body"
-                          rows={6}
-                          value={section.body ?? ""}
-                          maxLength={PROSE_BODY_MAX}
-                          aria-label={`${section.title} — ${eu.proseBody}`}
-                          onChange={(e) =>
-                            onChange(
-                              setSectionBody(
-                                cv,
-                                section.id,
-                                e.target.value.slice(0, PROSE_BODY_MAX),
-                              ),
-                            )
-                          }
-                        />
-                        <span className="field-hint muted">
-                          {eu.proseBodyHint} ·{" "}
-                          {eu.proseCharsLeft.replace(
-                            "{n}",
-                            String(PROSE_BODY_MAX - (section.body ?? "").length),
-                          )}
-                          {(section.body ?? "").trim() ? (
-                            <>
-                              {" · "}
-                              <span title={eu.prosePagesHint}>
-                                {eu.prosePagesApprox.replace(
-                                  "{n}",
-                                  new Intl.NumberFormat(locale, {
-                                    maximumFractionDigits: 1,
-                                  }).format(proseSectionPages(section)),
-                                )}
+                          {(() => {
+                            const ev = narrativeEvidence(cv, section.type);
+                            if (ev.length === 0) return null;
+                            return (
+                              <span className="field-hint narrative-evidence muted">
+                                {narrativeEvidenceLabel(locale)}{" "}
+                                {ev
+                                  .map((e) => `${e.count} ${sectionTitle(locale, e.type)}`)
+                                  .join(" · ")}
                               </span>
-                            </>
-                          ) : null}
-                        </span>
-                        {(section.body ?? "").trim().length === 0 ? (
-                          <span className="field-inline prose-starter">
-                            <button
-                              type="button"
-                              className="btn btn-sm"
-                              title={eu.proseStarterHint}
-                              onClick={() =>
-                                onChange(
-                                  setSectionBody(
-                                    cv,
-                                    section.id,
-                                    starterProseBody(cv, section.type),
-                                  ),
-                                )
-                              }
-                            >
-                              {eu.proseStarterInsert}
-                            </button>
+                            );
+                          })()}
+                          <textarea
+                            ref={(el) => {
+                              if (el) proseRefs.current.set(section.id, el);
+                              else proseRefs.current.delete(section.id);
+                            }}
+                            className="prose-body"
+                            rows={6}
+                            value={section.body ?? ""}
+                            maxLength={PROSE_BODY_MAX}
+                            aria-label={`${section.title} — ${eu.proseBody}`}
+                            onChange={(e) =>
+                              onChange(
+                                setSectionBody(
+                                  cv,
+                                  section.id,
+                                  e.target.value.slice(0, PROSE_BODY_MAX),
+                                ),
+                              )
+                            }
+                          />
+                          <span className="field-hint muted">
+                            {eu.proseBodyHint} ·{" "}
+                            {eu.proseCharsLeft.replace(
+                              "{n}",
+                              String(PROSE_BODY_MAX - (section.body ?? "").length),
+                            )}
+                            {(section.body ?? "").trim() ? (
+                              <>
+                                {" · "}
+                                <span title={eu.prosePagesHint}>
+                                  {eu.prosePagesApprox.replace(
+                                    "{n}",
+                                    new Intl.NumberFormat(locale, {
+                                      maximumFractionDigits: 1,
+                                    }).format(proseSectionPages(section)),
+                                  )}
+                                </span>
+                              </>
+                            ) : null}
                           </span>
-                        ) : null}
-                        {/* Verifiable narrative: reference an entry of the CV with
+                          {(section.body ?? "").trim().length === 0 ? (
+                            <span className="field-inline prose-starter">
+                              <button
+                                type="button"
+                                className="btn btn-sm"
+                                title={eu.proseStarterHint}
+                                onClick={() =>
+                                  onChange(
+                                    setSectionBody(
+                                      cv,
+                                      section.id,
+                                      starterProseBody(cv, section.type),
+                                    ),
+                                  )
+                                }
+                              >
+                                {eu.proseStarterInsert}
+                              </button>
+                            </span>
+                          ) : null}
+                          {/* Verifiable narrative: reference an entry of the CV with
                             [[id]] — every export renders it as a link / label to
                             that entry. The picker offers the entries that support
                             this module; the chips show what the body links to now. */}
-                        <EvidencePicker
-                          cv={cv}
-                          sectionType={section.type}
-                          body={section.body ?? ""}
-                          locale={locale}
-                          variant={section.type === "narrative-knowledge" ? "contribution" : "cite"}
-                          onInsert={(token, itemId) =>
-                            section.type === "narrative-knowledge"
-                              ? addContributionStub(section.id, itemId)
-                              : insertEvidenceToken(section.id, token)
-                          }
-                        />
-                        {/* Optional AI first-draft — BRING-YOUR-OWN-KEY (opt-in,
+                          {/* A contributions section adds its entries as cards
+                            (below this box); every other prose section cites
+                            an entry at the caret. */}
+                          {section.type === "narrative-knowledge" ? null : (
+                            <EvidencePicker
+                              cv={cv}
+                              sectionType={section.type}
+                              body={section.body ?? ""}
+                              locale={locale}
+                              onInsert={(token) => insertEvidenceToken(section.id, token)}
+                            />
+                          )}
+                          {/* Optional AI first-draft — BRING-YOUR-OWN-KEY (opt-in,
                             consented, the user's own provider). Only the four
                             narrative modules, and never in the anonymous preview
                             (it saves/relays server-side, which needs an account). */}
-                        {!anonymous && isNarrativeAiSection(section.type) ? (
-                          <NarrativeAiDraft
+                          {!anonymous && isNarrativeAiSection(section.type) ? (
+                            <NarrativeAiDraft
+                              section={section}
+                              locale={locale}
+                              onInsert={(text) => {
+                                const prev = section.body ?? "";
+                                const merged = (prev ? `${prev}\n\n` : "") + text;
+                                onChange(
+                                  setSectionBody(cv, section.id, merged.slice(0, PROSE_BODY_MAX)),
+                                );
+                              }}
+                            />
+                          ) : null}
+                        </label>
+                        {section.type === "narrative-knowledge" ? (
+                          <ContributionsEditor
+                            cv={cv}
                             section={section}
                             locale={locale}
-                            onInsert={(text) => {
-                              const prev = section.body ?? "";
-                              const merged = (prev ? `${prev}\n\n` : "") + text;
-                              onChange(
-                                setSectionBody(cv, section.id, merged.slice(0, PROSE_BODY_MAX)),
-                              );
-                            }}
+                            onChange={onChange}
                           />
                         ) : null}
-                      </label>
+                      </>
                     ) : isExpanded ? (
                       <>
                         {viewExcludedIds(cv.display, section.id).size > 0 ? (

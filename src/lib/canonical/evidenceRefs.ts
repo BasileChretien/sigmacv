@@ -146,7 +146,9 @@ export interface EvidenceResolveOptions {
  * that section is shown by the current layout (a hidden section is off the page,
  * not off the record — see the module note).
  */
-function evidenceIndex(cv: CanonicalCv): Map<string, { item: CvItem; section: CvSection }> {
+export function recordItemIndex(
+  cv: CanonicalCv,
+): Map<string, { item: CvItem; section: CvSection }> {
   const index = new Map<string, { item: CvItem; section: CvSection }>();
   for (const section of orderedSections(cv)) {
     if (isProseSectionType(section.type)) continue;
@@ -181,7 +183,7 @@ export function evidenceResolver(
   cv: CanonicalCv,
   opts?: EvidenceResolveOptions,
 ): (body: string) => ResolvedEvidenceSegment[] {
-  const index = evidenceIndex(cv);
+  const index = recordItemIndex(cv);
   const listedIds = opts?.listedIds;
   return (body) => {
     let seen = 0;
@@ -292,7 +294,7 @@ export interface EvidenceCandidate {
 
 /**
  * The entries the editor's "Cite one of my entries" picker offers for a prose
- * section: every entry on the record (see `evidenceIndex` — a section the layout
+ * section: every entry on the record (see `recordItemIndex` — a section the layout
  * hides is still there to cite), the ones from the sections that support this
  * module first (publications / datasets for "contributions to knowledge",
  * supervision / teaching for "individuals", …), then everything else. A free
@@ -307,7 +309,7 @@ export function evidenceCandidates(cv: CanonicalCv, type: CvSectionType): Eviden
   const first: EvidenceCandidate[] = [];
   const rest: EvidenceCandidate[] = [];
   const byId = new Map<string, CvItem>();
-  for (const { item, section } of evidenceIndex(cv).values()) {
+  for (const { item, section } of recordItemIndex(cv).values()) {
     byId.set(item.id, item);
     const relevant = !preferred || preferred.includes(section.type);
     const raw = item.displayTextOverride ?? item.csl?.title ?? item.displayText ?? item.id;
