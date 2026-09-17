@@ -657,6 +657,61 @@ describe("WorklistPanel — the file to upload", () => {
     expect(fileLine(container, "W-cond")).toBeNull();
   });
 
+  it("names no file on a HAL notice the record does not cover — the action says “only if” — while a right that has run keeps its version", () => {
+    const notice = {
+      source: "hal" as const,
+      id: "hal-05745947",
+      url: "https://hal.science/hal-05745947",
+      hasFile: false,
+      retrievedAt: "2026-09-16T00:00:00.000Z",
+    };
+    // The record allows the published version, on a preprint server only; its embargo is over.
+    const preprintOnly = {
+      ...ACCEPTED,
+      versions: ["publishedVersion" as const],
+      locations: ["Preprint Server"],
+    };
+    const noticed = (meta: CvItem["meta"], id: string) =>
+      withId(work({ selfArchiving: preprintOnly, repositoryCopies: [notice], ...meta }), id, id);
+    // HAL reached through the owner's own repositories, no country printed: no right shown.
+    const own = noticed({}, "W-own");
+    // A French paper of 2026: the right is shown, but its 12 months have not run.
+    const recent = noticed({ year: 2026, workCountries: ["FR"] }, "W-recent");
+    // A French paper of 2023: the right has run, so the law is the ground for HAL.
+    const byLaw = noticed({ workCountries: ["FR"] }, "W-law");
+    const hal = { sourceId: "S4306402512", name: "HAL", url: "https://hal.science/submit" };
+    const { container } = render(
+      <WorklistPanel
+        cv={makeCv([own, recent, byLaw], { depositRepositories: [hal] })}
+        locale="en-US"
+        today="2026-09-17"
+      />,
+    );
+    const primaryOf = (id: string) =>
+      container.querySelector<HTMLElement>(
+        `[data-worklist-item="${id}"] .cv-worklist-deposit-primary`,
+      )!;
+    const ownLink = within(primaryOf("W-own")).getByRole("link", {
+      name: "Add your file to the HAL notice hal-05745947 only if your publishing agreement allows it",
+    });
+    expect(ownLink.getAttribute("href")).toBe("https://hal.science/hal-05745947");
+    expect(fileLine(container, "W-own")).toBeNull();
+    within(primaryOf("W-recent")).getByRole("link", {
+      name: "Add your file to the HAL notice hal-05745947 only if a right shown above or your publishing agreement allows it",
+    });
+    expect(fileLine(container, "W-recent")).toBeNull();
+    within(primaryOf("W-law")).getByRole("link", {
+      name: "Add the accepted manuscript to the HAL notice hal-05745947",
+    });
+    expect(fileLine(container, "W-law")!.textContent).toBe(`${EN.wlFileLabel}${EN.wlFileAccepted}`);
+    // Nothing on a hedged row names the publisher's version.
+    for (const id of ["W-own", "W-recent"]) {
+      const row = container.querySelector<HTMLElement>(`[data-worklist-item="${id}"]`)!;
+      expect(row.textContent, id).not.toContain(EN.wlFilePublished);
+      expect(primaryOf(id).textContent, id).not.toContain("published version");
+    }
+  });
+
   it("puts the Chinese label right against the sentence, with the full-width colon only", () => {
     const accepted = withId(
       work({ selfArchiving: ACCEPTED, workCountries: ["FR"] }),
