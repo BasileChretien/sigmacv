@@ -4,7 +4,9 @@ import { useState } from "react";
 import { trackEvent } from "@/lib/analytics/track";
 import {
   depositAction,
+  depositActionVersion,
   depositNotes,
+  FILE_TO_UPLOAD,
   depositReason,
   depositRoutes,
   shareYourPaperHref,
@@ -115,6 +117,8 @@ export default function WorklistDeposit({
         setCopied(false);
       }
     };
+    // Which file: the author's own manuscript or the publisher's PDF, in plain words.
+    const version = depositActionVersion(item, primary, now);
     return (
       <div className="cv-worklist-deposit" data-worklist="deposit">
         <p className="cv-worklist-deposit-primary">
@@ -132,6 +136,12 @@ export default function WorklistDeposit({
             </>
           ) : null}
         </p>
+        {version ? (
+          <p className="cv-worklist-file" data-worklist="file">
+            <strong>{wu.wlFileLabel}</strong>
+            {wu[FILE_TO_UPLOAD[version]]}
+          </p>
+        ) : null}
       </div>
     );
   }

@@ -186,7 +186,7 @@ describe("WorklistPanel — the deposit action", () => {
     );
     expect(primaryText(byLaw.container)).toContain("Deposit the accepted manuscript in HAL");
     expect(byLaw.container.querySelector('[data-worklist="why"]')!.textContent).toBe(
-      "Allowed by law — Code de la recherche, art. L533-4 (loi n° 2016-1321, art. 30) (France): the accepted manuscript, 12 months after publication (since 2024-12-31), under the conditions in the record below.",
+      "Allowed by law — Code de la recherche, art. L533-4 (loi n° 2016-1321, art. 30) (France): 12 months after publication (since 2024-12-31), under the conditions in the record below.",
     );
     byLaw.unmount();
     // Spain's rule is a deposit requirement, not a right over the publisher's
@@ -506,7 +506,7 @@ describe("WorklistPanel — papers open at the publisher, to put in a repository
       "Deposit the published version in HAL",
     );
     expect(row.querySelector('[data-worklist="why"]')!.textContent).toBe(
-      "Allowed by the work's licence (cc-by): the published version.",
+      "Allowed by the work's licence (cc-by).",
     );
     openRows(container);
     expect(depositDetails(container).querySelector(".cv-worklist-deposit-notes")!.textContent).toBe(
@@ -580,5 +580,90 @@ describe("WorklistPanel — works not yet checked for a copy", () => {
         '.cv-worklist-group:not([data-worklist]) [data-worklist-item="W-unchecked"]',
       ),
     ).toBeNull();
+  });
+});
+
+describe("WorklistPanel — the file to upload", () => {
+  const fileLine = (container: HTMLElement, id: string) =>
+    container.querySelector<HTMLElement>(`[data-worklist-item="${id}"] [data-worklist="file"]`);
+
+  it("says in plain words whether it is the author's own manuscript or the publisher's PDF, visibly, under the action", () => {
+    const accepted = withId(
+      work({ selfArchiving: ACCEPTED, workCountries: ["FR"] }),
+      "W-aam",
+      "By the record",
+    );
+    const published = withId(
+      work({ oaIsOpen: true, oaStatus: "gold", license: "cc-by" }),
+      "W-vor",
+      "Open at the publisher",
+    );
+    // A record naming only the submitted manuscript, for any repository (no statute in JP).
+    const submitted = withId(
+      work({
+        selfArchiving: {
+          ...ACCEPTED,
+          versions: ["submittedVersion"],
+          locations: ["Any Repository"],
+        },
+        workCountries: ["JP"],
+      }),
+      "W-smur",
+      "Submitted only",
+    );
+    const { container } = render(
+      <WorklistPanel cv={makeCv([accepted, published, submitted])} locale="en-US" />,
+    );
+    const aam = fileLine(container, "W-aam")!;
+    expect(aam.textContent).toBe(
+      "File to upload: your own manuscript as accepted after peer review, without the journal's copy-editing and layout. Not the publisher's PDF.",
+    );
+    expect(aam.querySelector("strong")!.textContent).toBe(EN.wlFileLabel);
+    // Outside the row's disclosure: seen without opening anything.
+    expect(aam.closest("details.cv-worklist-row-more")).toBeNull();
+    expect(fileLine(container, "W-vor")!.textContent).toBe(
+      `${EN.wlFileLabel}${EN.wlFilePublished}`,
+    );
+    expect(fileLine(container, "W-smur")!.textContent).toBe(
+      `${EN.wlFileLabel}${EN.wlFileSubmitted}`,
+    );
+    // The reason under it names the ground only: the version is named by the action and the file line.
+    const why = container.querySelector('[data-worklist-item="W-aam"] [data-worklist="why"]')!;
+    expect(why.textContent).toBe(
+      "Allowed by the publisher's policy, as OA.Works recorded it on 2026-09-15. The embargo ended on 2021-01-23.",
+    );
+  });
+
+  it("names no file when the action is only if the agreement allows it — the record does not cover the place", () => {
+    // Published version allowed, but in an institutional repository only; a JP paper
+    // routes to Zenodo, which the record does not name.
+    const conditional = withId(
+      work({
+        selfArchiving: {
+          ...ACCEPTED,
+          versions: ["publishedVersion"],
+          locations: ["Institutional Repository"],
+        },
+        workCountries: ["JP"],
+      }),
+      "W-cond",
+      "Place not covered",
+    );
+    const { container } = render(<WorklistPanel cv={makeCv([conditional])} locale="en-US" />);
+    const row = container.querySelector<HTMLElement>('[data-worklist-item="W-cond"]')!;
+    expect(row.querySelector(".cv-worklist-deposit-primary")!.textContent).toContain(
+      "only if your publishing agreement allows it",
+    );
+    expect(fileLine(container, "W-cond")).toBeNull();
+  });
+
+  it("puts the Chinese label right against the sentence, with the full-width colon only", () => {
+    const accepted = withId(
+      work({ selfArchiving: ACCEPTED, workCountries: ["FR"] }),
+      "W-aam",
+      "Record",
+    );
+    const { container } = render(<WorklistPanel cv={makeCv([accepted])} locale="zh-CN" />);
+    expect(fileLine(container, "W-aam")!.textContent).toMatch(/^要上传的文件：您本人的稿件/);
   });
 });
