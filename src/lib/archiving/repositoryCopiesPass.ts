@@ -11,44 +11,67 @@ import { lookupEuropePmcCopy } from "@/lib/repositoryCopies/europepmc";
 import { lookupHalCopy } from "@/lib/repositoryCopies/hal";
 import { lookupOpenaireCopy } from "@/lib/repositoryCopies/openaire";
 import { FAILED, type CopyLookup, type RepositoryCopy } from "@/lib/repositoryCopies/shared";
-import { AT_PUBLISHER } from "./depositNow";
 import { lookupZenodoCopy, ZENODO_MIN_INTERVAL_MS } from "@/lib/repositoryCopies/zenodo";
+import { AT_PUBLISHER } from "./depositNow";
 import { answeredWithin } from "./freshness";
 
 /**
  * The OWNER sync's repository-copies pass: for each countable journal article
  * with a DOI in either worklist list — closed, or open at the publisher only —
- * the closed ones first, whether a copy already sits in a repository
- * OpenAlex does not know about (`meta.repositoryCopies`) — HAL, Europe PMC, an
- * OpenAIRE-harvested repository, Zenodo, asked in that order, the order that
- * found the most on a real CV (2026-09-16: 17 of 51 in HAL, one in Europe PMC,
- * none the other two knew — see `repositoryCopies/shared.ts`).
+ * the closed ones first, whether a copy already sits in a repository OpenAlex
+ * does not know about (`meta.repositoryCopies`): HAL, Europe PMC, an
+ * OpenAIRE-harvested repository, Zenodo (`COPY_LOOKUPS`, the order that found
+ * the most on a real CV — 2026-09-16: 17 of 51 in HAL, one in Europe PMC, none
+ * the other two knew; see `repositoryCopies/shared.ts`).
+ *
+ * Two phases inside one budget. Phase 1 asks the FIRST source (HAL: fast, and
+ * where nearly every copy was) for EVERY work due, up to the cap, within its
+ * own share of the budget ({@link FIRST_PHASE_SHARE}) so a hanging HAL cannot
+ * starve the others. Phase 2 asks the other sources, in order, for the works
+ * phase 1 did not settle with a file, until the budget runs out. Before this
+ * split, one sync asked all four sources of one work before the next work and
+ * reached 7 of 52 in 12 s (2026-09-16 on the live CV) — the slow sources
+ * starved the one that finds. Known cost: a work phase 2 did not reach is
+ * asked HAL again next sync (cheap; a per-source stamp would spare it).
  *
  * Called from `syncCvForUser` ONLY, like the OA.Works pass beside it, never from
  * `buildCvFromOrcid` (the anonymous preview shares that function). Polite by
- * construction: one work at a time, each source once, no retry, at most
- * {@link REPOSITORY_COPIES_MAX_WORKS} works per sync inside
+ * construction: one call at a time, each source once per work, no retry, at
+ * most {@link REPOSITORY_COPIES_MAX_WORKS} works per sync inside
  * {@link REPOSITORY_COPIES_BUDGET_MS} of wall clock, never-checked works first,
- * Zenodo calls spaced by {@link ZENODO_MIN_INTERVAL_MS} (its guest limit), and a
- * work answered within {@link REPOSITORY_COPIES_REFRESH_DAYS} days is not asked
- * again. A source stops the search once a copy WITH A FILE is found: the fact
- * the worklist acts on (the paper is open in a repository). Fail-soft: a source
- * that fails on a work without any copy found leaves the stored copies and
- * stamps the ATTEMPT only, so the work is retried behind the works never
- * examined (the OA.Works pass's lesson); copies found before a later source
- * failed are an answer. A work that stops being a candidate loses its copies.
+ * Zenodo calls spaced by {@link ZENODO_MIN_INTERVAL_MS} (its guest limit), and
+ * a work answered within {@link REPOSITORY_COPIES_REFRESH_DAYS} days is not
+ * asked again. The search of a work stops at the first copy WITH A FILE: the
+ * fact the worklist acts on (the paper is open in a repository).
+ *
+ * What is stored is settled SOURCE BY SOURCE: a source that answered this sync
+ * (copies, or none) replaces what it said before; a source that failed, or was
+ * not reached before the budget ran out, keeps its stored copies. A work is
+ * ANSWERED — stamped, and not asked again within the window — when a file was
+ * found or every source answered; otherwise only the ATTEMPT is stamped, so the
+ * work returns behind the works never examined (the OA.Works pass's lesson),
+ * with the notices found so far already in the worklist. A source that throws
+ * is a failure of that source, never of the sync. A work that stops being a
+ * candidate loses its copies.
  */
 
 export const REPOSITORY_COPIES_MAX_WORKS = 20;
 const REPOSITORY_COPIES_BUDGET_MS = 12_000;
+/** Phase 1 may spend this share of the budget; the rest is phase 2's at least. */
+const FIRST_PHASE_SHARE = 2 / 3;
 export const REPOSITORY_COPIES_REFRESH_DAYS = 7;
 /** Across the sources, per work (the schema enforces the same). */
 const MAX_COPIES = 8;
 
+type Source = RepositoryCopy["source"];
 type Lookup = (doi: string, mailto?: string, timeoutMs?: number) => Promise<CopyLookup>;
+type StoredCopy = NonNullable<CvItem["meta"]["repositoryCopies"]>[number];
 
-/** The sources in the order asked; exported so a test can see the order. */
-export const COPY_LOOKUPS: ReadonlyArray<readonly [RepositoryCopy["source"], Lookup]> = [
+/**
+ * The sources in the order asked. The FIRST is asked for every work due before
+ * any other source is asked at all (phase 1); exported so a test can see the order.
+ */
+export const COPY_LOOKUPS: ReadonlyArray<readonly [Source, Lookup]> = [
   ["hal", lookupHalCopy],
   ["europepmc", lookupEuropePmcCopy],
   ["openaire", lookupOpenaireCopy],
@@ -99,48 +122,91 @@ function withoutStaleCopies(sections: CvSection[], candidates: ReadonlySet<strin
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-/**
- * The copies one work has, asking each source in turn until one holds a file.
- * `answered` is false when a source failed and nothing was found: the work is
- * then retried later; with copies in hand, a later failure is not worth a retry.
- */
-async function lookupCopies(
+/** What one source said about one work this sync. */
+interface Outcome {
+  /** `skipped`: not asked — the budget was out, or a file was already found. */
+  status: "found" | "none" | "failed" | "skipped";
+  copies: RepositoryCopy[];
+}
+type Outcomes = ReadonlyMap<Source, Outcome>;
+
+const SKIPPED: Outcome = { status: "skipped", copies: [] };
+const hasFile = (o: Outcome) => o.copies.some((c) => c.hasFile);
+const answered = (o: Outcome) => o.status === "found" || o.status === "none";
+
+/** One source, one work — within the budget; a client that throws has failed. */
+async function ask(
+  lookup: Lookup,
   doi: string,
   mailto: string,
-  lookups: typeof COPY_LOOKUPS,
+  remainingMs: () => number,
+): Promise<Outcome> {
+  if (remainingMs() <= 0) return SKIPPED;
+  let result: CopyLookup;
+  try {
+    result = await lookup(doi, mailto, Math.max(1, remainingMs()));
+  } catch {
+    result = FAILED;
+  }
+  return result.status === "found"
+    ? { status: "found", copies: result.copies }
+    : { status: result.status, copies: [] };
+}
+
+/** Phase 2 for one work: the remaining sources in order, until a file or the budget's end. */
+async function askRest(
+  doi: string,
+  mailto: string,
+  rest: ReadonlyArray<readonly [Source, Lookup]>,
   remainingMs: () => number,
   pace: { lastZenodo: number; zenodoIntervalMs: number },
-): Promise<{ copies: RepositoryCopy[]; answered: boolean }> {
-  const copies: RepositoryCopy[] = [];
-  let failed = false;
-  for (const [source, lookup] of lookups) {
-    if (remainingMs() <= 0) {
-      failed = true;
-      break;
+): Promise<Outcomes> {
+  const outcomes = new Map<Source, Outcome>();
+  let settled = false;
+  for (const [source, lookup] of rest) {
+    if (settled) {
+      outcomes.set(source, SKIPPED);
+      continue;
     }
-    if (source === "zenodo") {
+    if (source === "zenodo" && remainingMs() > 0) {
       const wait = pace.lastZenodo + pace.zenodoIntervalMs - Date.now();
       if (wait > 0) await sleep(Math.min(wait, remainingMs()));
       pace.lastZenodo = Date.now();
     }
-    // A client answers found / none / failed; should one ever throw (a shape no
-    // guard foresaw), that is a failure of this source, never of the sync.
-    let result: CopyLookup;
-    try {
-      result = await lookup(doi, mailto, Math.max(1, remainingMs()));
-    } catch {
-      result = FAILED;
-    }
-    if (result.status === "failed") {
-      failed = true;
-      continue;
-    }
-    if (result.status === "found") {
-      copies.push(...result.copies);
-      if (result.copies.some((c) => c.hasFile)) break;
+    const outcome = await ask(lookup, doi, mailto, remainingMs);
+    outcomes.set(source, outcome);
+    if (hasFile(outcome)) settled = true;
+  }
+  return outcomes;
+}
+
+/**
+ * The copies to store for one work, source by source: this sync's answer where
+ * there is one, the stored copies of that source otherwise — this sync's first,
+ * so the cap never drops a new copy for a kept one. Answered = a file was
+ * found, or every source answered.
+ */
+function settle(
+  order: readonly Source[],
+  outcomes: Outcomes,
+  stored: readonly StoredCopy[] | undefined,
+  now: string,
+): { copies: StoredCopy[]; answered: boolean } {
+  const fresh: StoredCopy[] = [];
+  const kept: StoredCopy[] = [];
+  let every = true;
+  let file = false;
+  for (const source of order) {
+    const outcome = outcomes.get(source);
+    if (outcome !== undefined && answered(outcome)) {
+      fresh.push(...outcome.copies.map((c) => ({ ...c, retrievedAt: now })));
+      if (hasFile(outcome)) file = true;
+    } else {
+      every = false;
+      kept.push(...(stored ?? []).filter((c) => c.source === source));
     }
   }
-  return { copies: copies.slice(0, MAX_COPIES), answered: copies.length > 0 || !failed };
+  return { copies: [...fresh, ...kept].slice(0, MAX_COPIES), answered: file || every };
 }
 
 export async function enrichCvWithRepositoryCopies(
@@ -175,31 +241,59 @@ export async function enrichCvWithRepositoryCopies(
   const due = [...candidates.filter((c) => !c.open), ...candidates.filter((c) => c.open)].filter(
     (t) => !answeredWithin(t.answeredAt, now, REPOSITORY_COPIES_REFRESH_DAYS),
   );
-  const targets = rotationQueue(due, REPOSITORY_COPIES_MAX_WORKS);
+  const [first, ...rest] = lookups;
+  /* v8 ignore next -- COPY_LOOKUPS is never empty; an injected empty list asks nothing */
+  const targets = first ? rotationQueue(due, REPOSITORY_COPIES_MAX_WORKS) : [];
+  const order = lookups.map(([source]) => source);
 
-  const deadline = Date.now() + REPOSITORY_COPIES_BUDGET_MS;
+  const started = Date.now();
+  const deadline = started + REPOSITORY_COPIES_BUDGET_MS;
   const remainingMs = () => deadline - Date.now();
-  const { examined, results } = await mapWithinBudget(
-    "repositories.copies",
+  const firstBudgetMs = Math.round(REPOSITORY_COPIES_BUDGET_MS * FIRST_PHASE_SHARE);
+  const firstDeadline = started + firstBudgetMs;
+  const firstRemainingMs = () => firstDeadline - Date.now();
+  // Phase 1: the first source, every work due, within its share.
+  const phase1 = await mapWithinBudget(
+    "repositories.copies.first",
     targets,
-    (t) => lookupCopies(t.doi, mailto, lookups, remainingMs, pace),
+    (t) => ask(first![1], t.doi, mailto, firstRemainingMs),
     1,
-    REPOSITORY_COPIES_BUDGET_MS,
+    firstBudgetMs,
   );
-  const hits = new Map<string, Partial<CvItem["meta"]>>();
-  examined.forEach((target, idx) => {
-    const lookup = results[idx];
+  // Phase 2: the other sources, for the works phase 1 did not settle, while the budget lasts.
+  const pending = phase1.examined.filter((_, idx) => {
+    const outcome = phase1.results[idx];
     /* v8 ignore next -- mapWithinBudget returns one result per examined target */
-    if (!lookup || !lookup.answered) return;
+    return outcome === undefined || !hasFile(outcome);
+  });
+  const phase2 =
+    pending.length > 0 && remainingMs() > 0
+      ? await mapWithinBudget(
+          "repositories.copies.rest",
+          pending,
+          (t) => askRest(t.doi, mailto, rest, remainingMs, pace),
+          1,
+          remainingMs(),
+        )
+      : { examined: [] as typeof pending, results: [] as Outcomes[] };
+  const restBy = new Map(phase2.examined.map((t, idx) => [posKey(t), phase2.results[idx]]));
+
+  const hits = new Map<string, Partial<CvItem["meta"]>>();
+  phase1.examined.forEach((target, idx) => {
+    const outcomes = new Map<Source, Outcome>(restBy.get(posKey(target)) ?? []);
+    const firstOutcome = phase1.results[idx];
+    /* v8 ignore next -- mapWithinBudget returns one result per examined target */
+    if (!firstOutcome) return;
+    outcomes.set(first![0], firstOutcome);
+    const stored = cv.sections[target.s]?.items[target.i]?.meta.repositoryCopies;
+    const result = settle(order, outcomes, stored, now);
     hits.set(posKey(target), {
-      repositoryCopies: lookup.copies.length
-        ? lookup.copies.map((c) => ({ ...c, retrievedAt: now }))
-        : undefined,
-      repositoryCopiesCheckedAt: now,
+      repositoryCopies: result.copies.length ? result.copies : undefined,
+      ...(result.answered ? { repositoryCopiesCheckedAt: now } : {}),
     });
   });
 
-  const sections = applyPass(cv, examined, hits, { repositoryCopiesTriedAt: now });
+  const sections = applyPass(cv, phase1.examined, hits, { repositoryCopiesTriedAt: now });
   return {
     ...cv,
     sections: withoutStaleCopies(sections, new Set(candidates.map(posKey))),

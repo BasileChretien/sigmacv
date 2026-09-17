@@ -13,12 +13,13 @@ import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonica
 vi.mock("@/lib/db", () => ({ prisma: {} }));
 
 /**
- * The owner sync's repository-copies pass: one closed journal article at a
- * time, the sources in order until one holds a FILE; copies stored with their
- * retrieval date; "nothing anywhere" clears; a source failing with nothing found
- * keeps the old copies and is retried behind the works never examined; a work
- * that stops being a candidate loses its copies. The clients are injected — their
- * own behaviour is `repository-copies-clients.test.ts`.
+ * The owner sync's repository-copies pass: the first source (HAL) for every
+ * work due, then the other sources in order for the works it did not settle
+ * with a FILE; copies stored with their retrieval date, settled source by
+ * source; "nothing anywhere" clears; a source failing keeps what it said before
+ * and the work is retried behind the works never examined; a work that stops
+ * being a candidate loses its copies. The clients are injected — their own
+ * behaviour is `repository-copies-clients.test.ts`.
  */
 
 const NOW = "2026-09-16T12:00:00.000Z";
@@ -136,7 +137,7 @@ describe("enrichCvWithRepositoryCopies", () => {
     expect(item(cv, "W1").meta.repositoryCopiesCheckedAt).toBe(NOW);
   });
 
-  it("keeps the old copies when a source fails with nothing found, stamping the attempt only — and treats copies found before a failure as an answer", async () => {
+  it("keeps what a failing source said before, stamping the attempt only — a notice found beside a failure is stored but not an answer", async () => {
     const old = { ...halNotice, retrievedAt: daysAgo(30) };
     const failing = sources({ hal: () => ({ status: "failed" }) });
     const kept = await run(
@@ -151,9 +152,62 @@ describe("enrichCvWithRepositoryCopies", () => {
       hal: () => ({ status: "found", copies: [halNotice] }),
       europepmc: () => ({ status: "failed" }),
     });
-    const answered = await run(makeCv([work("W1")]), partial);
-    expect(item(answered, "W1").meta.repositoryCopies?.map((c) => c.id)).toEqual(["hal-05745947"]);
-    expect(item(answered, "W1").meta.repositoryCopiesCheckedAt).toBe(NOW);
+    const stored = await run(makeCv([work("W1")]), partial);
+    expect(item(stored, "W1").meta.repositoryCopies?.map((c) => c.id)).toEqual(["hal-05745947"]);
+    expect(item(stored, "W1").meta.repositoryCopiesCheckedAt).toBeUndefined();
+    expect(item(stored, "W1").meta.repositoryCopiesTriedAt).toBe(NOW);
+  });
+
+  it("asks the first source for every work due before any other source, and spares a work settled with a file the rest", async () => {
+    const s = sources({
+      hal: (doi) =>
+        doi.endsWith("W1") ? { status: "found", copies: [halFile] } : { status: "none" },
+    });
+    await run(makeCv([work("W1"), work("W2"), work("W3")]), s);
+    expect(s.asked).toEqual([
+      "hal:10.1234/W1",
+      "hal:10.1234/W2",
+      "hal:10.1234/W3",
+      "europepmc:10.1234/W2",
+      "openaire:10.1234/W2",
+      "zenodo:10.1234/W2",
+      "europepmc:10.1234/W3",
+      "openaire:10.1234/W3",
+      "zenodo:10.1234/W3",
+    ]);
+  });
+
+  it("when the budget ends after the first source: the notices found are stored, the attempt stamped, and what the other sources said before is kept", async () => {
+    const start = Date.now();
+    const s = sources({
+      hal: (doi) => {
+        if (doi.endsWith("W1")) vi.spyOn(Date, "now").mockImplementation(() => start + 60_000);
+        return { status: "found", copies: [halNotice] };
+      },
+    });
+    const oldPmc = { ...pmc, hasFile: false, retrievedAt: daysAgo(30) };
+    try {
+      const cv = await run(
+        makeCv([
+          work("W1", { repositoryCopies: [oldPmc], repositoryCopiesCheckedAt: daysAgo(30) }),
+          work("W2"),
+        ]),
+        s,
+      );
+      // W2 was never examined, so the rotation asks it first; the clock jumps on W1, the last of phase 1.
+      expect(s.asked).toEqual(["hal:10.1234/W2", "hal:10.1234/W1"]);
+      expect(item(cv, "W1").meta.repositoryCopies).toEqual([
+        { ...halNotice, retrievedAt: NOW },
+        oldPmc,
+      ]);
+      expect(item(cv, "W1").meta.repositoryCopiesCheckedAt).toBe(daysAgo(30));
+      expect(item(cv, "W1").meta.repositoryCopiesTriedAt).toBe(NOW);
+      expect(item(cv, "W2").meta.repositoryCopies).toEqual([{ ...halNotice, retrievedAt: NOW }]);
+      expect(item(cv, "W2").meta.repositoryCopiesCheckedAt).toBeUndefined();
+      expect(item(cv, "W2").meta.repositoryCopiesTriedAt).toBe(NOW);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 
   it("asks the closed journal articles with a DOI first, then the ones open at the publisher only; never-checked first, within the cap, not again within the refresh window", async () => {
@@ -232,7 +286,46 @@ describe("enrichCvWithRepositoryCopies", () => {
     expect(at[1]! - at[0]!).toBeGreaterThanOrEqual(50);
   });
 
-  it("stops asking a work's remaining sources once the budget is spent, keeping what was found", async () => {
+  it("clears what a source now denies while keeping what a failing source said before — source by source, in one work", async () => {
+    const oldHal = { ...halNotice, retrievedAt: daysAgo(30) };
+    const oldPmc = { ...pmc, hasFile: false, retrievedAt: daysAgo(30) };
+    const s = sources({ europepmc: () => ({ status: "failed" }) });
+    const cv = await run(
+      makeCv([
+        work("W1", { repositoryCopies: [oldHal, oldPmc], repositoryCopiesCheckedAt: daysAgo(30) }),
+      ]),
+      s,
+    );
+    expect(item(cv, "W1").meta.repositoryCopies).toEqual([oldPmc]);
+    expect(item(cv, "W1").meta.repositoryCopiesCheckedAt).toBe(daysAgo(30));
+    expect(item(cv, "W1").meta.repositoryCopiesTriedAt).toBe(NOW);
+  });
+
+  it("when the budget ends inside the second phase: the sources not reached are skipped without a call, what was found is stored, the attempt stamped", async () => {
+    const start = Date.now();
+    const pmcNotice = { ...pmc, hasFile: false };
+    const s = sources({
+      hal: () => ({ status: "found", copies: [halNotice] }),
+      europepmc: () => {
+        vi.spyOn(Date, "now").mockImplementation(() => start + 60_000);
+        return { status: "found", copies: [pmcNotice] };
+      },
+    });
+    try {
+      const cv = await run(makeCv([work("W1")]), s);
+      expect(s.asked).toEqual(["hal:10.1234/W1", "europepmc:10.1234/W1"]);
+      expect(item(cv, "W1").meta.repositoryCopies?.map((c) => c.id)).toEqual([
+        "hal-05745947",
+        "PMC1",
+      ]);
+      expect(item(cv, "W1").meta.repositoryCopiesCheckedAt).toBeUndefined();
+      expect(item(cv, "W1").meta.repositoryCopiesTriedAt).toBe(NOW);
+    } finally {
+      vi.restoreAllMocks();
+    }
+  });
+
+  it("launches no second phase at all when the first spent the budget, keeping what it found", async () => {
     const start = Date.now();
     const s = sources({
       hal: () => {
