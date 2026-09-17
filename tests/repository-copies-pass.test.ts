@@ -408,17 +408,25 @@ describe("enrichCvWithRepositoryCopies", () => {
   });
 
   it("hands the sync's OpenAIRE access token to the OpenAIRE client — exchanged once, at the first call — and nothing to the others", async () => {
-    const getToken = vi.fn(async () => "tok-1");
-    const withToken = defaultLookups(getToken);
-    expect(withToken.map(([source]) => source)).toEqual(["hal", "europepmc", "openaire"]);
-    expect(getToken).not.toHaveBeenCalled();
-    await withToken[2]![1]("10.1234/W1", MAILTO, 500);
-    await withToken[2]![1]("10.1234/W2", MAILTO, 500);
-    expect(getToken).toHaveBeenCalledTimes(1);
-    expect(openaire.lookup).toHaveBeenLastCalledWith("10.1234/W2", MAILTO, 500, "tok-1");
-    await defaultLookups(async () => null)[2]![1]("10.1234/W3", MAILTO, 500);
-    expect(openaire.lookup).toHaveBeenLastCalledWith("10.1234/W3", MAILTO, 500, null);
-    expect(defaultLookups()[0]![1]).toBe(COPY_LOOKUPS[0]![1]);
+    // The call hands on its timeout minus the time the exchange took. The clock is
+    // frozen so that time is exactly zero: a real clock can tick in between on a
+    // loaded runner and hand on 499.
+    vi.spyOn(Date, "now").mockReturnValue(Date.parse(NOW));
+    try {
+      const getToken = vi.fn(async () => "tok-1");
+      const withToken = defaultLookups(getToken);
+      expect(withToken.map(([source]) => source)).toEqual(["hal", "europepmc", "openaire"]);
+      expect(getToken).not.toHaveBeenCalled();
+      await withToken[2]![1]("10.1234/W1", MAILTO, 500);
+      await withToken[2]![1]("10.1234/W2", MAILTO, 500);
+      expect(getToken).toHaveBeenCalledTimes(1);
+      expect(openaire.lookup).toHaveBeenLastCalledWith("10.1234/W2", MAILTO, 500, "tok-1");
+      await defaultLookups(async () => null)[2]![1]("10.1234/W3", MAILTO, 500);
+      expect(openaire.lookup).toHaveBeenLastCalledWith("10.1234/W3", MAILTO, 500, null);
+      expect(defaultLookups()[0]![1]).toBe(COPY_LOOKUPS[0]![1]);
+    } finally {
+      vi.restoreAllMocks();
+    }
   });
 
   it("bounds the token exchange by the call's timeout: a slow exchange goes anonymous with the time left, or fails when none is", async () => {
