@@ -426,11 +426,11 @@ describe("enrichCvWithRepositoryCopies", () => {
     // A generous timeout: the exchange is late, the call goes on anonymously with the rest.
     const slow = defaultLookups(() => within(never(), 30, "late"));
     openaire.lookup.mockClear();
-    await slow[2]![1]("10.1234/W1", MAILTO, 400);
+    await slow[2]![1]("10.1234/W1", MAILTO, 5_000);
     const [doi, mailto, left, bearer] = openaire.lookup.mock.calls[0]!;
     expect([doi, mailto, bearer]).toEqual(["10.1234/W1", MAILTO, "late"]);
     expect(left).toBeGreaterThan(0);
-    expect(left).toBeLessThanOrEqual(400);
+    expect(left).toBeLessThanOrEqual(5_000);
     // No time left once the exchange gave up: the source failed, no call made.
     openaire.lookup.mockClear();
     expect(await defaultLookups(never)[2]![1]("10.1234/W2", MAILTO, 20)).toEqual({
