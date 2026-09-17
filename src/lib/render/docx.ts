@@ -23,6 +23,9 @@ import { cvChartSvgs } from "./charts";
 import { splitSelf } from "./emphasize";
 import { safeHref } from "./escape";
 import { proseEvidence } from "./evidenceRefs";
+import { contributionMeta } from "./contributionsText";
+import { proseStarterStrings } from "@/lib/i18n/proseStarter";
+import type { PreparedContribution } from "./prepare";
 import { labeledContact, textHeader } from "./headerText";
 import { cvSlug } from "./html";
 import { isSummaryBlockHidden, metricsLineText } from "./metrics";
@@ -154,6 +157,79 @@ function proseSectionParagraphs(
         spacing: { after: 120 },
       }),
     );
+  }
+  return out;
+}
+
+/**
+ * A contributions section's structured contributions as DOCX paragraphs: a bold
+ * numbered title with its period and audience, the role and impact under bold
+ * labels, each place it is cited (a hyperlink when it has a safe link), and the
+ * linked entry's reference, indented, the account holder's name in bold.
+ */
+function contributionParagraphs(
+  cv: CanonicalCv,
+  list: readonly PreparedContribution[],
+): Paragraph[] {
+  const s = proseStarterStrings(cv.display.locale);
+  const out: Paragraph[] = [];
+  const indent = { left: 360 };
+  for (const p of list) {
+    const meta = contributionMeta(p, s);
+    out.push(
+      new Paragraph({
+        children: [
+          new TextRun({ text: `${p.n}. ${p.title}`, bold: true }),
+          ...(meta ? [new TextRun({ text: ` (${meta})` })] : []),
+        ],
+        spacing: { before: 160, after: 60 },
+        keepNext: true,
+      }),
+    );
+    const fact = (label: string, text: string | undefined) => {
+      const value = text?.trim();
+      if (!value) return;
+      out.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: `${label} : `, bold: true }),
+            new TextRun(value.replace(/\s*\n+\s*/g, " ")),
+          ],
+          indent,
+          spacing: { after: 60 },
+        }),
+      );
+    };
+    fact(s.role, p.contribution.role);
+    fact(s.impact, p.contribution.impact);
+    for (const c of (p.contribution.citedIn ?? []).filter((x) => x.text.trim())) {
+      const href = safeHref(c.url);
+      const text = c.text.trim();
+      out.push(
+        new Paragraph({
+          children: [
+            new TextRun({ text: `${s.citedIn} : `, bold: true }),
+            href
+              ? new ExternalHyperlink({
+                  link: href,
+                  children: [new TextRun({ text, style: "Hyperlink" })],
+                })
+              : new TextRun(text),
+          ],
+          indent,
+          spacing: { after: 60 },
+        }),
+      );
+    }
+    if (p.reference) {
+      const runs =
+        cv.display.highlightSelf && p.item && p.item.selfNameVariants.length > 0
+          ? splitSelf(p.reference, p.item.selfNameVariants).map(
+              (seg) => new TextRun({ text: seg.text, bold: seg.self, size: 20 }),
+            )
+          : [new TextRun({ text: p.reference, size: 20 })];
+      out.push(new Paragraph({ children: runs, indent, spacing: { after: 120 } }));
+    }
   }
   return out;
 }
@@ -311,13 +387,16 @@ export async function renderCvDocxBuffer(cv: CanonicalCv, opts?: RenderOpts): Pr
     }
   }
 
-  for (const { section, intro, items } of sections) {
+  for (const { section, intro, items, contributions } of sections) {
     // Prose sections (narrative contributions / a statement) render their
-    // free-text body in the section flow, in their reordered position.
+    // free-text body in the section flow, in their reordered position, then the
+    // structured contributions of a contributions section.
     if (isProseSectionType(section.type)) {
       const body = (section.body ?? "").trim();
-      if (body) {
+      const list = contributions ?? [];
+      if (body || list.length > 0) {
         children.push(...proseSectionParagraphs(section.title, body, evidence.resolve, bookmarkOf));
+        children.push(...contributionParagraphs(cv, list));
       }
       continue;
     }

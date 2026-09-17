@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CslItemSchema } from "@/types/csl";
 import { CREDIT_ROLES, CREDIT_ROLE_SOURCES } from "./credit";
+import { migrateContributionStubs } from "./migrateContributions";
 import { migrateSoftwareSection } from "./migrateSoftware";
 
 /**
@@ -1325,6 +1326,37 @@ export function displayInstitution(item: Pick<CvItem, "meta">, locale: string): 
   return (lang ? names[lang] : undefined) ?? base;
 }
 
+/** How many structured contributions a section may hold (funders ask for ten or fewer). */
+export const CONTRIBUTIONS_MAX = 30;
+
+/**
+ * One STRUCTURED contribution of a contributions section (`narrative-knowledge`),
+ * see `canonical/contributions.ts`. It links one entry of the record (`itemId`) —
+ * whose title and reference are derived live, never copied — and holds what only
+ * the owner can write. `title` is the owner's own wording (required in practice
+ * for a contribution that is not an entry of the record). `audience` is the FRQ's
+ * clientèle: A academic community, B practice community, C general public.
+ * `citedIn` is where the work was taken up, as the owner states it (a guideline,
+ * a report, a policy), each with an optional link — free text, never a metric.
+ */
+const ContributionSchema = z.object({
+  id: z.string().max(100),
+  itemId: z.string().max(1024).optional(),
+  title: z.string().max(1000).optional(),
+  period: z.string().max(100).optional(),
+  audience: z
+    .array(z.enum(["A", "B", "C"]))
+    .max(3)
+    .optional(),
+  role: z.string().max(3000).optional(),
+  impact: z.string().max(3000).optional(),
+  citedIn: z
+    .array(z.object({ text: z.string().max(600), url: z.string().max(2048).optional() }))
+    .max(20)
+    .optional(),
+});
+export type Contribution = z.infer<typeof ContributionSchema>;
+
 const CvSectionSchema = z.object({
   id: z.string().max(200),
   type: CvSectionTypeSchema,
@@ -1345,8 +1377,21 @@ const CvSectionSchema = z.object({
    * HTML/markdown). Optional + back-compat: a non-prose section omits it.
    */
   body: z.string().max(PROSE_BODY_MAX).optional(),
+  /**
+   * The structured contributions of a CONTRIBUTIONS section (`narrative-knowledge`),
+   * printed after the prose body by every renderer (`render/prepare.ts`). Absent on
+   * every other section.
+   */
+  contributions: z.array(ContributionSchema).max(CONTRIBUTIONS_MAX).optional(),
 });
 export type CvSection = z.infer<typeof CvSectionSchema>;
+
+/** Whether a prose section has anything to print: a non-blank body or a contribution. */
+export function proseSectionHasContent(
+  section: Pick<CvSection, "body" | "contributions">,
+): boolean {
+  return (section.body ?? "").trim().length > 0 || (section.contributions?.length ?? 0) > 0;
+}
 
 /**
  * Author-level metrics captured from OpenAlex at sync time. Stored regardless
@@ -2275,7 +2320,9 @@ export function migrateCanonicalDocument(input: unknown): unknown {
   // Only upgrade KNOWN older versions; a higher/unknown one is returned untouched
   // (left for validation to reject), never copied.
   if (version > CANONICAL_SCHEMA_VERSION) return original;
-  if (version === CANONICAL_SCHEMA_VERSION) return migrateSoftwareSection(original);
+  if (version === CANONICAL_SCHEMA_VERSION) {
+    return migrateContributionStubs(migrateSoftwareSection(original));
+  }
   // Migration mutates as it upgrades — work on a shallow copy so the caller's
   // object is never changed (immutability invariant; `owner` is likewise copied
   // inside migrateNarrativeToSections).
@@ -2285,7 +2332,7 @@ export function migrateCanonicalDocument(input: unknown): unknown {
     version++;
   }
   doc.schemaVersion = CANONICAL_SCHEMA_VERSION;
-  return migrateSoftwareSection(doc);
+  return migrateContributionStubs(migrateSoftwareSection(doc));
 }
 
 /**

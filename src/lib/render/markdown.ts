@@ -1,6 +1,7 @@
 import { isProseSectionType, type CanonicalCv } from "@/lib/canonical/schema";
 import { renderStrings } from "@/lib/i18n/render";
 import { wrapSelf } from "./emphasize";
+import { contributionsMarkdown } from "./contributionsText";
 import { escapeMarkdown, escapeMarkdownEntry } from "./escape";
 import { textHeader } from "./headerText";
 import { evidenceMarkdown, listedItemIds, proseEvidence } from "./evidenceRefs";
@@ -51,11 +52,17 @@ export function renderCvMarkdown(cv: CanonicalCv, opts?: RenderOpts): string {
     .join("\n");
 
   const body = sections
-    .map(({ section, intro, items }) => {
+    .map(({ section, intro, items, contributions }) => {
       if (isProseSectionType(section.type)) {
         const prose = (section.body ?? "").trim();
-        if (!prose) return "";
-        const body = evidenceMarkdown(cv, prose, { listedIds: listed, anchorId: itemAnchorId });
+        const list = contributions ?? [];
+        if (!prose && list.length === 0) return "";
+        const body = [
+          prose ? evidenceMarkdown(cv, prose, { listedIds: listed, anchorId: itemAnchorId }) : "",
+          list.length > 0 ? contributionsMarkdown(cv, list) : "",
+        ]
+          .filter(Boolean)
+          .join("\n\n");
         return `## ${escapeMarkdown(section.title)}\n\n${body}`;
       }
       if (items.length === 0) return "";

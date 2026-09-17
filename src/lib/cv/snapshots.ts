@@ -278,7 +278,11 @@ export function diffSnapshots(older: CanonicalCv, newer: CanonicalCv): SnapshotD
       continue;
     }
     if (isProseSectionType(s.type)) {
-      if ((prev.body ?? "") !== (s.body ?? "")) {
+      // A contribution card edited, added, moved or deleted changes the
+      // narrative as much as its prose does (the word delta counts the prose).
+      const cardsChanged =
+        JSON.stringify(prev.contributions ?? []) !== JSON.stringify(s.contributions ?? []);
+      if ((prev.body ?? "") !== (s.body ?? "") || cardsChanged) {
         const wordsBefore = wordCount(prev.body);
         const wordsAfter = wordCount(s.body);
         narrativeChanged.push({

@@ -1,4 +1,4 @@
-import type { CanonicalCv, CvSection } from "@/lib/canonical/schema";
+import { proseSectionHasContent, type CanonicalCv, type CvSection } from "@/lib/canonical/schema";
 
 /**
  * The narrative-CV modules AI drafting is offered for. Kept in its OWN module (no
@@ -32,7 +32,9 @@ export function isNarrativeAiSection(type: string): type is NarrativeAiSection {
  *  "these need filling" attention cue. */
 export function isUnfilledNarrativeModule(section: CvSection): boolean {
   return (
-    section.visible !== false && isNarrativeAiSection(section.type) && !(section.body ?? "").trim()
+    section.visible !== false &&
+    isNarrativeAiSection(section.type) &&
+    !proseSectionHasContent(section)
   );
 }
 

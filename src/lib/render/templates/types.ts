@@ -1,4 +1,5 @@
 import type { CanonicalCv, CvItem, CvSection } from "@/lib/canonical/schema";
+import type { PreparedContribution } from "../prepare";
 import type { RenderOpts } from "../types";
 
 /** One bibliography entry: the source item + its rendered (highlighted) HTML. */
@@ -9,6 +10,9 @@ export interface RenderedItem {
 
 export interface RenderedSection {
   section: CvSection;
+  /** A contributions section's prepared contributions; `reference` is HTML, the
+   *  account holder's name already highlighted. */
+  contributions?: PreparedContribution[];
   /** Optional escaped one-line lead-in between heading and list (see `PreparedSection.intro`). */
   intro?: string;
   items: RenderedItem[];

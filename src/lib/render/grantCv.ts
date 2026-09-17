@@ -1,5 +1,6 @@
 import {
   isProseSectionType,
+  proseSectionHasContent,
   itemDisplayText,
   type CanonicalCv,
   type CvItem,
@@ -9,6 +10,7 @@ import {
 import { visibleItems, visibleSections } from "@/lib/canonical/curate";
 import { GRANT_PRESETS, type GrantPresetId } from "@/lib/canonical/cvModels";
 import { wrapSelf } from "./emphasize";
+import { contributionsMarkdown } from "./contributionsText";
 import { escapeMarkdown } from "./escape";
 import { evidenceMarkdown } from "./evidenceRefs";
 import { prepareSections } from "./prepare";
@@ -167,11 +169,28 @@ function publicationLines(cv: CanonicalCv, prepared: PreparedSection[]): string[
  *  so both run through `escapeMarkdown` so stray Markdown structure (a leading
  *  `#`, `*`, `[`) can't change the document. Empty array when nothing to show. */
 function narrativeBlocks(cv: CanonicalCv): string[] {
+  const withContributions = visibleSections(cv).some(
+    (s) => isProseSectionType(s.type) && (s.contributions?.length ?? 0) > 0,
+  );
+  // The structured contributions come prepared (their references through citeproc).
+  const prepared = new Map(
+    withContributions
+      ? prepareSections(cv, "text").map((p) => [p.section.id, p.contributions ?? []] as const)
+      : [],
+  );
   return visibleSections(cv)
-    .filter((s) => isProseSectionType(s.type) && (s.body ?? "").trim().length > 0)
-    .map(
-      (s) => `## ${escapeMarkdown(s.title)}\n\n${evidenceMarkdown(cv, (s.body ?? "").trim(), {})}`,
-    );
+    .filter((s) => isProseSectionType(s.type) && proseSectionHasContent(s))
+    .map((s) => {
+      const prose = (s.body ?? "").trim();
+      const list = prepared.get(s.id) ?? [];
+      const body = [
+        prose ? evidenceMarkdown(cv, prose, {}) : "",
+        list.length > 0 ? contributionsMarkdown(cv, list) : "",
+      ]
+        .filter(Boolean)
+        .join("\n\n");
+      return `## ${escapeMarkdown(s.title)}\n\n${body}`;
+    });
 }
 
 /**

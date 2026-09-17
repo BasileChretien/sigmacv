@@ -15,6 +15,8 @@ import { collaborationHtml } from "../collaboration";
 import { provenanceLedgerHtml } from "../provenanceLedgerHtml";
 import { provenanceLedger } from "@/lib/cv/provenanceLedger";
 import { displayUrl, escapeHtml, safeHref } from "../escape";
+import { contributionMeta } from "../contributionsText";
+import { proseStarterStrings } from "@/lib/i18n/proseStarter";
 import { evidenceHtmlInline, listedItemIds } from "../evidenceRefs";
 import { formattedMetrics, openAccessShare } from "../metrics";
 import { iconSvg, resolveLink, type IconName } from "../icons";
@@ -358,6 +360,21 @@ export function commonCss(theme: TemplateTheme): string {
   .cv-prose-body p { margin: 0 0 0.55rem; line-height: 1.55; color: var(--cv-ink-2); }
   .cv-prose-body p:last-child { margin-bottom: 0; }
   ul.cv-prose-list { margin: 0.2rem 0 0.6rem; padding-left: 1.2rem; }
+  /* The structured contributions of a contributions section: a numbered list,
+     each with its title, period and audience, the role and the impact as labelled
+     paragraphs, where it is cited, and the linked entry's reference set apart. */
+  ol.cv-contributions { list-style: none; margin: 0.5rem 0 0; padding: 0; counter-reset: cv-contribution; }
+  li.cv-contribution { counter-increment: cv-contribution; position: relative; margin: 0 0 0.95rem; padding: 0 0 0 2rem; break-inside: avoid; }
+  li.cv-contribution::before { content: counter(cv-contribution); position: absolute; left: 0; top: 0.1rem; width: 1.4rem; height: 1.4rem; box-sizing: border-box; border: 1px solid currentColor; border-radius: 999px; font-size: 0.72em; font-weight: 600; line-height: 1.3rem; text-align: center; opacity: 0.7; }
+  .cv-contribution-head { margin: 0 0 0.3rem; line-height: 1.4; }
+  .cv-contribution-title { font-weight: 600; }
+  .cv-contribution-meta { display: block; font-size: 0.85em; opacity: 0.8; }
+  .cv-contribution-fact { margin: 0 0 0.25rem; line-height: 1.5; color: var(--cv-ink-2); }
+  .cv-contribution-label { margin-right: 0.45em; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85; }
+  ul.cv-contribution-cited { margin: 0.1rem 0 0.25rem; padding-left: 1.1rem; }
+  ul.cv-contribution-cited li { margin: 0 0 0.1rem; line-height: 1.45; }
+  .cv-contribution-ref { margin: 0.3rem 0 0; padding-left: 0.65rem; border-left: 2px solid rgba(0, 0, 0, 0.15); font-size: 0.9em; line-height: 1.45; }
+  .cv-contribution a.cv-prose-prompt-link { display: inline-block; margin: 0 0 0.25rem; padding: 0.1rem 0.5rem; font-size: 0.85em; }
   /* A bracketed placeholder line in prose ("[to complete]", a starter prompt). In
      the editor preview it is a link back to the section (a.cv-prose-prompt-link);
      exports never carry the link, so the rule below is inert there. */
@@ -1280,7 +1297,7 @@ function proseBodyHtml(
 function renderableSections(sections: RenderedSection[]): RenderedSection[] {
   return sections.filter((rs) =>
     isProseSectionType(rs.section.type)
-      ? (rs.section.body ?? "").trim().length > 0
+      ? (rs.section.body ?? "").trim().length > 0 || (rs.contributions?.length ?? 0) > 0
       : rs.items.length > 0,
   );
 }
@@ -1331,6 +1348,56 @@ function sectionHeadingHtml(sectionId: string, title: string): string {
  * its own `<main>` (the Sidebar two-column layout wraps sections + footers in one
  * `<main class="cv-main">`). Everything else should use `sectionsHtml`.
  */
+/**
+ * A contributions section's structured contributions, after its prose body. Every
+ * user string is escaped; role and impact run through the evidence-aware `inline`
+ * transform (a `[[id]]` token there links like anywhere in prose); a "cited in"
+ * link goes through `safeHref`. An empty role or impact prints nothing in an
+ * export — and, in the editor preview, a placeholder link back to the section.
+ */
+function contributionsHtml(
+  cv: CanonicalCv,
+  rs: RenderedSection,
+  inline: (text: string) => string,
+  opts: Pick<RenderOpts, "editorPreview">,
+): string {
+  const list = rs.contributions ?? [];
+  if (list.length === 0) return "";
+  const s = proseStarterStrings(cv.display.locale);
+  const editHref = opts.editorPreview ? `#cv-edit=${encodeURIComponent(rs.section.id)}` : "";
+  const fact = (label: string, text: string | undefined): string => {
+    const value = text?.trim();
+    if (value) {
+      return `<p class="cv-contribution-fact"><span class="cv-contribution-label">${escapeHtml(label)}</span>${value
+        .split(/\n+/)
+        .map((line) => inline(line))
+        .join("<br />")}</p>`;
+    }
+    return editHref
+      ? `<a class="cv-prose-prompt-link" href="${escapeHtml(editHref)}" target="_top">${escapeHtml(`${label} : ${s.todo}`)}</a>`
+      : "";
+  };
+  const items = list.map((p) => {
+    const meta = contributionMeta(p, s);
+    const cited = (p.contribution.citedIn ?? []).filter((c) => c.text.trim());
+    const citedHtml = cited.length
+      ? `<div class="cv-contribution-fact"><span class="cv-contribution-label">${escapeHtml(s.citedIn)}</span><ul class="cv-contribution-cited">${cited
+          .map((c) => {
+            const href = safeHref(c.url);
+            const text = escapeHtml(c.text.trim());
+            return `<li>${href ? `<a href="${escapeHtml(href)}" rel="noopener">${text}</a>` : text}</li>`;
+          })
+          .join("")}</ul></div>`
+      : "";
+    return `<li class="cv-contribution"><p class="cv-contribution-head"><span class="cv-contribution-title">${escapeHtml(p.title)}</span>${
+      meta ? `<span class="cv-contribution-meta">${escapeHtml(meta)}</span>` : ""
+    }</p>${fact(s.role, p.contribution.role)}${fact(s.impact, p.contribution.impact)}${citedHtml}${
+      p.reference ? `<div class="cv-contribution-ref">${p.reference}</div>` : ""
+    }</li>`;
+  });
+  return `<ol class="cv-contributions">${items.join("")}</ol>`;
+}
+
 export function sectionsHtmlRaw(
   cv: CanonicalCv,
   sections: RenderedSection[],
@@ -1354,7 +1421,7 @@ export function sectionsHtmlRaw(
           rs.section.body ?? "",
           inline,
           opts.editorPreview ? `#cv-edit=${encodeURIComponent(rs.section.id)}` : undefined,
-        )}</div></section>`;
+        )}</div>${contributionsHtml(cv, rs, inline, opts)}</section>`;
       }
       // Positions/Education render structured two-line records (a block .cv-entry),
       // so they skip the inline .csl-entry wrapper and tag the list .cv-history (the

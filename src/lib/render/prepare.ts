@@ -14,6 +14,8 @@ import { DEFAULT_STYLE, isBundledStyle, registerStyleXml } from "@/lib/citeproc/
 import { renderBibliography, type CiteprocOutputFormat } from "@/lib/citeproc/engine";
 import { renderStrings } from "@/lib/i18n/render";
 import type { CslItem } from "@/types/csl";
+import { contributionItem, contributionTitle } from "@/lib/canonical/contributions";
+import { isProseSectionType, type Contribution } from "@/lib/canonical/schema";
 import { selectSections } from "./citationItems";
 import { cslForRender } from "./cslOverride";
 import { entryLink } from "./entryLink";
@@ -32,8 +34,26 @@ export interface PreparedItem {
   entry: string;
 }
 
+/**
+ * One structured contribution of a contributions section, prepared ONCE for
+ * every format: its number, its title (the owner's wording, else the linked
+ * entry's), the linked entry when it is still on the record, and that entry's
+ * reference as the citation style prints it (citeproc; the self-author tail and
+ * the supervisee mark applied; a numbered style's own number removed, since the
+ * contribution carries its own). "" when there is no entry to reference.
+ */
+export interface PreparedContribution {
+  contribution: Contribution;
+  n: number;
+  title: string;
+  item?: CvItem;
+  reference: string;
+}
+
 export interface PreparedSection {
   section: CvSection;
+  /** A contributions section's structured contributions (absent when it has none). */
+  contributions?: PreparedContribution[];
   /**
    * An optional one-line lead-in rendered between the heading and the list (in
    * the output format — HTML-escaped markup or plain text). Today: the opt-in
@@ -94,6 +114,53 @@ function localizeEntryLine(item: CvItem, locale: string): string {
  * route's assessor view — a render option the exports never set) trims the
  * supervision record's third-party detail (`supervisionEntry`).
  */
+/** A numbered style prints "1. " / "[1]" before each entry; a contribution has its own number. */
+const NUMBER_PREFIX_HTML = /<div class="csl-left-margin">[\s\S]*?<\/div>/;
+const NUMBER_PREFIX_TEXT = /^\s*(?:\[\d+\]|\(\d+\)|\d+[.)])\s+/;
+
+function prepareContributions(
+  cv: CanonicalCv,
+  section: CvSection,
+  outputFormat: CiteprocOutputFormat,
+  styleKey: string,
+  superviseeVariants: string[],
+): PreparedContribution[] {
+  const rows = (section.contributions ?? [])
+    .map((c) => ({ c, item: contributionItem(cv, c), title: contributionTitle(cv, c) }))
+    .filter((r) => r.title.length > 0);
+  const seen = new Set<string>();
+  const cslItems: CslItem[] = [];
+  for (const { item } of rows) {
+    const csl = item ? cslForRender(item) : undefined;
+    if (csl && !seen.has(String(csl.id))) {
+      seen.add(String(csl.id));
+      cslItems.push(csl);
+    }
+  }
+  const entries = cslItems.length
+    ? renderBibliography(cslItems, styleKey, cv.display.locale, outputFormat)
+    : [];
+  const byId = new Map(entries.map((e) => [e.id, e.content]));
+  return rows.map(({ c, item, title }, i) => {
+    let reference = "";
+    if (item?.csl) {
+      const raw = (byId.get(item.id) ?? "").replace(
+        outputFormat === "html" ? NUMBER_PREFIX_HTML : NUMBER_PREFIX_TEXT,
+        "",
+      );
+      reference = markSuperviseeNames(
+        withSelfAuthorTail(item, raw, cv.display.locale, outputFormat),
+        superviseeVariants,
+        outputFormat,
+      );
+    } else if (item) {
+      const text = localizeEntryLine(item, cv.display.locale);
+      reference = outputFormat === "html" ? escapeHtmlText(text) : text;
+    }
+    return { contribution: c, n: i + 1, title, ...(item ? { item } : {}), reference };
+  });
+}
+
 export function prepareSections(
   cv: CanonicalCv,
   outputFormat: CiteprocOutputFormat,
@@ -163,8 +230,13 @@ export function prepareSections(
       // citeproc HTML is already markup; plain displayText must be escaped for HTML.
       return outputFormat === "html" ? escapeHtmlText(text) : text;
     };
+    const contributions =
+      isProseSectionType(section.type) && (section.contributions?.length ?? 0) > 0
+        ? prepareContributions(cv, section, outputFormat, styleKey, superviseeVariants)
+        : [];
     return {
       section,
+      ...(contributions.length > 0 ? { contributions } : {}),
       ...(intro ? { intro: outputFormat === "html" ? escapeHtmlText(intro) : intro } : {}),
       items: items.map((item) => {
         const entry = baseEntry(item);

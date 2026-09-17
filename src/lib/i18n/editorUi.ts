@@ -86,6 +86,23 @@ export interface EditorExtraStrings {
   markSuperviseesHint: string;
   /** The picker's button under a CONTRIBUTIONS section: the entry becomes a numbered stub. */
   evInsertContribution: string;
+  /** The structured contribution cards under a contributions section. */
+  contribCard: string;
+  contribTitle: string;
+  contribTitleHint: string;
+  contribTitleRequired: string;
+  contribPeriod: string;
+  contribPeriodPlaceholder: string;
+  contribCitedText: string;
+  contribCitedUrl: string;
+  contribAddCited: string;
+  contribRemoveCited: string;
+  contribMissing: string;
+  contribUp: string;
+  contribDown: string;
+  contribRemove: string;
+  contribAddBlank: string;
+  evHintContribution: string;
   evInsert: string;
   evPanel: string;
   evSearch: string;
@@ -233,6 +250,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "The FRQ's rule for its CV. Names come from your supervision records and are matched by name in your own author lists, so a co-author with the same name would be marked too. Off while supervisee names are hidden.",
     evInsertContribution: "Add one of my entries as a contribution",
+    contribCard: "Contribution {n}",
+    contribTitle: "Title",
+    contribTitleHint: "Leave empty to use the entry's title",
+    contribTitleRequired: "Title of the contribution",
+    contribPeriod: "Period",
+    contribPeriodPlaceholder: "e.g. 2019–2023",
+    contribCitedText: "Where it is cited (guideline, report, policy…)",
+    contribCitedUrl: "Link (optional)",
+    contribAddCited: "Add a place where it is cited",
+    contribRemoveCited: "Remove this line",
+    contribMissing:
+      "This entry is no longer on your record: give the contribution a title or delete it.",
+    contribUp: "Move up",
+    contribDown: "Move down",
+    contribRemove: "Delete this contribution",
+    contribAddBlank: "Add a contribution that is not an entry",
+    evHintContribution:
+      "Each entry you pick becomes a contribution card below. Fill in your role, the impact and where it is cited.",
     evInsert: "Cite one of my entries",
     evPanel: "Choose the entry to cite",
     evSearch: "Search your publications, datasets, students…",
@@ -363,6 +398,23 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "FRQ 简历的规则。姓名来自您的指导记录，并按姓名在您自己的作者列表中匹配，因此同名的合著者也会被标记。隐藏受指导者姓名时不生效。",
     evInsertContribution: "将我的一个条目添加为贡献",
+    contribCard: "贡献 {n}",
+    contribTitle: "标题",
+    contribTitleHint: "留空则使用条目标题",
+    contribTitleRequired: "贡献的标题",
+    contribPeriod: "时期",
+    contribPeriodPlaceholder: "例如 2019–2023",
+    contribCitedText: "被引用之处（指南、报告、政策……）",
+    contribCitedUrl: "链接（可选）",
+    contribAddCited: "添加一处引用",
+    contribRemoveCited: "删除此行",
+    contribMissing: "该条目已不在您的记录中：请为该贡献填写标题，或将其删除。",
+    contribUp: "上移",
+    contribDown: "下移",
+    contribRemove: "删除此贡献",
+    contribAddBlank: "添加非条目的贡献",
+    evHintContribution:
+      "您选择的每个条目都会成为下方的一张贡献卡片。请填写您的角色、影响及被引用之处。",
     evInsert: "引用我的一个条目",
     evPanel: "选择要引用的条目",
     evSearch: "搜索您的出版物、数据集、学生…",
@@ -495,6 +547,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "La regla del FRQ para su CV. Los nombres vienen de tus registros de supervisión y se buscan por nombre en tus listas de autores, así que un coautor homónimo también quedaría marcado. Desactivado mientras los nombres de supervisados estén ocultos.",
     evInsertContribution: "Añadir una de mis entradas como contribución",
+    contribCard: "Contribución {n}",
+    contribTitle: "Título",
+    contribTitleHint: "Déjalo vacío para usar el título de la entrada",
+    contribTitleRequired: "Título de la contribución",
+    contribPeriod: "Periodo",
+    contribPeriodPlaceholder: "p. ej. 2019–2023",
+    contribCitedText: "Dónde se cita (guía, informe, política…)",
+    contribCitedUrl: "Enlace (opcional)",
+    contribAddCited: "Añadir un lugar donde se cita",
+    contribRemoveCited: "Quitar esta línea",
+    contribMissing:
+      "Esta entrada ya no está en tu registro: da un título a la contribución o elimínala.",
+    contribUp: "Subir",
+    contribDown: "Bajar",
+    contribRemove: "Eliminar esta contribución",
+    contribAddBlank: "Añadir una contribución que no es una entrada",
+    evHintContribution:
+      "Cada entrada que eliges se convierte en una ficha de contribución debajo. Completa tu papel, el impacto y dónde se cita.",
     evInsert: "Citar una de mis entradas",
     evPanel: "Elige la entrada que quieres citar",
     evSearch: "Busca en tus publicaciones, datos, estudiantes…",
@@ -631,6 +701,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "La règle du FRQ pour son CV. Les noms viennent de vos fiches de supervision et sont repérés par leur nom dans vos listes d'auteurs, donc un coauteur homonyme serait marqué aussi. Sans effet tant que les noms des personnes supervisées sont masqués.",
     evInsertContribution: "Ajouter une de mes entrées comme contribution",
+    contribCard: "Contribution {n}",
+    contribTitle: "Titre",
+    contribTitleHint: "Laisser vide pour reprendre le titre de l'entrée",
+    contribTitleRequired: "Titre de la contribution",
+    contribPeriod: "Période",
+    contribPeriodPlaceholder: "p. ex. 2019–2023",
+    contribCitedText: "Où c'est cité (guide de pratique, rapport, politique…)",
+    contribCitedUrl: "Lien (facultatif)",
+    contribAddCited: "Ajouter un endroit où c'est cité",
+    contribRemoveCited: "Retirer cette ligne",
+    contribMissing:
+      "Cette entrée n'est plus dans votre dossier : donnez un titre à la contribution ou supprimez-la.",
+    contribUp: "Monter",
+    contribDown: "Descendre",
+    contribRemove: "Supprimer cette contribution",
+    contribAddBlank: "Ajouter une contribution qui n'est pas une entrée",
+    evHintContribution:
+      "Chaque entrée choisie devient une fiche de contribution ci-dessous. Remplissez votre rôle, les retombées et où c'est cité.",
     evInsert: "Citer une de mes entrées",
     evPanel: "Choisir l'entrée à citer",
     evSearch: "Chercher dans vos publications, jeux de données, étudiants…",
@@ -766,6 +854,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "Die Regel des FRQ für seinen Lebenslauf. Die Namen stammen aus Ihren Betreuungseinträgen und werden per Name in Ihren Autorenlisten gesucht; ein gleichnamiger Koautor würde ebenfalls markiert. Ohne Wirkung, solange Namen Betreuter ausgeblendet sind.",
     evInsertContribution: "Einen meiner Einträge als Beitrag hinzufügen",
+    contribCard: "Beitrag {n}",
+    contribTitle: "Titel",
+    contribTitleHint: "Leer lassen, um den Titel des Eintrags zu verwenden",
+    contribTitleRequired: "Titel des Beitrags",
+    contribPeriod: "Zeitraum",
+    contribPeriodPlaceholder: "z. B. 2019–2023",
+    contribCitedText: "Wo zitiert (Leitlinie, Bericht, Richtlinie …)",
+    contribCitedUrl: "Link (optional)",
+    contribAddCited: "Eine Fundstelle hinzufügen",
+    contribRemoveCited: "Diese Zeile entfernen",
+    contribMissing:
+      "Dieser Eintrag ist nicht mehr in Ihrem Verzeichnis: Geben Sie dem Beitrag einen Titel oder löschen Sie ihn.",
+    contribUp: "Nach oben",
+    contribDown: "Nach unten",
+    contribRemove: "Diesen Beitrag löschen",
+    contribAddBlank: "Einen Beitrag hinzufügen, der kein Eintrag ist",
+    evHintContribution:
+      "Jeder gewählte Eintrag wird unten zu einer Beitragskarte. Tragen Sie Ihre Rolle, die Wirkung und die Fundstellen ein.",
     evInsert: "Einen meiner Einträge zitieren",
     evPanel: "Den zu zitierenden Eintrag wählen",
     evSearch: "Publikationen, Datensätze, Studierende durchsuchen …",
@@ -899,6 +1005,23 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "FRQ の CV の規則です。名前は指導記録から取り、あなたの著者リスト内で名前で照合するため、同姓同名の共著者にも印が付きます。指導した人の名前を非表示にしている間は無効です。",
     evInsertContribution: "自分の項目を貢献として追加",
+    contribCard: "貢献 {n}",
+    contribTitle: "タイトル",
+    contribTitleHint: "空欄の場合は項目のタイトルを使用",
+    contribTitleRequired: "貢献のタイトル",
+    contribPeriod: "期間",
+    contribPeriodPlaceholder: "例：2019–2023",
+    contribCitedText: "引用先（ガイドライン、報告書、政策など）",
+    contribCitedUrl: "リンク（任意）",
+    contribAddCited: "引用先を追加",
+    contribRemoveCited: "この行を削除",
+    contribMissing: "この項目は記録にありません。貢献にタイトルを付けるか、削除してください。",
+    contribUp: "上へ",
+    contribDown: "下へ",
+    contribRemove: "この貢献を削除",
+    contribAddBlank: "項目ではない貢献を追加",
+    evHintContribution:
+      "選んだ項目はそれぞれ下の貢献カードになります。役割、インパクト、引用先を記入してください。",
     evInsert: "自分の項目を引用",
     evPanel: "引用する項目を選ぶ",
     evSearch: "出版物、データセット、学生などを検索…",
@@ -1033,6 +1156,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "A regra do FRQ para o seu CV. Os nomes vêm dos seus registros de supervisão e são localizados pelo nome nas suas listas de autores, então um coautor homônimo também seria marcado. Sem efeito enquanto os nomes dos supervisionados estiverem ocultos.",
     evInsertContribution: "Adicionar uma das minhas entradas como contribuição",
+    contribCard: "Contribuição {n}",
+    contribTitle: "Título",
+    contribTitleHint: "Deixe vazio para usar o título da entrada",
+    contribTitleRequired: "Título da contribuição",
+    contribPeriod: "Período",
+    contribPeriodPlaceholder: "ex.: 2019–2023",
+    contribCitedText: "Onde é citado (diretriz, relatório, política…)",
+    contribCitedUrl: "Link (opcional)",
+    contribAddCited: "Adicionar um lugar onde é citado",
+    contribRemoveCited: "Remover esta linha",
+    contribMissing:
+      "Esta entrada não está mais no seu registro: dê um título à contribuição ou exclua-a.",
+    contribUp: "Subir",
+    contribDown: "Descer",
+    contribRemove: "Excluir esta contribuição",
+    contribAddBlank: "Adicionar uma contribuição que não é uma entrada",
+    evHintContribution:
+      "Cada entrada escolhida vira um cartão de contribuição abaixo. Preencha seu papel, o impacto e onde é citado.",
     evInsert: "Citar uma das minhas entradas",
     evPanel: "Escolha a entrada a citar",
     evSearch: "Buscar em suas publicações, dados, estudantes…",
@@ -1169,6 +1310,24 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "La regola del FRQ per il suo CV. I nomi vengono dalle tue schede di supervisione e sono cercati per nome nei tuoi elenchi di autori, quindi verrebbe marcato anche un coautore omonimo. Senza effetto finché i nomi dei supervisionati sono nascosti.",
     evInsertContribution: "Aggiungi una delle mie voci come contributo",
+    contribCard: "Contributo {n}",
+    contribTitle: "Titolo",
+    contribTitleHint: "Lascia vuoto per usare il titolo della voce",
+    contribTitleRequired: "Titolo del contributo",
+    contribPeriod: "Periodo",
+    contribPeriodPlaceholder: "es. 2019–2023",
+    contribCitedText: "Dove è citato (linea guida, rapporto, politica…)",
+    contribCitedUrl: "Link (facoltativo)",
+    contribAddCited: "Aggiungi un punto in cui è citato",
+    contribRemoveCited: "Rimuovi questa riga",
+    contribMissing:
+      "Questa voce non è più nel tuo archivio: dai un titolo al contributo o eliminalo.",
+    contribUp: "Sposta su",
+    contribDown: "Sposta giù",
+    contribRemove: "Elimina questo contributo",
+    contribAddBlank: "Aggiungi un contributo che non è una voce",
+    evHintContribution:
+      "Ogni voce scelta diventa una scheda di contributo qui sotto. Compila il tuo ruolo, l'impatto e dove è citato.",
     evInsert: "Cita una delle mie voci",
     evPanel: "Scegli la voce da citare",
     evSearch: "Cerca tra pubblicazioni, dataset, studenti…",
@@ -1302,6 +1461,23 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "FRQ CV의 규칙입니다. 이름은 지도 기록에서 가져와 본인의 저자 목록에서 이름으로 찾으므로, 동명의 공저자도 표시됩니다. 지도한 사람의 이름을 숨긴 동안에는 적용되지 않습니다.",
     evInsertContribution: "내 항목을 기여로 추가",
+    contribCard: "기여 {n}",
+    contribTitle: "제목",
+    contribTitleHint: "비워 두면 항목의 제목을 사용합니다",
+    contribTitleRequired: "기여 제목",
+    contribPeriod: "기간",
+    contribPeriodPlaceholder: "예: 2019–2023",
+    contribCitedText: "인용처(진료 지침, 보고서, 정책 등)",
+    contribCitedUrl: "링크(선택)",
+    contribAddCited: "인용처 추가",
+    contribRemoveCited: "이 줄 삭제",
+    contribMissing: "이 항목은 더 이상 기록에 없습니다. 기여에 제목을 붙이거나 삭제하세요.",
+    contribUp: "위로",
+    contribDown: "아래로",
+    contribRemove: "이 기여 삭제",
+    contribAddBlank: "항목이 아닌 기여 추가",
+    evHintContribution:
+      "선택한 각 항목은 아래의 기여 카드가 됩니다. 역할, 영향, 인용처를 작성하세요.",
     evInsert: "내 항목 인용하기",
     evPanel: "인용할 항목 선택",
     evSearch: "출판물, 데이터셋, 학생 검색…",
@@ -1435,6 +1611,23 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     markSuperviseesHint:
       "Правило FRQ для его резюме. Имена берутся из ваших записей о руководстве и ищутся по имени в ваших списках авторов, поэтому соавтор-однофамилец тоже будет отмечен. Не действует, пока имена подопечных скрыты.",
     evInsertContribution: "Добавить одну из моих записей как вклад",
+    contribCard: "Вклад {n}",
+    contribTitle: "Название",
+    contribTitleHint: "Оставьте пустым, чтобы использовать название записи",
+    contribTitleRequired: "Название вклада",
+    contribPeriod: "Период",
+    contribPeriodPlaceholder: "напр. 2019–2023",
+    contribCitedText: "Где цитируется (руководство, отчёт, политика…)",
+    contribCitedUrl: "Ссылка (необязательно)",
+    contribAddCited: "Добавить место цитирования",
+    contribRemoveCited: "Удалить эту строку",
+    contribMissing: "Этой записи больше нет в вашем списке: дайте вкладу название или удалите его.",
+    contribUp: "Вверх",
+    contribDown: "Вниз",
+    contribRemove: "Удалить этот вклад",
+    contribAddBlank: "Добавить вклад, который не является записью",
+    evHintContribution:
+      "Каждая выбранная запись становится карточкой вклада ниже. Укажите вашу роль, влияние и где она цитируется.",
     evInsert: "Процитировать одну из моих записей",
     evPanel: "Выберите запись для цитирования",
     evSearch: "Поиск по публикациям, наборам данных, ученикам…",
