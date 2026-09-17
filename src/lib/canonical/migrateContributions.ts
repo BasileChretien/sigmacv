@@ -18,7 +18,8 @@ import { PROSE_STARTER_STRINGS } from "@/lib/i18n/proseStarter";
  *  - citation markers at the start of a paragraph, alone or glued onto one of
  *    our bracketed prompts (what the picker left before #512: entries the owner
  *    chose, sitting at the top of the section), become one card per entry;
- *  - an entry that already has a card never gets a second one;
+ *  - an entry never gets two cards: a second source for it is merged into the
+ *    first, what the owner wrote winning over what was prefilled;
  *  - the stub text leaves the body, the stale intro prompt is reworded, and the
  *    "pick your publications" prompt goes once there is a contribution.
  * Works on the RAW stored JSON (before validation), defensively, and returns the
@@ -41,6 +42,23 @@ const PICK_PROMPTS = new Set(STRINGS.map((s) => s.pickPrompt));
 const INTRO_BY_LEAD = new Map(
   STRINGS.map((s) => [s.contribIntro.slice(0, s.contribIntro.search(/[.。]/) + 1), s.contribIntro]),
 );
+
+/**
+ * The opening of every bracketed prompt the starter drafts have written, in every
+ * locale (its first sentence, or the whole prompt when it has none). Markers
+ * glued before one of these are picker leftovers; before anything else they are
+ * the owner's prose.
+ */
+const PROMPT_LEADS: string[] = [
+  ...new Set(
+    STRINGS.flatMap((s) => Object.values(s))
+      .filter((v): v is string => typeof v === "string" && v.startsWith("["))
+      .map((v) => {
+        const i = v.search(/[.。]/);
+        return i > 0 ? v.slice(0, i + 1) : v;
+      }),
+  ),
+];
 
 /** "N. Title (year · Audience : A / B / C)" with an optional trailing `[[id | label]]`. */
 const HEAD_RE =
@@ -87,7 +105,8 @@ function parseStub(paragraph: string): ParsedStub | null {
  * nothing or by one of our bracketed prompts. The old picker inserted at the
  * caret, which sat at the very start of the draft, so its markers landed glued
  * onto "[Starter draft …]". A sentence that merely begins with a marker ("[[W1]]
- * showed …") does not match: the lookahead wants the end or a single `[`.
+ * showed …") does not match: the lookahead wants the end or a single `[`, and
+ * `leadingMarkers` then wants that `[` to open one of our prompts.
  */
 const LEADING_MARKERS_RE = /^\s*((?:\[\[[^[\]\n]{1,1100}\]\]\s*)+)(?=$|\[[^[])/;
 /** One marker; group 1 is the id (before any `|`). */
@@ -102,6 +121,10 @@ const MARKER_LINE_RE = /(^|\n)[ \t]*(?:\[\[[^[\]\n]+\]\][ \t]*)+(?=\n|$|\[[^[])/
 function leadingMarkers(text: string): { ids: string[]; rest: string } | null {
   const m = LEADING_MARKERS_RE.exec(text);
   if (!m) return null;
+  // Only before nothing or before one of OUR prompts: "[[W2]] [as later confirmed
+  // …]" is the owner's sentence and stays as written.
+  const after = text.slice(m[0].length);
+  if (after.trim() !== "" && !PROMPT_LEADS.some((lead) => after.startsWith(lead))) return null;
   const ids: string[] = [];
   for (const marker of m[1]!.matchAll(MARKER_RE)) {
     const id = marker[1]!.trim().slice(0, 1024);
@@ -172,7 +195,6 @@ function migrateSection(section: any, raw: RawIndex): any {
   if (section?.type !== "narrative-knowledge" || typeof section.body !== "string") return section;
   const paragraphs = section.body.replace(/\r\n?/g, "\n").split(/\n[ \t]*\n+/);
   const existing: any[] = Array.isArray(section.contributions) ? section.contributions : [];
-  const added: any[] = [];
   const kept: string[] = [];
   let changed = false;
   // A paragraph may hold text before its first stub, or several stubs the owner
@@ -192,14 +214,25 @@ function migrateSection(section: any, raw: RawIndex): any {
     }
     if (current.length > 0) chunks.push({ text: current.join("\n"), stub: isStub });
   }
-  // A new card takes the next free id; an entry that already has a card gets no second one.
-  const push = (card: Record<string, unknown>) => {
-    const all = [...existing, ...added];
-    if (card.itemId && all.some((c) => c?.itemId === card.itemId)) return;
-    const taken = new Set(all.map((c) => c?.id));
-    let n = all.length + 1;
+  // One card per entry. A second source for the same entry is MERGED into the
+  // first, never dropped: what the owner wrote wins over what was prefilled —
+  // a stored card (rank 3) over a text stub (2) over a marker's prefill (1) —
+  // and the lower-ranked source only fills the fields the other lacks. A new
+  // card takes the next free id, in the order the entries first appear.
+  const cards: { card: any; rank: number }[] = existing.map((c) => ({ card: c, rank: 3 }));
+  const push = (card: Record<string, unknown>, rank: 1 | 2) => {
+    const at = card.itemId ? cards.findIndex((e) => e.card?.itemId === card.itemId) : -1;
+    if (at >= 0) {
+      const prev = cards[at]!;
+      const merged =
+        rank > prev.rank ? { ...prev.card, ...card, id: prev.card.id } : { ...card, ...prev.card };
+      cards[at] = { card: merged, rank: Math.max(rank, prev.rank) };
+      return;
+    }
+    const taken = new Set(cards.map((e) => e.card?.id));
+    let n = cards.length + 1;
     while (taken.has(`c${n}`)) n += 1;
-    added.push({ id: `c${n}`, ...card });
+    cards.push({ card: { id: `c${n}`, ...card }, rank });
   };
   for (const chunk of chunks) {
     const stub = chunk.stub ? parseStub(chunk.text.trim()) : null;
@@ -210,7 +243,9 @@ function migrateSection(section: any, raw: RawIndex): any {
       const lead = chunk.stub ? null : leadingMarkers(chunk.text);
       if (lead) {
         changed = true;
-        for (const itemId of lead.ids) push({ itemId, ...prefillFromRaw(raw.byId.get(itemId)) });
+        for (const itemId of lead.ids) {
+          push({ itemId, ...prefillFromRaw(raw.byId.get(itemId)) }, 1);
+        }
         if (lead.rest.trim()) kept.push(lead.rest);
         continue;
       }
@@ -221,16 +256,19 @@ function migrateSection(section: any, raw: RawIndex): any {
     const worked = Boolean(stub.role || stub.impact);
     if (!stub.itemId && !worked) continue; // a guess nobody touched
     const itemId = stub.itemId ?? titles.get(stub.title);
-    push({
-      ...(itemId ? { itemId } : { title: stub.title.slice(0, 1000) }),
-      ...(stub.year ? { period: stub.year } : {}),
-      ...(stub.role ? { role: stub.role.slice(0, 3000) } : {}),
-      ...(stub.impact ? { impact: stub.impact.slice(0, 3000) } : {}),
-      ...(stub.citedIn.length > 0 ? { citedIn: stub.citedIn.slice(0, 20) } : {}),
-    });
+    push(
+      {
+        ...(itemId ? { itemId } : { title: stub.title.slice(0, 1000) }),
+        ...(stub.year ? { period: stub.year } : {}),
+        ...(stub.role ? { role: stub.role.slice(0, 3000) } : {}),
+        ...(stub.impact ? { impact: stub.impact.slice(0, 3000) } : {}),
+        ...(stub.citedIn.length > 0 ? { citedIn: stub.citedIn.slice(0, 20) } : {}),
+      },
+      2,
+    );
   }
   if (!changed) return section;
-  const contributions = [...existing, ...added].slice(0, 30);
+  const contributions = cards.map((e) => e.card).slice(0, 30);
   const body = kept
     .map((para) => {
       const text = para.trim();

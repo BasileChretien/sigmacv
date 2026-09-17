@@ -217,6 +217,60 @@ describe("migrateContributionStubs", () => {
     expect(migrateContributionStubs(blank)).toBe(blank);
   });
 
+  it("merges a marker and a worked stub for the same entry into one card, keeping what the owner wrote", () => {
+    const worked = [
+      "1. Myelodysplastic syndrome and PARP inhibitors (2020 · Audience : A / B / C) [[W2 | Morice 2020]]",
+      "Role : I led the trial design and analysis",
+      "Impact : Changed national monitoring guidance",
+      "Cited in the guideline : My own wording of the guideline. https://example.org/g",
+    ].join("\n");
+    const expected = {
+      id: "c1",
+      itemId: "W2",
+      period: "2020",
+      role: "I led the trial design and analysis",
+      impact: "Changed national monitoring guidance",
+      citedIn: [{ text: "My own wording of the guideline", url: "https://example.org/g" }],
+    };
+    // Marker first, stub second: the stub's text wins over the marker's prefill.
+    const markerFirst = rawDoc(["[[W2 | Morice et al. 2020]]", worked].join("\n\n"));
+    const items = (markerFirst.sections[0] as { items: { meta: Record<string, unknown> }[] }).items;
+    items[1]!.meta = {
+      year: 2019,
+      guidelineCitations: [{ pmid: "1", title: "Prefilled guideline" }],
+    };
+    expect(section(migrateContributionStubs(markerFirst)).contributions).toEqual([expected]);
+    // Stub first, marker second: the marker only fills gaps.
+    expect(
+      section(migrateContributionStubs(rawDoc([worked, "[[W2]]"].join("\n\n")))).contributions,
+    ).toEqual([expected]);
+  });
+
+  it("a stored card keeps its own text; a stub for the same entry only fills what it lacks", () => {
+    const body = [
+      "1. Myelodysplastic syndrome and PARP inhibitors (2020 · Audience : A / B / C) [[W2 | M]]",
+      "Role : Stub role",
+      "Impact : Stub impact",
+    ].join("\n");
+    const k = section(
+      migrateContributionStubs(
+        rawDoc(body, { contributions: [{ id: "c7", itemId: "W2", role: "Card role" }] }),
+      ),
+    );
+    expect(k.contributions).toEqual([
+      { id: "c7", itemId: "W2", period: "2020", role: "Card role", impact: "Stub impact" },
+    ]);
+  });
+
+  it("leaves a citation followed by the owner's own bracketed aside as prose", () => {
+    const aside = rawDoc("[[W2]] [as later confirmed by an independent cohort]");
+    expect(migrateContributionStubs(aside)).toBe(aside);
+    // …but a marker glued onto one of our prompts, in any locale, is a leftover.
+    const k = section(migrateContributionStubs(rawDoc(`[[W2]]${fr.contribIntro}`)));
+    expect(k.contributions).toEqual([{ id: "c1", itemId: "W2" }]);
+    expect(k.body).toBe(fr.contribIntro);
+  });
+
   it("a card made from a marker starts like a picked one: year and guideline citations, malformed values left out", () => {
     const doc = rawDoc("[[W2 | Morice]] [[W1 | D]]");
     const items = (doc.sections[0] as { items: { meta: Record<string, unknown> }[] }).items;
