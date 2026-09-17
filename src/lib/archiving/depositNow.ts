@@ -63,6 +63,28 @@ export function inRepositoryAlready(item: Pick<CvItem, "meta">): boolean {
   return (item.meta.repositoryCopies ?? []).some((copy) => copy.hasFile);
 }
 
+/**
+ * The owner sync has NEVER asked the repositories about this work — a DOI to
+ * ask with, no attempt stamp, no answer stamp — so nothing may say "no open
+ * copy found" for it. Such a work sits in the tab's "not checked yet" fold, by
+ * title only, until a sync has asked (the pass covers a whole CV in one sync;
+ * this is the honest state for what a spent budget left). A work the sync DID
+ * ask, even if a source failed or the budget cut the last source, stays in the
+ * lists: HAL answered for it in phase 1, its notices are stored, and a failing
+ * aggregator must never withdraw the owner's action (OpenAIRE allows 60
+ * anonymous calls an hour per address).
+ */
+export function copiesUnchecked(item: Pick<CvItem, "csl" | "meta">): boolean {
+  const doi = item.csl?.DOI;
+  return (
+    typeof doi === "string" &&
+    doi.trim() !== "" &&
+    item.meta.repositoryCopiesTriedAt === undefined &&
+    item.meta.repositoryCopiesCheckedAt === undefined &&
+    !inRepositoryAlready(item)
+  );
+}
+
 /** A closed journal article gets a deposit action; nothing else does. */
 export function depositCandidate(item: CvItem | undefined): CvItem | undefined {
   return item?.csl?.type === "article-journal" ? item : undefined;
@@ -215,11 +237,19 @@ type Ground = (
   place?: PlaceKind,
 ) => DepositNow | null;
 
+type Wanted = (row: OpenAccessRow, item: CvItem) => boolean;
+/** The first list's works: no open copy found. */
+const READY: Wanted = (row) => row.state === "no-open-copy-found";
+/** The second list's works: open at the publisher (a status that SAYS so; green is in a repository). */
+const ELSEWHERE: Wanted = (row, item) =>
+  (row.state === "open-cc" || row.state === "open-other") &&
+  AT_PUBLISHER.has(item.meta.oaStatus ?? "");
+
 function collectRows(
   cv: CanonicalCv,
   today: string,
   ctx: DepositContext,
-  wanted: (row: OpenAccessRow, item: CvItem) => boolean,
+  wanted: Wanted,
   ground: Ground,
 ): DepositReadyRow[] {
   const itemsById = new Map<string, CvItem>(
@@ -228,7 +258,9 @@ function collectRows(
   const ready: DepositReadyRow[] = [];
   for (const row of openAccessStates(cv).rows) {
     const item = depositCandidate(itemsById.get(row.itemId));
-    if (!item || !wanted(row, item) || inRepositoryAlready(item)) continue;
+    if (!item || !wanted(row, item) || inRepositoryAlready(item) || copiesUnchecked(item)) {
+      continue;
+    }
     const routes = depositRoutes(cv, item, ctx);
     /* v8 ignore next -- Zenodo closes every route list; kept for the type. */
     if (!routes[0]) continue;
@@ -249,7 +281,7 @@ export function depositReadyRows(
   today: string,
   ctx: DepositContext,
 ): DepositReadyRow[] {
-  return collectRows(cv, today, ctx, (row) => row.state === "no-open-copy-found", depositNow);
+  return collectRows(cv, today, ctx, READY, depositNow);
 }
 
 /**
@@ -263,13 +295,21 @@ export function depositElsewhereRows(
   today: string,
   ctx: DepositContext,
 ): DepositReadyRow[] {
-  return collectRows(
-    cv,
-    today,
-    ctx,
-    (row, item) =>
-      (row.state === "open-cc" || row.state === "open-other") &&
-      AT_PUBLISHER.has(item.meta.oaStatus ?? ""),
-    depositElsewhereNow,
+  return collectRows(cv, today, ctx, ELSEWHERE, depositElsewhereNow);
+}
+
+/**
+ * The third fold: the works of either list the owner sync has not yet asked the
+ * repositories about (`copiesUnchecked`) — by title, no action, no claim.
+ */
+export function uncheckedRows(cv: CanonicalCv): OpenAccessRow[] {
+  const itemsById = new Map<string, CvItem>(
+    cv.sections.flatMap((s) => s.items).map((it) => [it.id, it]),
   );
+  return openAccessStates(cv).rows.filter((row) => {
+    const item = depositCandidate(itemsById.get(row.itemId));
+    return (
+      item !== undefined && (READY(row, item) || ELSEWHERE(row, item)) && copiesUnchecked(item)
+    );
+  });
 }

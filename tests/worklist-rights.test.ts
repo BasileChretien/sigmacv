@@ -198,7 +198,12 @@ describe("openAccessStates — the rights inputs on each row", () => {
               authoredBySelf: true,
               selfNameVariants: [],
               csl: { id: "W1", type, title: "One" },
-              meta: { year: 2020, oaIsOpen: false, ...meta },
+              meta: {
+                year: 2020,
+                oaIsOpen: false,
+                repositoryCopiesCheckedAt: "2026-09-01T00:00:00.000Z",
+                ...meta,
+              },
             },
           ],
         },

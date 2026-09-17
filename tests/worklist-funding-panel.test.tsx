@@ -61,7 +61,7 @@ function work(
     authoredBySelf: true,
     selfNameVariants: [],
     csl: { id, type: "article-journal", title: `Work ${id}`, "container-title": "Journal & Co" },
-    meta: { year: 2024, funders, ...meta },
+    meta: { year: 2024, funders, repositoryCopiesCheckedAt: "2026-09-01T00:00:00.000Z", ...meta },
   };
 }
 

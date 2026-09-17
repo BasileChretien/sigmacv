@@ -6,12 +6,14 @@ import { readBodyWithin, resilientFetch } from "@/lib/http";
  * deposits routinely: on one owner's CV, 2026-09-16, 17 of 51 "no open copy
  * found" articles had a HAL record — 3 with a file (one since 2021), 14 notices
  * without one — and neither OpenAlex nor Unpaywall saw any of them. So the
- * owner sync asks the repositories themselves, one DOI at a time, in the order
- * that found the most: HAL, Europe PMC, OpenAIRE (the aggregator of institutional
- * repositories), Zenodo. Each client here follows the external-client convention
- * (`src/lib/oaworks/client.ts`): keyless, one attempt, no redirect, `no-store`, a
- * byte cap, a contact address in the User-Agent, and three outcomes — `found` and
- * `none` are answers, `failed` is not (the pass retries on a later sync).
+ * owner sync asks the repositories themselves — HAL for every work due, a few
+ * at a time, then Europe PMC and OpenAIRE (the aggregator of institutional
+ * repositories, Zenodo among them) for what HAL did not settle. Each client here
+ * follows the external-client convention (`src/lib/oaworks/client.ts`): one
+ * attempt, no redirect, `no-store`, a byte cap, a contact address in the
+ * User-Agent, and three outcomes — `found` and `none` are answers, `failed` is
+ * not (the pass retries on a later sync). Keyless, except OpenAIRE's optional
+ * bearer token (its anonymous quota is 60 calls an hour per address).
  *
  * A copy is stored with what the worklist prints (data minimisation): where, the
  * record's id and page, whether a FILE is there (a notice without one is a
@@ -19,6 +21,7 @@ import { readBodyWithin, resilientFetch } from "@/lib/http";
  * name and the record's date. Nothing else from the responses is kept.
  */
 
+/** `zenodo` is no longer asked (OpenAIRE harvests it) but stays valid for stored copies. */
 export const COPY_SOURCES = ["hal", "europepmc", "openaire", "zenodo"] as const;
 export type CopySource = (typeof COPY_SOURCES)[number];
 
@@ -85,12 +88,13 @@ export async function getJson(
   url: URL,
   mailto: string | undefined,
   timeoutMs: number,
+  extraHeaders: Readonly<Record<string, string>> = {},
 ): Promise<unknown | null | undefined> {
   const limit = Math.max(1, Math.min(COPY_TIMEOUT_MS, timeoutMs));
   const deadline = Date.now() + limit;
   try {
     const res = await resilientFetch(url.href, {
-      headers: { Accept: "application/json", "User-Agent": userAgent(mailto) },
+      headers: { Accept: "application/json", "User-Agent": userAgent(mailto), ...extraHeaders },
       timeoutMs: limit,
       retries: 0,
       redirect: "error",

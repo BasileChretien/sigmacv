@@ -234,6 +234,10 @@ export interface WorkspaceUiStrings {
   wlElsewhereHelp: string;
   /** The fold's label; the list is closed on every visit. */
   wlElsewhereShow: string;
+  /** The third fold: works the sync has not yet asked the repositories about — no claim, no action. */
+  wlUncheckedHeading: string;
+  wlUncheckedHelp: string;
+  wlUncheckedShow: string;
   /** The deposit chip on a publication row: `{destination}` = the route's name. */
   /** Chip on a publication row: the clinical guidelines citing it, one and many, plus the hint. */
   guidelineChipOne: string;
@@ -434,6 +438,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Free to read at the publisher and not in a repository yet: the work's licence or the law lets you deposit a copy.",
     wlElsewhereShow: "Show these papers",
+    wlUncheckedHeading: "Papers not checked yet",
+    wlUncheckedHelp:
+      "SigmaCV has not asked the repositories about these yet, so it claims nothing about them. They move to the lists above once a sync has asked.",
+    wlUncheckedShow: "Show these papers",
     guidelineChipOne: "Cited in 1 clinical guideline",
     guidelineChipMany: "Cited in {n} clinical guidelines",
     guidelineChipHint:
@@ -603,6 +611,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHeading: "在出版社处开放的论文 — 也在知识库中存一份",
     wlElsewhereHelp: "在出版社处可免费阅读，但尚未进入知识库：作品的许可或法律允许您存入一份副本。",
     wlElsewhereShow: "显示这些论文",
+    wlUncheckedHeading: "尚未核查的论文",
+    wlUncheckedHelp:
+      "SigmaCV 尚未向知识库查询这些论文，因此不作任何判断。经过一次同步查询后，它们会移入上方列表。",
+    wlUncheckedShow: "显示这些论文",
     guidelineChipOne: "被 1 部临床指南引用",
     guidelineChipMany: "被 {n} 部临床指南引用",
     guidelineChipHint:
@@ -790,6 +802,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "De lectura libre en la editorial y aún no en un repositorio: la licencia de la obra o la ley le permiten depositar una copia.",
     wlElsewhereShow: "Mostrar estos artículos",
+    wlUncheckedHeading: "Artículos aún no comprobados",
+    wlUncheckedHelp:
+      "SigmaCV aún no ha preguntado a los repositorios por estos artículos, así que no afirma nada sobre ellos. Pasarán a las listas de arriba en cuanto una sincronización lo haya hecho.",
+    wlUncheckedShow: "Mostrar estos artículos",
     guidelineChipOne: "Citado en 1 guía clínica",
     guidelineChipMany: "Citado en {n} guías clínicas",
     guidelineChipHint:
@@ -981,6 +997,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Lisibles gratuitement chez l’éditeur et pas encore dans une archive : la licence de l’œuvre ou la loi vous permettent d’en déposer une copie.",
     wlElsewhereShow: "Afficher ces articles",
+    wlUncheckedHeading: "Articles pas encore vérifiés",
+    wlUncheckedHelp:
+      "SigmaCV n’a pas encore interrogé les archives ouvertes au sujet de ces articles : il n’affirme donc rien à leur propos. Ils rejoindront les listes ci-dessus dès qu’une synchronisation l’aura fait.",
+    wlUncheckedShow: "Afficher ces articles",
     guidelineChipOne: "Cité dans 1 guide de pratique clinique",
     guidelineChipMany: "Cité dans {n} guides de pratique clinique",
     guidelineChipHint:
@@ -1172,6 +1192,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Beim Verlag frei lesbar und noch in keinem Repositorium: die Lizenz des Werks oder das Gesetz erlauben Ihnen, eine Kopie zu hinterlegen.",
     wlElsewhereShow: "Diese Artikel anzeigen",
+    wlUncheckedHeading: "Noch nicht geprüfte Artikel",
+    wlUncheckedHelp:
+      "SigmaCV hat die Repositorien zu diesen Artikeln noch nicht gefragt und behauptet daher nichts über sie. Sobald eine Synchronisierung gefragt hat, wandern sie in die Listen oben.",
+    wlUncheckedShow: "Diese Artikel anzeigen",
     guidelineChipOne: "In 1 klinischen Leitlinie zitiert",
     guidelineChipMany: "In {n} klinischen Leitlinien zitiert",
     guidelineChipHint:
@@ -1356,6 +1380,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "出版社側では無料で読めるが、まだリポジトリにはない論文：著作物のライセンスまたは法律により、複製を登録できます。",
     wlElsewhereShow: "これらの論文を表示",
+    wlUncheckedHeading: "まだ確認していない論文",
+    wlUncheckedHelp:
+      "SigmaCV はこれらの論文についてリポジトリにまだ照会していないため、何も断定していません。同期で照会が済めば上のリストへ移ります。",
+    wlUncheckedShow: "これらの論文を表示",
     guidelineChipOne: "1 件の臨床ガイドラインに引用",
     guidelineChipMany: "{n} 件の臨床ガイドラインに引用",
     guidelineChipHint:
@@ -1544,6 +1572,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "De leitura livre na editora e ainda fora de um repositório: a licença da obra ou a lei permitem depositar uma cópia.",
     wlElsewhereShow: "Mostrar estes artigos",
+    wlUncheckedHeading: "Artigos ainda não verificados",
+    wlUncheckedHelp:
+      "O SigmaCV ainda não perguntou aos repositórios sobre estes artigos, por isso nada afirma sobre eles. Eles passam para as listas acima assim que uma sincronização tiver perguntado.",
+    wlUncheckedShow: "Mostrar estes artigos",
     guidelineChipOne: "Citado em 1 diretriz clínica",
     guidelineChipMany: "Citado em {n} diretrizes clínicas",
     guidelineChipHint:
@@ -1734,6 +1766,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Leggibili gratuitamente presso l’editore e non ancora in un archivio: la licenza dell’opera o la legge ti permettono di depositarne una copia.",
     wlElsewhereShow: "Mostra questi articoli",
+    wlUncheckedHeading: "Articoli non ancora verificati",
+    wlUncheckedHelp:
+      "SigmaCV non ha ancora chiesto agli archivi di questi articoli, quindi non afferma nulla su di essi. Passeranno alle liste qui sopra non appena una sincronizzazione lo avrà fatto.",
+    wlUncheckedShow: "Mostra questi articoli",
     guidelineChipOne: "Citato in 1 linea guida clinica",
     guidelineChipMany: "Citato in {n} linee guida cliniche",
     guidelineChipHint:
@@ -1916,6 +1952,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "출판사에서 무료로 읽을 수 있지만 아직 리포지터리에는 없는 논문: 저작물의 라이선스나 법률에 따라 사본을 기탁할 수 있습니다.",
     wlElsewhereShow: "이 논문 표시",
+    wlUncheckedHeading: "아직 확인하지 않은 논문",
+    wlUncheckedHelp:
+      "SigmaCV는 이 논문들에 대해 리포지터리에 아직 조회하지 않았으므로 아무것도 단정하지 않습니다. 동기화에서 조회가 이루어지면 위 목록으로 이동합니다.",
+    wlUncheckedShow: "이 논문 표시",
     guidelineChipOne: "임상 진료 지침 1건에 인용",
     guidelineChipMany: "임상 진료 지침 {n}건에 인용",
     guidelineChipHint:
@@ -2103,6 +2143,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlElsewhereHelp:
       "Свободно читаются у издателя, но ещё не в репозитории: лицензия работы или закон позволяют разместить копию.",
     wlElsewhereShow: "Показать эти статьи",
+    wlUncheckedHeading: "Статьи, которые ещё не проверены",
+    wlUncheckedHelp:
+      "SigmaCV ещё не спрашивал репозитории об этих статьях, поэтому ничего о них не утверждает. Как только синхронизация спросит, они перейдут в списки выше.",
+    wlUncheckedShow: "Показать эти статьи",
     guidelineChipOne: "Цитируется в 1 клиническом руководстве",
     guidelineChipMany: "Цитируется в {n} клинических руководствах",
     guidelineChipHint:

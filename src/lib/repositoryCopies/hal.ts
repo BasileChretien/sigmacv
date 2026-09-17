@@ -22,8 +22,8 @@ import {
  *     indexes `doiId_s` in lower case, so the term is lowered (a DOI is
  *     case-insensitive).
  *
- * Keyless, no documented rate limit (the pass makes one call per work,
- * sequentially, under a budget). `openAccess_bool` says whether a FILE is open
+ * Keyless, no documented rate limit (the pass makes one call per work, a few
+ * in flight at once, under a budget). `openAccess_bool` says whether a FILE is open
  * on the record: a HAL "notice" without one is a metadata record, common in
  * France where labs create notices in bulk — for those the right action is to
  * add the manuscript to the notice, not to deposit a duplicate. The record page

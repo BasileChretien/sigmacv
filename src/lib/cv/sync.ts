@@ -648,8 +648,9 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // Owner sync only, like the pass above.
   const withPlaces = await enrichCvWithDepositRepositories(withRights);
   // Whether a closed article already sits in a repository OpenAlex does not know
-  // (HAL, Europe PMC, OpenAIRE, Zenodo): one work at a time, capped, budgeted,
-  // fail-soft (`archiving/repositoryCopiesPass.ts`). Owner sync only, like the
+  // (HAL for every work due, then Europe PMC and OpenAIRE): a few calls in
+  // flight, one sync for a whole CV, budgeted, fail-soft
+  // (`archiving/repositoryCopiesPass.ts`). Owner sync only, like the
   // two passes above; adds or removes no item.
   const withCopies = await enrichCvWithRepositoryCopies(withPlaces, getEnv().OPENALEX_MAILTO);
   // The clinical practice guidelines citing each PubMed-indexed work (iCite's

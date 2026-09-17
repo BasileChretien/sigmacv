@@ -30,7 +30,13 @@ function work(id: string, meta: CvItem["meta"] = {}, csl: Record<string, unknown
     authoredBySelf: true,
     selfNameVariants: [],
     csl: { id, type: "article-journal", title: `Work ${id}`, DOI: `10.1234/${id}`, ...csl },
-    meta: { year: 2023, oaIsOpen: false, workCountries: ["FR"], ...meta },
+    meta: {
+      year: 2023,
+      oaIsOpen: false,
+      workCountries: ["FR"],
+      repositoryCopiesCheckedAt: "2026-09-01T00:00:00.000Z",
+      ...meta,
+    },
   };
 }
 
@@ -123,5 +129,14 @@ describe("depositChips", () => {
     expect(depositCandidate(undefined)).toBeUndefined();
     expect(depositCandidate(work("W-chapter", {}, { type: "chapter" }))).toBeUndefined();
     expect(depositCandidate(work("W1"))?.id).toBe("W1");
+  });
+
+  it("gives no chip to a work the sync has not yet asked the repositories about", () => {
+    const chips = depositChips(
+      makeCv([work("W-unchecked", { repositoryCopiesCheckedAt: undefined })]),
+      CTX,
+      TODAY,
+    );
+    expect(chips.get("W-unchecked")).toBeUndefined();
   });
 });

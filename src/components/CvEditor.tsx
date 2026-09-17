@@ -151,6 +151,9 @@ const CvEditor = forwardRef<CvEditorHandle, CvEditorProps>(function CvEditor(
       if (!row) return;
       const panel = row.closest<HTMLDetailsElement>("details.cv-worklist");
       if (panel) panel.open = true;
+      // A row inside a fold of the panel (the second or third list): open it too.
+      const fold = row.closest<HTMLDetailsElement>("details");
+      if (fold && fold !== panel) fold.open = true;
       row.scrollIntoView({ behavior: "smooth", block: "center" });
       row.focus({ preventScroll: true });
     });

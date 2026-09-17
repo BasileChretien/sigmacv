@@ -10,8 +10,13 @@ import { countableWorks } from "@/lib/render/countable";
 import { lookupEuropePmcCopy } from "@/lib/repositoryCopies/europepmc";
 import { lookupHalCopy } from "@/lib/repositoryCopies/hal";
 import { lookupOpenaireCopy } from "@/lib/repositoryCopies/openaire";
-import { FAILED, type CopyLookup, type RepositoryCopy } from "@/lib/repositoryCopies/shared";
-import { lookupZenodoCopy, ZENODO_MIN_INTERVAL_MS } from "@/lib/repositoryCopies/zenodo";
+import {
+  COPY_TIMEOUT_MS,
+  FAILED,
+  type CopyLookup,
+  type RepositoryCopy,
+} from "@/lib/repositoryCopies/shared";
+import { getOpenaireAccessToken } from "@/lib/openaire/auth";
 import { AT_PUBLISHER } from "./depositNow";
 import { answeredWithin } from "./freshness";
 
@@ -20,27 +25,32 @@ import { answeredWithin } from "./freshness";
  * with a DOI in either worklist list — closed, or open at the publisher only —
  * the closed ones first, whether a copy already sits in a repository OpenAlex
  * does not know about (`meta.repositoryCopies`): HAL, Europe PMC, an
- * OpenAIRE-harvested repository, Zenodo (`COPY_LOOKUPS`, the order that found
- * the most on a real CV — 2026-09-16: 17 of 51 in HAL, one in Europe PMC, none
- * the other two knew; see `repositoryCopies/shared.ts`).
+ * OpenAIRE-harvested repository (`COPY_LOOKUPS`, the order that found the most
+ * on a real CV — 2026-09-16: 17 of 51 in HAL, one in Europe PMC, none OpenAIRE
+ * knew; see `repositoryCopies/shared.ts`). Zenodo is not asked: OpenAIRE
+ * harvests it, and it found nothing on 51 DOIs at a second per call.
  *
- * Two phases inside one budget. Phase 1 asks the FIRST source (HAL: fast, and
- * where nearly every copy was) for EVERY work due, up to the cap, within its
- * own share of the budget ({@link FIRST_PHASE_SHARE}) so a hanging HAL cannot
- * starve the others. Phase 2 asks the other sources, in order, for the works
- * phase 1 did not settle with a file, until the budget runs out. Before this
- * split, one sync asked all four sources of one work before the next work and
- * reached 7 of 52 in 12 s (2026-09-16 on the live CV) — the slow sources
- * starved the one that finds. Known cost: a work phase 2 did not reach is
- * asked HAL again next sync (cheap; a per-source stamp would spare it).
+ * ONE SYNC must answer for the whole CV: a work the pass has never reached
+ * shows in the tab as "not checked yet" (`depositNow.ts` `copiesUnchecked`),
+ * never as "no open copy found", so the cap is the CV and the budget is spent
+ * on concurrency. OpenAIRE is asked with the cached access token
+ * (`openaire/auth.ts`: 7 200 calls an hour, against 60 anonymous per address —
+ * one CV would spend the anonymous hour), anonymous when none is configured. Two phases inside one budget. Phase 1 asks the FIRST source
+ * (HAL: fast, and where nearly every copy was) for EVERY work due, a few at a
+ * time, within its own share of the budget ({@link FIRST_PHASE_SHARE}) so a
+ * hanging HAL cannot starve the others. Phase 2 asks the other sources, in
+ * order, for the works phase 1 did not settle with a file, a few works at a
+ * time, until the budget runs out. (Before: one source after another of one
+ * work before the next, 20 works per sync — 7 of 52 reached in 12 s, then a
+ * fifth of a 105-work CV per sync; Basile, 2026-09-17: "if we need several
+ * syncs, the information we display after one sync is not correct".)
  *
  * Called from `syncCvForUser` ONLY, like the OA.Works pass beside it, never from
  * `buildCvFromOrcid` (the anonymous preview shares that function). Polite by
- * construction: one call at a time, each source once per work, no retry, at
- * most {@link REPOSITORY_COPIES_MAX_WORKS} works per sync inside
+ * construction: at most {@link FIRST_PHASE_CONCURRENCY} calls in flight per
+ * source, each source once per work, no retry, everything inside
  * {@link REPOSITORY_COPIES_BUDGET_MS} of wall clock, never-checked works first,
- * Zenodo calls spaced by {@link ZENODO_MIN_INTERVAL_MS} (its guest limit), and
- * a work answered within {@link REPOSITORY_COPIES_REFRESH_DAYS} days is not
+ * and a work answered within {@link REPOSITORY_COPIES_REFRESH_DAYS} days is not
  * asked again. The search of a work stops at the first copy WITH A FILE: the
  * fact the worklist acts on (the paper is open in a repository).
  *
@@ -50,15 +60,18 @@ import { answeredWithin } from "./freshness";
  * ANSWERED — stamped, and not asked again within the window — when a file was
  * found or every source answered; otherwise only the ATTEMPT is stamped, so the
  * work returns behind the works never examined (the OA.Works pass's lesson),
- * with the notices found so far already in the worklist. A source that throws
- * is a failure of that source, never of the sync. A work that stops being a
+ * with the notices found so far already stored. A source that throws is a
+ * failure of that source, never of the sync. A work that stops being a
  * candidate loses its copies.
  */
 
-export const REPOSITORY_COPIES_MAX_WORKS = 20;
-const REPOSITORY_COPIES_BUDGET_MS = 12_000;
+/** No cap on the works: every work due is queued; the budget is the bound. */
+const REPOSITORY_COPIES_BUDGET_MS = 25_000;
 /** Phase 1 may spend this share of the budget; the rest is phase 2's at least. */
-const FIRST_PHASE_SHARE = 2 / 3;
+const FIRST_PHASE_SHARE = 1 / 2;
+/** Calls in flight at once, per phase — modest for HAL, Europe PMC and OpenAIRE alike. */
+const FIRST_PHASE_CONCURRENCY = 4;
+const REST_CONCURRENCY = 4;
 export const REPOSITORY_COPIES_REFRESH_DAYS = 7;
 /** Across the sources, per work (the schema enforces the same). */
 const MAX_COPIES = 8;
@@ -75,14 +88,48 @@ export const COPY_LOOKUPS: ReadonlyArray<readonly [Source, Lookup]> = [
   ["hal", lookupHalCopy],
   ["europepmc", lookupEuropePmcCopy],
   ["openaire", lookupOpenaireCopy],
-  ["zenodo", lookupZenodoCopy],
 ];
 
 export interface RepositoryCopiesOptions {
-  /** Injected by tests: the sources, the clock and the Zenodo spacing. */
+  /** Injected by tests: the sources and the clock. */
   lookups?: typeof COPY_LOOKUPS;
   now?: string;
-  zenodoIntervalMs?: number;
+}
+
+/** `promise`, or `fallback` once `ms` have passed — the timer never outlives the race. */
+function within<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const late = new Promise<T>((resolve) => {
+    timer = setTimeout(() => resolve(fallback), ms);
+  });
+  return Promise.race([promise, late]).finally(() => clearTimeout(timer));
+}
+
+/**
+ * The default sources, OpenAIRE bound to the access token of this sync — asked
+ * for once, at the first OpenAIRE call, so a sync with nothing left for phase 2
+ * never exchanges it (null = anonymous). The exchange is bounded by the call's
+ * own timeout: past it the call goes anonymous with what time is left, or fails
+ * when none is, so a slow token endpoint never stretches the pass beyond its
+ * budget. Exported for its test.
+ */
+export function defaultLookups(
+  getToken: () => Promise<string | null> = () => getOpenaireAccessToken().catch(() => null),
+): typeof COPY_LOOKUPS {
+  let token: Promise<string | null> | undefined;
+  return COPY_LOOKUPS.map(([source, lookup]) =>
+    source === "openaire"
+      ? ([
+          source,
+          async (doi: string, mailto?: string, timeoutMs: number = COPY_TIMEOUT_MS) => {
+            const started = Date.now();
+            const bearer = await within((token ??= getToken()), timeoutMs, null);
+            const left = timeoutMs - (Date.now() - started);
+            return left > 0 ? lookupOpenaireCopy(doi, mailto, left, bearer) : FAILED;
+          },
+        ] as const)
+      : ([source, lookup] as const),
+  );
 }
 
 /** A countable journal article with a DOI, closed or open at the publisher only. */
@@ -119,8 +166,6 @@ function withoutStaleCopies(sections: CvSection[], candidates: ReadonlySet<strin
     ),
   }));
 }
-
-const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /** What one source said about one work this sync. */
 interface Outcome {
@@ -159,7 +204,6 @@ async function askRest(
   mailto: string,
   rest: ReadonlyArray<readonly [Source, Lookup]>,
   remainingMs: () => number,
-  pace: { lastZenodo: number; zenodoIntervalMs: number },
 ): Promise<Outcomes> {
   const outcomes = new Map<Source, Outcome>();
   let settled = false;
@@ -167,11 +211,6 @@ async function askRest(
     if (settled) {
       outcomes.set(source, SKIPPED);
       continue;
-    }
-    if (source === "zenodo" && remainingMs() > 0) {
-      const wait = pace.lastZenodo + pace.zenodoIntervalMs - Date.now();
-      if (wait > 0) await sleep(Math.min(wait, remainingMs()));
-      pace.lastZenodo = Date.now();
     }
     const outcome = await ask(lookup, doi, mailto, remainingMs);
     outcomes.set(source, outcome);
@@ -215,11 +254,7 @@ export async function enrichCvWithRepositoryCopies(
   options: RepositoryCopiesOptions = {},
 ): Promise<CanonicalCv> {
   const now = options.now ?? new Date().toISOString();
-  const lookups = options.lookups ?? COPY_LOOKUPS;
-  const pace = {
-    lastZenodo: 0,
-    zenodoIntervalMs: options.zenodoIntervalMs ?? ZENODO_MIN_INTERVAL_MS,
-  };
+  const lookups = options.lookups ?? defaultLookups();
   const countable = new Set(countableWorks(cv));
   type Candidate = RotationTarget & { doi: string; answeredAt?: string; open: boolean };
   const candidates: Candidate[] = [];
@@ -243,7 +278,7 @@ export async function enrichCvWithRepositoryCopies(
   );
   const [first, ...rest] = lookups;
   /* v8 ignore next -- COPY_LOOKUPS is never empty; an injected empty list asks nothing */
-  const targets = first ? rotationQueue(due, REPOSITORY_COPIES_MAX_WORKS) : [];
+  const targets = first ? rotationQueue(due, due.length) : [];
   const order = lookups.map(([source]) => source);
 
   const started = Date.now();
@@ -257,7 +292,7 @@ export async function enrichCvWithRepositoryCopies(
     "repositories.copies.first",
     targets,
     (t) => ask(first![1], t.doi, mailto, firstRemainingMs),
-    1,
+    FIRST_PHASE_CONCURRENCY,
     firstBudgetMs,
   );
   // Phase 2: the other sources, for the works phase 1 did not settle, while the budget lasts.
@@ -271,8 +306,8 @@ export async function enrichCvWithRepositoryCopies(
       ? await mapWithinBudget(
           "repositories.copies.rest",
           pending,
-          (t) => askRest(t.doi, mailto, rest, remainingMs, pace),
-          1,
+          (t) => askRest(t.doi, mailto, rest, remainingMs),
+          REST_CONCURRENCY,
           remainingMs(),
         )
       : { examined: [] as typeof pending, results: [] as Outcomes[] };

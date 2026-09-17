@@ -102,7 +102,6 @@ describe("the self-archiving programme never reaches a public surface", () => {
     "src/lib/repositoryCopies/hal.ts",
     "src/lib/repositoryCopies/europepmc.ts",
     "src/lib/repositoryCopies/openaire.ts",
-    "src/lib/repositoryCopies/zenodo.ts",
   ];
   const files = PUBLIC_SCOPES.flatMap(sourceFiles);
 

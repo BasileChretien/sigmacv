@@ -41,6 +41,7 @@ test("a closed work shows the publisher's recorded policy, the statutory rule an
                 ...item.meta,
                 oaIsOpen: false,
                 workCountries: ["FR"],
+                repositoryCopiesCheckedAt: "2026-09-01T00:00:00.000Z",
                 selfArchiving: {
                   source: "oa.works",
                   canArchive: true,
