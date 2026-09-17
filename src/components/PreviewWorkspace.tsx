@@ -296,11 +296,16 @@ export default function PreviewWorkspace({
               {renderError === "rate" ? s.refreshPaused : s.refreshFailed}
             </p>
           ) : null}
+          {/* The anonymous editor renders the same placeholder links as the
+              signed-in one (`editorPreview` on /api/preview/render), so its frame
+              needs the same click-to-fragment allowance; the markup is our
+              renderer's, escaped, whoever the record belongs to. */}
           <CvPreview
             html={previewHtml}
             loading={previewLoading}
             locale={loc}
             pageFormat={cv.display.pageFormat}
+            editable
           />
         </section>
       </div>

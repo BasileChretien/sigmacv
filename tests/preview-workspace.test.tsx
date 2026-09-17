@@ -2,10 +2,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 
-const mocks = vi.hoisted(() => ({ trackEvent: vi.fn(), signIn: vi.fn() }));
-// The sign-in server action and the iframe preview are out of scope here.
+const mocks = vi.hoisted(() => ({
+  trackEvent: vi.fn(),
+  signIn: vi.fn(),
+  previewProps: null as Record<string, unknown> | null,
+}));
+// The sign-in server action and the iframe preview are out of scope here; the
+// preview stub only records the props it is handed.
 vi.mock("@/app/auth-actions", () => ({ signInWithOrcid: mocks.signIn }));
-vi.mock("@/components/CvPreview", () => ({ default: () => null }));
+vi.mock("@/components/CvPreview", () => ({
+  default: (props: Record<string, unknown>) => {
+    mocks.previewProps = props;
+    return null;
+  },
+}));
 vi.mock("@/lib/analytics/track", () => ({ trackEvent: mocks.trackEvent }));
 
 import PreviewWorkspace from "@/components/PreviewWorkspace";
@@ -89,6 +99,13 @@ describe("PreviewWorkspace (third-party framing)", () => {
     expect(mocks.trackEvent).toHaveBeenCalledWith("Preview CTA", { action: "copy-link" });
     expect(writeText).toHaveBeenCalledWith(window.location.href);
     await waitFor(() => expect(copy.textContent).toBe(s.copied));
+  });
+
+  it("lets a placeholder link in the preview jump back to its section, like the signed-in editor", () => {
+    mount(null);
+    // The frame gets the editor allowance (CvPreview itself is tested in
+    // prose-prompt-preview.test.tsx: `editable` is what adds the sandbox token).
+    expect(mocks.previewProps?.editable).toBe(true);
   });
 
   it("offers no figure control in the anonymous editor", () => {
