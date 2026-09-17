@@ -805,15 +805,15 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
       "En Zenodo, responde «No» a «Do you already have a DOI for this upload?» y añade este DOI en «Related works».",
     wlDepositHalDoi:
       "En el formulario de HAL, pega este DOI en la casilla que carga los metadatos a partir de un identificador y recupera los metadatos: HAL rellena el formulario con ellos.",
-    wlDepositHalNoticeAccepted: "Añada el manuscrito aceptado al registro HAL {id}",
-    wlDepositHalNoticePublished: "Añada la versión publicada al registro HAL {id}",
-    wlDepositHalNoticeSubmitted: "Añada el manuscrito enviado al registro HAL {id}",
+    wlDepositHalNoticeAccepted: "Añade el manuscrito aceptado al registro HAL {id}",
+    wlDepositHalNoticePublished: "Añade la versión publicada al registro HAL {id}",
+    wlDepositHalNoticeSubmitted: "Añade el manuscrito enviado al registro HAL {id}",
     wlDepositHalNoticeIfAgreement:
       "Añade tu archivo al registro HAL {id} solo si tu contrato de publicación lo permite",
     wlDepositHalNoticeIfRightOrAgreement:
       "Añade tu archivo al registro HAL {id} solo si un derecho indicado arriba o tu contrato de publicación lo permite",
     wlDepositHalNoticeNote:
-      "HAL ya tiene un registro de este artículo sin archivo: añada el archivo a ese registro en lugar de hacer un depósito nuevo.",
+      "HAL ya tiene un registro de este artículo sin archivo: añade el archivo a ese registro en lugar de hacer un depósito nuevo.",
     wlDepositOtherPlaces: "Otros lugares",
     wlFileLabel: "Archivo que subir: ",
     wlFileAccepted:

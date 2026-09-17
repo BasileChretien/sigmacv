@@ -300,9 +300,19 @@ describe("worklist deposit strings (workspaceUi wlDeposit*)", () => {
     const s = workspaceUi("es-ES");
     for (const key of DEPOSIT_KEYS) {
       expect(s[key], key).not.toMatch(
-        /\busted\b|\bsu manuscrito\b|\bsus otros trabajos\b|\bsu afiliación\b/i,
+        /\busted\b|\bsu manuscrito\b|\bsus otros trabajos\b|\bsu afiliación\b|\bsu archivo\b|\bañada\b/i,
       );
     }
     expect(s.wlDepositBecauseOwn).toMatch(/\btus trabajos\b/);
+    // The HAL-notice actions are alternates on one line: one register for all of them.
+    for (const key of [
+      "wlDepositHalNoticeAccepted",
+      "wlDepositHalNoticePublished",
+      "wlDepositHalNoticeSubmitted",
+      "wlDepositHalNoticeIfAgreement",
+      "wlDepositHalNoticeIfRightOrAgreement",
+    ] as const) {
+      expect(s[key], key).toMatch(/^Añade /);
+    }
   });
 });
