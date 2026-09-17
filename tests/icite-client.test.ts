@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { fetchIciteByPmids } from "@/lib/icite/client";
+import { fetchClinicalCitersByPmids, fetchIciteByPmids } from "@/lib/icite/client";
 
 function res(body: unknown, ok = true, status = 200): Response {
   return { ok, status, json: async () => body } as unknown as Response;
@@ -205,5 +205,41 @@ describe("fetchIciteByPmids", () => {
       vi.fn(async () => res({ data: null })),
     );
     expect((await fetchIciteByPmids(["111"])).size).toBe(0);
+  });
+});
+
+describe("fetchClinicalCitersByPmids", () => {
+  it("lists the clinical citers of each work under either spelling, as strings, dropping junk", async () => {
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) =>
+      res({
+        data: [
+          { pmid: 111, citingClinicalPmids: [34724392, "42285609", "x", null] },
+          { pmid: "222", cited_by_clin: "1 2,3" },
+          { pmid: 333, cited_by_clin: null },
+          { nope: true },
+        ],
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    const map = await fetchClinicalCitersByPmids(["111", "222", "333", "abc"]);
+    expect(map).not.toBeNull();
+    expect(map!.get("111")).toEqual(["34724392", "42285609"]);
+    expect(map!.get("222")).toEqual(["1", "2", "3"]);
+    expect(map!.get("333")).toEqual([]);
+    expect(map!.size).toBe(3);
+    const url = new URL(String(fetchMock.mock.calls[0]![0]));
+    expect(url.searchParams.get("fl")).toBe("pmid,cited_by_clin");
+    expect(url.searchParams.get("pmids")).toBe("111,222,333");
+  });
+
+  it("answers null when the call fails, and an empty map for no valid ids without calling", async () => {
+    const fetchMock = vi.fn(async () => res({}, false, 500));
+    vi.stubGlobal("fetch", fetchMock);
+    expect(await fetchClinicalCitersByPmids(["111"])).toBeNull();
+    // (resilientFetch retries a 500 a few times; what matters is that no valid id → no call.)
+    const calls = fetchMock.mock.calls.length;
+    expect(calls).toBeGreaterThan(0);
+    expect(await fetchClinicalCitersByPmids(["abc"])).toEqual(new Map());
+    expect(fetchMock.mock.calls.length).toBe(calls);
   });
 });

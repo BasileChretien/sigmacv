@@ -150,6 +150,10 @@ const repositoryCopiesPass = vi.hoisted(() => vi.fn(async (cv: unknown, _mailto:
 vi.mock("@/lib/archiving/repositoryCopiesPass", () => ({
   enrichCvWithRepositoryCopies: repositoryCopiesPass,
 }));
+const guidelineCitationsPass = vi.hoisted(() => vi.fn(async (cv: unknown, _mailto: string) => cv));
+vi.mock("@/lib/pubmed/guidelineCitationsPass", () => ({
+  enrichCvWithGuidelineCitations: guidelineCitationsPass,
+}));
 
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
@@ -438,6 +442,32 @@ describe("syncCvForUser", () => {
     repositoryCopiesPass.mockClear();
     await buildCvFromOrcid({ orcid: RESOLVED.orcid });
     expect(repositoryCopiesPass).not.toHaveBeenCalled();
+  });
+
+  it("runs the guideline-citations pass after the copies pass on the owner sync, with the mailto — the preview build never runs it", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    repositoryCopiesPass.mockClear();
+    guidelineCitationsPass.mockClear();
+    repositoryCopiesPass.mockImplementationOnce(async (doc: unknown) => ({
+      ...(doc as CanonicalCv),
+      notes: "copies",
+    }));
+    guidelineCitationsPass.mockImplementationOnce(async (doc: unknown) => ({
+      ...(doc as CanonicalCv),
+      notes: (doc as CanonicalCv).notes + " then guidelines",
+    }));
+    const { cv } = await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(guidelineCitationsPass).toHaveBeenCalledTimes(1);
+    expect(guidelineCitationsPass.mock.calls[0]![1]).toBe(process.env.OPENALEX_MAILTO);
+    expect(cv.notes).toBe("copies then guidelines");
+    const arg = mocks.upsert.mock.calls[0]![0] as { update: { document: CanonicalCv } };
+    expect(arg.update.document.notes).toBe("copies then guidelines");
+
+    guidelineCitationsPass.mockClear();
+    await buildCvFromOrcid({ orcid: RESOLVED.orcid });
+    expect(guidelineCitationsPass).not.toHaveBeenCalled();
   });
 
   it("denormalises the current affiliation's ROR id on sync (and the resync that reuses it)", async () => {

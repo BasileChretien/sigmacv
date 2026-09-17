@@ -39,6 +39,7 @@ import { dupReasonText, dupStrings } from "@/lib/i18n/duplicates";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
 import { fill } from "@/lib/i18n/fill";
 import { useDepositChips } from "./depositChipContext";
+import { guidelineCitationLine } from "@/lib/pubmed/guidelineText";
 import { localePrivacyPath } from "@/lib/seo";
 import { itemReviewState, needsReview } from "@/lib/canonical/review";
 
@@ -494,6 +495,9 @@ export default function ItemRow({
   // row in the Open access tab.
   const depositChips = useDepositChips();
   const depositChip = depositChips?.chips.get(item.id);
+  // The practice guidelines citing this work (owner sync's PubMed pass); the
+  // anonymous preview never carries them, so it never shows the chip.
+  const guidelineCitations = item.meta.guidelineCitations ?? [];
   // Its hidden note: the chip's label is the action, so the note says the
   // button opens the tab (a title alone is not read by every screen reader).
   const depositChipNoteId = useId();
@@ -1017,6 +1021,20 @@ export default function ItemRow({
                   {wu.wlChipHint}
                 </span>
               </>
+            ) : null}
+            {guidelineCitations.length > 0 ? (
+              <span
+                className="cv-guideline-chip"
+                title={[
+                  wu.guidelineChipHint,
+                  ...guidelineCitations.map((g) => `\u2022 ${guidelineCitationLine(g)}`),
+                ].join("\n")}
+              >
+                {fill(
+                  guidelineCitations.length === 1 ? wu.guidelineChipOne : wu.guidelineChipMany,
+                  { n: String(guidelineCitations.length) },
+                )}
+              </span>
             ) : null}
           </div>
         ) : (

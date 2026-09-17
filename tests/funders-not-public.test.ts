@@ -135,6 +135,8 @@ describe("the self-archiving programme never reaches a public surface", () => {
     expect(owner).toContain("enrichCvWithDepositRepositories(");
     expect(build).not.toContain("enrichCvWithRepositoryCopies");
     expect(owner).toContain("enrichCvWithRepositoryCopies(");
+    expect(build).not.toContain("enrichCvWithGuidelineCitations");
+    expect(owner).toContain("enrichCvWithGuidelineCitations(");
     // The preview builder reaches the sources through buildCvFromOrcid alone.
     const preview = readFileSync(join(ROOT, "src/lib/cv/previewFromOrcid.ts"), "utf8");
     expect(preview).not.toContain("syncCvForUser");

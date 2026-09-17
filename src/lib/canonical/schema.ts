@@ -1149,6 +1149,35 @@ const CvItemSchema = z.object({
      *  included — the rotation sentinel, same scheme as {@link selfArchivingTriedAt}. Owner-only. */
     repositoryCopiesTriedAt: z.string().optional(),
     /**
+     * The clinical practice guidelines that cite this work, as the owner sync's
+     * guideline-citations pass found them (`pubmed/guidelineCitationsPass.ts`):
+     * iCite's clinical citers of the work's PMID, kept when PubMed types them as
+     * a guideline or consensus statement. Newest first, capped. For the editor's
+     * row chip and the starter drafts only — never rendered on the CV, stripped
+     * from every public surface like {@link selfArchiving}. Carried across
+     * re-sync (PMID-keyed), refreshed when the work's turn comes round
+     * ({@link guidelineCitationsCheckedAt}); an answered "none" clears it, a
+     * failed call keeps it. A malformed stored value degrades to `undefined`.
+     */
+    guidelineCitations: z
+      .array(
+        z.object({
+          pmid: z.string().max(20),
+          title: z.string().max(500),
+          source: z.string().max(200).optional(),
+          year: z.number().int().optional(),
+        }),
+      )
+      .max(20)
+      .optional()
+      .catch(undefined),
+    /** ISO timestamp of the last guideline-citations lookup that got an ANSWER; the
+     *  pass's refresh sentinel, same scheme as {@link selfArchivingCheckedAt}. Owner-only. */
+    guidelineCitationsCheckedAt: z.string().optional(),
+    /** ISO timestamp of the last guideline-citations lookup ATTEMPT, a failed one
+     *  included — the rotation sentinel, same scheme as {@link selfArchivingTriedAt}. Owner-only. */
+    guidelineCitationsTriedAt: z.string().optional(),
+    /**
      * ISO-3166 alpha-2 codes of the account holder's OWN authorship of this work
      * (OpenAlex `authorships[].countries` on the self-matched authorship — the
      * affiliation country printed on the paper), upper-case, deduped, bounded at

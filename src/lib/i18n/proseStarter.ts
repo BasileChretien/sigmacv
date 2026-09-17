@@ -25,6 +25,8 @@ export interface ProseStarterStrings {
   audienceKey: string;
   role: string;
   impact: string;
+  /** Label of a starter line naming a clinical guideline that cites the work. */
+  guidelineCited: string;
   reference: string;
   /** Section 3 (people): lead prompt, sub-headings, closing prompt. */
   supervisionIntro: string;
@@ -57,6 +59,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "Role",
     impact: "Impact",
+    guidelineCited: "Cited in the guideline",
     reference: "Reference",
     supervisionIntro:
       "[How you have trained the next generation. Below, your supervision and teaching records as a starting point; add mentoring, outreach and the research environment you build.]",
@@ -88,6 +91,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "角色",
     impact: "影响",
+    guidelineCited: "被以下指南引用",
     reference: "参考文献",
     supervisionIntro:
       "[您如何培养下一代。下面是您的指导和教学记录，作为起点；请补充导师工作、推广活动和您所建设的研究环境。]",
@@ -118,6 +122,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "Papel",
     impact: "Impacto",
+    guidelineCited: "Citado en la guía",
     reference: "Referencia",
     supervisionIntro:
       "[Cómo has formado a la siguiente generación. Debajo, tus registros de supervisión y docencia como punto de partida; añade mentoría, divulgación y el entorno de investigación que construyes.]",
@@ -149,6 +154,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "Rôle",
     impact: "Retombées",
+    guidelineCited: "Cité dans le guide de pratique",
     reference: "Référence",
     supervisionIntro:
       "[Comment vous avez formé la relève. Ci-dessous, vos encadrements et votre enseignement comme point de départ ; ajoutez le mentorat, la sensibilisation et le milieu de recherche que vous bâtissez.]",
@@ -180,6 +186,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "Rolle",
     impact: "Wirkung",
+    guidelineCited: "Zitiert in der Leitlinie",
     reference: "Referenz",
     supervisionIntro:
       "[Wie Sie die nächste Generation ausgebildet haben. Unten Ihre Betreuungen und Ihre Lehre als Ausgangspunkt; ergänzen Sie Mentoring, Outreach und die Forschungsumgebung, die Sie schaffen.]",
@@ -211,6 +218,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "役割",
     impact: "成果",
+    guidelineCited: "引用しているガイドライン",
     reference: "参考文献",
     supervisionIntro:
       "[次世代をどう育成してきたか。以下は出発点としての指導記録と教育記録です。メンタリング、アウトリーチ、あなたが築く研究環境を加えてください。]",
@@ -242,6 +250,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "Papel",
     impact: "Impacto",
+    guidelineCited: "Citado na diretriz",
     reference: "Referência",
     supervisionIntro:
       "[Como você formou a próxima geração. Abaixo, seus registros de supervisão e ensino como ponto de partida; acrescente mentoria, divulgação e o ambiente de pesquisa que você constrói.]",
@@ -273,6 +282,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "Ruolo",
     impact: "Impatto",
+    guidelineCited: "Citato nella linea guida",
     reference: "Riferimento",
     supervisionIntro:
       "[Come hai formato la prossima generazione. Sotto, le tue supervisioni e la tua didattica come punto di partenza; aggiungi mentoring, divulgazione e l'ambiente di ricerca che costruisci.]",
@@ -304,6 +314,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "역할",
     impact: "영향",
+    guidelineCited: "인용한 진료 지침",
     reference: "참고문헌",
     supervisionIntro:
       "[차세대를 어떻게 양성했는지. 아래는 출발점으로 제시한 지도 기록과 강의 기록입니다. 멘토링, 아웃리치, 본인이 만드는 연구 환경을 더하세요.]",
@@ -334,6 +345,7 @@ export const PROSE_STARTER_STRINGS: Record<Locale, ProseStarterStrings> = {
     audienceKey: "A / B / C",
     role: "Роль",
     impact: "Эффект",
+    guidelineCited: "Цитируется в руководстве",
     reference: "Ссылка",
     supervisionIntro:
       "[Как вы подготовили следующее поколение. Ниже ваши записи о руководстве и преподавании как отправная точка; добавьте наставничество, просветительскую работу и исследовательскую среду, которую вы создаёте.]",
