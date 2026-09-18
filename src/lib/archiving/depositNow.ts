@@ -1,6 +1,7 @@
 import { itemEffectiveYear, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import { openAccessStates, type OpenAccessRow } from "@/lib/cv/worklist";
 import { depositRoutes, type DepositContext, type DepositRoute } from "./depositRoutes";
+import { chooseRoute } from "./policyRoutes";
 import { placeFitsLocations, placeKindOf, type PlaceKind } from "./repositoryDirectory";
 import type { StatutoryArchivingEntry } from "./statutoryRights";
 
@@ -136,6 +137,51 @@ export function addMonths(iso: string, months: number): string {
   return `${year}-${pad(month)}-${pad(Math.min(d, lastDay(year, month)))}`;
 }
 
+/** Whether an embargo of `months` from this work's publication has run by `today`. */
+export function embargoRunFor(
+  item: Pick<CvItem, "meta" | "csl">,
+  today: string,
+): (months: number) => boolean {
+  const published = publishedBy(item);
+  return (months) =>
+    months === 0 || (published !== undefined && addMonths(published, months) <= today);
+}
+
+/**
+ * The work with an Open Policy Finder record narrowed to the route for `place`,
+ * today. A journal's policy may offer several (the publisher's PDF in an
+ * institutional repository after a year, the accepted manuscript anywhere now);
+ * which one the row shows depends on where its action deposits, so the action,
+ * its ground, the file to upload and the record's lines all name that one. A
+ * record with no routes (OA.Works, or none SigmaCV may name) stays as it is.
+ */
+export function withRouteFor(item: CvItem, place: PlaceKind, today: string): CvItem {
+  const record = item.meta.selfArchiving;
+  const route =
+    record?.routes &&
+    chooseRoute(record.routes, {
+      openToday: embargoRunFor(item, today),
+      fit: (locations) => (placeFitsLocations(place, locations) ? 1 : 0),
+    });
+  if (!record || !route) return item;
+  return {
+    ...item,
+    meta: {
+      ...item.meta,
+      selfArchiving: {
+        ...record,
+        canArchive: true,
+        versions: route.versions,
+        embargoMonths: route.embargoMonths,
+        embargoEnd: undefined,
+        locations: route.locations,
+        licence: route.licence,
+        conditions: route.conditions,
+      },
+    },
+  };
+}
+
 function byPublisher(item: CvItem, today: string): DepositNow | null {
   const record = item.meta.selfArchiving;
   if (!record?.canArchive) return null;
@@ -264,8 +310,11 @@ function collectRows(
     const routes = depositRoutes(cv, item, ctx);
     /* v8 ignore next -- Zenodo closes every route list; kept for the type. */
     if (!routes[0]) continue;
-    const now = ground(item, row.statutory, today, placeKindOf(routes[0].href));
-    if (now) ready.push({ row, item, now, routes });
+    // The row shows the policy route for where its action deposits, everywhere.
+    const place = placeKindOf(routes[0].href);
+    const chosen = withRouteFor(item, place, today);
+    const now = ground(chosen, row.statutory, today, place);
+    if (now) ready.push({ row, item: chosen, now, routes });
   }
   return ready;
 }

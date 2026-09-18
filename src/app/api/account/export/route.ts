@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { withoutLicensedPolicies } from "@/lib/cv/licensedPolicies";
 import { prisma } from "@/lib/db";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 
@@ -132,9 +133,16 @@ export async function GET() {
     user,
     accounts,
     sessions,
-    cv: cv?.document ?? null,
+    // Open Policy Finder data is licensed for the owner's editor only, and is no
+    // personal data: it is left out of the download (a sync fetches it again).
+    cv: cv?.document ? withoutLicensedPolicies(cv.document) : null,
     cvRecord,
-    snapshots,
+    // Frozen through the public projection, so they hold no policy record; the
+    // rule is kept here too, where the download is assembled.
+    snapshots: snapshots.map((snapshot) => ({
+      ...snapshot,
+      canonical: withoutLicensedPolicies(snapshot.canonical),
+    })),
     researchEvents,
     researchEventsTotal,
     // True only in the (unrealistic) event the cap was reached — tells the user

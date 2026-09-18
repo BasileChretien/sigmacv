@@ -172,9 +172,9 @@ export function openAccessStates(cv: CanonicalCv): OpenAccessStates {
 
 // ── Policy finder ────────────────────────────────────────────────────────────
 
-/** Open Policy Finder (Jisc; formerly SHERPA RoMEO) — the journal's
- *  self-archiving policy, looked up by NAME: no ISSN is stored on citation
- *  items, so a name search is the best link the data allows. */
+/** Open Policy Finder (Jisc; formerly SHERPA RoMEO) — a search by journal NAME,
+ *  for a row with no record link of its own (the owner sync looks records up by
+ *  ISSN: `openPolicyFinder/client.ts`). */
 export const OPEN_POLICY_FINDER_URL = "https://openpolicyfinder.jisc.ac.uk/";
 
 /**

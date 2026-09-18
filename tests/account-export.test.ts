@@ -219,4 +219,58 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     }
     expect(sessionSelect).not.toHaveProperty("sessionToken");
   });
+
+  it("leaves Open Policy Finder records out of the downloaded document — licensed for the editor only", async () => {
+    mocks.cvFindUnique.mockResolvedValue({
+      ...CV_ROW,
+      document: {
+        schemaVersion: 2,
+        owner: { displayName: "A Researcher" },
+        sections: [
+          {
+            id: "pubs",
+            items: [
+              {
+                id: "W1",
+                meta: {
+                  selfArchiving: { source: "open-policy-finder", conditions: ["Secret-ish"] },
+                  selfArchivingCheckedAt: "2026-09-18",
+                },
+              },
+              { id: "W2", meta: { selfArchiving: { source: "oa.works" } } },
+            ],
+          },
+        ],
+      },
+    });
+    const body = (await (await GET()).json()) as {
+      cv: { sections: Array<{ items: Array<{ id: string; meta: Record<string, unknown> }> }> };
+    };
+    const [w1, w2] = body.cv.sections[0]!.items;
+    expect(w1!.meta).toEqual({});
+    expect(w2!.meta.selfArchiving).toEqual({ source: "oa.works" });
+  });
+
+  it("leaves Open Policy Finder records out of the downloaded frozen versions too", async () => {
+    mocks.snapshotFindMany.mockResolvedValue([
+      {
+        id: "snap1",
+        version: 1,
+        createdAt: new Date("2026-09-18T10:00:00Z"),
+        canonical: {
+          schemaVersion: 2,
+          sections: [
+            {
+              id: "pubs",
+              items: [{ id: "W1", meta: { selfArchiving: { source: "open-policy-finder" } } }],
+            },
+          ],
+        },
+      },
+    ]);
+    const body = (await (await GET()).json()) as {
+      snapshots: Array<{ canonical: { sections: Array<{ items: Array<{ meta: object }> }> } }>;
+    };
+    expect(body.snapshots[0]!.canonical.sections[0]!.items[0]!.meta).toEqual({});
+  });
 });

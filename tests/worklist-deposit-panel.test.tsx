@@ -655,6 +655,10 @@ describe("WorklistPanel — the file to upload", () => {
       "only if your publishing agreement allows it",
     );
     expect(fileLine(container, "W-cond")).toBeNull();
+    // The ground says where the policy allows it, not that this deposit is allowed.
+    const why = row.querySelector('[data-worklist="why"]')!.textContent!;
+    expect(why).toContain("allows it in: Institutional Repository.");
+    expect(why).not.toContain("Allowed by");
   });
 
   it("names no file on a HAL notice the record does not cover — the action says “only if” — while a right that has run keeps its version", () => {

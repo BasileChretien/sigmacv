@@ -6,8 +6,9 @@ import type { StatutoryArchivingEntry, StatutoryKind } from "./statutoryRights";
 
 /**
  * The worklist's rights lines, as plain strings, built ONLY from stored fields
- * and the committed statutory table: the publisher's policy as OA.Works recorded
- * it (with both dates), and one sentence per statutory entry that "may also
+ * and the committed statutory table: the publisher's policy as its source
+ * recorded it — OA.Works or Jisc Open Policy Finder, named in every line built
+ * from it (with both dates), and one sentence per statutory entry that "may also
  * apply". Pure — the React row (`components/WorklistRights.tsx`) only lays these
  * out. Facts, never a verdict: nothing here says a work is or is not allowed to
  * be deposited beyond what the record itself says, and no line counts anything.
@@ -18,6 +19,12 @@ import type { StatutoryArchivingEntry, StatutoryKind } from "./statutoryRights";
  */
 
 type SelfArchivingRecord = NonNullable<CvItem["meta"]["selfArchiving"]>;
+
+/** The source's own name, in every locale: the credit on each line. */
+const POLICY_SOURCE_NAME: Record<SelfArchivingRecord["source"], string> = {
+  "oa.works": "OA.Works",
+  "open-policy-finder": "Open Policy Finder",
+};
 type Version = SelfArchivingRecord["versions"][number];
 
 const VERSION_KEY: Record<Version, keyof WorkspaceUiStrings> = {
@@ -77,11 +84,21 @@ export function publisherPolicyLines(
   locale: string,
 ): PublisherPolicyLines {
   const retrieved = record.retrievedAt.slice(0, 10);
+  const source = POLICY_SOURCE_NAME[record.source];
   const dates = record.recordUpdated
-    ? fill(wu.wlArchivingDates, { updated: record.recordUpdated, retrieved })
-    : fill(wu.wlArchivingRetrieved, { retrieved });
+    ? fill(wu.wlArchivingDates, { source, updated: record.recordUpdated, retrieved })
+    : fill(wu.wlArchivingRetrieved, { source, retrieved });
   if (!record.canArchive) {
-    return { summary: wu.wlArchivingNotAllowed, details: [], dates, policyUrl: record.policyUrl };
+    return {
+      // Open Policy Finder records routes; none of them is one SigmaCV can name.
+      summary:
+        record.source === "open-policy-finder"
+          ? wu.wlArchivingOpfNoRoute
+          : fill(wu.wlArchivingNotAllowed, { source }),
+      details: [],
+      dates,
+      policyUrl: record.policyUrl,
+    };
   }
   const versions = record.versions.length
     ? orList(
@@ -95,9 +112,12 @@ export function publisherPolicyLines(
       : undefined,
     embargoLine(record, wu, locale),
     record.licence ? fill(wu.wlArchivingLicence, { licence: record.licence }) : undefined,
+    record.conditions?.length
+      ? fill(wu.wlArchivingConditions, { conditions: record.conditions.join("; ") })
+      : undefined,
   ].filter((line): line is string => line !== undefined);
   return {
-    summary: fill(wu.wlArchivingAllowed, { versions }),
+    summary: fill(wu.wlArchivingAllowed, { source, versions }),
     details,
     dates,
     statement: record.depositStatement,
@@ -155,6 +175,8 @@ export function depositNowLine(
   item: Pick<CvItem, "meta">,
   wu: WorkspaceUiStrings,
   locale: string,
+  /** The action is "only if your agreement allows it" (the record does not cover its place). */
+  hedged = false,
 ): string {
   if (now.basis === "licence") {
     return fill(wu.wlWhyLicence, { licence: item.meta.license! });
@@ -162,9 +184,17 @@ export function depositNowLine(
   if (now.basis === "publisher") {
     const record = item.meta.selfArchiving!;
     // The version is the action's and the file line's to name; this is the ground.
-    const head = fill(wu.wlWhyPublisher, {
-      date: record.recordUpdated ?? record.retrievedAt.slice(0, 10),
-    });
+    // Under a hedged action it says where the policy allows the deposit, never
+    // "allowed" for a place the record does not cover.
+    const source = POLICY_SOURCE_NAME[record.source];
+    const date = record.recordUpdated ?? record.retrievedAt.slice(0, 10);
+    const head = hedged
+      ? fill(wu.wlWhyPublisherPlaces, {
+          source,
+          date,
+          locations: orList(record.locations, locale),
+        })
+      : fill(wu.wlWhyPublisher, { source, date });
     const tail = now.since ? fill(wu.wlWhyEmbargoEnded, { date: now.since }) : wu.wlWhyNoEmbargo;
     return `${head} ${tail}`;
   }

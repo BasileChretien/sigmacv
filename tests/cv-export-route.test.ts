@@ -83,6 +83,58 @@ describe("GET /api/cv/export/json (the owner's own canonical document)", () => {
     expect(mocks.getRenderer).not.toHaveBeenCalled();
   });
 
+  it("leaves out Open Policy Finder records — licensed for the editor only — and keeps OA.Works ones", async () => {
+    const withRecords: CanonicalCv = {
+      ...DOC,
+      sections: DOC.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it, i) =>
+          i === 1
+            ? {
+                ...it,
+                meta: {
+                  ...it.meta,
+                  selfArchiving: {
+                    source: "oa.works" as const,
+                    canArchive: true,
+                    versions: ["acceptedVersion" as const],
+                    locations: ["Institutional Repository"],
+                    retrievedAt: "2026-09-18T00:00:00.000Z",
+                  },
+                },
+              }
+            : i === 0
+              ? {
+                  ...it,
+                  meta: {
+                    ...it.meta,
+                    selfArchiving: {
+                      source: "open-policy-finder" as const,
+                      canArchive: true,
+                      versions: ["acceptedVersion" as const],
+                      locations: ["Non-Commercial Institutional Repository"],
+                      conditions: ["Must link to publisher version with DOI"],
+                      policyUrl: "https://openpolicyfinder.jisc.ac.uk/publication/16060",
+                      retrievedAt: "2026-09-18T00:00:00.000Z",
+                    },
+                    selfArchivingCheckedAt: "2026-09-18T00:00:00.000Z",
+                    selfArchivingOpfAt: "2026-09-18T00:00:00.000Z",
+                  },
+                }
+              : it,
+        ),
+      })),
+    };
+    mocks.getCvForUser.mockResolvedValue(withRecords);
+    const body = await (await get("json")).text();
+    expect(body).not.toContain("open-policy-finder");
+    expect(body).not.toContain("openpolicyfinder");
+    expect(body).not.toContain("Must link to publisher version");
+    expect(body).not.toContain("selfArchivingOpfAt");
+    // An OA.Works record (public-domain data) stays in the owner's download.
+    expect(body).toMatch(/"source":\s*"oa\.works"/);
+  });
+
   it("404s when the account has no CV yet", async () => {
     mocks.getCvForUser.mockResolvedValue(null);
     expect((await get("json")).status).toBe(404);

@@ -76,6 +76,9 @@ services:
       # section. Leave blank to keep the EPO client dormant (no call, no effect).
       EPO_OPS_KEY: ${EPO_OPS_KEY:-}
       EPO_OPS_SECRET: ${EPO_OPS_SECRET:-}
+      # Jisc Open Policy Finder API key (owner worklist: the journal's self-archiving
+      # policy by ISSN). Blank = OA.Works only.
+      OPEN_POLICY_FINDER_API_KEY: ${OPEN_POLICY_FINDER_API_KEY:-}
       # GDPR Art. 21 objections to the no-login preview: the key the /object route
       # and the account toggle hash iDs with, and the manual HMAC list (PR C).
       # Both optional; without the key /object says objections are unavailable.

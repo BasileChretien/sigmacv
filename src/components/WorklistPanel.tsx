@@ -208,9 +208,11 @@ export default function WorklistPanel({
 
   const closed = closedRows.map((x) => x.r);
   // One row for both lists: title · venue, the action, the ground, the disclosure.
-  const renderRow = ({ r, item, now, depositDetails }: RankedRow): ReactNode => {
-    const hasRights = r.selfArchiving !== undefined || r.statutory.length > 0;
-    const finder = r.selfArchiving?.policyUrl ? null : finderLink(r.venue);
+  const renderRow = ({ r, item, now, routes, depositDetails }: RankedRow): ReactNode => {
+    // The record as the row reads it: narrowed to the route its action takes.
+    const record = item.meta.selfArchiving;
+    const hasRights = record !== undefined || r.statutory.length > 0;
+    const finder = record?.policyUrl ? null : finderLink(r.venue);
     const more = hasRights || finder !== null || r.funderNames.length > 0 || depositDetails;
     return (
       <li
@@ -240,7 +242,13 @@ export default function WorklistPanel({
         />
         {/* Why it is allowed today: the ground, in one sentence. */}
         <p className="muted cv-worklist-why" data-worklist="why">
-          {depositNowLine(now, item, wu, locale)}
+          {depositNowLine(
+            now,
+            item,
+            wu,
+            locale,
+            now.basis === "publisher" && depositActionKind(item, routes[0]!) === "conditional",
+          )}
         </p>
         {more ? (
           <details className="cv-worklist-row-more">
@@ -253,7 +261,7 @@ export default function WorklistPanel({
             ) : null}
             <WorklistRights
               locale={locale}
-              selfArchiving={r.selfArchiving}
+              selfArchiving={record}
               statutory={r.statutory}
               newTabDescribedBy={newTabNoteId}
             />

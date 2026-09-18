@@ -52,13 +52,17 @@ const PLACEHOLDERS: Partial<Record<keyof WorkspaceUiStrings, string[]>> = {
   wlFundingPolicyPending: ["{funder}", "{statements}"],
   wlFundingNoPolicy: ["{funder}"],
   wlFundingFound: ["{state}"],
-  wlArchivingAllowed: ["{versions}"],
+  wlArchivingAllowed: ["{source}", "{versions}"],
+  wlArchivingNotAllowed: ["{source}"],
+  wlArchivingConditions: ["{conditions}"],
   wlArchivingWhere: ["{locations}"],
   wlArchivingEmbargo: ["{duration}", "{date}"],
   wlArchivingEmbargoDuration: ["{duration}"],
   wlArchivingLicence: ["{licence}"],
-  wlArchivingDates: ["{updated}", "{retrieved}"],
-  wlArchivingRetrieved: ["{retrieved}"],
+  wlArchivingDates: ["{source}", "{updated}", "{retrieved}"],
+  wlArchivingRetrieved: ["{source}", "{retrieved}"],
+  wlWhyPublisher: ["{source}", "{date}"],
+  wlWhyPublisherPlaces: ["{source}", "{date}", "{locations}"],
   wlStatutoryAuthorRight: ["{country}", "{instrument}", "{statements}"],
   wlStatutoryDepositRequirement: ["{country}", "{instrument}", "{statements}"],
   wlStatutoryFundingPolicy: ["{country}", "{instrument}", "{statements}"],
@@ -202,7 +206,7 @@ describe("worklist self-archiving strings (workspaceUi wlArchiving*, wlStatutory
     expect(s.wlArchivingDisclaimer).toMatch(/several years old — check its date/);
     expect(s.wlArchivingDisclaimer).toMatch(/conditions SigmaCV cannot see/);
     expect(s.wlArchivingDisclaimer).toMatch(/not legal advice/);
-    expect(s.wlArchivingDates).toBe("OA.Works record updated {updated}; retrieved {retrieved}.");
+    expect(s.wlArchivingDates).toBe("{source} record updated {updated}; retrieved {retrieved}.");
   });
 
   it("address the owner informally in Spanish, like the rest of the worklist", () => {

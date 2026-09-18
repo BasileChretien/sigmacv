@@ -1057,12 +1057,15 @@ const CvItemSchema = z.object({
      * ({@link selfArchivingCheckedAt}); an OA.Works "no record" answer clears it,
      * a failed call keeps it. STRIPPED from every public surface (living page,
      * downloads, OAI-PMH, frozen versions, anonymous preview); the owner's own
-     * JSON export and the account data export keep it. A malformed stored value
-     * degrades to `undefined` rather than failing the CV read.
+     * exports and the account data export keep an OA.Works record, never an Open
+     * Policy Finder one (licensed for the editor only: `cv/licensedPolicies.ts`).
+     * A malformed stored value degrades to `undefined` rather than failing the CV
+     * read.
      */
     selfArchiving: z
       .object({
-        source: z.literal("oa.works"),
+        /** Who recorded the policy: OA.Works (by DOI) or Jisc Open Policy Finder (by ISSN). */
+        source: z.enum(["oa.works", "open-policy-finder"]),
         canArchive: z.boolean(),
         versions: z
           .array(z.enum(["submittedVersion", "acceptedVersion", "publishedVersion"]))
@@ -1083,6 +1086,29 @@ const CvItemSchema = z.object({
           .string()
           .max(2048)
           .regex(/^https?:\/\//i)
+          .optional(),
+        /** The route's conditions, verbatim (Open Policy Finder only). */
+        conditions: z.array(z.string().max(500)).max(8).optional(),
+        /**
+         * Open Policy Finder only: every route of the journal's policy SigmaCV may
+         * name — the fields above are the sync's default; the worklist row picks the
+         * one for its destination, today. Also what a newly added article in the
+         * journal reuses within the week, instead of asking again.
+         */
+        routes: z
+          .array(
+            z.object({
+              versions: z
+                .array(z.enum(["submittedVersion", "acceptedVersion", "publishedVersion"]))
+                .min(1)
+                .max(3),
+              embargoMonths: z.number().int().min(0).max(600),
+              locations: z.array(z.string().max(100)).max(8),
+              licence: z.string().max(100).optional(),
+              conditions: z.array(z.string().max(500)).max(8).optional(),
+            }),
+          )
+          .max(8)
           .optional(),
         retrievedAt: z.string().max(64),
       })
@@ -1108,6 +1134,19 @@ const CvItemSchema = z.object({
      * stripped from every public surface with the record itself.
      */
     selfArchivingTriedAt: z.string().optional(),
+    /**
+     * When Jisc Open Policy Finder last ANSWERED (a record, or none) for this
+     * work's journal — apart from the answer stamp, so a journal it has no record
+     * of is not asked again within the week even when the OA.Works fallback fails.
+     */
+    selfArchivingOpfAt: z.string().optional(),
+    /**
+     * The ISSN Open Policy Finder was asked about for {@link selfArchivingOpfAt}.
+     * Its answer is this work's journal's only while the work still lists that
+     * ISSN: a work whose ISSNs changed is asked again, and the answer is never
+     * reused for another journal.
+     */
+    selfArchivingOpfIssn: z.string().max(9).optional().catch(undefined),
     /**
      * Copies of this closed journal article that ALREADY sit in a repository —
      * HAL, Europe PMC, an OpenAIRE-harvested repository, Zenodo — as the owner

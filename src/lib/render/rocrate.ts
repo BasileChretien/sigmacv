@@ -1,3 +1,4 @@
+import { withoutLicensedPolicies } from "@/lib/cv/licensedPolicies";
 import JSZip from "jszip";
 import { licenseInfo } from "@/lib/canonical/license";
 import type { CanonicalCv } from "@/lib/canonical/schema";
@@ -43,7 +44,8 @@ export function crateFiles(cv: CanonicalCv): CrateFile[] {
       name: "cv.json",
       encodingFormat: "application/json",
       description: "The canonical CV object (SigmaCV schema).",
-      content: JSON.stringify(cv, null, 2),
+      // Open Policy Finder data is licensed for the owner's editor only (never a deposit).
+      content: JSON.stringify(withoutLicensedPolicies(cv), null, 2),
     },
     {
       name: "cv.csl.json",

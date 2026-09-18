@@ -32,6 +32,10 @@ const EnvSchema = z
     // is dormant (makes NO call, returns []). OPS has no anonymous access.
     EPO_OPS_KEY: z.string().optional(),
     EPO_OPS_SECRET: z.string().optional(),
+    // Jisc Open Policy Finder API key — the journal's self-archiving policy by ISSN
+    // for the owner worklist (sent as the `x-api-key` header). Optional: without it
+    // the pass asks OA.Works only. Issued to SigmaCV by Jisc (case CS-00957483).
+    OPEN_POLICY_FINDER_API_KEY: z.string().optional(),
     // GDPR Art. 21 objection list for the no-login /preview/[orcid] route: a
     // comma-separated list of lowercase hex HMAC-SHA256(PREVIEW_SUPPRESSION_KEY,
     // ORCID) values (`npm run preview:suppress-hash` prints one; it prompts for

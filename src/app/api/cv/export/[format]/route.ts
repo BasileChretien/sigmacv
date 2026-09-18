@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { auth } from "@/auth";
+import { withoutLicensedPolicies } from "@/lib/cv/licensedPolicies";
 import { getCvForUser, getPublishState } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
@@ -56,7 +57,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ format:
     );
   }
 
-  const cv = await getCvForUser(session.user.id);
+  const stored = await getCvForUser(session.user.id);
+  // Open Policy Finder data is licensed for the owner's editor only — never a download.
+  const cv = stored ? withoutLicensedPolicies(stored) : stored;
   if (!cv) {
     return NextResponse.json({ error: "No CV to export yet." }, { status: 404 });
   }

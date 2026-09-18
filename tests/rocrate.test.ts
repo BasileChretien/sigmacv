@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { updateDisplay } from "@/lib/canonical/curate";
 import type { CanonicalCv } from "@/lib/canonical/schema";
-import { buildRoCrateMetadata, rocrateRenderer } from "@/lib/render/rocrate";
+import { buildRoCrateMetadata, crateFiles, rocrateRenderer } from "@/lib/render/rocrate";
 
 interface MakeOpts {
   orcid?: string;
@@ -110,5 +110,48 @@ describe("rocrateRenderer", () => {
     // The canonical object round-trips.
     const canonical = JSON.parse(await zip.file("cv.json")!.async("string"));
     expect(canonical.owner.displayName).toBe("Ada Lovelace");
+  });
+});
+
+describe("crateFiles — never a deposit of licensed data", () => {
+  it("leaves Open Policy Finder records out of cv.json", () => {
+    const cv = makeCv();
+    const withRecord = {
+      ...cv,
+      sections: [
+        {
+          id: "pubs",
+          type: "publications",
+          title: "Publications",
+          visible: true,
+          order: 0,
+          items: [
+            {
+              id: "W1",
+              source: "openalex",
+              sourceId: "https://openalex.org/W1",
+              included: true,
+              notMine: false,
+              order: 0,
+              authoredBySelf: true,
+              selfNameVariants: [],
+              csl: { id: "W1", type: "article-journal", title: "A closed paper" },
+              meta: {
+                selfArchiving: {
+                  source: "open-policy-finder",
+                  canArchive: true,
+                  versions: ["acceptedVersion"],
+                  locations: ["Any Repository"],
+                  retrievedAt: "2026-09-18T00:00:00.000Z",
+                },
+              },
+            },
+          ],
+        },
+      ],
+    } as unknown as CanonicalCv;
+    const json = crateFiles(withRecord).find((f) => f.name === "cv.json")!.content;
+    expect(json).toContain("A closed paper");
+    expect(json).not.toContain("open-policy-finder");
   });
 });

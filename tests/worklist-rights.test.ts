@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { publisherPolicyLines, statutoryLine } from "@/lib/archiving/rightsSentences";
+import {
+  depositNowLine,
+  publisherPolicyLines,
+  statutoryLine,
+} from "@/lib/archiving/rightsSentences";
 import { STATUTORY_ARCHIVING, type StatutoryArchivingEntry } from "@/lib/archiving/statutoryRights";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import { openAccessStates } from "@/lib/cv/worklist";
@@ -48,7 +52,8 @@ describe("publisherPolicyLines", () => {
 
   it("records a refusal as the record's words only — no details, no statement — with its dates", () => {
     expect(publisherPolicyLines({ ...CELL, canArchive: false }, EN, "en-US")).toEqual({
-      summary: EN.wlArchivingNotAllowed,
+      summary:
+        "Publisher policy recorded by OA.Works: no self-archiving permission recorded for this article.",
       details: [],
       dates: "OA.Works record updated 2021-01-27; retrieved 2026-09-15.",
       policyUrl: CELL.policyUrl,
@@ -249,5 +254,67 @@ describe("fill", () => {
     expect(fill("{a}|{b}", { a: "{b}", b: "x" })).toBe("{b}|x");
     expect(fill("{a} {missing}", { a: "1" })).toBe("1 {missing}");
     expect(fill("{toString}", {})).toBe("{toString}");
+  });
+});
+
+describe("an Open Policy Finder record", () => {
+  const OPF: Record = {
+    source: "open-policy-finder",
+    canArchive: true,
+    versions: ["acceptedVersion"],
+    embargoMonths: 12,
+    locations: ["Non-Commercial Institutional Repository", "Subject Repository"],
+    licence: "cc-by-nc-nd",
+    conditions: [
+      "Must link to publisher version with DOI",
+      "Published source must be acknowledged with citation",
+    ],
+    recordUpdated: "2025-03-13",
+    policyUrl: "https://openpolicyfinder.jisc.ac.uk/publication/16060",
+    retrievedAt: "2026-09-18T08:00:00.000Z",
+  };
+
+  it("credits Open Policy Finder on every line, with the route's conditions verbatim, both dates and the journal's record", () => {
+    expect(publisherPolicyLines(OPF, EN, "en-US")).toEqual({
+      summary:
+        "Publisher policy recorded by Open Policy Finder: self-archiving allowed — accepted manuscript.",
+      details: [
+        "Where: Non-Commercial Institutional Repository or Subject Repository.",
+        "Embargo: 12 months after publication.",
+        "Licence for the deposited copy: cc-by-nc-nd.",
+        "Conditions set by the policy: Must link to publisher version with DOI; Published source must be acknowledged with citation.",
+      ],
+      dates: "Open Policy Finder record updated 2025-03-13; retrieved 2026-09-18.",
+      statement: undefined,
+      policyUrl: OPF.policyUrl,
+    });
+    expect(
+      publisherPolicyLines({ ...OPF, canArchive: false, versions: [] }, EN, "en-US").summary,
+    ).toBe(EN.wlArchivingOpfNoRoute);
+  });
+
+  it("names Open Policy Finder in the sentence that says why the deposit is allowed", () => {
+    const line = depositNowLine(
+      { basis: "publisher", version: "acceptedVersion", since: "2025-01-01" },
+      { meta: { selfArchiving: OPF } },
+      EN,
+      "en-US",
+    );
+    expect(line).toBe(
+      "Allowed by the publisher's policy, as Open Policy Finder recorded it on 2025-03-13. The embargo ended on 2025-01-01.",
+    );
+  });
+
+  it("under an action that is only if the agreement allows it, says where the policy allows the deposit — never “allowed”", () => {
+    const line = depositNowLine(
+      { basis: "publisher", version: "acceptedVersion" },
+      { meta: { selfArchiving: OPF } },
+      EN,
+      "en-US",
+      true,
+    );
+    expect(line).toBe(
+      "The publisher's policy, as Open Policy Finder recorded it on 2025-03-13, allows it in: Non-Commercial Institutional Repository or Subject Repository. No embargo.",
+    );
   });
 });

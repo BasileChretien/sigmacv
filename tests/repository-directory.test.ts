@@ -227,7 +227,10 @@ describe("placeFitsLocations", () => {
 
   it("reads HAL as institutional and non-commercial, Zenodo as non-commercial and general, arXiv as a subject repository", () => {
     expect(fits("hal", "Institutional Repository")).toBe(true);
-    expect(fits("hal", "Non-commercial Subject Repository")).toBe(true);
+    // HAL is multidisciplinary, not a subject repository.
+    expect(fits("hal", "Non-commercial Subject Repository")).toBe(false);
+    expect(fits("hal", "Non-Commercial Institutional Repository")).toBe(true);
+    expect(fits("hal", "Non-Commercial Repository")).toBe(true);
     expect(fits("hal", "Subject Repository")).toBe(false);
     expect(fits("zenodo", "Non-Commercial Repository")).toBe(true);
     expect(fits("zenodo", "General Repository")).toBe(true);

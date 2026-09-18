@@ -18,7 +18,7 @@ interface WorklistRightsProps {
 
 /**
  * The rights lines under one closed work in the owner worklist: the publisher's
- * policy as OA.Works recorded it — both dates, the publisher's required statement
+ * policy as its source (OA.Works or Open Policy Finder) recorded it — both dates, the publisher's required statement
  * quoted verbatim, a link to the archived policy — and one sentence per statutory
  * rule that may also apply, dated and linked. Facts beside the work, never a
  * verdict; the sentences are built in `lib/archiving/rightsSentences.ts`. Renders
@@ -48,7 +48,9 @@ export default function WorklistRights({
                   rel="noopener noreferrer"
                   aria-describedby={newTabDescribedBy}
                 >
-                  {wu.wlArchivingPolicyLink}
+                  {selfArchiving?.source === "open-policy-finder"
+                    ? wu.wlArchivingOpfLink
+                    : wu.wlArchivingPolicyLink}
                 </a>
               </>
             ) : null}

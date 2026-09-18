@@ -640,9 +640,15 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // The worklist's self-archiving rights line: OA.Works for this owner's closed
   // articles. HERE, never in `buildCvFromOrcid` — the anonymous preview shares
   // that function and must make no such call. Sequential, capped, budgeted and
-  // fail-soft (`archiving/selfArchivingPass.ts`); it adds or removes no item, so
+  // fail-soft (`archiving/selfArchivingPass.ts`: Open Policy Finder by ISSN, else
+  // OA.Works by DOI); it adds or removes no item, so
   // the report above stays true.
-  const withRights = await enrichCvWithSelfArchiving(built.cv, getEnv().OPENALEX_MAILTO);
+  const withRights = await enrichCvWithSelfArchiving(
+    built.cv,
+    getEnv().OPENALEX_MAILTO,
+    undefined,
+    { policyFinderKey: getEnv().OPEN_POLICY_FINDER_API_KEY },
+  );
   // The places the owner's works already sit, for the worklist's deposit routes:
   // two small OpenAlex calls, weekly, fail-soft (`archiving/depositRepositoriesPass.ts`).
   // Owner sync only, like the pass above.

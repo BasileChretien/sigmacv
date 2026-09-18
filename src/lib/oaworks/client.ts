@@ -61,7 +61,23 @@ export const PERMISSION_LIMITS = {
   depositStatement: 2000,
   url: 2048,
   embargoMonths: 600,
+  conditions: 8,
+  condition: 500,
+  routes: 8,
 } as const;
+
+/** One route a journal's policy permits and SigmaCV may name (Open Policy Finder). */
+export interface PolicyRoute {
+  /** Canonical order: submitted, accepted, published. */
+  versions: ArticleVersion[];
+  /** 0 when the route sets none. */
+  embargoMonths: number;
+  locations: string[];
+  /** A Creative Commons licence the deposited copy takes (`cc-by-nc-nd`), when set. */
+  licence?: string;
+  /** The route's conditions, verbatim. */
+  conditions?: string[];
+}
 
 /** The printed subset of one OA.Works `best_permission`. */
 export interface SelfArchivingPermission {
@@ -78,8 +94,15 @@ export interface SelfArchivingPermission {
   depositStatement?: string;
   /** ISO date of the record's own last update (`meta.updated`). */
   recordUpdated?: string;
-  /** An archived copy of the publisher's policy (web.archive.org / perma.cc). */
+  /** An archived copy of the publisher's policy (web.archive.org / perma.cc) — or,
+   *  for an Open Policy Finder record, the journal's record page. */
   policyUrl?: string;
+  /** The conditions an Open Policy Finder route sets, verbatim (OA.Works: none). */
+  conditions?: string[];
+  /** Open Policy Finder: every route of the journal's policy SigmaCV may name (the
+   *  fields above are the default one); the worklist row picks the one for its
+   *  destination. OA.Works: none. */
+  routes?: PolicyRoute[];
 }
 
 export type PermissionLookup =

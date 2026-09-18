@@ -140,6 +140,12 @@ export interface WorkspaceUiStrings {
   wlArchivingRetrieved: string;
   /** Link text: the archived copy of the publisher's policy. */
   wlArchivingPolicyLink: string;
+  /** Link to the journal's record in Open Policy Finder — the credit Jisc agreed to. */
+  wlArchivingOpfLink: string;
+  /** An Open Policy Finder record with no route SigmaCV may name (paid, conditional, web pages only). */
+  wlArchivingOpfNoRoute: string;
+  /** The conditions an Open Policy Finder route sets (verbatim, untranslated); {conditions}. */
+  wlArchivingConditions: string;
   /** Footer under the closed works when any rights line shows: dated records, unverifiable statutory conditions, not legal advice. */
   wlArchivingDisclaimer: string;
   /** A statutory secondary-publication right that MAY also apply; {country}, {instrument}, {statements}. */
@@ -228,6 +234,10 @@ export interface WorkspaceUiStrings {
   wlOpensNewTab: string;
   /** Why the deposit is allowed today — the publisher's permission: {version}, {date} = the record's date. */
   wlWhyPublisher: string;
+  /** The same ground when the action is "only if your agreement allows it": the
+   *  record's route does not cover the destination, so the line names where it
+   *  does — {source}, {date}, {locations}. */
+  wlWhyPublisherPlaces: string;
   /** … and its embargo ended on {date}. */
   wlWhyEmbargoEnded: string;
   /** … and it set no embargo. */
@@ -366,10 +376,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Check the journal's policy (Open Policy Finder)",
     wlFunders: "Funders named on the work: {names}",
     wlArchivingAllowed:
-      "Publisher policy recorded by OA.Works: self-archiving allowed — {versions}.",
+      "Publisher policy recorded by {source}: self-archiving allowed — {versions}.",
     wlArchivingWhere: "Where: {locations}.",
     wlArchivingNotAllowed:
-      "Publisher policy recorded by OA.Works: no self-archiving permission recorded for this article.",
+      "Publisher policy recorded by {source}: no self-archiving permission recorded for this article.",
     wlArchivingVersionSubmitted: "submitted manuscript",
     wlArchivingVersionAccepted: "accepted manuscript",
     wlArchivingVersionPublished: "published version",
@@ -379,11 +389,15 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "No embargo.",
     wlArchivingLicence: "Licence for the deposited copy: {licence}.",
     wlArchivingStatement: "Statement the publisher asks you to include:",
-    wlArchivingDates: "OA.Works record updated {updated}; retrieved {retrieved}.",
-    wlArchivingRetrieved: "Retrieved from OA.Works {retrieved}; the record gives no update date.",
+    wlArchivingDates: "{source} record updated {updated}; retrieved {retrieved}.",
+    wlArchivingRetrieved: "Retrieved from {source} {retrieved}; the record gives no update date.",
     wlArchivingPolicyLink: "archived copy of the publisher's policy",
+    wlArchivingOpfLink: "the journal's record in Open Policy Finder (CC BY-NC-ND 4.0)",
+    wlArchivingOpfNoRoute:
+      "Open Policy Finder lists no self-archiving route for this journal that SigmaCV can suggest. SigmaCV leaves out paid open access, routes with a condition (such as a funder's), web pages and single named repositories. See the journal's record.",
+    wlArchivingConditions: "Conditions set by the policy: {conditions}.",
     wlArchivingDisclaimer:
-      "Publisher policies change, and an OA.Works record can be several years old — check its date. A statutory right depends on conditions SigmaCV cannot see: whether the work or your institution was publicly funded, how often the journal appears, your co-authors' agreement, the discipline. Your signed publishing agreement may allow more or less than the journal's general policy. This is information, not legal advice; ask your library before depositing.",
+      "Publisher policies change, and a policy record can be several years old — check its date. A statutory right depends on conditions SigmaCV cannot see: whether the work or your institution was publicly funded, how often the journal appears, your co-authors' agreement, the discipline. Your signed publishing agreement may allow more or less than the journal's general policy. This is information, not legal advice; ask your library before depositing.",
     wlStatutoryAuthorRight:
       "May also apply — secondary-publication right ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
@@ -445,7 +459,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copied",
     wlRowDetails: "Policy record, rights and form notes",
     wlOpensNewTab: "Opens in a new tab",
-    wlWhyPublisher: "Allowed by the publisher's policy, as OA.Works recorded it on {date}.",
+    wlWhyPublisher: "Allowed by the publisher's policy, as {source} recorded it on {date}.",
+    wlWhyPublisherPlaces:
+      "The publisher's policy, as {source} recorded it on {date}, allows it in: {locations}.",
     wlWhyEmbargoEnded: "The embargo ended on {date}.",
     wlWhyNoEmbargo: "No embargo.",
     wlWhyStatute:
@@ -557,9 +573,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateUnknown: "未知",
     wlPolicyLink: "查看期刊政策（Open Policy Finder）",
     wlFunders: "作品上列出的资助方：{names}",
-    wlArchivingAllowed: "出版方政策（据 OA.Works 记录）：允许自存档（{versions}）。",
+    wlArchivingAllowed: "出版方政策（据 {source} 记录）：允许自存档（{versions}）。",
     wlArchivingWhere: "存放位置：{locations}。",
-    wlArchivingNotAllowed: "出版方政策（据 OA.Works 记录）：未记录本文的自存档许可。",
+    wlArchivingNotAllowed: "出版方政策（据 {source} 记录）：未记录本文的自存档许可。",
     wlArchivingVersionSubmitted: "投稿稿",
     wlArchivingVersionAccepted: "最终审定稿",
     wlArchivingVersionPublished: "出版版本",
@@ -569,11 +585,15 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "无禁锢期。",
     wlArchivingLicence: "存缴副本的许可协议：{licence}。",
     wlArchivingStatement: "出版方要求附上的声明：",
-    wlArchivingDates: "OA.Works 记录更新于 {updated}；获取于 {retrieved}。",
-    wlArchivingRetrieved: "于 {retrieved} 获取自 OA.Works；该记录未注明更新日期。",
+    wlArchivingDates: "{source} 记录更新于 {updated}；获取于 {retrieved}。",
+    wlArchivingRetrieved: "于 {retrieved} 获取自 {source}；该记录未注明更新日期。",
     wlArchivingPolicyLink: "出版方政策（存档副本）",
+    wlArchivingOpfLink: "该期刊在 Open Policy Finder 中的记录（CC BY-NC-ND 4.0）",
+    wlArchivingOpfNoRoute:
+      "Open Policy Finder 未列出 SigmaCV 可以建议的该期刊自存档途径。SigmaCV 不考虑付费开放获取、附带条件（如资助方要求）的途径、网页以及点名的单个知识库。请查看该期刊的记录。",
+    wlArchivingConditions: "政策规定的条件：{conditions}。",
     wlArchivingDisclaimer:
-      "出版方政策会变化，OA.Works 的记录可能已有数年之久——请查看其日期。法定权利取决于 SigmaCV 无法核实的条件：该研究或您所在机构是否获得公共资助、期刊的出版频率、合著者是否同意、所属学科。您签署的出版协议允许的范围可能比期刊的一般政策更宽或更窄。以上仅供参考，并非法律意见；存缴前请咨询您所在机构的图书馆。",
+      "出版方政策会变化，政策记录可能已有数年之久——请查看其日期。法定权利取决于 SigmaCV 无法核实的条件：该研究或您所在机构是否获得公共资助、期刊的出版频率、合著者是否同意、所属学科。您签署的出版协议允许的范围可能比期刊的一般政策更宽或更窄。以上仅供参考，并非法律意见；存缴前请咨询您所在机构的图书馆。",
     wlStatutoryAuthorRight: "也可能适用——二次出版权（{country}），{instrument}：{statements}。",
     wlStatutoryDepositRequirement:
       "也可能适用——法律规定的知识库存缴要求（{country}），{instrument}：{statements}。",
@@ -627,7 +647,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "已复制 DOI",
     wlRowDetails: "政策记录、权利与表单说明",
     wlOpensNewTab: "在新标签页中打开",
-    wlWhyPublisher: "出版社政策允许，据 OA.Works 于 {date} 的记录。",
+    wlWhyPublisher: "出版社政策允许，据 {source} 于 {date} 的记录。",
+    wlWhyPublisherPlaces: "据 {source} 于 {date} 的记录，出版社政策允许存放于：{locations}。",
     wlWhyEmbargoEnded: "禁运期已于 {date} 结束。",
     wlWhyNoEmbargo: "无禁运期。",
     wlWhyStatute:
@@ -744,10 +765,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Consultar la política de la revista (Open Policy Finder)",
     wlFunders: "Financiadores nombrados en el trabajo: {names}",
     wlArchivingAllowed:
-      "Política de la editorial según OA.Works: autoarchivo permitido ({versions}).",
+      "Política de la editorial según {source}: autoarchivo permitido ({versions}).",
     wlArchivingWhere: "Dónde: {locations}.",
     wlArchivingNotAllowed:
-      "Política de la editorial según OA.Works: no consta ningún permiso de autoarchivo para este artículo.",
+      "Política de la editorial según {source}: no consta ningún permiso de autoarchivo para este artículo.",
     wlArchivingVersionSubmitted: "manuscrito enviado",
     wlArchivingVersionAccepted: "manuscrito aceptado",
     wlArchivingVersionPublished: "versión publicada",
@@ -757,12 +778,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "No hay embargo.",
     wlArchivingLicence: "Licencia de la copia depositada: {licence}.",
     wlArchivingStatement: "Texto que la editorial pide incluir:",
-    wlArchivingDates: "Registro de OA.Works actualizado el {updated}; consultado el {retrieved}.",
+    wlArchivingDates: "Registro de {source} actualizado el {updated}; consultado el {retrieved}.",
     wlArchivingRetrieved:
-      "Consultado en OA.Works el {retrieved}; el registro no indica fecha de actualización.",
+      "Consultado en {source} el {retrieved}; el registro no indica fecha de actualización.",
     wlArchivingPolicyLink: "copia archivada de la política de la editorial",
+    wlArchivingOpfLink: "el registro de la revista en Open Policy Finder (CC BY-NC-ND 4.0)",
+    wlArchivingOpfNoRoute:
+      "Open Policy Finder no recoge para esta revista ninguna vía de autoarchivo que SigmaCV pueda sugerir. SigmaCV deja fuera el acceso abierto de pago, las vías con una condición (como la de un financiador), las páginas web y los repositorios concretos nombrados. Consulta el registro de la revista.",
+    wlArchivingConditions: "Condiciones que fija la política: {conditions}.",
     wlArchivingDisclaimer:
-      "Las políticas editoriales cambian y un registro de OA.Works puede tener varios años: comprueba su fecha. Un derecho previsto por la ley depende de condiciones que SigmaCV no puede comprobar: si el trabajo o tu institución recibieron financiación pública, la periodicidad de la revista, el consentimiento de tus coautores, la disciplina. El contrato de publicación que firmaste puede permitir más o menos que la política general de la revista. Esto es información, no asesoramiento jurídico; consulta a tu biblioteca antes de depositar.",
+      "Las políticas editoriales cambian y un registro de políticas puede tener varios años: comprueba su fecha. Un derecho previsto por la ley depende de condiciones que SigmaCV no puede comprobar: si el trabajo o tu institución recibieron financiación pública, la periodicidad de la revista, el consentimiento de tus coautores, la disciplina. El contrato de publicación que firmaste puede permitir más o menos que la política general de la revista. Esto es información, no asesoramiento jurídico; consulta a tu biblioteca antes de depositar.",
     wlStatutoryAuthorRight:
       "Podría aplicarse también el derecho de publicación secundaria ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
@@ -826,7 +851,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlRowDetails: "Registro de la política, derechos y notas para el formulario",
     wlOpensNewTab: "Se abre en una pestaña nueva",
     wlWhyPublisher:
-      "Permitido por la política de la editorial, según el registro de OA.Works del {date}.",
+      "Permitido por la política de la editorial, según el registro de {source} del {date}.",
+    wlWhyPublisherPlaces:
+      "Según el registro de {source} del {date}, la política de la editorial lo permite en: {locations}.",
     wlWhyEmbargoEnded: "El embargo terminó el {date}.",
     wlWhyNoEmbargo: "Sin embargo.",
     wlWhyStatute:
@@ -947,10 +974,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Consulter la politique de la revue (Open Policy Finder)",
     wlFunders: "Financeurs nommés sur le travail : {names}",
     wlArchivingAllowed:
-      "Politique de l'éditeur selon OA.Works : auto-archivage autorisé — {versions}.",
+      "Politique de l'éditeur selon {source} : auto-archivage autorisé — {versions}.",
     wlArchivingWhere: "Où : {locations}.",
     wlArchivingNotAllowed:
-      "Politique de l'éditeur selon OA.Works : aucune autorisation d'auto-archivage enregistrée pour cet article.",
+      "Politique de l'éditeur selon {source} : aucune autorisation d'auto-archivage enregistrée pour cet article.",
     wlArchivingVersionSubmitted: "manuscrit soumis",
     wlArchivingVersionAccepted: "manuscrit accepté",
     wlArchivingVersionPublished: "version éditeur",
@@ -960,12 +987,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "Pas d'embargo.",
     wlArchivingLicence: "Licence de la copie déposée : {licence}.",
     wlArchivingStatement: "Mention que l'éditeur demande d'inclure :",
-    wlArchivingDates: "Fiche OA.Works mise à jour le {updated} ; consultée le {retrieved}.",
+    wlArchivingDates: "Fiche {source} mise à jour le {updated} ; consultée le {retrieved}.",
     wlArchivingRetrieved:
-      "Consultée sur OA.Works le {retrieved} ; la fiche n'indique pas de date de mise à jour.",
+      "Consultée sur {source} le {retrieved} ; la fiche n'indique pas de date de mise à jour.",
     wlArchivingPolicyLink: "copie archivée de la politique de l'éditeur",
+    wlArchivingOpfLink: "la fiche de la revue dans Open Policy Finder (CC BY-NC-ND 4.0)",
+    wlArchivingOpfNoRoute:
+      "Open Policy Finder ne recense pour cette revue aucune voie d'auto-archivage que SigmaCV puisse suggérer. SigmaCV écarte l'accès ouvert payant, les voies soumises à une condition (celle d'un financeur, par exemple), les pages web et les dépôts désignés nommément. Voir la fiche de la revue.",
+    wlArchivingConditions: "Conditions fixées par la politique : {conditions}.",
     wlArchivingDisclaimer:
-      "Les politiques des éditeurs évoluent et une fiche OA.Works peut dater de plusieurs années : vérifiez sa date. Un droit prévu par la loi dépend de conditions que SigmaCV ne peut pas vérifier : le financement public du travail ou de votre établissement, la périodicité de la revue, l'accord de vos coauteurs, la discipline. Le contrat d'édition que vous avez signé peut prévoir plus ou moins que la politique générale de la revue. Ces éléments sont donnés à titre d'information et ne constituent pas un conseil juridique ; renseignez-vous auprès de votre bibliothèque avant tout dépôt.",
+      "Les politiques des éditeurs évoluent et une fiche de politique peut dater de plusieurs années : vérifiez sa date. Un droit prévu par la loi dépend de conditions que SigmaCV ne peut pas vérifier : le financement public du travail ou de votre établissement, la périodicité de la revue, l'accord de vos coauteurs, la discipline. Le contrat d'édition que vous avez signé peut prévoir plus ou moins que la politique générale de la revue. Ces éléments sont donnés à titre d'information et ne constituent pas un conseil juridique ; renseignez-vous auprès de votre bibliothèque avant tout dépôt.",
     wlStatutoryAuthorRight:
       "Peut aussi s'appliquer — droit d'exploitation secondaire ({country}), {instrument} : {statements}.",
     wlStatutoryDepositRequirement:
@@ -1030,7 +1061,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copié",
     wlRowDetails: "Politique enregistrée, droits et notes pour le formulaire",
     wlOpensNewTab: "S’ouvre dans un nouvel onglet",
-    wlWhyPublisher: "Autorisé par la politique de l’éditeur, selon la fiche OA.Works du {date}.",
+    wlWhyPublisher: "Autorisé par la politique de l’éditeur, selon la fiche {source} du {date}.",
+    wlWhyPublisherPlaces:
+      "Selon la fiche {source} du {date}, la politique de l’éditeur l’autorise dans : {locations}.",
     wlWhyEmbargoEnded: "L’embargo a pris fin le {date}.",
     wlWhyNoEmbargo: "Sans embargo.",
     wlWhyStatute:
@@ -1152,10 +1185,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateUnknown: "Unbekannt",
     wlPolicyLink: "Richtlinie der Zeitschrift prüfen (Open Policy Finder)",
     wlFunders: "Auf der Arbeit genannte Förderer: {names}",
-    wlArchivingAllowed: "Verlagsrichtlinie laut OA.Works: Selbstarchivierung erlaubt – {versions}.",
+    wlArchivingAllowed: "Verlagsrichtlinie laut {source}: Selbstarchivierung erlaubt – {versions}.",
     wlArchivingWhere: "Wo: {locations}.",
     wlArchivingNotAllowed:
-      "Verlagsrichtlinie laut OA.Works: Für diesen Artikel ist keine Erlaubnis zur Selbstarchivierung verzeichnet.",
+      "Verlagsrichtlinie laut {source}: Für diesen Artikel ist keine Erlaubnis zur Selbstarchivierung verzeichnet.",
     wlArchivingVersionSubmitted: "eingereichte Manuskriptversion",
     wlArchivingVersionAccepted: "akzeptierte Manuskriptversion",
     wlArchivingVersionPublished: "Verlagsversion",
@@ -1165,12 +1198,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "Kein Embargo.",
     wlArchivingLicence: "Lizenz der archivierten Fassung: {licence}.",
     wlArchivingStatement: "Vom Verlag gewünschter Vermerk:",
-    wlArchivingDates: "OA.Works-Eintrag aktualisiert am {updated}; abgerufen am {retrieved}.",
+    wlArchivingDates: "Eintrag bei {source} aktualisiert am {updated}; abgerufen am {retrieved}.",
     wlArchivingRetrieved:
-      "Am {retrieved} von OA.Works abgerufen; der Eintrag nennt kein Aktualisierungsdatum.",
+      "Am {retrieved} von {source} abgerufen; der Eintrag nennt kein Aktualisierungsdatum.",
     wlArchivingPolicyLink: "archivierte Kopie der Verlagsrichtlinie",
+    wlArchivingOpfLink: "Eintrag der Zeitschrift in Open Policy Finder (CC BY-NC-ND 4.0)",
+    wlArchivingOpfNoRoute:
+      "Open Policy Finder verzeichnet für diese Zeitschrift keinen Weg der Selbstarchivierung, den SigmaCV vorschlagen kann. SigmaCV lässt Open Access gegen Gebühr, Wege mit einer Bedingung (etwa eines Förderers), Webseiten und einzeln benannte Repositorien außer Acht. Siehe den Eintrag der Zeitschrift.",
+    wlArchivingConditions: "Bedingungen der Richtlinie: {conditions}.",
     wlArchivingDisclaimer:
-      "Verlagsrichtlinien ändern sich, und ein OA.Works-Eintrag kann mehrere Jahre alt sein – prüfen Sie dessen Datum. Ein gesetzliches Recht hängt von Bedingungen ab, die SigmaCV nicht prüfen kann: ob die Arbeit oder Ihre Einrichtung öffentlich gefördert wurde, wie oft die Zeitschrift erscheint, die Zustimmung Ihrer Mitautorinnen und Mitautoren, das Fachgebiet. Ihr Verlagsvertrag kann mehr oder weniger erlauben als die allgemeine Richtlinie der Zeitschrift. Dies dient der Information und ist keine Rechtsberatung; wenden Sie sich vor der Ablage an Ihre Bibliothek.",
+      "Verlagsrichtlinien ändern sich, und ein Richtlinieneintrag kann mehrere Jahre alt sein – prüfen Sie dessen Datum. Ein gesetzliches Recht hängt von Bedingungen ab, die SigmaCV nicht prüfen kann: ob die Arbeit oder Ihre Einrichtung öffentlich gefördert wurde, wie oft die Zeitschrift erscheint, die Zustimmung Ihrer Mitautorinnen und Mitautoren, das Fachgebiet. Ihr Verlagsvertrag kann mehr oder weniger erlauben als die allgemeine Richtlinie der Zeitschrift. Dies dient der Information und ist keine Rechtsberatung; wenden Sie sich vor der Ablage an Ihre Bibliothek.",
     wlStatutoryAuthorRight:
       "Möglicherweise ebenfalls anwendbar – Zweitveröffentlichungsrecht ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
@@ -1234,7 +1271,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI kopiert",
     wlRowDetails: "Aufgezeichnete Policy, Rechte und Hinweise zum Formular",
     wlOpensNewTab: "Öffnet sich in einem neuen Tab",
-    wlWhyPublisher: "Erlaubt durch die Verlagsrichtlinie, laut OA.Works-Eintrag vom {date}.",
+    wlWhyPublisher: "Erlaubt durch die Verlagsrichtlinie, laut Eintrag bei {source} vom {date}.",
+    wlWhyPublisherPlaces:
+      "Laut Eintrag bei {source} vom {date} erlaubt die Verlagsrichtlinie es in: {locations}.",
     wlWhyEmbargoEnded: "Das Embargo endete am {date}.",
     wlWhyNoEmbargo: "Kein Embargo.",
     wlWhyStatute:
@@ -1353,10 +1392,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateUnknown: "不明",
     wlPolicyLink: "学術誌のポリシーを確認（Open Policy Finder）",
     wlFunders: "業績に記載された助成機関：{names}",
-    wlArchivingAllowed: "OA.Works が記録する出版社ポリシー：セルフアーカイブ可（{versions}）。",
+    wlArchivingAllowed: "{source} が記録する出版社ポリシー：セルフアーカイブ可（{versions}）。",
     wlArchivingWhere: "登録先：{locations}。",
     wlArchivingNotAllowed:
-      "OA.Works が記録する出版社ポリシー：この論文についてセルフアーカイブの許諾は記録されていません。",
+      "{source} が記録する出版社ポリシー：この論文についてセルフアーカイブの許諾は記録されていません。",
     wlArchivingVersionSubmitted: "投稿原稿",
     wlArchivingVersionAccepted: "著者最終稿",
     wlArchivingVersionPublished: "出版社版",
@@ -1366,11 +1405,15 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "エンバーゴなし。",
     wlArchivingLicence: "登録する版のライセンス：{licence}。",
     wlArchivingStatement: "出版社が記載を求める文言：",
-    wlArchivingDates: "OA.Works の記録更新日 {updated}、取得日 {retrieved}。",
-    wlArchivingRetrieved: "{retrieved} に OA.Works から取得。記録に更新日の記載はありません。",
+    wlArchivingDates: "{source} の記録更新日 {updated}、取得日 {retrieved}。",
+    wlArchivingRetrieved: "{retrieved} に {source} から取得。記録に更新日の記載はありません。",
     wlArchivingPolicyLink: "出版社ポリシー（アーカイブ版）",
+    wlArchivingOpfLink: "Open Policy Finder の雑誌レコード（CC BY-NC-ND 4.0）",
+    wlArchivingOpfNoRoute:
+      "Open Policy Finder には、この雑誌について SigmaCV が提案できるセルフアーカイブの方法がありません。SigmaCV は、有料のオープンアクセス、条件付きの方法（助成機関の条件など）、ウェブページ、名指しされた個別のリポジトリを対象外としています。雑誌のレコードをご覧ください。",
+    wlArchivingConditions: "ポリシーが定める条件：{conditions}。",
     wlArchivingDisclaimer:
-      "出版社のポリシーは変わることがあり、OA.Works の記録が数年前のものである場合もあります。日付を確認してください。法律上の権利は、SigmaCV では確認できない条件（研究またはご所属機関が公的資金を受けているか、雑誌の刊行頻度、共著者の同意、分野など）に左右されます。署名済みの出版契約の内容は、雑誌の一般的なポリシーより広いことも狭いこともあります。これは情報提供であり、法的助言ではありません。登録の前に所属機関の図書館にご相談ください。",
+      "出版社のポリシーは変わることがあり、ポリシーの記録が数年前のものである場合もあります。日付を確認してください。法律上の権利は、SigmaCV では確認できない条件（研究またはご所属機関が公的資金を受けているか、雑誌の刊行頻度、共著者の同意、分野など）に左右されます。署名済みの出版契約の内容は、雑誌の一般的なポリシーより広いことも狭いこともあります。これは情報提供であり、法的助言ではありません。登録の前に所属機関の図書館にご相談ください。",
     wlStatutoryAuthorRight:
       "二次出版権（{country}）も適用される可能性があります。{instrument}：{statements}。",
     wlStatutoryDepositRequirement:
@@ -1433,7 +1476,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI をコピーしました",
     wlRowDetails: "ポリシーの記録、権利、フォームの注記",
     wlOpensNewTab: "新しいタブで開きます",
-    wlWhyPublisher: "出版社のポリシーで許可（OA.Works の {date} の記録による）。",
+    wlWhyPublisher: "出版社のポリシーで許可（{source} の {date} の記録による）。",
+    wlWhyPublisherPlaces:
+      "{source} の {date} の記録によると、出版社のポリシーで認められている場所：{locations}。",
     wlWhyEmbargoEnded: "エンバーゴは {date} に終了しました。",
     wlWhyNoEmbargo: "エンバーゴなし。",
     wlWhyStatute:
@@ -1553,10 +1598,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Consultar a política da revista (Open Policy Finder)",
     wlFunders: "Financiadores nomeados no trabalho: {names}",
     wlArchivingAllowed:
-      "Política da editora segundo o OA.Works: autoarquivamento permitido — {versions}.",
+      "Política da editora segundo o {source}: autoarquivamento permitido — {versions}.",
     wlArchivingWhere: "Onde: {locations}.",
     wlArchivingNotAllowed:
-      "Política da editora segundo o OA.Works: nenhuma permissão de autoarquivamento registrada para este artigo.",
+      "Política da editora segundo o {source}: nenhuma permissão de autoarquivamento registrada para este artigo.",
     wlArchivingVersionSubmitted: "manuscrito submetido",
     wlArchivingVersionAccepted: "manuscrito aceito",
     wlArchivingVersionPublished: "versão publicada",
@@ -1566,12 +1611,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "Sem embargo.",
     wlArchivingLicence: "Licença da cópia depositada: {licence}.",
     wlArchivingStatement: "Texto que a editora pede que seja incluído:",
-    wlArchivingDates: "Registro do OA.Works atualizado em {updated}; consultado em {retrieved}.",
+    wlArchivingDates: "Registro do {source} atualizado em {updated}; consultado em {retrieved}.",
     wlArchivingRetrieved:
-      "Consultado no OA.Works em {retrieved}; o registro não indica data de atualização.",
+      "Consultado no {source} em {retrieved}; o registro não indica data de atualização.",
     wlArchivingPolicyLink: "cópia arquivada da política da editora",
+    wlArchivingOpfLink: "o registro da revista no Open Policy Finder (CC BY-NC-ND 4.0)",
+    wlArchivingOpfNoRoute:
+      "O Open Policy Finder não lista para esta revista nenhuma via de autoarquivamento que o SigmaCV possa sugerir. O SigmaCV deixa de fora o acesso aberto pago, as vias com condição (como a de um financiador), as páginas web e os repositórios específicos indicados pelo nome. Veja o registro da revista.",
+    wlArchivingConditions: "Condições definidas pela política: {conditions}.",
     wlArchivingDisclaimer:
-      "As políticas das editoras mudam, e um registro do OA.Works pode ter vários anos — confira a data. Um direito previsto em lei depende de condições que o SigmaCV não tem como verificar: se o trabalho ou sua instituição recebeu financiamento público, a periodicidade da revista, o consentimento dos seus coautores, a área. O contrato de publicação que você assinou pode permitir mais ou menos do que a política geral da revista. Isto é informação, não orientação jurídica; consulte sua biblioteca antes de depositar.",
+      "As políticas das editoras mudam, e um registro de política pode ter vários anos — confira a data. Um direito previsto em lei depende de condições que o SigmaCV não tem como verificar: se o trabalho ou sua instituição recebeu financiamento público, a periodicidade da revista, o consentimento dos seus coautores, a área. O contrato de publicação que você assinou pode permitir mais ou menos do que a política geral da revista. Isto é informação, não orientação jurídica; consulte sua biblioteca antes de depositar.",
     wlStatutoryAuthorRight:
       "Também pode se aplicar — direito de publicação secundária ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
@@ -1634,7 +1683,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI copiado",
     wlRowDetails: "Registro da política, direitos e notas para o formulário",
     wlOpensNewTab: "Abre em uma nova aba",
-    wlWhyPublisher: "Permitido pela política da editora, segundo o registro do OA.Works de {date}.",
+    wlWhyPublisher: "Permitido pela política da editora, segundo o registro do {source} de {date}.",
+    wlWhyPublisherPlaces:
+      "Segundo o registro do {source} de {date}, a política da editora permite-o em: {locations}.",
     wlWhyEmbargoEnded: "O embargo terminou em {date}.",
     wlWhyNoEmbargo: "Sem embargo.",
     wlWhyStatute:
@@ -1754,10 +1805,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Verifica la politica della rivista (Open Policy Finder)",
     wlFunders: "Finanziatori indicati sul lavoro: {names}",
     wlArchivingAllowed:
-      "Politica dell'editore secondo OA.Works: autoarchiviazione consentita — {versions}.",
+      "Politica dell'editore secondo {source}: autoarchiviazione consentita — {versions}.",
     wlArchivingWhere: "Dove: {locations}.",
     wlArchivingNotAllowed:
-      "Politica dell'editore secondo OA.Works: nessun permesso di autoarchiviazione registrato per questo articolo.",
+      "Politica dell'editore secondo {source}: nessun permesso di autoarchiviazione registrato per questo articolo.",
     wlArchivingVersionSubmitted: "manoscritto inviato",
     wlArchivingVersionAccepted: "manoscritto accettato",
     wlArchivingVersionPublished: "versione editoriale",
@@ -1767,12 +1818,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "Nessun embargo.",
     wlArchivingLicence: "Licenza della copia depositata: {licence}.",
     wlArchivingStatement: "Dicitura che l'editore chiede di riportare:",
-    wlArchivingDates: "Scheda OA.Works aggiornata il {updated}; consultata il {retrieved}.",
+    wlArchivingDates: "Scheda {source} aggiornata il {updated}; consultata il {retrieved}.",
     wlArchivingRetrieved:
-      "Consultata su OA.Works il {retrieved}; la scheda non indica una data di aggiornamento.",
+      "Consultata su {source} il {retrieved}; la scheda non indica una data di aggiornamento.",
     wlArchivingPolicyLink: "copia archiviata della politica dell'editore",
+    wlArchivingOpfLink: "la scheda della rivista in Open Policy Finder (CC BY-NC-ND 4.0)",
+    wlArchivingOpfNoRoute:
+      "Open Policy Finder non elenca per questa rivista alcuna via di autoarchiviazione che SigmaCV possa suggerire. SigmaCV esclude l'accesso aperto a pagamento, le vie con una condizione (come quella di un finanziatore), le pagine web e i singoli archivi indicati per nome. Vedi la scheda della rivista.",
+    wlArchivingConditions: "Condizioni fissate dalla politica: {conditions}.",
     wlArchivingDisclaimer:
-      "Le politiche degli editori cambiano e una scheda OA.Works può risalire a diversi anni fa: controllane la data. Un diritto previsto dalla legge dipende da condizioni che SigmaCV non può verificare: se la ricerca o il tuo ente hanno ricevuto finanziamenti pubblici, la periodicità della rivista, il consenso dei tuoi coautori, la disciplina. Il contratto di pubblicazione che hai firmato può consentire più o meno di quanto preveda la politica generale della rivista. Queste sono informazioni, non una consulenza legale; chiedi alla tua biblioteca prima di depositare.",
+      "Le politiche degli editori cambiano e una scheda di politica può risalire a diversi anni fa: controllane la data. Un diritto previsto dalla legge dipende da condizioni che SigmaCV non può verificare: se la ricerca o il tuo ente hanno ricevuto finanziamenti pubblici, la periodicità della rivista, il consenso dei tuoi coautori, la disciplina. Il contratto di pubblicazione che hai firmato può consentire più o meno di quanto preveda la politica generale della rivista. Queste sono informazioni, non una consulenza legale; chiedi alla tua biblioteca prima di depositare.",
     wlStatutoryAuthorRight:
       "Potrebbe applicarsi anche — diritto di pubblicazione secondaria ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
@@ -1837,7 +1892,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlRowDetails: "Politica registrata, diritti e note per il modulo",
     wlOpensNewTab: "Si apre in una nuova scheda",
     wlWhyPublisher:
-      "Consentito dalla politica dell’editore, secondo la scheda OA.Works del {date}.",
+      "Consentito dalla politica dell’editore, secondo la scheda {source} del {date}.",
+    wlWhyPublisherPlaces:
+      "Secondo la scheda {source} del {date}, la politica dell’editore lo consente in: {locations}.",
     wlWhyEmbargoEnded: "L’embargo è terminato il {date}.",
     wlWhyNoEmbargo: "Nessun embargo.",
     wlWhyStatute:
@@ -1957,10 +2014,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlStateUnknown: "알 수 없음",
     wlPolicyLink: "학술지 정책 확인 (Open Policy Finder)",
     wlFunders: "연구물에 명시된 지원 기관: {names}",
-    wlArchivingAllowed: "OA.Works에 기록된 출판사 정책: 셀프 아카이빙 허용({versions}).",
+    wlArchivingAllowed: "{source}에 기록된 출판사 정책: 셀프 아카이빙 허용({versions}).",
     wlArchivingWhere: "기탁처: {locations}.",
     wlArchivingNotAllowed:
-      "OA.Works에 기록된 출판사 정책: 이 논문에 대한 셀프 아카이빙 허가가 기록되어 있지 않습니다.",
+      "{source}에 기록된 출판사 정책: 이 논문에 대한 셀프 아카이빙 허가가 기록되어 있지 않습니다.",
     wlArchivingVersionSubmitted: "투고 원고",
     wlArchivingVersionAccepted: "게재 승인 원고",
     wlArchivingVersionPublished: "출판사 최종본",
@@ -1970,11 +2027,15 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "엠바고 없음.",
     wlArchivingLicence: "기탁본의 라이선스: {licence}.",
     wlArchivingStatement: "출판사가 포함하도록 요청하는 문구:",
-    wlArchivingDates: "OA.Works 기록 갱신일 {updated}, 조회일 {retrieved}.",
-    wlArchivingRetrieved: "OA.Works 조회일 {retrieved}(기록에 갱신일 없음).",
+    wlArchivingDates: "{source} 기록 갱신일 {updated}, 조회일 {retrieved}.",
+    wlArchivingRetrieved: "{source} 조회일 {retrieved}(기록에 갱신일 없음).",
     wlArchivingPolicyLink: "출판사 정책(보관본)",
+    wlArchivingOpfLink: "Open Policy Finder의 학술지 기록(CC BY-NC-ND 4.0)",
+    wlArchivingOpfNoRoute:
+      "Open Policy Finder에는 SigmaCV가 제안할 수 있는 이 학술지의 셀프 아카이빙 경로가 없습니다. SigmaCV는 유료 오픈 액세스, 조건이 붙은 경로(연구비 지원 기관의 조건 등), 웹페이지, 이름으로 지정된 개별 리포지토리를 제외합니다. 학술지 기록을 확인하세요.",
+    wlArchivingConditions: "정책이 정한 조건: {conditions}.",
     wlArchivingDisclaimer:
-      "출판사 정책은 바뀔 수 있으며, OA.Works 기록은 여러 해 전의 것일 수 있습니다. 날짜를 확인하세요. 법적 권리는 SigmaCV가 확인할 수 없는 조건(연구 또는 소속 기관의 공적 자금 지원 여부, 학술지 발행 주기, 공저자의 동의, 학문 분야 등)에 달려 있습니다. 서명한 출판 계약은 학술지의 일반 정책보다 더 많이 또는 더 적게 허용할 수 있습니다. 이는 정보 제공일 뿐 법률 자문이 아닙니다. 기탁하기 전에 소속 기관 도서관에 문의하세요.",
+      "출판사 정책은 바뀔 수 있으며, 정책 기록은 여러 해 전의 것일 수 있습니다. 날짜를 확인하세요. 법적 권리는 SigmaCV가 확인할 수 없는 조건(연구 또는 소속 기관의 공적 자금 지원 여부, 학술지 발행 주기, 공저자의 동의, 학문 분야 등)에 달려 있습니다. 서명한 출판 계약은 학술지의 일반 정책보다 더 많이 또는 더 적게 허용할 수 있습니다. 이는 정보 제공일 뿐 법률 자문이 아닙니다. 기탁하기 전에 소속 기관 도서관에 문의하세요.",
     wlStatutoryAuthorRight:
       "2차 출판권({country})도 적용될 수 있습니다. {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
@@ -2033,7 +2094,8 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI 복사됨",
     wlRowDetails: "정책 기록, 권리, 양식 안내",
     wlOpensNewTab: "새 탭에서 열립니다",
-    wlWhyPublisher: "출판사 정책으로 허용, OA.Works의 {date} 기록 기준.",
+    wlWhyPublisher: "출판사 정책으로 허용, {source}의 {date} 기록 기준.",
+    wlWhyPublisherPlaces: "{source}의 {date} 기록 기준, 출판사 정책이 허용하는 곳: {locations}.",
     wlWhyEmbargoEnded: "엠바고는 {date}에 끝났습니다.",
     wlWhyNoEmbargo: "엠바고 없음.",
     wlWhyStatute:
@@ -2153,10 +2215,10 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlPolicyLink: "Проверить политику журнала (Open Policy Finder)",
     wlFunders: "Спонсоры, указанные в работе: {names}",
     wlArchivingAllowed:
-      "Политика издателя по данным OA.Works: самоархивирование разрешено — {versions}.",
+      "Политика издателя по данным {source}: самоархивирование разрешено — {versions}.",
     wlArchivingWhere: "Где: {locations}.",
     wlArchivingNotAllowed:
-      "Политика издателя по данным OA.Works: разрешение на самоархивирование для этой статьи не зафиксировано.",
+      "Политика издателя по данным {source}: разрешение на самоархивирование для этой статьи не зафиксировано.",
     wlArchivingVersionSubmitted: "поданная рукопись",
     wlArchivingVersionAccepted: "принятая к публикации рукопись",
     wlArchivingVersionPublished: "опубликованная версия",
@@ -2166,12 +2228,16 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlArchivingNoEmbargo: "Без эмбарго.",
     wlArchivingLicence: "Лицензия размещаемой копии: {licence}.",
     wlArchivingStatement: "Текст, который издатель просит указать:",
-    wlArchivingDates: "Запись OA.Works обновлена {updated}; получена {retrieved}.",
+    wlArchivingDates: "Запись {source} обновлена {updated}; получена {retrieved}.",
     wlArchivingRetrieved:
-      "Запись получена из OA.Works {retrieved}; дата обновления в ней не указана.",
+      "Запись получена из {source} {retrieved}; дата обновления в ней не указана.",
     wlArchivingPolicyLink: "архивная копия политики издателя",
+    wlArchivingOpfLink: "запись журнала в Open Policy Finder (CC BY-NC-ND 4.0)",
+    wlArchivingOpfNoRoute:
+      "В Open Policy Finder для этого журнала нет пути самоархивирования, который SigmaCV может предложить. SigmaCV не учитывает платный открытый доступ, пути с условием (например, финансирующей организации), веб-страницы и отдельные репозитории, названные по имени. См. запись журнала.",
+    wlArchivingConditions: "Условия политики: {conditions}.",
     wlArchivingDisclaimer:
-      "Политики издателей меняются, а запись OA.Works может быть сделана несколько лет назад — проверьте её дату. Право, предусмотренное законом, зависит от условий, которые SigmaCV проверить не может: государственного финансирования исследования или вашей организации, периодичности журнала, согласия соавторов, научной области. Подписанный вами издательский договор может разрешать больше или меньше, чем общая политика журнала. Это информация, а не юридическая консультация; перед размещением в репозитории обратитесь в свою библиотеку.",
+      "Политики издателей меняются, а запись о политике может быть сделана несколько лет назад — проверьте её дату. Право, предусмотренное законом, зависит от условий, которые SigmaCV проверить не может: государственного финансирования исследования или вашей организации, периодичности журнала, согласия соавторов, научной области. Подписанный вами издательский договор может разрешать больше или меньше, чем общая политика журнала. Это информация, а не юридическая консультация; перед размещением в репозитории обратитесь в свою библиотеку.",
     wlStatutoryAuthorRight:
       "Также может применяться — право на вторичную публикацию ({country}), {instrument}: {statements}.",
     wlStatutoryDepositRequirement:
@@ -2234,7 +2300,9 @@ const WORKSPACE_UI: Record<Locale, WorkspaceUiStrings> = {
     wlDepositDoiCopied: "DOI скопирован",
     wlRowDetails: "Запись о политике, права и заметки к форме",
     wlOpensNewTab: "Откроется в новой вкладке",
-    wlWhyPublisher: "Разрешено политикой издателя, по записи OA.Works от {date}.",
+    wlWhyPublisher: "Разрешено политикой издателя, по записи {source} от {date}.",
+    wlWhyPublisherPlaces:
+      "По записи {source} от {date}, политика издателя разрешает это в: {locations}.",
     wlWhyEmbargoEnded: "Эмбарго закончилось {date}.",
     wlWhyNoEmbargo: "Без эмбарго.",
     wlWhyStatute:
