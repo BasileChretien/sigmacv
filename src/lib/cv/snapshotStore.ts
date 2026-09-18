@@ -277,7 +277,7 @@ async function reconciliationRowsColumn(
   });
   /* v8 ignore next -- the caller just read the same row */
   if (!row) return null;
-  const frozen = parseFrozen(row.canonical);
+  const frozen = parseStored(row.canonical, true);
   if (!frozen) return null;
   // `freezeCanonical` once more (idempotent — the copy is already stripped),
   // so "the rows come from a stripped document" is a fact of this writer.
@@ -466,9 +466,13 @@ export async function withdrawMintedSnapshotDois(
   return { attempted, withdrawn };
 }
 
-/** Parse a stored frozen document; null when it no longer validates. */
-function parseFrozen(canonical: unknown): CanonicalCv | null {
-  const parsed = safeParseCanonicalCv(canonical);
+/**
+ * Parse a stored document; null when it no longer validates. A FROZEN snapshot's
+ * document skips the read-time author-name repair (its citations read as frozen);
+ * the live CV it is compared with gets it, as everywhere else.
+ */
+function parseStored(document: unknown, frozen: boolean): CanonicalCv | null {
+  const parsed = safeParseCanonicalCv(document, { frozen });
   if (!parsed.success) {
     logger.error("snapshot.stored_document_invalid", { issueCount: parsed.error.issues.length });
     return null;
@@ -493,8 +497,8 @@ export async function getOwnerSnapshot(
   const cv = await ownerCv(userId);
   const row = await prisma.cvSnapshot.findFirst({ where: { id, cvId: cv.id } });
   if (!row) return null;
-  const frozen = parseFrozen(row.canonical);
-  const live = parseFrozen(cv.document);
+  const frozen = parseStored(row.canonical, true);
+  const live = parseStored(cv.document, false);
   if (!frozen || !live) return null;
   return { snapshot: toSummary(row), frozen, live, publicSlug: cv.publicSlug };
 }
@@ -540,8 +544,8 @@ export async function getPublicSnapshot(
   });
   if (!row || !row.isPublic) return null;
   if (!row.cv.published || row.cv.publicSlug !== slug) return null;
-  const frozen = parseFrozen(row.canonical);
-  const live = parseFrozen(row.cv.document);
+  const frozen = parseStored(row.canonical, true);
+  const live = parseStored(row.cv.document, false);
   if (!frozen || !live) return null;
   return {
     cv: projectCvForPublic(frozen),
@@ -581,7 +585,7 @@ export async function mintDoiForSnapshot(userId: string, id: string): Promise<Mi
   if (row.doiState === "minted" && row.doi) return { state: "already-minted", doi: row.doi };
   if (!row.isPublic) return { state: "not-public" };
   if (!cv.published || !cv.publicSlug) return { state: "not-published" };
-  const frozen = parseFrozen(row.canonical);
+  const frozen = parseStored(row.canonical, true);
   if (!frozen) return { state: "not-found" };
 
   const previous = await prisma.cvSnapshot.findFirst({

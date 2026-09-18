@@ -13,7 +13,8 @@ import type { OpenAlexAuthorship, OpenAlexWork } from "@/lib/openalex/types";
  * OpenAlex author lists, repaired where the payload arrives: the name printed on
  * the work wins over a profile name that is garbled (U+FFFD) or in another script
  * (a Cyrillic profile for a Latin byline); casing is repaired; an author list the
- * publisher deposited twice (RECOVER, 10.3171/2025.1.jns242509) is collapsed.
+ * publisher deposited twice (RECOVER, 10.3171/2025.1.jns242509) is collapsed —
+ * never across two different ORCID iDs, never for a run of fewer than three.
  */
 
 const au = (
@@ -32,6 +33,13 @@ const au = (
   };
 };
 
+/** Same printed name as `au`, profile name included. */
+const same = (name: string, extra: Parameters<typeof au>[2] = {}) => au(name, name, extra);
+
+const ORCID_A = "https://orcid.org/0000-0001-0000-0001";
+const ORCID_B = "https://orcid.org/0000-0001-0000-0002";
+const OWNER_ORCID = "0000-0002-7483-2489";
+
 describe("authorshipName", () => {
   it("prefers the profile name when it is sound", () => {
     expect(authorshipName(au("Basile Chrétien", "B. Chretien"))).toBe("Basile Chrétien");
@@ -45,6 +53,10 @@ describe("authorshipName", () => {
 
   it("falls back to the printed name when the profile is in another script", () => {
     expect(authorshipName(au("Осаму Сузукі", "Osamu Suzuki"))).toBe("Osamu Suzuki");
+  });
+
+  it("never swaps in a printed name that is itself garbled", () => {
+    expect(authorshipName(au("Ганс Мюллер", "Hans M\uFFFDller"))).toBe("Ганс Мюллер");
   });
 
   it("keeps a non-Latin profile name when the byline is not Latin either", () => {
@@ -77,51 +89,53 @@ describe("authorshipName", () => {
     expect(authorshipName(au(undefined, undefined))).toBeUndefined();
     expect(authorshipName(au("  ", ""))).toBeUndefined();
   });
+
+  it("ignores names that are not strings", () => {
+    const odd = { author: { display_name: 42 }, raw_author_name: ["x"] } as never;
+    expect(authorshipName(odd)).toBeUndefined();
+  });
 });
 
-const work = (authorships: OpenAlexAuthorship[]): OpenAlexWork => ({
-  id: "https://openalex.org/W4410429520",
-  title: "RECOVER study",
-  authorships,
-});
+function work(authorships: OpenAlexAuthorship[]): OpenAlexWork {
+  return { id: "https://openalex.org/W4410429520", title: "RECOVER study", authorships };
+}
 
 /** The RECOVER byline as OpenAlex serves it (positions 8–12 repeated at 14–18,
  *  the second Osamu Suzuki under a Cyrillic profile), shortened around the run. */
 function recover(): OpenAlexWork {
   return work([
-    au("Shinsuke Muraoka", "Shinsuke Muraoka", { author_position: "first", id: "A1" }),
-    au("Basile Chrétien", "Basile Chrétien", {
+    same("Shinsuke Muraoka", { author_position: "first", id: "A1" }),
+    same("Basile Chrétien", {
       id: "https://openalex.org/A5001069481",
-      orcid: "https://orcid.org/0000-0002-7483-2489",
+      orcid: `https://orcid.org/${OWNER_ORCID}`,
     }),
-    au("Satoshi Maesawa", "Satoshi Maesawa", { id: "A3" }),
-    au("Shinji Shimato", "Shinji Shimato", { id: "A4a" }),
-    au("Takeshi Kinkori", "Takeshi Kinkori", { id: "A5" }),
-    au("Takumi Asai", "Takumi Asai", { id: "A6", is_corresponding: false }),
-    au("Osamu Suzuki", "Osamu Suzuki", { id: "A7a" }),
-    au("Ryuta Saito", "Ryuta Saito", { id: "A8" }),
-    au("Satoshi Maesawa", "Satoshi Maesawa", { id: "A3" }),
-    au("Shinji Shimato", "Shinji Shimato", {
+    same("Satoshi Maesawa", { id: "A3" }),
+    same("Shinji Shimato", { id: "A4a" }),
+    same("Takeshi Kinkori", { id: "A5" }),
+    same("Takumi Asai", { id: "A6", is_corresponding: false }),
+    same("Osamu Suzuki", { id: "A7a" }),
+    same("Ryuta Saito", { id: "A8" }),
+    same("Satoshi Maesawa", { id: "A3" }),
+    same("Shinji Shimato", {
       id: "A4b",
       orcid: "https://orcid.org/0000-0001-9424-8389",
       institutions: [{ id: "I1", display_name: "Nagoya" }],
       countries: ["JP"],
     }),
-    au("Takeshi Kinkori", "Takeshi Kinkori", { id: "A5" }),
-    au("Takumi Asai", "Takumi Asai", { id: "A6", is_corresponding: true }),
+    same("Takeshi Kinkori", { id: "A5" }),
+    same("Takumi Asai", { id: "A6", is_corresponding: true }),
     au("Осаму Сузукі", "Osamu Suzuki", {
       id: "A7b",
       orcid: "https://orcid.org/0000-0002-2975-1452",
     }),
-    au("Shigemasa Hayashi", "Shigemasa Hayashi", { author_position: "last", id: "A9" }),
+    same("Shigemasa Hayashi", { author_position: "last", id: "A9" }),
   ]);
 }
 
 describe("normalizeWorkAuthors", () => {
   it("collapses RECOVER's repeated run and cleans the Cyrillic profile name", () => {
     const out = normalizeWorkAuthors(recover());
-    const names = out.authorships!.map((a) => a.author?.display_name);
-    expect(names).toEqual([
+    expect(out.authorships!.map((a) => a.author?.display_name)).toEqual([
       "Shinsuke Muraoka",
       "Basile Chrétien",
       "Satoshi Maesawa",
@@ -151,12 +165,89 @@ describe("normalizeWorkAuthors", () => {
     expect(out.authorships![2]!.author?.id).toBe("A3");
   });
 
+  it("never merges two copies that carry different ORCID iDs", () => {
+    // Same names in the same order, but every pair is two identified people.
+    const w = work([
+      same("Yan Wang", { author_position: "first", id: "A1", orcid: ORCID_A }),
+      same("Li Zhang", { id: "A2", orcid: ORCID_B }),
+      same("Mei Chen", { id: "A3" }),
+      same("Yan Wang", { id: "A9", orcid: `https://orcid.org/${OWNER_ORCID}` }),
+      same("Li Zhang", { id: "A8", orcid: "https://orcid.org/0000-0001-0000-0008" }),
+      same("Mei Chen", { id: "A3" }),
+      same("Hui Liu", { author_position: "last" }),
+    ]);
+    expect(normalizeWorkAuthors(w)).toBe(w);
+  });
+
+  it("stops a run at the first pair with different ORCID iDs", () => {
+    const w = work([
+      same("A One", { author_position: "first" }),
+      same("B Two"),
+      same("C Three"),
+      same("D Four", { orcid: ORCID_A }),
+      same("A One"),
+      same("B Two"),
+      same("C Three"),
+      same("D Four", { orcid: ORCID_B, author_position: "last" }),
+    ]);
+    expect(normalizeWorkAuthors(w).authorships!.map((a) => a.author?.display_name)).toEqual([
+      "A One",
+      "B Two",
+      "C Three",
+      "D Four",
+      "D Four",
+    ]);
+  });
+
+  it("never collapses a run of two: two names can recur for four people", () => {
+    const w = work([
+      same("J. Wang", { author_position: "first" }),
+      same("Z. Wang"),
+      same("X. Li"),
+      same("J. Wang"),
+      same("Z. Wang", { author_position: "last" }),
+    ]);
+    expect(normalizeWorkAuthors(w)).toBe(w);
+  });
+
+  it("prefers the copy carrying one of the account holder's author ids", () => {
+    const w = work([
+      same("Ada Lovelace", { author_position: "first", id: "A1", orcid: ORCID_A }),
+      same("Basile Chrétien", { id: "A-other" }),
+      same("Mary Somerville", { id: "A3" }),
+      same("Ada Lovelace", { id: "A1", orcid: ORCID_A }),
+      same("Basile Chrétien", { id: "https://openalex.org/A5001069481" }),
+      same("Mary Somerville", { id: "A3", author_position: "last" }),
+    ]);
+    const out = normalizeWorkAuthors(w, { authorIds: ["A5001069481"] });
+    expect(out.authorships!.map((a) => a.author?.id)).toEqual([
+      "A1",
+      "https://openalex.org/A5001069481",
+      "A3",
+    ]);
+  });
+
+  it("prefers a copy carrying an ORCID over one with an author id only", () => {
+    const w = work([
+      same("Ada Lovelace", { author_position: "first" }),
+      same("Basile Chrétien", { id: "A-orphan" }),
+      same("Mary Somerville"),
+      same("Ada Lovelace"),
+      same("Basile Chrétien", { orcid: `https://orcid.org/${OWNER_ORCID}` }),
+      same("Mary Somerville", { author_position: "last" }),
+    ]);
+    const out = normalizeWorkAuthors(w);
+    expect(out.authorships![1]!.author?.orcid).toBe(`https://orcid.org/${OWNER_ORCID}`);
+  });
+
   it("fills the kept copy's missing affiliations from its twin", () => {
     const w = work([
-      au("A One", "A One", { author_position: "first", id: "A1" }),
-      au("B Two", "B Two", { id: "B2", countries: ["FR"] }),
-      au("A One", "A One", { id: "A1", institutions: [{ id: "I9" }], countries: ["JP"] }),
-      au("B Two", "B Two", { author_position: "last", id: "B2", countries: ["DE"] }),
+      same("A One", { author_position: "first", id: "A1" }),
+      same("B Two", { id: "B2", countries: ["FR"] }),
+      same("C Three", { id: "C3" }),
+      same("A One", { id: "A1", institutions: [{ id: "I9" }], countries: ["JP"] }),
+      same("B Two", { id: "B2", countries: ["DE"] }),
+      same("C Three", { id: "C3", author_position: "last" }),
     ]);
     const [a, b] = normalizeWorkAuthors(w).authorships!;
     expect(a!.institutions).toEqual([{ id: "I9" }]);
@@ -166,48 +257,14 @@ describe("normalizeWorkAuthors", () => {
     expect(b!.is_corresponding).toBeUndefined();
   });
 
-  it("tolerates malformed authorship entries", () => {
-    const w = work([
-      au("A One", "A One", { author_position: "first" }),
-      au("B Two", "B Two"),
-      null as unknown as OpenAlexAuthorship,
-      au("A One", "A One"),
-      au("B Two", "B Two"),
-    ]);
-    expect(normalizeWorkAuthors(w).authorships).toEqual([
-      au("A One", "A One", { author_position: "first" }),
-      au("B Two", "B Two"),
-      null,
-    ]);
-    const empty: OpenAlexWork = { id: "W1", authorships: [] };
-    expect(normalizeWorkAuthors(empty)).toBe(empty);
-  });
-
-  it("prefers the copy carrying one of the account holder's author ids", () => {
-    const w = work([
-      au("Ada Lovelace", "Ada Lovelace", { author_position: "first", id: "A1", orcid: "o1" }),
-      au("Basile Chrétien", "Basile Chrétien", { id: "A-other", orcid: "o2" }),
-      au("Ada Lovelace", "Ada Lovelace", { id: "A1", orcid: "o1" }),
-      au("Basile Chrétien", "Basile Chrétien", {
-        author_position: "last",
-        id: "https://openalex.org/A5001069481",
-      }),
-    ]);
-    const out = normalizeWorkAuthors(w, new Set(["A5001069481"]));
-    expect(out.authorships!.map((a) => a.author?.id)).toEqual([
-      "A1",
-      "https://openalex.org/A5001069481",
-    ]);
-  });
-
   it("re-derives first/last once the tail copy of a whole list is dropped", () => {
     const w = work([
-      au("A One", "A One", { author_position: "first" }),
-      au("B Two", "B Two"),
-      au("C Three", "C Three"),
-      au("A One", "A One"),
-      au("B Two", "B Two"),
-      au("C Three", "C Three", { author_position: "last" }),
+      same("A One", { author_position: "first" }),
+      same("B Two"),
+      same("C Three"),
+      same("A One"),
+      same("B Two"),
+      same("C Three", { author_position: "last" }),
     ]);
     const out = normalizeWorkAuthors(w);
     expect(out.authorships!.map((a) => a.author_position)).toEqual(["first", "middle", "last"]);
@@ -215,28 +272,18 @@ describe("normalizeWorkAuthors", () => {
 
   it("keeps a single 'last': a kept copy's last author that is no longer last is middle", () => {
     const w = work([
-      au("A One", "A One", { author_position: "first" }),
-      au("B Two", "B Two", { author_position: "last" }),
-      au("A One", "A One"),
-      au("B Two", "B Two"),
-      au("C Three", "C Three", { author_position: "last" }),
+      same("A One", { author_position: "first" }),
+      same("B Two"),
+      same("C Three", { author_position: "last" }),
+      same("A One"),
+      same("B Two"),
+      same("C Three"),
+      same("D Four", { author_position: "last" }),
     ]);
     expect(normalizeWorkAuthors(w).authorships!.map((a) => a.author_position)).toEqual([
       "first",
       "middle",
-      "last",
-    ]);
-  });
-
-  it("keeps first and last when a two-author list was printed twice", () => {
-    const w = work([
-      au("A One", "A One", { author_position: "first" }),
-      au("B Two", "B Two", { author_position: "last" }),
-      au("A One", "A One"),
-      au("B Two", "B Two", { author_position: "last" }),
-    ]);
-    expect(normalizeWorkAuthors(w).authorships!.map((a) => a.author_position)).toEqual([
-      "first",
+      "middle",
       "last",
     ]);
   });
@@ -249,8 +296,30 @@ describe("normalizeWorkAuthors", () => {
     expect(out.authorships![1]).toEqual(w.authorships![1]);
   });
 
+  it("tolerates malformed authorship entries and fields", () => {
+    const w = work([
+      same("A One", { author_position: "first" }),
+      same("B Two"),
+      same("C Three"),
+      null as unknown as OpenAlexAuthorship,
+      { author: "x", raw_author_name: 7 } as unknown as OpenAlexAuthorship,
+      same("A One"),
+      same("B Two"),
+      same("C Three"),
+    ]);
+    expect(normalizeWorkAuthors(w).authorships).toEqual([
+      same("A One", { author_position: "first" }),
+      same("B Two"),
+      same("C Three"),
+      null,
+      { author: "x", raw_author_name: 7 },
+    ]);
+    const empty: OpenAlexWork = { id: "W1", authorships: [] };
+    expect(normalizeWorkAuthors(empty)).toBe(empty);
+  });
+
   it("returns the very same work when there is nothing to repair", () => {
-    const w = work([au("Ada Lovelace", "Ada Lovelace"), au("Basile Chrétien", "B. Chretien")]);
+    const w = work([same("Ada Lovelace"), au("Basile Chrétien", "B. Chretien")]);
     expect(normalizeWorkAuthors(w)).toBe(w);
     const bare: OpenAlexWork = { id: "W1" };
     expect(normalizeWorkAuthors(bare)).toBe(bare);
@@ -275,36 +344,39 @@ describe("the client serves normalised works", () => {
     vi.restoreAllMocks();
   });
 
+  const doubled = () =>
+    work([
+      au("Kenji U\uFFFDda", "Kenji Uda", { author_position: "first" }),
+      au("Basile ChréTien", "Basile Chrétien", { id: "A-dup" }),
+      same("Ada Lovelace"),
+      same("Mary Somerville"),
+      same("Basile Chrétien", { id: "https://openalex.org/A9" }),
+      same("Ada Lovelace"),
+      same("Mary Somerville", { author_position: "last" }),
+    ]);
+
   it("fetchWorksByAuthorIds repairs names and keeps the account holder's copy", async () => {
     fetchMock.mockResolvedValue(
-      new Response(
-        JSON.stringify({
-          results: [
-            work([
-              au("Kenji U\uFFFDda", "Kenji Uda", { author_position: "first" }),
-              au("Basile ChréTien", "Basile Chrétien", { id: "A-dup" }),
-              au("Ada Lovelace", "Ada Lovelace"),
-              au("Basile Chrétien", "Basile Chrétien", { id: "https://openalex.org/A9" }),
-              au("Ada Lovelace", "Ada Lovelace", { author_position: "last" }),
-            ]),
-          ],
-          meta: { next_cursor: null },
-        }),
-      ),
+      new Response(JSON.stringify({ results: [doubled()], meta: { next_cursor: null } })),
     );
     const [w] = await fetchWorksByAuthorIds(["A9"]);
     expect(w!.authorships!.map((a) => [a.author?.display_name, a.author?.id])).toEqual([
       ["Kenji Uda", undefined],
       ["Basile Chrétien", "https://openalex.org/A9"],
       ["Ada Lovelace", undefined],
+      ["Mary Somerville", undefined],
     ]);
   });
 
-  it("fetchWorkByDoi repairs names too", async () => {
-    fetchMock.mockResolvedValue(
-      new Response(JSON.stringify(work([au("Basile ChréTien", "B. Chretien")]))),
-    );
-    const w = await fetchWorkByDoi("10.1093/ehjcvp/pvaf027");
-    expect(w!.authorships![0]!.author?.display_name).toBe("Basile Chrétien");
+  it("fetchWorkByDoi repairs names and keeps the copy of the owner it is given", async () => {
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(doubled())));
+    const w = await fetchWorkByDoi("10.1093/ehjcvp/pvaf027", { authorIds: ["A9"] });
+    expect(w!.authorships!.map((a) => a.author?.id)).toEqual([
+      undefined,
+      "https://openalex.org/A9",
+      undefined,
+      undefined,
+    ]);
+    expect(w!.authorships![1]!.author?.display_name).toBe("Basile Chrétien");
   });
 });

@@ -3,10 +3,12 @@ import { migrateAuthorNames } from "@/lib/canonical/migrateAuthorNames";
 import { safeParseCanonicalCv } from "@/lib/canonical/schema";
 
 /**
- * Read-time repair of the author lists a stored CV already holds. DOI-claimed
+ * Read-time repair of the author names a stored CV already holds. DOI-claimed
  * works and ORCID-discovered candidates are CARRIED across a re-sync, never
  * rebuilt, so a name stored as "Basile ChréTien" would otherwise stay that way
  * forever; works built from OpenAlex heal on their next sync, but not before.
+ * Strings only: a stored list is never shortened here (only a sync, comparing
+ * printed bylines and ORCID iDs, collapses a byline deposited twice).
  */
 
 type Name = Record<string, string>;
@@ -43,7 +45,11 @@ const n = (given: string, family: string): Name => ({ given, family });
 
 type Doc = ReturnType<typeof rawDoc> & {
   sections: {
-    items: { csl: { author?: Name[]; editor?: Name[] }; meta: Record<string, unknown> }[];
+    items: {
+      csl: { author?: Name[]; editor?: Name[] };
+      meta: Record<string, unknown>;
+      selfNameVariants: unknown[];
+    }[];
   }[];
 };
 const items = (doc: unknown) => (doc as Doc).sections[0]!.items;
@@ -55,8 +61,10 @@ describe("migrateAuthorNames", () => {
         reviewFlag: "orcid-doi",
       }),
     ]);
-    const out = migrateAuthorNames(doc);
-    expect(items(out)[0]!.csl.author).toEqual([n("Basile", "Chrétien"), { literal: "Kenji Uda" }]);
+    expect(items(migrateAuthorNames(doc))[0]!.csl.author).toEqual([
+      n("Basile", "Chrétien"),
+      { literal: "Kenji Uda" },
+    ]);
   });
 
   it("cleans the stored self-name variants the highlighter matches with", () => {
@@ -68,10 +76,7 @@ describe("migrateAuthorNames", () => {
         { selfNameVariants: ["Basile ChréTien", 7, "B. Chrétien"] },
       ),
     ]);
-    const out = migrateAuthorNames(doc) as {
-      sections: { items: { selfNameVariants: unknown[] }[] }[];
-    };
-    expect(out.sections[0]!.items[0]!.selfNameVariants).toEqual([
+    expect(items(migrateAuthorNames(doc))[0]!.selfNameVariants).toEqual([
       "Basile Chrétien",
       7,
       "B. Chrétien",
@@ -81,87 +86,36 @@ describe("migrateAuthorNames", () => {
   it("cleans editors too", () => {
     const it0 = item("W1", [n("Ada", "Lovelace")]);
     (it0.csl as Record<string, unknown>).editor = [n("Jörg", "MüLler")];
-    const out = migrateAuthorNames(rawDoc([it0]));
-    expect(items(out)[0]!.csl.editor).toEqual([n("Jörg", "Müller")]);
+    expect(items(migrateAuthorNames(rawDoc([it0])))[0]!.csl.editor).toEqual([n("Jörg", "Müller")]);
   });
 
-  it("collapses a repeated run and keeps the owner's position and the count in step", () => {
+  it("never shortens a stored list, even one with a repeated run", () => {
+    // Stored names are profile names: on a large collaboration's list, different
+    // people share one. Only the sync, which sees the bylines, may collapse.
     const author = [
-      n("Shinsuke", "Muraoka"),
       n("Satoshi", "Maesawa"),
       n("Shinji", "Shimato"),
       n("Takeshi", "Kinkori"),
       n("Satoshi", "Maesawa"),
       n("Shinji", "Shimato"),
       n("Takeshi", "Kinkori"),
-      n("Basile", "Chrétien"),
+      n("Basile", "ChréTien"),
     ];
-    const doc = rawDoc([item("W1", author, { authorPosition: 8, authorCount: 8 })]);
+    const doc = rawDoc([item("W1", author, { authorPosition: 7, authorCount: 7 })]);
     const [w] = items(migrateAuthorNames(doc));
-    expect(w!.csl.author!.map((a) => a.family)).toEqual([
-      "Muraoka",
-      "Maesawa",
-      "Shimato",
-      "Kinkori",
-      "Chrétien",
-    ]);
-    expect(w!.meta.authorPosition).toBe(5);
-    expect(w!.meta.authorCount).toBe(5);
-  });
-
-  it("moves an owner who sat in the dropped copy onto its twin", () => {
-    const author = [
-      n("Ada", "Lovelace"),
-      n("Basile", "Chrétien"),
-      n("Ada", "Lovelace"),
-      n("Basile", "Chrétien"),
-    ];
-    const doc = rawDoc([item("W1", author, { authorPosition: 4, authorCount: 40 })]);
-    const [w] = items(migrateAuthorNames(doc));
-    expect(w!.csl.author).toHaveLength(2);
-    expect(w!.meta.authorPosition).toBe(2);
-    // A count larger than the stored list (a truncated byline) drops by what went.
-    expect(w!.meta.authorCount).toBe(38);
-  });
-
-  it("leaves an owner before the run, and a missing position, alone", () => {
-    const author = [
-      n("Basile", "Chrétien"),
-      n("A", "One"),
-      n("B", "Two"),
-      n("A", "One"),
-      n("B", "Two"),
-    ];
-    const doc = rawDoc([item("W1", author, { authorPosition: 1 }), item("W2", author, {})]);
-    const [w1, w2] = items(migrateAuthorNames(doc));
-    expect(w1!.meta.authorPosition).toBe(1);
-    expect(w1!.meta.authorCount).toBeUndefined();
-    expect(w2!.meta).toEqual({});
-    expect(w2!.csl.author).toHaveLength(3);
-  });
-
-  it("leaves a run no name of which is stored verbatim twice (the cheap pre-check)", () => {
-    // Folded, these repeat; stored, no two strings are equal — so the read path
-    // skips them, and only a sync (which compares the printed bylines) collapses them.
-    const author = [
-      n("Ada", "Lovelace"),
-      n("Basile", "Chrétien"),
-      n("ADA", "LOVELACE"),
-      n("Basile", "Chretien"),
-    ];
-    const doc = rawDoc([item("W1", author)]);
-    expect(migrateAuthorNames(doc)).toBe(doc);
-  });
-
-  it("does not re-order or dedupe single repeated names", () => {
-    const author = [n("Wei", "Wang"), n("Li", "Zhang"), n("Wei", "Wang")];
-    const doc = rawDoc([item("W1", author, { authorPosition: 3 })]);
-    expect(migrateAuthorNames(doc)).toBe(doc);
+    expect(w!.csl.author).toHaveLength(7);
+    expect(w!.csl.author![6]).toEqual(n("Basile", "Chrétien"));
+    expect(w!.meta).toEqual({ authorPosition: 7, authorCount: 7 });
   });
 
   it("returns the very same document when every name is clean", () => {
     const doc = rawDoc([item("W1", [n("Basile", "Chrétien")]), item("W2", [])]);
     expect(migrateAuthorNames(doc)).toBe(doc);
+  });
+
+  it("is idempotent", () => {
+    const once = migrateAuthorNames(rawDoc([item("W1", [n("Basile", "ChrÃ©Tien")])]));
+    expect(migrateAuthorNames(once)).toBe(once);
   });
 
   it("never mutates the stored document", () => {
@@ -195,10 +149,16 @@ describe("migrateAuthorNames", () => {
   });
 
   it("runs on every read, through safeParseCanonicalCv", () => {
-    const parsed = safeParseCanonicalCv(
-      rawDoc([item("W1", [n("Basile", "ChréTien")], { authorPosition: 1 })]),
-    );
+    const parsed = safeParseCanonicalCv(rawDoc([item("W1", [n("Basile", "ChréTien")])]));
     expect(parsed.success).toBe(true);
     expect(parsed.data!.sections[0]!.items[0]!.csl!.author).toEqual([n("Basile", "Chrétien")]);
+  });
+
+  it("leaves a frozen snapshot's citations as they were frozen", () => {
+    const parsed = safeParseCanonicalCv(rawDoc([item("W1", [n("Basile", "ChréTien")])]), {
+      frozen: true,
+    });
+    expect(parsed.success).toBe(true);
+    expect(parsed.data!.sections[0]!.items[0]!.csl!.author).toEqual([n("Basile", "ChréTien")]);
   });
 });

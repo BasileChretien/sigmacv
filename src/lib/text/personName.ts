@@ -4,25 +4,32 @@ import type { CslName } from "@/types/csl";
  * Repair of the defects scholarly metadata carries in PERSON NAMES, applied to
  * every name before it reaches a citation (OpenAlex authorships at fetch time,
  * `toCslName`, and the stored CSL names on read). Each repair only undoes a
- * recognisable encoding or casing fault, so a sound name is returned unchanged:
+ * recognisable fault, and each is built to leave a sound name untouched, because
+ * a wrong repair misprints a real person's name on every CV that cites them:
  *
- *  - UTF-8 read as Windows-1252 / Latin-1 ("ChrÃ©tien") is decoded back, but only
- *    when the whole name maps to bytes that form VALID UTF-8 — a real Latin-1
- *    name ("José", "Côté–Smith") never does, so it is never touched;
- *  - a capital right after an accented Latin lowercase letter ("ChréTien",
- *    "JöRg") is lowered: it is what a title-caser leaves when it treats every
- *    non-ASCII letter as a word boundary (JS `\b\w`, or a decomposed "e" +
- *    combining accent). Real internal capitals follow an ASCII letter
- *    ("McDonald", "DiCaprio", "hUiginn") or sit in another script ("ДиКаприо"),
- *    and are kept;
+ *  - UTF-8 read as Windows-1252 / Latin-1 ("ChrÃ©tien") is decoded back, word by
+ *    word, but only when the bytes form valid UTF-8 AND the result is plausible:
+ *    ordinary letters (no combining marks, no IPA, no stray symbol) of ONE script.
+ *    Validity alone is not enough — the Czech "LÍŠKA" is valid UTF-8 as bytes
+ *    (Í Š = CD 8A, a combining mark) and "Weiß–Schmidt" decodes to an N'Ko letter;
+ *  - a title-caser that treats every non-ASCII letter as a word break (JS `\b\w`,
+ *    or a decomposed "e" + combining accent) leaves "ChréTien", "JöRg", "éMile".
+ *    Such a name is repaired ("Chrétien", "Jörg", "Émile") only when it looks
+ *    uniformly mangled: every ASCII letter after an accented lowercase one is a
+ *    capital, and each word's ASCII runs are shaped like title case. So real
+ *    internal capitals ("McDonald", "DiCaprio", "hUiginn", "ДиКаприо"), all-caps
+ *    names ("GONZáLEZ" is left alone rather than made worse), stylised names
+ *    ("PréDiCT") and names that merely lack a space ("JoséLuis García") are kept;
  *  - a U+FFFD (a character lost in some upstream decode) is dropped: "Kenji Uda"
- *    is a better citation than "Kenji U\uFFFDda". The OpenAlex mapper prefers the
- *    name printed on the work when only the profile name is garbled
+ *    is a better citation than a replacement glyph. The OpenAlex mapper prefers
+ *    the name printed on the work when only the profile name is garbled
  *    (`openalex/authorNames.ts`), so this is the last resort. A name that is
  *    nothing BUT replacement characters is kept rather than emptied;
- *  - Unicode is composed (NFC), invisibles (BOM, zero-width space, soft hyphen,
- *    control characters) are removed and whitespace is collapsed. The zero-width
- *    joiners are kept: they carry meaning in Indic and Persian scripts.
+ *  - decomposed accents are composed (NFC) — except the CJK compatibility
+ *    ideographs, which NFC would swap for their unified forms although people
+ *    choose those variants for their names; invisibles (BOM, zero-width space,
+ *    soft hyphen, control characters) are removed and whitespace is collapsed.
+ *    The zero-width joiners are kept: they carry meaning in Indic and Persian.
  */
 
 const REPLACEMENT = "\uFFFD";
@@ -66,22 +73,55 @@ const CP1252_BYTE = new Map<number, number>([
 const MOJIBAKE =
   /[\u00C2-\u00F4][\u0080-\u00BF\u0152\u0153\u0160\u0161\u0178\u017D\u017E\u0192\u02C6\u02DC\u2013\u2014\u2018-\u201A\u201C-\u201E\u2020-\u2022\u2026\u2030\u2039\u203A\u20AC\u2122]/;
 
-/** Double encoding happens; three passes is more than any real record needs. */
-const MOJIBAKE_PASSES = 3;
+/** Double (triple…) encoding happens; this bounds the passes on hostile input. */
+const MOJIBAKE_PASSES = 8;
 
 const UTF8 = new TextDecoder("utf-8", { fatal: true });
+
+/** Latin letters a decode may plausibly produce: Latin-1, Extended-A, the pinyin
+ *  caron vowels and Romanian comma-below letters of Extended-B, and the Vietnamese
+ *  block. Not the rest of Extended-B or IPA (what false decodes land on). */
+const DECODED_LATIN =
+  /^[\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u017F\u01CD-\u01DC\u0218-\u021B\u1E00-\u1EFF]$/;
+/** Non-letter characters a name may carry: apostrophes, hyphens, middle dot. */
+const NAME_PUNCTUATION = /^[\u2010-\u2019\u00B7]$/;
+const SCRIPTS: ReadonlyArray<readonly [string, RegExp]> = [
+  ["Greek", /^\p{Script=Greek}$/u],
+  ["Cyrillic", /^\p{Script=Cyrillic}$/u],
+  ["Hebrew", /^\p{Script=Hebrew}$/u],
+  ["Arabic", /^\p{Script=Arabic}$/u],
+  ["CJK", /^[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}]$/u],
+  ["Hangul", /^\p{Script=Hangul}$/u],
+];
 
 /** Invisible characters with no place in a name (joiners excluded, see above). */
 const INVISIBLE = /[\uFEFF\u200B\u2060\u00AD\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g;
 
-/** A letter, its combining marks, then an ASCII capital. */
-const CAPITAL_AFTER_LETTER = /(\p{L})(\p{M}*)([A-Z])/gu;
+/** CJK compatibility ideographs (BMP and supplement): kept out of NFC. */
+const CJK_COMPATIBILITY = /([\uF900-\uFAFF]|\uD87E[\uDC00-\uDE1F])/;
+
+const ASCII_LETTER = /^[A-Za-z]$/;
+const TITLE_SHAPED = /^[A-Z]?[a-z]*$/;
+const MARK = /^\p{M}$/u;
+const WORD_CHAR = /^[\p{L}\p{M}]$/u;
 const LOWER = /^\p{Ll}$/u;
 const LATIN = /^\p{Script=Latin}$/u;
+/** The saltillo (U+A78C) is a lowercase Latin LETTER used as an apostrophe, as in
+ *  "O" + saltillo + "Neill": the capital after it is real. */
+const SALTILLO = "\uA78C";
 /** A letter of a real script (Common / Inherited letters, e.g. the ʻokina, are neutral). */
 const NON_LATIN_LETTER = /(?![\p{Script=Latin}\p{Script=Common}\p{Script=Inherited}])\p{L}/u;
 const LATIN_LETTER = /\p{Script=Latin}/u;
 const LETTER = /\p{L}/u;
+
+/** NFC, leaving the CJK compatibility ideographs as they were written. */
+function compose(s: string): string {
+  if (!CJK_COMPATIBILITY.test(s)) return s.normalize("NFC");
+  return s
+    .split(CJK_COMPATIBILITY)
+    .map((part, i) => (i % 2 === 1 ? part : part.normalize("NFC")))
+    .join("");
+}
 
 /** The bytes Windows-1252 would have decoded to `s`, or null if it could not have. */
 function cp1252Bytes(s: string): Uint8Array | null {
@@ -95,8 +135,33 @@ function cp1252Bytes(s: string): Uint8Array | null {
   return Uint8Array.from(bytes);
 }
 
-function repairMojibake(s: string): string {
-  let current = s;
+/** Which script a decoded character belongs to: "" for neutral ASCII / name
+ *  punctuation, null for a character no decoded name should contain. */
+function decodedScript(ch: string): string | null {
+  if (ch.charCodeAt(0) < 0x80) return ASCII_LETTER.test(ch) ? "Latin" : "";
+  if (NAME_PUNCTUATION.test(ch)) return "";
+  if (DECODED_LATIN.test(ch)) return "Latin";
+  for (const [script, re] of SCRIPTS) if (re.test(ch)) return script;
+  return null;
+}
+
+/** Ordinary characters of one script: what a real decoded word looks like. */
+function plausibleWord(word: string): boolean {
+  let script = "";
+  for (const ch of word) {
+    const s = decodedScript(ch);
+    if (s === null) return false;
+    if (!s) continue;
+    if (script && s !== script) return false;
+    script = s;
+  }
+  return true;
+}
+
+/** One word decoded back from Windows-1252 mojibake, when it plausibly was that. */
+function repairMojibakeWord(word: string): string {
+  let current = word;
+  let best = word;
   for (let pass = 0; pass < MOJIBAKE_PASSES && MOJIBAKE.test(current); pass++) {
     const bytes = cp1252Bytes(current);
     if (!bytes) break;
@@ -105,8 +170,13 @@ function repairMojibake(s: string): string {
     } catch {
       break; // not valid UTF-8: a real Latin-1 name, not an encoding fault
     }
+    if (plausibleWord(current)) best = current;
   }
-  return current;
+  return best;
+}
+
+function repairMojibake(s: string): string {
+  return MOJIBAKE.test(s) ? s.split(" ").map(repairMojibakeWord).join(" ") : s;
 }
 
 function dropReplacementChars(s: string): string {
@@ -115,24 +185,70 @@ function dropReplacementChars(s: string): string {
   return LETTER.test(stripped) ? stripped : s;
 }
 
+/** An accented Latin lowercase letter (a precomposed one, or a base plus marks). */
+function isAccentedLower(base: string, marked: boolean): boolean {
+  if (!LOWER.test(base) || !LATIN.test(base) || base === SALTILLO) return false;
+  return marked || base.charCodeAt(0) > 0x7f;
+}
+
+/** The accented letter right before `i` (combining marks skipped), or -1. */
+function accentedBefore(chars: readonly string[], i: number): number {
+  let j = i - 1;
+  while (j >= 0 && MARK.test(chars[j]!)) j--;
+  return j >= 0 && isAccentedLower(chars[j]!, j < i - 1) ? j : -1;
+}
+
+/** Whether every ASCII-letter run of the word around `i` is shaped like title case. */
+function titleShapedWord(chars: readonly string[], i: number): { ok: boolean; start: number } {
+  let start = i;
+  while (start > 0 && WORD_CHAR.test(chars[start - 1]!)) start--;
+  let end = i;
+  while (end < chars.length && WORD_CHAR.test(chars[end]!)) end++;
+  const runs = chars
+    .slice(start, end)
+    .map((ch) => (ASCII_LETTER.test(ch) ? ch : " "))
+    .join("")
+    .split(" ");
+  return { ok: runs.every((run) => TITLE_SHAPED.test(run)), start };
+}
+
 function repairCase(s: string): string {
-  return s.replace(CAPITAL_AFTER_LETTER, (match, prev: string, marks: string, capital: string) => {
-    const brokenBoundary =
-      LOWER.test(prev) && LATIN.test(prev) && (marks !== "" || prev.charCodeAt(0) > 0x7f);
-    return brokenBoundary ? `${prev}${marks}${capital.toLowerCase()}` : match;
-  });
+  const chars = [...s];
+  const capitals: number[] = [];
+  for (let i = 1; i < chars.length; i++) {
+    if (!ASCII_LETTER.test(chars[i]!) || accentedBefore(chars, i) < 0) continue;
+    // The broken title-caser capitalises EVERY letter after an accented one; a
+    // lowercase one anywhere means this name never went through it.
+    if (chars[i] === chars[i]!.toLowerCase()) return s;
+    capitals.push(i);
+  }
+  if (capitals.length === 0) return s;
+  const out = [...chars];
+  for (const i of capitals) {
+    const word = titleShapedWord(chars, i);
+    if (!word.ok) continue;
+    out[i] = chars[i]!.toLowerCase();
+    // "éMile": the word's own initial is the accented letter — it is the capital.
+    const initial = accentedBefore(chars, i);
+    const upper = chars[initial]!.toUpperCase();
+    if (initial === word.start && upper.length === 1) out[initial] = upper;
+  }
+  return out.join("");
 }
 
 /**
  * Names repeat across a CV (every co-author, on every work) and the stored names
  * are cleaned on EVERY read (`migrateAuthorNames`), so the pure functions below
- * are memoised — bounded, so a long-running server never grows the cache.
+ * are memoised — bounded in entries and in key length, so a long-running server
+ * never grows the cache and an oversized stored name is never kept in it.
  */
 const MEMO_MAX = 10_000;
+const MEMO_MAX_KEY = 256;
 
 function memoised(fn: (s: string) => string): (s: string) => string {
   const cache = new Map<string, string>();
   return (s) => {
+    if (s.length > MEMO_MAX_KEY) return fn(s);
     const hit = cache.get(s);
     if (hit !== undefined) return hit;
     const out = fn(s);
@@ -146,7 +262,7 @@ function memoised(fn: (s: string) => string): (s: string) => string {
 const PLAIN_ASCII = /^[\x21-\x7E]+(?: [\x21-\x7E]+)*$/;
 
 const repairName = memoised((raw) => {
-  const composed = repairMojibake(raw.normalize("NFC")).normalize("NFC");
+  const composed = compose(repairMojibake(compose(raw)));
   return repairCase(dropReplacementChars(composed.replace(INVISIBLE, "")))
     .replace(/\s+/g, " ")
     .trim();
@@ -173,16 +289,14 @@ export function isLatinScriptOnly(s: string): boolean {
 }
 
 /**
- * A comparison key for "the same printed name": cleaned, then case, accents,
- * punctuation and spacing folded away ("Chrétien, B." ≈ "CHRETIEN B"). Scripts
- * stay apart. Empty for a name with no letter or digit.
+ * A comparison key for "the same printed name": cleaned, then case, punctuation
+ * and spacing folded away ("Chrétien, B." ≈ "chrétien b"). Accents are KEPT:
+ * "Lü Wei" and "Lu Wei" are different people. Empty for a name with no letter.
  */
 export const personNameKey = memoised((s) =>
   cleanPersonName(s)
-    .normalize("NFD")
-    .replace(/\p{M}/gu, "")
     .toLowerCase()
-    .replace(/[^\p{L}\p{N}]/gu, ""),
+    .replace(/[^\p{L}\p{M}\p{N}]/gu, ""),
 );
 
 const CSL_NAME_PARTS = [
