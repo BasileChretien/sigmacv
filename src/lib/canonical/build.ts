@@ -513,10 +513,11 @@ const BOUNDED_ENRICHMENT_KEYS = [
   "replications",
   "replicationOf",
   "replicationsCheckedAt",
-  // OA.Works self-archiving permission (the OWNER sync's pass only)
+  // The publisher's self-archiving policy (the OWNER sync's pass only)
   "selfArchiving",
   "selfArchivingCheckedAt",
   "selfArchivingTriedAt",
+  "selfArchivingOpfAt",
   "repositoryCopies",
   "repositoryCopiesCheckedAt",
   "repositoryCopiesTriedAt",
@@ -2089,7 +2090,7 @@ function buildWorkCvItem(
       // Spread FIRST so a source-driven field below always wins where both exist.
       ...carriedEnrichmentMeta(prev),
       ...carriedCitationOverrides(prev),
-      // The OA.Works record is DOI-keyed: carried only while the DOI is unchanged,
+      // The policy record is DOI-keyed: carried only while the DOI is unchanged,
       // so a corrected DOI is asked about afresh rather than keeping the old DOI's
       // policy through the pass's seven-day refresh window.
       ...(prev && prev.csl?.DOI?.trim().toLowerCase() !== csl.DOI?.trim().toLowerCase()
@@ -2097,6 +2098,7 @@ function buildWorkCvItem(
             selfArchiving: undefined,
             selfArchivingCheckedAt: undefined,
             selfArchivingTriedAt: undefined,
+            selfArchivingOpfAt: undefined,
             // The repository copies are DOI-keyed too.
             repositoryCopies: undefined,
             repositoryCopiesCheckedAt: undefined,

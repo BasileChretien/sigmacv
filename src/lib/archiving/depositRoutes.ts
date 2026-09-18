@@ -355,7 +355,9 @@ export function depositNotes(
       if (record.embargoEnd > today) {
         notes.push(fill(wu.wlDepositFormEmbargoDate, { date: record.embargoEnd }));
       }
-    } else if (record.embargoMonths) {
+    } else if (record.embargoMonths && !(now?.since !== undefined && now.since <= today)) {
+      // Months only (no end date): the note while the embargo may still run —
+      // not on a row listed because it has ended.
       notes.push(
         fill(wu.wlDepositFormEmbargoDuration, {
           duration: monthsLong(record.embargoMonths, locale),

@@ -11,6 +11,7 @@ import {
   isoToday,
   publishedBy,
   publishedFrom,
+  withRouteFor,
 } from "@/lib/archiving/depositNow";
 import type { DepositContext } from "@/lib/archiving/depositRoutes";
 import { STATUTORY_ARCHIVING, statutoryArchivingFor } from "@/lib/archiving/statutoryRights";
@@ -302,6 +303,54 @@ describe("depositReadyRows", () => {
     expect(ready[0]!.row.statutory).toEqual(
       statutoryArchivingFor(["FR"], { year: 2023, type: "article-journal" }),
     );
+  });
+  it("shows each row the journal's route for where its action deposits: one record, two destinations", () => {
+    const routes = [
+      {
+        versions: ["publishedVersion" as const],
+        embargoMonths: 12,
+        locations: ["Institutional Repository"],
+      },
+      { versions: ["acceptedVersion" as const], embargoMonths: 0, locations: ["Any Repository"] },
+    ];
+    const opf = record({
+      source: "open-policy-finder",
+      embargoMonths: 0,
+      locations: ["Any Repository"],
+      routes,
+    });
+    const [hal, zenodo] = depositReadyRows(
+      makeCv([
+        { ...work({ year: 2020, workCountries: ["FR"], selfArchiving: opf }), id: "W-hal" },
+        { ...work({ year: 2020, selfArchiving: opf }), id: "W-zenodo" },
+      ]),
+      TODAY,
+      CTX,
+    );
+    // HAL takes an institutional repository: the publisher's PDF, its embargo run.
+    expect(hal!.routes[0]!.destination).toBe("HAL");
+    expect(hal!.now).toMatchObject({ basis: "publisher", version: "publishedVersion" });
+    expect(hal!.item.meta.selfArchiving).toMatchObject({
+      versions: ["publishedVersion"],
+      embargoMonths: 12,
+      locations: ["Institutional Repository"],
+      routes,
+    });
+    // Zenodo is not one: the accepted manuscript, which may go in any repository.
+    expect(zenodo!.routes[0]!.destination).toBe("Zenodo");
+    expect(zenodo!.now).toMatchObject({ basis: "publisher", version: "acceptedVersion" });
+    expect(zenodo!.item.meta.selfArchiving?.locations).toEqual(["Any Repository"]);
+  });
+
+  it("leaves a record with no routes as it is (OA.Works, or none SigmaCV may name)", () => {
+    const oaworks = work({ selfArchiving: record() });
+    expect(withRouteFor(oaworks, "zenodo", TODAY)).toBe(oaworks);
+    const none = work({
+      selfArchiving: record({ source: "open-policy-finder", canArchive: false, routes: [] }),
+    });
+    expect(withRouteFor(none, "hal", TODAY)).toBe(none);
+    const bare = work();
+    expect(withRouteFor(bare, "hal", TODAY)).toBe(bare);
   });
 });
 

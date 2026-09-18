@@ -1,13 +1,22 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const lookup = vi.hoisted(() => vi.fn());
-vi.mock("@/lib/oaworks/client", () => ({ fetchSelfArchivingPermission: lookup }));
+vi.mock("@/lib/oaworks/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/oaworks/client")>()),
+  fetchSelfArchivingPermission: lookup,
+}));
+const journal = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/openPolicyFinder/client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/lib/openPolicyFinder/client")>()),
+  fetchJournalPolicy: journal,
+}));
 // The pass shares the bounded-pass helpers in canonical/enrich, whose import graph
 // reaches the Prisma client (FORRT); no database is touched here.
 vi.mock("@/lib/db", () => ({ prisma: {} }));
 
 import {
   enrichCvWithSelfArchiving,
+  POLICY_FINDER_SINCE,
   SELF_ARCHIVING_MAX_LOOKUPS,
   SELF_ARCHIVING_REFRESH_DAYS,
 } from "@/lib/archiving/selfArchivingPass";
@@ -90,10 +99,11 @@ const byId = (cv: CanonicalCv, id: string) => items(cv).find((it) => it.id === i
 beforeEach(() => {
   lookup.mockReset();
   lookup.mockResolvedValue({ status: "found", permission: PERMISSION });
+  journal.mockReset();
 });
 
 describe("enrichCvWithSelfArchiving", () => {
-  it("asks once per countable closed journal article with a DOI, one call at a time, and stores the answer dated", async () => {
+  it("asks once per countable closed journal article with a DOI, a few calls at a time, and stores the answer dated", async () => {
     let inFlight = 0;
     let maxInFlight = 0;
     lookup.mockImplementation(async () => {
@@ -127,9 +137,9 @@ describe("enrichCvWithSelfArchiving", () => {
     // Each lookup is bounded by what remains of the pass budget.
     for (const [, , remaining] of lookup.mock.calls) {
       expect(remaining).toBeGreaterThan(0);
-      expect(remaining).toBeLessThanOrEqual(12_000);
+      expect(remaining).toBeLessThanOrEqual(15_000);
     }
-    expect(maxInFlight).toBe(1);
+    expect(maxInFlight).toBeLessThanOrEqual(3);
     for (const id of ["A", "B"]) {
       expect(byId(out, id).meta.selfArchiving).toEqual({
         source: "oa.works",
@@ -252,5 +262,283 @@ describe("enrichCvWithSelfArchiving", () => {
     const out = await enrichCvWithSelfArchiving(cv, MAILTO, NOW);
     expect(lookup).not.toHaveBeenCalled();
     expect(out).toEqual(cv);
+  });
+
+  describe("with an Open Policy Finder key", () => {
+    const KEY = "opf-key";
+    const ACCEPTED_12 = {
+      versions: ["acceptedVersion" as const],
+      embargoMonths: 12,
+      locations: ["Non-Commercial Institutional Repository"],
+      licence: "cc-by-nc-nd",
+      conditions: ["Must link to publisher version with DOI"],
+    };
+    const POLICY = {
+      routes: [ACCEPTED_12],
+      recordUpdated: "2025-03-13",
+      policyUrl: "https://openpolicyfinder.jisc.ac.uk/publication/16060",
+    };
+    const OPF_RECORD = {
+      source: "open-policy-finder" as const,
+      canArchive: true,
+      ...ACCEPTED_12,
+      recordUpdated: POLICY.recordUpdated,
+      policyUrl: POLICY.policyUrl,
+      routes: POLICY.routes,
+    };
+    /** A stored Open Policy Finder answer, `days` old. */
+    const opfAnswer = (days: number) => ({
+      selfArchiving: { ...OPF_RECORD, retrievedAt: daysAgo(days) },
+      selfArchivingCheckedAt: daysAgo(days),
+      selfArchivingOpfAt: daysAgo(days),
+    });
+    const inJournal = (
+      id: string,
+      issn?: unknown,
+      meta: CvItem["meta"] = {},
+      csl: Record<string, unknown> = {},
+    ) => work(id, meta, { ...(issn !== undefined ? { ISSN: issn } : {}), ...csl });
+    const run = (cv: CanonicalCv, now = NOW) =>
+      enrichCvWithSelfArchiving(cv, MAILTO, now, { policyFinderKey: KEY });
+    /** After Open Policy Finder went live: an OA.Works answer is then not due again at once. */
+    const after = (hours: number) =>
+      new Date(Date.parse(POLICY_FINDER_SINCE) + hours * 3_600_000).toISOString();
+    const OAWORKS_RECORD = {
+      ...OLD_RECORD,
+      canArchive: true,
+      versions: ["acceptedVersion" as const],
+    };
+
+    it("asks Open Policy Finder by ISSN first — once per journal — and credits it; OA.Works only for a journal it has no record of, or a work with no ISSN", async () => {
+      journal.mockImplementation(async (issn: string) =>
+        issn === "0165-1781" ? { status: "found", policy: POLICY } : { status: "none" },
+      );
+      const out = await run(
+        makeCv([
+          inJournal("A", "0165-1781"),
+          inJournal("B", "01651781"),
+          inJournal("C", "0040-5957"),
+          inJournal("D"),
+        ]),
+      );
+      expect(journal.mock.calls.map(([issn, key]) => [issn, key]).sort()).toEqual([
+        ["0040-5957", KEY],
+        ["0165-1781", KEY],
+      ]);
+      expect(lookup.mock.calls.map(([doi]) => doi).sort()).toEqual(["10.1234/C", "10.1234/D"]);
+      for (const id of ["A", "B"]) {
+        expect(byId(out, id).meta.selfArchiving).toEqual({ ...OPF_RECORD, retrievedAt: NOW });
+        expect(byId(out, id).meta.selfArchivingCheckedAt).toBe(NOW);
+        expect(byId(out, id).meta.selfArchivingOpfAt).toBe(NOW);
+      }
+      expect(byId(out, "C").meta.selfArchiving?.source).toBe("oa.works");
+      // Open Policy Finder answered "none" for C's journal: stamped, not asked again this week.
+      expect(byId(out, "C").meta.selfArchivingOpfAt).toBe(NOW);
+      expect(byId(out, "D").meta.selfArchiving?.source).toBe("oa.works");
+      expect(byId(out, "D").meta.selfArchivingOpfAt).toBeUndefined();
+    });
+
+    it("asks once for a journal the works name by its print or its electronic ISSN", async () => {
+      journal.mockResolvedValue({ status: "found", policy: POLICY });
+      await run(
+        makeCv([
+          inJournal("A", "0165-1781"),
+          inJournal("B", ["1872-7123", "0165-1781"]),
+          inJournal("C", ["1872-7123", "0165-1781"]),
+          inJournal("D", "0165-1781"),
+        ]),
+      );
+      expect(journal.mock.calls.map(([issn]) => issn)).toEqual(["0165-1781"]);
+    });
+
+    it("keeps every route with the record; its default is the route each article can take today, most final among those most places accept", async () => {
+      const anywhere = { locations: ["Any Repository"] };
+      const routes = [
+        { versions: ["publishedVersion" as const], embargoMonths: 12, ...anywhere },
+        { versions: ["acceptedVersion" as const], embargoMonths: 0, ...anywhere },
+      ];
+      journal.mockResolvedValue({ status: "found", policy: { ...POLICY, routes } });
+      const out = await run(
+        makeCv([
+          inJournal(
+            "recent",
+            "0165-1781",
+            { year: 2026 },
+            { issued: { "date-parts": [[2026, 8]] } },
+          ),
+          inJournal(
+            "older",
+            "0165-1781",
+            { year: 2020 },
+            { issued: { "date-parts": [[2020, 3]] } },
+          ),
+        ]),
+      );
+      expect(byId(out, "recent").meta.selfArchiving?.versions).toEqual(["acceptedVersion"]);
+      expect(byId(out, "older").meta.selfArchiving?.versions).toEqual(["publishedVersion"]);
+      expect(byId(out, "older").meta.selfArchiving?.routes).toEqual(routes);
+      expect(journal).toHaveBeenCalledTimes(1);
+    });
+
+    it("defaults to the route most places accept: the row, which knows where it deposits, picks again", async () => {
+      const routes = [
+        {
+          versions: ["publishedVersion" as const],
+          embargoMonths: 12,
+          locations: ["Institutional Repository"],
+        },
+        { versions: ["acceptedVersion" as const], embargoMonths: 0, locations: ["Any Repository"] },
+      ];
+      journal.mockResolvedValue({ status: "found", policy: { ...POLICY, routes } });
+      const out = await run(makeCv([inJournal("older", "0165-1781", { year: 2020 })]));
+      expect(byId(out, "older").meta.selfArchiving?.versions).toEqual(["acceptedVersion"]);
+      expect(byId(out, "older").meta.selfArchiving?.routes).toHaveLength(2);
+    });
+
+    it("gives a new article the journal's answer from earlier in the week, dated as it was — no second call", async () => {
+      const out = await run(
+        makeCv([inJournal("known", "0165-1781", opfAnswer(2)), inJournal("new", "0165-1781")]),
+      );
+      expect(journal).not.toHaveBeenCalled();
+      expect(lookup).not.toHaveBeenCalled();
+      expect(byId(out, "new").meta.selfArchiving).toEqual({
+        ...OPF_RECORD,
+        retrievedAt: daysAgo(2),
+      });
+      // Dated with the journal's answer: the two fall due again together.
+      expect(byId(out, "new").meta.selfArchivingCheckedAt).toBe(daysAgo(2));
+      expect(byId(out, "new").meta.selfArchivingOpfAt).toBe(daysAgo(2));
+    });
+
+    it("does not ask Open Policy Finder again within the week for a journal it had no record of, even when OA.Works failed", async () => {
+      journal.mockResolvedValue({ status: "none" });
+      lookup.mockResolvedValue({ status: "failed" });
+      const first = await run(makeCv([inJournal("A", "0040-5957")]));
+      expect(journal).toHaveBeenCalledTimes(1);
+      expect(byId(first, "A").meta.selfArchivingOpfAt).toBe(NOW);
+      expect(byId(first, "A").meta.selfArchivingCheckedAt).toBeUndefined();
+      journal.mockClear();
+      lookup.mockClear();
+      const next = new Date(Date.parse(NOW) + 86_400_000).toISOString();
+      await run(first, next);
+      expect(journal).not.toHaveBeenCalled();
+      expect(lookup).toHaveBeenCalledTimes(1);
+    });
+
+    it("gives every article of a journal it asks the answer, so the journal falls due again as one", async () => {
+      journal.mockResolvedValue({ status: "found", policy: POLICY });
+      const now = after(48);
+      const sibling = { selfArchiving: OAWORKS_RECORD, selfArchivingCheckedAt: after(24) };
+      const out = await run(
+        makeCv([inJournal("new", "0165-1781"), inJournal("sibling", "0165-1781", sibling)]),
+        now,
+      );
+      expect(journal).toHaveBeenCalledTimes(1);
+      expect(lookup).not.toHaveBeenCalled();
+      expect(byId(out, "sibling").meta.selfArchiving?.source).toBe("open-policy-finder");
+      expect(byId(out, "sibling").meta.selfArchivingCheckedAt).toBe(now);
+      expect(byId(out, "sibling").meta.selfArchivingOpfAt).toBe(now);
+    });
+
+    it("asks OA.Works for the article that was due, not for its siblings, when Open Policy Finder has no record of the journal", async () => {
+      journal.mockResolvedValue({ status: "none" });
+      const now = after(48);
+      const sibling = { selfArchiving: OAWORKS_RECORD, selfArchivingCheckedAt: after(24) };
+      const out = await run(
+        makeCv([inJournal("new", "0165-1781"), inJournal("sibling", "0165-1781", sibling)]),
+        now,
+      );
+      expect(lookup.mock.calls.map(([doi]) => doi)).toEqual(["10.1234/new"]);
+      expect(byId(out, "sibling").meta.selfArchiving).toEqual(OAWORKS_RECORD);
+      expect(byId(out, "sibling").meta.selfArchivingCheckedAt).toBe(after(24));
+      expect(byId(out, "sibling").meta.selfArchivingOpfAt).toBe(now);
+    });
+
+    it("when Open Policy Finder fails: a work keeps its Open Policy Finder record and stamps the attempt only; a work without one asks OA.Works", async () => {
+      journal.mockResolvedValue({ status: "failed" });
+      const out = await run(
+        makeCv([inJournal("kept", "0165-1781", opfAnswer(10)), inJournal("fresh", "0040-5957")]),
+      );
+      expect(byId(out, "kept").meta.selfArchiving).toEqual({
+        ...OPF_RECORD,
+        retrievedAt: daysAgo(10),
+      });
+      expect(byId(out, "kept").meta.selfArchivingCheckedAt).toBe(daysAgo(10));
+      expect(byId(out, "kept").meta.selfArchivingTriedAt).toBe(NOW);
+      expect(lookup.mock.calls.map(([doi]) => doi)).toEqual(["10.1234/fresh"]);
+      expect(byId(out, "fresh").meta.selfArchiving?.source).toBe("oa.works");
+    });
+
+    it("when the key is not accepted: stops asking for the rest of the sync, keeps the records it has, and OA.Works answers for the others", async () => {
+      journal.mockResolvedValue({ status: "unauthorized" });
+      const others = ["C", "D", "E", "F"].map((id, i) => inJournal(id, `1111-000${i}`));
+      const out = await run(
+        makeCv([
+          inJournal("A", "0165-1781", opfAnswer(10)),
+          inJournal("B", "0040-5957", opfAnswer(10)),
+          ...others,
+        ]),
+      );
+      // Only the lookups already in flight when the refusal came back (one per worker, three workers).
+      expect(journal.mock.calls.length).toBeLessThanOrEqual(3);
+      for (const id of ["A", "B"]) {
+        expect(byId(out, id).meta.selfArchiving?.source).toBe("open-policy-finder");
+      }
+      expect(lookup.mock.calls.map(([doi]) => doi).sort()).toEqual(
+        ["C", "D", "E", "F"].map((id) => `10.1234/${id}`),
+      );
+    });
+
+    it("retires an Open Policy Finder record once it has none for the journal, even when OA.Works fails — and does not ask again that week", async () => {
+      journal.mockResolvedValue({ status: "none" });
+      lookup.mockResolvedValue({ status: "failed" });
+      const first = await run(makeCv([inJournal("A", "0165-1781", opfAnswer(10))]));
+      expect(byId(first, "A").meta.selfArchiving).toBeUndefined();
+      expect(byId(first, "A").meta.selfArchivingOpfAt).toBe(NOW);
+      journal.mockClear();
+      const next = new Date(Date.parse(NOW) + 86_400_000).toISOString();
+      await run(first, next);
+      expect(journal).not.toHaveBeenCalled();
+    });
+
+    it("drops an Open Policy Finder record it can no longer ask about — no key configured, or no readable ISSN — whatever OA.Works says", async () => {
+      lookup.mockResolvedValue({ status: "failed" });
+      const noKey = await enrichCvWithSelfArchiving(
+        makeCv([inJournal("A", "0165-1781", opfAnswer(10))]),
+        MAILTO,
+        NOW,
+      );
+      expect(byId(noKey, "A").meta.selfArchiving).toBeUndefined();
+      const noIssn = await run(makeCv([inJournal("A", "not an ISSN", opfAnswer(10))]));
+      expect(byId(noIssn, "A").meta.selfArchiving).toBeUndefined();
+      expect(journal).not.toHaveBeenCalled();
+    });
+
+    it("asks again, once, a work OA.Works answered before Open Policy Finder went live — not one answered since", async () => {
+      journal.mockResolvedValue({ status: "found", policy: POLICY });
+      const out = await run(
+        makeCv([
+          inJournal("before", "0165-1781", {
+            selfArchiving: OAWORKS_RECORD,
+            selfArchivingCheckedAt: after(-24),
+          }),
+          inJournal("since", "0040-5957", {
+            selfArchiving: OAWORKS_RECORD,
+            selfArchivingCheckedAt: after(12),
+            selfArchivingOpfAt: after(12),
+          }),
+        ]),
+        after(24),
+      );
+      expect(journal.mock.calls.map(([issn]) => issn)).toEqual(["0165-1781"]);
+      expect(byId(out, "before").meta.selfArchiving?.source).toBe("open-policy-finder");
+      expect(byId(out, "since").meta.selfArchiving?.source).toBe("oa.works");
+    });
+
+    it("asks nothing of Open Policy Finder without a key", async () => {
+      await enrichCvWithSelfArchiving(makeCv([inJournal("A", "0165-1781")]), MAILTO, NOW);
+      expect(journal).not.toHaveBeenCalled();
+      expect(lookup).toHaveBeenCalledTimes(1);
+    });
   });
 });

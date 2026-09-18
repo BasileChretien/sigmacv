@@ -87,9 +87,11 @@ describe("the funder join never reaches a public surface", () => {
 describe("the self-archiving programme never reaches a public surface", () => {
   const PROGRAMME = [
     "src/lib/archiving/selfArchivingPass.ts",
+    "src/lib/archiving/policyRoutes.ts",
     "src/lib/archiving/statutoryRights.ts",
     "src/lib/archiving/rightsSentences.ts",
     "src/lib/oaworks/client.ts",
+    "src/lib/openPolicyFinder/client.ts",
     "src/components/WorklistRights.tsx",
     "src/lib/archiving/depositRoutes.ts",
     "src/lib/archiving/depositRepositoriesPass.ts",
@@ -109,12 +111,23 @@ describe("the self-archiving programme never reaches a public surface", () => {
     for (const file of PROGRAMME) expect(existsSync(join(ROOT, file)), file).toBe(true);
   });
 
+  // Jisc licensed Open Policy Finder data for the owner's editor only: every
+  // download of the stored document drops those records.
+  it.each([
+    "src/app/api/cv/export/[format]/route.ts",
+    "src/app/api/account/export/route.ts",
+    "src/lib/render/rocrate.ts",
+  ])("%s drops the Open Policy Finder records from what it hands over", (file) => {
+    expect(readFileSync(join(ROOT, file), "utf8")).toMatch(/withoutLicensedPolicies\(/);
+  });
+
   it.each(files)("%s imports nothing from the programme nor the OA.Works client", (file) => {
     const src = readFileSync(file, "utf8");
     expect(src).not.toMatch(/["']@\/lib\/archiving/);
     expect(src).not.toMatch(/["']@\/lib\/oaworks/);
+    expect(src).not.toMatch(/["']@\/lib\/openPolicyFinder/);
     expect(src).not.toMatch(
-      /enrichCvWithSelfArchiving|fetchSelfArchivingPermission|statutoryArchivingFor|WorklistRights|enrichCvWithDepositRepositories|fetchAuthorRepositories|depositRoutes|WorklistDeposit|loadCurrentAffiliationCountry/,
+      /enrichCvWithSelfArchiving|fetchSelfArchivingPermission|fetchJournalPolicy|statutoryArchivingFor|WorklistRights|enrichCvWithDepositRepositories|fetchAuthorRepositories|depositRoutes|WorklistDeposit|loadCurrentAffiliationCountry/,
     );
   });
 
@@ -129,6 +142,8 @@ describe("the self-archiving programme never reaches a public surface", () => {
     const owner = sync.slice(ownerStart, ownerEnd);
     expect(build.length).toBeGreaterThan(2000);
     expect(build).not.toContain("enrichCvWithSelfArchiving");
+    expect(build).not.toContain("fetchJournalPolicy");
+    expect(build).not.toContain("OPEN_POLICY_FINDER_API_KEY");
     expect(owner).toContain("enrichCvWithSelfArchiving(");
     expect(build).not.toContain("enrichCvWithDepositRepositories");
     expect(owner).toContain("enrichCvWithDepositRepositories(");

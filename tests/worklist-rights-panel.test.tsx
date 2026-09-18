@@ -2,6 +2,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { cleanup, render, screen, within } from "@testing-library/react";
 import WorklistPanel from "@/components/WorklistPanel";
+import WorklistRights from "@/components/WorklistRights";
 import { STATUTORY_ARCHIVING } from "@/lib/archiving/statutoryRights";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
 import { workspaceUi } from "@/lib/i18n/workspaceUi";
@@ -128,7 +129,9 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     const { container } = render(<WorklistPanel cv={cv} locale="en-US" />);
     openRows(container);
     const rights = container.querySelector('[data-worklist="rights"]')!;
-    expect(rights.textContent).toContain(EN.wlArchivingNotAllowed);
+    expect(rights.textContent).toContain(
+      "Publisher policy recorded by OA.Works: no self-archiving permission recorded for this article.",
+    );
     expect(rights.textContent).toContain(
       "Retrieved from OA.Works 2026-09-15; the record gives no update date.",
     );
@@ -200,5 +203,31 @@ describe("WorklistPanel — the rights lines under a closed work", () => {
     // OA.Works' own words and the publisher's statement stay as recorded.
     expect(text).toContain("Institutional Repository");
     expect(text).toContain(RECORD.depositStatement!);
+  });
+});
+
+describe("WorklistRights — an Open Policy Finder record", () => {
+  it("links the journal's record in Open Policy Finder, as Jisc agreed, not an archived policy", () => {
+    render(
+      <WorklistRights
+        locale="en-US"
+        selfArchiving={{
+          source: "open-policy-finder",
+          canArchive: true,
+          versions: ["acceptedVersion"],
+          embargoMonths: 12,
+          locations: ["Non-Commercial Institutional Repository"],
+          recordUpdated: "2025-03-13",
+          policyUrl: "https://openpolicyfinder.jisc.ac.uk/publication/16060",
+          retrievedAt: "2026-09-18T08:00:00.000Z",
+        }}
+        statutory={[]}
+      />,
+    );
+    expect(screen.getByRole("link", { name: EN.wlArchivingOpfLink }).getAttribute("href")).toBe(
+      "https://openpolicyfinder.jisc.ac.uk/publication/16060",
+    );
+    expect(screen.queryByRole("link", { name: EN.wlArchivingPolicyLink })).toBeNull();
+    expect(screen.getByText(/Publisher policy recorded by Open Policy Finder/)).toBeTruthy();
   });
 });

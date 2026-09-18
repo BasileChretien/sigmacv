@@ -1516,7 +1516,7 @@
                       "properties": {
                         "source": {
                           "type": "string",
-                          "const": "oa.works"
+                          "enum": ["oa.works", "open-policy-finder"]
                         },
                         "canArchive": {
                           "type": "boolean"
@@ -1563,6 +1563,62 @@
                           "maxLength": 2048,
                           "pattern": "^https?:\\/\\/"
                         },
+                        "conditions": {
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "string",
+                            "maxLength": 500
+                          }
+                        },
+                        "routes": {
+                          "maxItems": 8,
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "versions": {
+                                "minItems": 1,
+                                "maxItems": 3,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "enum": [
+                                    "submittedVersion",
+                                    "acceptedVersion",
+                                    "publishedVersion"
+                                  ]
+                                }
+                              },
+                              "embargoMonths": {
+                                "type": "integer",
+                                "minimum": 0,
+                                "maximum": 600
+                              },
+                              "locations": {
+                                "maxItems": 8,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "maxLength": 100
+                                }
+                              },
+                              "licence": {
+                                "type": "string",
+                                "maxLength": 100
+                              },
+                              "conditions": {
+                                "maxItems": 8,
+                                "type": "array",
+                                "items": {
+                                  "type": "string",
+                                  "maxLength": 500
+                                }
+                              }
+                            },
+                            "required": ["versions", "embargoMonths", "locations"]
+                          }
+                        },
                         "retrievedAt": {
                           "type": "string",
                           "maxLength": 64
@@ -1574,6 +1630,9 @@
                       "type": "string"
                     },
                     "selfArchivingTriedAt": {
+                      "type": "string"
+                    },
+                    "selfArchivingOpfAt": {
                       "type": "string"
                     },
                     "repositoryCopies": {

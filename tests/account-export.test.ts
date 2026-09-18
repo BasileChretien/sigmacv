@@ -219,4 +219,35 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     }
     expect(sessionSelect).not.toHaveProperty("sessionToken");
   });
+
+  it("leaves Open Policy Finder records out of the downloaded document — licensed for the editor only", async () => {
+    mocks.cvFindUnique.mockResolvedValue({
+      ...CV_ROW,
+      document: {
+        schemaVersion: 2,
+        owner: { displayName: "A Researcher" },
+        sections: [
+          {
+            id: "pubs",
+            items: [
+              {
+                id: "W1",
+                meta: {
+                  selfArchiving: { source: "open-policy-finder", conditions: ["Secret-ish"] },
+                  selfArchivingCheckedAt: "2026-09-18",
+                },
+              },
+              { id: "W2", meta: { selfArchiving: { source: "oa.works" } } },
+            ],
+          },
+        ],
+      },
+    });
+    const body = (await (await GET()).json()) as {
+      cv: { sections: Array<{ items: Array<{ id: string; meta: Record<string, unknown> }> }> };
+    };
+    const [w1, w2] = body.cv.sections[0]!.items;
+    expect(w1!.meta).toEqual({});
+    expect(w2!.meta.selfArchiving).toEqual({ source: "oa.works" });
+  });
 });

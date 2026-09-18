@@ -168,6 +168,38 @@ describe("schema: the self-archiving fields round-trip and degrade", () => {
     expect(parseCanonicalCv(JSON.parse(JSON.stringify(cv)))).toEqual(cv);
   });
 
+  it("round-trips an Open Policy Finder record with its conditions and routes, and bounds them", () => {
+    const route = {
+      versions: ["acceptedVersion"],
+      embargoMonths: 12,
+      locations: ["Any Repository"],
+      licence: "cc-by-nc-nd",
+      conditions: ["Must link to publisher version with DOI"],
+    };
+    const opf = {
+      ...RECORD,
+      source: "open-policy-finder",
+      conditions: ["Must link to publisher version with DOI"],
+      policyUrl: "https://openpolicyfinder.jisc.ac.uk/publication/16060",
+      routes: [route, { ...route, versions: ["publishedVersion"], licence: undefined }],
+    };
+    const parsed = parseCanonicalCv(
+      JSON.parse(JSON.stringify(withOwnMeta(build(works), { selfArchiving: opf }))),
+    );
+    expect(own(parsed).meta.selfArchiving).toEqual(opf);
+    for (const tooMuch of [
+      { ...opf, conditions: Array.from({ length: 9 }, (_, i) => `c${i}`) },
+      { ...opf, routes: Array.from({ length: 9 }, () => route) },
+      { ...opf, routes: [{ ...route, versions: [] }] },
+      { ...opf, routes: [{ ...route, embargoMonths: 1.5 }] },
+    ]) {
+      const bounded = parseCanonicalCv(
+        JSON.parse(JSON.stringify(withOwnMeta(build(works), { selfArchiving: tooMuch }))),
+      );
+      expect(own(bounded).meta.selfArchiving).toBeUndefined();
+    }
+  });
+
   it("degrades a malformed OA.Works record to undefined without failing the CV read", () => {
     for (const bad of [
       { ...RECORD, versions: ["draft"] },

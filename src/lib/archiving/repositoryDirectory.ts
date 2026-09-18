@@ -70,9 +70,14 @@ export function placeFitsLocations(kind: PlaceKind, locations: readonly string[]
     if (/\bany (repository|website)\b/.test(location)) return true;
     switch (kind) {
       case "hal":
+        // Institutional (through its portals) or a non-commercial repository — not
+        // a SUBJECT repository: HAL is multidisciplinary, and Open Policy Finder's
+        // "Non-Commercial Subject Repository" is a place HAL is not.
         return (
           /\binstitutional repository\b/.test(location) ||
-          (/\bnon commercial\b/.test(location) && /\brepository\b/.test(location))
+          (/\bnon commercial\b/.test(location) &&
+            /\brepository\b/.test(location) &&
+            !/\bsubject\b/.test(location))
         );
       case "zenodo":
         return location === "non commercial repository" || /\bgeneral repository\b/.test(location);
