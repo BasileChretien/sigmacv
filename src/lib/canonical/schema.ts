@@ -1141,6 +1141,13 @@ const CvItemSchema = z.object({
      */
     selfArchivingOpfAt: z.string().optional(),
     /**
+     * The ISSN Open Policy Finder was asked about for {@link selfArchivingOpfAt}.
+     * Its answer is this work's journal's only while the work still lists that
+     * ISSN: a work whose ISSNs changed is asked again, and the answer is never
+     * reused for another journal.
+     */
+    selfArchivingOpfIssn: z.string().max(9).optional().catch(undefined),
+    /**
      * Copies of this closed journal article that ALREADY sit in a repository —
      * HAL, Europe PMC, an OpenAIRE-harvested repository, Zenodo — as the owner
      * sync's repository-copies pass found them by DOI

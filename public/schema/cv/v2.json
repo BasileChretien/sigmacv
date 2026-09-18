@@ -1635,6 +1635,10 @@
                     "selfArchivingOpfAt": {
                       "type": "string"
                     },
+                    "selfArchivingOpfIssn": {
+                      "type": "string",
+                      "maxLength": 9
+                    },
                     "repositoryCopies": {
                       "maxItems": 8,
                       "type": "array",

@@ -139,6 +139,7 @@ describe("enrichCvWithSelfArchiving", () => {
       expect(remaining).toBeGreaterThan(0);
       expect(remaining).toBeLessThanOrEqual(15_000);
     }
+    expect(maxInFlight).toBeGreaterThan(1);
     expect(maxInFlight).toBeLessThanOrEqual(3);
     for (const id of ["A", "B"]) {
       expect(byId(out, id).meta.selfArchiving).toEqual({
@@ -480,6 +481,7 @@ describe("enrichCvWithSelfArchiving", () => {
         ]),
       );
       // Only the lookups already in flight when the refusal came back (one per worker, three workers).
+      expect(journal.mock.calls.length).toBeGreaterThanOrEqual(1);
       expect(journal.mock.calls.length).toBeLessThanOrEqual(3);
       for (const id of ["A", "B"]) {
         expect(byId(out, id).meta.selfArchiving?.source).toBe("open-policy-finder");
@@ -512,6 +514,31 @@ describe("enrichCvWithSelfArchiving", () => {
       const noIssn = await run(makeCv([inJournal("A", "not an ISSN", opfAnswer(10))]));
       expect(byId(noIssn, "A").meta.selfArchiving).toBeUndefined();
       expect(journal).not.toHaveBeenCalled();
+    });
+
+    it("asks again about a work whose ISSN changed — its answer was another journal's — and never reuses that answer for the old ISSN", async () => {
+      journal.mockResolvedValue({ status: "none" });
+      lookup.mockResolvedValue({ status: "failed" });
+      const out = await run(
+        makeCv([
+          inJournal("moved", "0040-5957", {
+            ...opfAnswer(2),
+            selfArchivingOpfIssn: "0165-1781",
+          }),
+          inJournal("new", "0165-1781"),
+        ]),
+      );
+      expect(journal.mock.calls.map(([issn]) => issn).sort()).toEqual(["0040-5957", "0165-1781"]);
+      // Not this journal's record, and Open Policy Finder has none for it: gone.
+      expect(byId(out, "moved").meta.selfArchiving).toBeUndefined();
+      expect(byId(out, "moved").meta.selfArchivingOpfIssn).toBe("0040-5957");
+      expect(byId(out, "new").meta.selfArchivingOpfIssn).toBe("0165-1781");
+    });
+
+    it("records which ISSN each answer was for", async () => {
+      journal.mockResolvedValue({ status: "found", policy: POLICY });
+      const out = await run(makeCv([inJournal("A", ["1872-7123", "0165-1781"])]));
+      expect(byId(out, "A").meta.selfArchivingOpfIssn).toBe("1872-7123");
     });
 
     it("asks again, once, a work OA.Works answered before Open Policy Finder went live — not one answered since", async () => {

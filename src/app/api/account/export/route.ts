@@ -137,7 +137,12 @@ export async function GET() {
     // personal data: it is left out of the download (a sync fetches it again).
     cv: cv?.document ? withoutLicensedPolicies(cv.document) : null,
     cvRecord,
-    snapshots,
+    // Frozen through the public projection, so they hold no policy record; the
+    // rule is kept here too, where the download is assembled.
+    snapshots: snapshots.map((snapshot) => ({
+      ...snapshot,
+      canonical: withoutLicensedPolicies(snapshot.canonical),
+    })),
     researchEvents,
     researchEventsTotal,
     // True only in the (unrealistic) event the cap was reached — tells the user

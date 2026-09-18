@@ -103,7 +103,8 @@ function withoutStaleRecords(sections: CvSection[], candidates: ReadonlySet<stri
       (item.meta.selfArchiving === undefined &&
         item.meta.selfArchivingCheckedAt === undefined &&
         item.meta.selfArchivingTriedAt === undefined &&
-        item.meta.selfArchivingOpfAt === undefined)
+        item.meta.selfArchivingOpfAt === undefined &&
+        item.meta.selfArchivingOpfIssn === undefined)
         ? item
         : {
             ...item,
@@ -113,6 +114,7 @@ function withoutStaleRecords(sections: CvSection[], candidates: ReadonlySet<stri
               selfArchivingCheckedAt: undefined,
               selfArchivingTriedAt: undefined,
               selfArchivingOpfAt: undefined,
+              selfArchivingOpfIssn: undefined,
             },
           },
     ),
@@ -130,18 +132,31 @@ type Answered = Extract<JournalAnswer, { at: string }>;
 /** Every place the worklist may deposit in: the stored default favours the route most accept. */
 const PLACES: readonly PlaceKind[] = ["hal", "zenodo", "arxiv", "other"];
 
+/** The work still lists the ISSN its Open Policy Finder answer was for (none stamped: yes). */
+const answerStillFits = (t: { issns: readonly string[]; opfIssn?: string }): boolean =>
+  t.opfIssn === undefined || t.issns.includes(t.opfIssn);
+
 /**
  * The journal answers still fresh among the owner's articles: the routes kept
  * with an Open Policy Finder record, or "none" (a fresh stamp beside another
- * source's record, or no record) — the most recent per ISSN.
+ * source's record, or no record) — the most recent per ISSN, from works that
+ * still list the ISSN the answer was for.
  */
 function freshAnswers(
-  candidates: ReadonlyArray<{ issn?: string; opfAt?: string; item: CvItem }>,
+  candidates: ReadonlyArray<{
+    issn?: string;
+    issns: readonly string[];
+    opfIssn?: string;
+    opfAt?: string;
+    item: CvItem;
+  }>,
   now: string,
 ): Map<string, Answered> {
   const fresh = new Map<string, Answered>();
-  for (const { issn, opfAt, item } of candidates) {
+  for (const t of candidates) {
+    const { issn, opfAt, item } = t;
     if (issn === undefined || !answeredWithin(opfAt, now, SELF_ARCHIVING_REFRESH_DAYS)) continue;
+    if (!answerStillFits(t)) continue;
     const record = item.meta.selfArchiving;
     let answer: Answered | undefined;
     if (record?.source !== "open-policy-finder") {
@@ -185,16 +200,19 @@ export async function enrichCvWithSelfArchiving(
   type Candidate = RotationTarget & {
     item: CvItem;
     doi: string;
+    issns: string[];
     issn?: string;
     stored?: Source;
     answeredAt?: string;
     opfAt?: string;
+    opfIssn?: string;
   };
   const candidates: Candidate[] = works.map(({ s, i, item, issns }) => ({
     s,
     i,
     item,
     doi: item.csl!.DOI!,
+    issns,
     issn: issns.reduce<string | undefined>(
       (best, issn) => (best === undefined || shared.get(issn)! > shared.get(best)! ? issn : best),
       undefined,
@@ -206,16 +224,18 @@ export async function enrichCvWithSelfArchiving(
     checkedAt: item.meta.selfArchivingTriedAt ?? item.meta.selfArchivingCheckedAt,
     answeredAt: item.meta.selfArchivingCheckedAt,
     opfAt: item.meta.selfArchivingOpfAt,
+    opfIssn: item.meta.selfArchivingOpfIssn,
   }));
   // The refresh window keys on the ANSWER, so a failed work is due again on the
   // next sync — only its place in the queue changed. A record answered before
-  // Open Policy Finder was wired in is due once, when it can be asked.
+  // Open Policy Finder was wired in is due once, when it can be asked; so is a
+  // work that no longer lists the ISSN its Open Policy Finder answer was for.
   const due = candidates.filter(
     (t) =>
       !answeredWithin(t.answeredAt, now, SELF_ARCHIVING_REFRESH_DAYS) ||
       (t.issn !== undefined &&
-        t.stored !== "open-policy-finder" &&
-        (t.answeredAt ?? "") < POLICY_FINDER_SINCE),
+        ((t.stored !== "open-policy-finder" && (t.answeredAt ?? "") < POLICY_FINDER_SINCE) ||
+          !answerStillFits(t))),
   );
   const queued = rotationQueue(due, SELF_ARCHIVING_MAX_LOOKUPS);
   const fresh = freshAnswers(candidates, now);
@@ -275,16 +295,23 @@ export async function enrichCvWithSelfArchiving(
         // Dated with the journal's answer, so its articles fall due together.
         selfArchivingCheckedAt: answer.at,
         selfArchivingOpfAt: answer.at,
+        selfArchivingOpfIssn: t.issn,
       };
     }
-    const opfNone = answer?.status === "none" ? { selfArchivingOpfAt: answer.at } : {};
-    const ownRecord = t.stored === "open-policy-finder";
+    const opfNone =
+      answer?.status === "none"
+        ? { selfArchivingOpfAt: answer.at, selfArchivingOpfIssn: t.issn }
+        : {};
+    const opfRecord = t.stored === "open-policy-finder";
     // Open Policy Finder could be asked but gave no answer (it failed, or does
-    // not accept the key): its own record stays on screen until it answers.
-    if (ownRecord && key && t.issn && answer?.status !== "none") return null;
+    // not accept the key): its record for this journal stays on screen until it
+    // answers.
+    if (opfRecord && answerStillFits(t) && key && t.issn && answer?.status !== "none") {
+      return null;
+    }
     // A sibling of an asked journal is not due itself: it takes Open Policy
     // Finder's answer only — unless "none" retires its Open Policy Finder record.
-    if (!inQueue.has(posKey(t)) && !(ownRecord && answer?.status === "none")) {
+    if (!inQueue.has(posKey(t)) && !(opfRecord && answer?.status === "none")) {
       return answer?.status === "none" ? opfNone : null;
     }
     const result = await fetchSelfArchivingPermission(t.doi, mailto, remaining());
@@ -299,10 +326,10 @@ export async function enrichCvWithSelfArchiving(
       };
     }
     // OA.Works failed. An Open Policy Finder record goes all the same once Open
-    // Policy Finder has none for the journal, or can no longer be asked (no key
-    // configured, no readable ISSN) — nothing is shown that its source would
-    // not show today.
-    if (ownRecord) return { selfArchiving: undefined, ...opfNone };
+    // Policy Finder has none for the journal, can no longer be asked (no key
+    // configured, no readable ISSN), or was another ISSN's — nothing is shown
+    // that its source would not show today.
+    if (opfRecord) return { selfArchiving: undefined, ...opfNone };
     return answer?.status === "none" ? opfNone : null;
   };
 

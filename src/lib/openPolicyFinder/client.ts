@@ -129,7 +129,7 @@ interface PermittedOa {
   article_version?: unknown;
   additional_oa_fee?: unknown;
   location?: { location?: unknown; location_phrases?: unknown; named_repository?: unknown };
-  embargo?: { amount?: unknown; units?: unknown };
+  embargo?: { amount?: unknown; units?: unknown } | null;
   license?: unknown;
   prerequisites?: unknown;
   conditions?: unknown;
@@ -188,6 +188,7 @@ function versionsOf(entry: PermittedOa): ArticleVersion[] {
  */
 function embargoOf(entry: PermittedOa): number | undefined {
   if (entry.embargo === undefined) return 0;
+  if (typeof entry.embargo !== "object" || entry.embargo === null) return undefined;
   const { amount, units } = entry.embargo;
   if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) return undefined;
   const unit = typeof units === "string" ? units : "";

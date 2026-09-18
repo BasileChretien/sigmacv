@@ -518,6 +518,7 @@ const BOUNDED_ENRICHMENT_KEYS = [
   "selfArchivingCheckedAt",
   "selfArchivingTriedAt",
   "selfArchivingOpfAt",
+  "selfArchivingOpfIssn",
   "repositoryCopies",
   "repositoryCopiesCheckedAt",
   "repositoryCopiesTriedAt",
@@ -2099,6 +2100,7 @@ function buildWorkCvItem(
             selfArchivingCheckedAt: undefined,
             selfArchivingTriedAt: undefined,
             selfArchivingOpfAt: undefined,
+            selfArchivingOpfIssn: undefined,
             // The repository copies are DOI-keyed too.
             repositoryCopies: undefined,
             repositoryCopiesCheckedAt: undefined,

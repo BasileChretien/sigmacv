@@ -89,25 +89,39 @@ describe("GET /api/cv/export/json (the owner's own canonical document)", () => {
       sections: DOC.sections.map((s) => ({
         ...s,
         items: s.items.map((it, i) =>
-          i === 0
+          i === 1
             ? {
                 ...it,
                 meta: {
                   ...it.meta,
                   selfArchiving: {
-                    source: "open-policy-finder" as const,
+                    source: "oa.works" as const,
                     canArchive: true,
                     versions: ["acceptedVersion" as const],
-                    locations: ["Non-Commercial Institutional Repository"],
-                    conditions: ["Must link to publisher version with DOI"],
-                    policyUrl: "https://openpolicyfinder.jisc.ac.uk/publication/16060",
+                    locations: ["Institutional Repository"],
                     retrievedAt: "2026-09-18T00:00:00.000Z",
                   },
-                  selfArchivingCheckedAt: "2026-09-18T00:00:00.000Z",
-                  selfArchivingOpfAt: "2026-09-18T00:00:00.000Z",
                 },
               }
-            : it,
+            : i === 0
+              ? {
+                  ...it,
+                  meta: {
+                    ...it.meta,
+                    selfArchiving: {
+                      source: "open-policy-finder" as const,
+                      canArchive: true,
+                      versions: ["acceptedVersion" as const],
+                      locations: ["Non-Commercial Institutional Repository"],
+                      conditions: ["Must link to publisher version with DOI"],
+                      policyUrl: "https://openpolicyfinder.jisc.ac.uk/publication/16060",
+                      retrievedAt: "2026-09-18T00:00:00.000Z",
+                    },
+                    selfArchivingCheckedAt: "2026-09-18T00:00:00.000Z",
+                    selfArchivingOpfAt: "2026-09-18T00:00:00.000Z",
+                  },
+                }
+              : it,
         ),
       })),
     };
@@ -117,6 +131,8 @@ describe("GET /api/cv/export/json (the owner's own canonical document)", () => {
     expect(body).not.toContain("openpolicyfinder");
     expect(body).not.toContain("Must link to publisher version");
     expect(body).not.toContain("selfArchivingOpfAt");
+    // An OA.Works record (public-domain data) stays in the owner's download.
+    expect(body).toMatch(/"source":\s*"oa\.works"/);
   });
 
   it("404s when the account has no CV yet", async () => {

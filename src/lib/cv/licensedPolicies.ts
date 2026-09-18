@@ -33,6 +33,7 @@ export function withoutLicensedPolicies<T>(doc: T): T {
             selfArchivingCheckedAt: _checked,
             selfArchivingTriedAt: _tried,
             selfArchivingOpfAt: _opf,
+            selfArchivingOpfIssn: _issn,
             ...rest
           } = meta;
           return { ...(item as object), meta: rest };

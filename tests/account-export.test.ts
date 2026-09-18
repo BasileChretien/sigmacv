@@ -250,4 +250,27 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     expect(w1!.meta).toEqual({});
     expect(w2!.meta.selfArchiving).toEqual({ source: "oa.works" });
   });
+
+  it("leaves Open Policy Finder records out of the downloaded frozen versions too", async () => {
+    mocks.snapshotFindMany.mockResolvedValue([
+      {
+        id: "snap1",
+        version: 1,
+        createdAt: new Date("2026-09-18T10:00:00Z"),
+        canonical: {
+          schemaVersion: 2,
+          sections: [
+            {
+              id: "pubs",
+              items: [{ id: "W1", meta: { selfArchiving: { source: "open-policy-finder" } } }],
+            },
+          ],
+        },
+      },
+    ]);
+    const body = (await (await GET()).json()) as {
+      snapshots: Array<{ canonical: { sections: Array<{ items: Array<{ meta: object }> }> } }>;
+    };
+    expect(body.snapshots[0]!.canonical.sections[0]!.items[0]!.meta).toEqual({});
+  });
 });

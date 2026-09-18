@@ -315,6 +315,8 @@ describe("fetchJournalPolicy", () => {
               odd({ embargo: { amount: 100, units: "years" } }),
               odd({ embargo: { amount: "12", units: "months" } }),
               odd({ prerequisites: "when required by funder" }),
+              odd({ embargo: null }),
+              odd({ embargo: "12 months" }),
               odd({ prerequisites: { prerequisite_subjects: [], prerequisites_phrases: ["x"] } }),
             ],
           },

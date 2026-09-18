@@ -17,6 +17,7 @@ describe("withoutLicensedPolicies", () => {
               selfArchivingCheckedAt: "2026-09-18",
               selfArchivingTriedAt: "2026-09-18",
               selfArchivingOpfAt: "2026-09-18",
+              selfArchivingOpfIssn: "0165-1781",
             },
           },
           { id: "oaw", meta: { selfArchiving: { source: "oa.works" } } },

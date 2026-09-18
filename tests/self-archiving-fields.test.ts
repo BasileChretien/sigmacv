@@ -120,6 +120,8 @@ describe("build: the affiliation countries on the owner's own authorship", () =>
       selfArchiving: RECORD,
       selfArchivingCheckedAt: NOW,
       selfArchivingTriedAt: NOW,
+      selfArchivingOpfAt: NOW,
+      selfArchivingOpfIssn: "0165-1781",
     });
     const again = build([withCountries(["DE"]), ...others()], stored);
     // Source-driven: the new affiliation country replaces the old one.
@@ -128,6 +130,8 @@ describe("build: the affiliation countries on the owner's own authorship", () =>
     expect(own(again).meta.selfArchiving).toEqual(RECORD);
     expect(own(again).meta.selfArchivingCheckedAt).toBe(NOW);
     expect(own(again).meta.selfArchivingTriedAt).toBe(NOW);
+    expect(own(again).meta.selfArchivingOpfAt).toBe(NOW);
+    expect(own(again).meta.selfArchivingOpfIssn).toBe("0165-1781");
   });
 
   it("drops the carried OA.Works record when the work's DOI changed, so the new DOI is asked about", () => {
@@ -136,6 +140,8 @@ describe("build: the affiliation countries on the owner's own authorship", () =>
       selfArchiving: RECORD,
       selfArchivingCheckedAt: NOW,
       selfArchivingTriedAt: NOW,
+      selfArchivingOpfAt: NOW,
+      selfArchivingOpfIssn: "0165-1781",
     });
     const ownFixture = works.find((x) => x.id === OWN)!;
     const sameDoiUpperCased = build(
@@ -151,6 +157,8 @@ describe("build: the affiliation countries on the owner's own authorship", () =>
     expect(own(corrected).meta.selfArchiving).toBeUndefined();
     expect(own(corrected).meta.selfArchivingCheckedAt).toBeUndefined();
     expect(own(corrected).meta.selfArchivingTriedAt).toBeUndefined();
+    expect(own(corrected).meta.selfArchivingOpfAt).toBeUndefined();
+    expect(own(corrected).meta.selfArchivingOpfIssn).toBeUndefined();
   });
 });
 
@@ -229,12 +237,16 @@ describe("the self-archiving fields never reach a public surface", () => {
     selfArchiving: RECORD,
     selfArchivingCheckedAt: NOW,
     selfArchivingTriedAt: NOW,
+    selfArchivingOpfAt: NOW,
+    selfArchivingOpfIssn: "0165-1781",
     workCountries: ["FR"],
   });
   const FIELDS = [
     "selfArchiving",
     "selfArchivingCheckedAt",
     "selfArchivingTriedAt",
+    "selfArchivingOpfAt",
+    "selfArchivingOpfIssn",
     "workCountries",
   ] as const;
 
