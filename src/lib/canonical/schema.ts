@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CslItemSchema } from "@/types/csl";
 import { CREDIT_ROLES, CREDIT_ROLE_SOURCES } from "./credit";
+import { migrateAuthorNames } from "./migrateAuthorNames";
 import { migrateContributionStubs } from "./migrateContributions";
 import { migrateSoftwareSection } from "./migrateSoftware";
 
@@ -2346,11 +2347,14 @@ function migrateNarrativeToSections(doc: Record<string, unknown>): void {
  * v1 → v2: the dedicated `narrative[]` array is replaced by first-class prose
  * sections (see `migrateNarrativeToSections`).
  *
- * Within v2, one IDEMPOTENT normalisation also runs on every read: software items
+ * Within v2, IDEMPOTENT normalisations also run on every read: software items
  * still filed under `datasets` move to the `software` section that was split out
- * of it (`migrateSoftwareSection`). An enum extension needs no version bump (see
- * above), and the step returns the very same object when there is nothing to
- * move, so an already-normalised document is still passed through untouched.
+ * of it (`migrateSoftwareSection`); text contribution stubs become structured
+ * contributions (`migrateContributionStubs`); stored author names are repaired and
+ * a byline deposited twice is collapsed (`migrateAuthorNames`). An enum extension
+ * needs no version bump (see above), and each step returns the very same object
+ * when there is nothing to do, so an already-normalised document is still passed
+ * through untouched.
  */
 export function migrateCanonicalDocument(input: unknown): unknown {
   if (!input || typeof input !== "object") return input;
@@ -2360,7 +2364,7 @@ export function migrateCanonicalDocument(input: unknown): unknown {
   // (left for validation to reject), never copied.
   if (version > CANONICAL_SCHEMA_VERSION) return original;
   if (version === CANONICAL_SCHEMA_VERSION) {
-    return migrateContributionStubs(migrateSoftwareSection(original));
+    return migrateAuthorNames(migrateContributionStubs(migrateSoftwareSection(original)));
   }
   // Migration mutates as it upgrades — work on a shallow copy so the caller's
   // object is never changed (immutability invariant; `owner` is likewise copied
@@ -2371,7 +2375,7 @@ export function migrateCanonicalDocument(input: unknown): unknown {
     version++;
   }
   doc.schemaVersion = CANONICAL_SCHEMA_VERSION;
-  return migrateContributionStubs(migrateSoftwareSection(doc));
+  return migrateAuthorNames(migrateContributionStubs(migrateSoftwareSection(doc)));
 }
 
 /**

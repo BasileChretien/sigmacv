@@ -70,15 +70,16 @@ describe("self-name highlight on ORCID-discovered (orphan-profile) works", () =>
   });
 
   it.skipIf(!hasApa)(
-    "highlights the self name in the rendered CV (case-insensitive — matches 'ChréTien')",
+    "highlights the self name in the rendered CV, its casing repaired ('ChréTien' → 'Chrétien')",
     () => {
       let cv = buildWithOrphan();
       // The candidate starts hidden; the holder keeps it (shows it).
       cv = setItemIncluded(cv, "publications", "W_ORPHAN", true);
       const html = renderCvHtml(cv);
-      // The odd-cased family token OpenAlex stored is wrapped, even though the
-      // variant is "Chrétien" (lower-case t) — case-insensitive matching.
-      expect(html).toContain('<span class="cv-self">ChréTien</span>');
+      // The odd casing OpenAlex stored on the profile is repaired before citeproc
+      // (text/personName.ts), and the repaired family name is the one wrapped.
+      expect(html).toContain('<span class="cv-self">Chrétien</span>');
+      expect(html).not.toContain("ChréTien");
     },
   );
 });

@@ -1,5 +1,6 @@
 import type { CslItem, CslName, CslDate } from "@/types/csl";
 import { stripInlineMarkup, stripUnsupportedMarkup } from "@/lib/text/markup";
+import { cleanPersonName } from "@/lib/text/personName";
 import { shortId, type OpenAlexWork } from "./types";
 
 /** Cap on the reconstructed abstract length (chars) — keeps the stored document
@@ -125,9 +126,12 @@ const NAME_PARTICLES = new Set([
  * CJK names are the exception: they're family-first and would be reordered or
  * abbreviated by the Western split, so we preserve them whole as a CSL
  * `literal` (citeproc renders a literal verbatim, in its original order).
+ *
+ * The name is cleaned first (`text/personName.ts`: casing, encoding, U+FFFD,
+ * spacing), so every source that goes through here prints the same repaired name.
  */
 export function toCslName(raw: string | undefined | null): CslName {
-  const name = (raw ?? "").trim();
+  const name = cleanPersonName(raw ?? "");
   if (!name) return { literal: "" };
 
   // CJK (family-first): keep verbatim so the order and full name are preserved.
