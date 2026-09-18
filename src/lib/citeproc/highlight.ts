@@ -35,9 +35,10 @@ export function highlightSelf(entryHtml: string, nameVariants: string[]): string
   // isn't highlighted inside a longer word ("Library", "Bergström"), while names
   // that begin/end with accented letters (Chrétien, Évora) still match. `\b` is
   // ASCII-only (it would break accented names), so use letter/number lookarounds
-  // with the `u` flag instead. CASE-INSENSITIVE (`i`): OpenAlex sometimes stores a
-  // name with odd casing (e.g. "ChréTien"), and citeproc renders that verbatim, so
-  // a case-sensitive match would miss the self name on the user's own work.
+  // with the `u` flag instead. CASE-INSENSITIVE (`i`): a source may store the name
+  // in another casing than the variants (e.g. "CHRETIEN"), and citeproc renders that
+  // verbatim, so a case-sensitive match would miss the self name on the user's own
+  // work. (A broken capital like "ChréTien" is repaired upstream, text/personName.ts.)
   const pattern = new RegExp(
     `(?<![\\p{L}\\p{N}])(${variants.map(escapeRegExp).join("|")})(?![\\p{L}\\p{N}])`,
     "giu",

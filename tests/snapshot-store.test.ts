@@ -641,6 +641,19 @@ describe("getOwnerSnapshot", () => {
     expect(out?.live).toEqual(CV);
     expect(out?.publicSlug).toBe("basile-x");
   });
+  it("serves the frozen citations as frozen, and the live CV with its names repaired", async () => {
+    // A stored author name with the broken casing some sources carry ("ChréTien").
+    const dirty = structuredClone(CV);
+    const item = dirty.sections.flatMap((sec) => sec.items).find((it) => it.csl?.author?.length)!;
+    item.csl!.author = [{ given: "Basile", family: "ChréTien" }];
+    mocks.findFirst.mockResolvedValue({ ...ROW, canonical: dirty });
+    mocks.cvFindUnique.mockResolvedValue({ ...CV_ROW, document: dirty });
+    const out = await getOwnerSnapshot("u1", "snap1");
+    const authorOf = (cv: CanonicalCv) =>
+      cv.sections.flatMap((sec) => sec.items).find((it) => it.id === item.id)!.csl!.author;
+    expect(authorOf(out!.frozen)).toEqual([{ given: "Basile", family: "ChréTien" }]);
+    expect(authorOf(out!.live)).toEqual([{ given: "Basile", family: "Chrétien" }]);
+  });
   it("is null when the snapshot is missing or a stored document is corrupt", async () => {
     mocks.findFirst.mockResolvedValue(null);
     expect(await getOwnerSnapshot("u1", "x")).toBeNull();

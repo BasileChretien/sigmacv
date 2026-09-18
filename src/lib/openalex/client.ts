@@ -1,6 +1,7 @@
 import { getEnv } from "@/lib/env";
 import { resilientFetch, type ResilientFetchOptions } from "@/lib/http";
 import { logger } from "@/lib/log";
+import { normalizeWorkAuthors, type OwnerIdentity } from "./authorNames";
 import {
   normalizeOrcid,
   shortId,
@@ -124,6 +125,9 @@ export async function fetchWorksByAuthorIds(
   if (ids.length === 0) return [];
 
   const filter = `author.id:${ids.join("|")}`;
+  // Author names repaired and a deposited-twice byline collapsed (authorNames.ts);
+  // of two copies, the one carrying the account holder's id is kept.
+  const owner: OwnerIdentity = { authorIds: ids };
   const out: OpenAlexWork[] = [];
   let cursor: string | null = "*";
   let pages = 0;
@@ -137,7 +141,7 @@ export async function fetchWorksByAuthorIds(
       cursor,
       select: WORK_SELECT,
     });
-    out.push(...(data.results ?? []));
+    out.push(...(data.results ?? []).map((w) => normalizeWorkAuthors(w, owner)));
     cursor = data.meta?.next_cursor ?? null;
     pages += 1;
     if (!data.results || data.results.length === 0) break;
@@ -178,15 +182,21 @@ export function bareDoiInput(input: string): string | null {
  * the work's metadata — year, citations, FWCI, author positions — comes from
  * OpenAlex, so figures stay source-driven. Returns null when the DOI is
  * malformed or OpenAlex has no record (404) / a transient error: the caller
- * surfaces "not found" rather than throwing into the request.
+ * surfaces "not found" rather than throwing into the request. `owner` (the account
+ * holder's author ids) decides which copy of a doubled byline entry is
+ * kept, so the caller's self match survives the repair (authorNames.ts).
  */
-export async function fetchWorkByDoi(doi: string): Promise<OpenAlexWork | null> {
+export async function fetchWorkByDoi(
+  doi: string,
+  owner?: OwnerIdentity,
+): Promise<OpenAlexWork | null> {
   const bare = bareDoiInput(doi);
   if (!bare) return null;
   try {
-    return await openAlexGet<OpenAlexWork>(`/works/doi:${bare}`, {
+    const work = await openAlexGet<OpenAlexWork>(`/works/doi:${bare}`, {
       select: WORK_SELECT,
     });
+    return normalizeWorkAuthors(work, owner);
   } catch (err) {
     logger.warn("openalex.work_by_doi_failed", { err });
     return null;

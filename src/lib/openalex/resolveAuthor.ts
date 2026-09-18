@@ -1,3 +1,4 @@
+import { cleanPersonName } from "@/lib/text/personName";
 import { fetchAuthorsByOrcid } from "./client";
 import { normalizeOrcid, shortId } from "./types";
 
@@ -61,7 +62,8 @@ export async function resolveAuthorByOrcid(orcid: string): Promise<ResolvedAutho
 
   const authorIds = sorted.map((a) => shortId(a.id)).filter(Boolean);
   const primary = sorted[0];
-  const displayName = primary?.display_name ?? "";
+  // The profile name heads the CV: repaired like every author name (personName.ts).
+  const displayName = cleanPersonName(primary?.display_name ?? "");
 
   const metrics: ResolvedAuthorMetrics | undefined = primary
     ? {

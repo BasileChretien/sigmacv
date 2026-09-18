@@ -39,6 +39,15 @@ describe("resolveAuthorByOrcid", () => {
     });
   });
 
+  it("repairs the profile name that heads the CV (a broken capital, a lost character)", async () => {
+    mocks.fetchAuthorsByOrcid.mockResolvedValue([
+      { id: "https://openalex.org/A1", display_name: "Basile ChréTien", works_count: 2 },
+    ]);
+    expect((await resolveAuthorByOrcid("0000-0002-7483-2489"))!.displayName).toBe(
+      "Basile Chrétien",
+    );
+  });
+
   it("handles a primary record with no summary_stats", async () => {
     mocks.fetchAuthorsByOrcid.mockResolvedValue([
       { id: "https://openalex.org/A1", display_name: "X", works_count: 2 },

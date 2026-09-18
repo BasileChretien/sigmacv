@@ -72,6 +72,12 @@ describe("previewClaim", () => {
     expect(p.venue).toBe("Journal X");
     expect(p.authors).toHaveLength(1);
     expect(p.idMatchedIndex).toBe(-1); // no identifier match → user must pick
+    // The owner is resolved first and handed to the fetch, which keeps the owner's
+    // copy of a byline entry deposited twice (openalex/authorNames.ts).
+    expect(mocks.fetchWork).toHaveBeenCalledWith(
+      "10.7/x",
+      expect.objectContaining({ orcid: ME, authorIds: [] }),
+    );
   });
 
   it("reports found:false when OpenAlex has no record", async () => {
@@ -119,6 +125,8 @@ describe("addClaimByDoi", () => {
     expect(r.added).toBe(true);
     expect(r.alreadyInCv).toBe(false);
     expect(mocks.saveCv).toHaveBeenCalledTimes(1);
+    // Same owner as previewClaim → same repaired author list → same picked index.
+    expect(mocks.fetchWork).toHaveBeenCalledWith("10.7/x", expect.objectContaining({ orcid: ME }));
     const pubs = r.cv!.sections.find((s) => s.type === "publications")!;
     const added = pubs.items.find((i) => i.id === "W777")!;
     expect(added.authoredBySelf).toBe(true);

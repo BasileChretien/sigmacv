@@ -48,11 +48,13 @@ export async function previewClaim(
   orcid: string,
   doi: string,
 ): Promise<ClaimPreview> {
-  const work = await fetchWorkByDoi(doi);
+  // Resolved first: the fetch keeps the account holder's copy of a doubled byline
+  // entry (openalex/authorNames.ts), so the id match below survives the repair.
+  const resolved = await resolveOrFallback(orcid);
+  const work = await fetchWorkByDoi(doi, resolved);
   if (!work) {
     return { found: false, alreadyInCv: false, authors: [], idMatchedIndex: -1 };
   }
-  const resolved = await resolveOrFallback(orcid);
   const saved = await getCvForUser(userId);
   const alreadyInCv = saved ? cvHasWork(saved, { id: shortId(work.id), doi }) : false;
   return {
@@ -79,7 +81,10 @@ export async function addClaimByDoi(
   doi: string,
   selfAuthorIndex?: number,
 ): Promise<ClaimResult> {
-  const work = await fetchWorkByDoi(doi);
+  // Same payload as previewClaim's (same owner → same repair), so the author index
+  // the user picked there still points at the same author here.
+  const resolved = await resolveOrFallback(orcid);
+  const work = await fetchWorkByDoi(doi, resolved);
   if (!work) return { found: false, added: false, alreadyInCv: false, cv: null };
 
   const saved = await getCvForUser(userId);
@@ -88,7 +93,6 @@ export async function addClaimByDoi(
     return { found: true, added: false, alreadyInCv: true, cv: saved };
   }
 
-  const resolved = await resolveOrFallback(orcid);
   const item = buildClaimedItem(work, resolved, { selfAuthorIndex });
   const cv = await saveCvForUser(userId, addClaimedWork(saved, item, claimedIsPreprint(work)));
   return { found: true, added: true, alreadyInCv: false, cv };
