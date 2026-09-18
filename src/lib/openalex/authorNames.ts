@@ -25,9 +25,9 @@ import { normalizeOrcid, shortId, type OpenAlexAuthorship, type OpenAlexWork } f
  *    first copy. Two copies carrying DIFFERENT ORCID iDs are two people and are
  *    never merged. Of each pair the better-identified copy is kept — one of the
  *    account holder's author ids, then an ORCID, then any author id — in the first
- *    copy's place, with
- *    the corresponding flag and affiliations merged; first/last positions are
- *    re-derived when the dropped copy held the last author.
+ *    copy's place, its missing ORCID filled from the twin, with both copies'
+ *    affiliations and the corresponding flag; first/last positions are re-derived
+ *    when the dropped copy held the last author.
  *
  * Every name is then cleaned (`text/personName.ts`: casing, encoding). Pure and
  * defensive (a malformed entry is passed through, never thrown on); the very same
@@ -95,7 +95,34 @@ function identityRank(a: OpenAlexAuthorship, ownerIds: ReadonlySet<string>): num
   return id ? 1 : 0;
 }
 
-/** One authorship for two copies of the same byline entry, at the first's place. */
+/** Both lists, first-seen order, each entry once (by `key`); undefined when empty. */
+function union<T>(
+  a: readonly T[] | null | undefined,
+  b: readonly T[] | null | undefined,
+  key: (t: T) => string,
+): T[] | undefined {
+  const seen = new Set<string>();
+  const out = [...(a ?? []), ...(b ?? [])].filter((t) => {
+    const k = key(t);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  return out.length ? out : undefined;
+}
+
+/** An institution's identity for the union: its id, else its name, else itself. */
+const institutionKey = (i: unknown): string => {
+  const rec = isAuthorship(i) ? (i as { id?: unknown; display_name?: unknown }) : {};
+  return text(rec.id) || text(rec.display_name) || JSON.stringify(i);
+};
+
+/**
+ * One authorship for two copies of the same byline entry, at the first's place:
+ * the better-identified copy's identity (its missing ORCID filled from the other,
+ * which the ORCID veto guarantees is the same iD), both copies' affiliations and
+ * countries, and "corresponding" when either says so.
+ */
 function mergeTwin(
   kept: OpenAlexAuthorship,
   dropped: OpenAlexAuthorship,
@@ -103,16 +130,20 @@ function mergeTwin(
 ): OpenAlexAuthorship {
   const primary = rank(dropped) > rank(kept) ? dropped : kept;
   const other = primary === kept ? dropped : kept;
+  const orcid = primary.author?.orcid || other.author?.orcid;
+  const author =
+    primary.author && !primary.author.orcid && orcid
+      ? { ...primary.author, orcid }
+      : primary.author;
+  const institutions = union(primary.institutions, other.institutions, institutionKey);
+  const countries = union(primary.countries, other.countries, (c) => String(c));
   return {
     ...primary,
     author_position: kept.author_position,
+    ...(author !== primary.author ? { author } : {}),
     ...(kept.is_corresponding || dropped.is_corresponding ? { is_corresponding: true } : {}),
-    ...(!primary.institutions?.length && other.institutions?.length
-      ? { institutions: other.institutions }
-      : {}),
-    ...(!primary.countries?.length && other.countries?.length
-      ? { countries: other.countries }
-      : {}),
+    ...(institutions ? { institutions } : {}),
+    ...(countries ? { countries } : {}),
   };
 }
 

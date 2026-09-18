@@ -41,6 +41,12 @@ describe("cleanPersonName — casing", () => {
     expect(cleanPersonName("Chre\u0301tien")).toBe("Chrétien");
   });
 
+  it("cannot tell a lone run-together 'JoséLuis' from a broken capital: repaired (accepted)", () => {
+    // Its letters look exactly like "ChréTien"; "JoséLuis García" is kept (next test)
+    // only because the "í" before a lowercase "a" shows no title-caser touched it.
+    expect(cleanPersonName("JoséLuis")).toBe("Joséluis");
+  });
+
   it("keeps legitimate internal capitals and all-caps or stylised names", () => {
     for (const name of [
       "Ronald McDonald",
@@ -139,6 +145,16 @@ describe("cleanPersonName — lost characters and invisibles", () => {
   it("strips invisibles and collapses whitespace", () => {
     expect(cleanPersonName("\uFEFF  Ada\u200B   Lovelace \n")).toBe("Ada Lovelace");
     expect(cleanPersonName("Ada\u0007 Lovelace")).toBe("Ada Lovelace");
+    // Bidirectional embeddings / overrides / isolates can reorder a citation: removed.
+    expect(
+      cleanPersonName(`Ada ${String.fromCharCode(0x202e)}Lovelace${String.fromCharCode(0x202c)}`),
+    ).toBe("Ada Lovelace");
+    expect(
+      cleanPersonName(`${String.fromCharCode(0x2067)}Ada Lovelace${String.fromCharCode(0x2069)}`),
+    ).toBe("Ada Lovelace");
+    // A plain direction mark stays: a right-to-left name may need it.
+    const rlm = `Cohen${String.fromCharCode(0x200f)}`;
+    expect(cleanPersonName(rlm)).toBe(rlm);
     // Joiners carry meaning in Indic / Persian scripts: kept.
     expect(cleanPersonName("क्\u200Dष")).toBe("क्\u200Dष");
   });

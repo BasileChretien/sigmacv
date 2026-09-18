@@ -240,7 +240,7 @@ describe("normalizeWorkAuthors", () => {
     expect(out.authorships![1]!.author?.orcid).toBe(`https://orcid.org/${OWNER_ORCID}`);
   });
 
-  it("fills the kept copy's missing affiliations from its twin", () => {
+  it("keeps both copies' affiliations and countries, each once", () => {
     const w = work([
       same("A One", { author_position: "first", id: "A1" }),
       same("B Two", { id: "B2", countries: ["FR"] }),
@@ -252,9 +252,41 @@ describe("normalizeWorkAuthors", () => {
     const [a, b] = normalizeWorkAuthors(w).authorships!;
     expect(a!.institutions).toEqual([{ id: "I9" }]);
     expect(a!.countries).toEqual(["JP"]);
-    // The kept copy's own affiliation is not overwritten.
-    expect(b!.countries).toEqual(["FR"]);
+    // The kept copy's own affiliation first, then what only the twin knew.
+    expect(b!.countries).toEqual(["FR", "DE"]);
     expect(b!.is_corresponding).toBeUndefined();
+  });
+
+  it("keeps malformed affiliation entries once each, without throwing", () => {
+    const odd = [null, {}, { id: "I1" }] as unknown as OpenAlexAuthorship["institutions"];
+    const w = work([
+      same("A One", { author_position: "first", institutions: odd }),
+      same("B Two"),
+      same("C Three"),
+      same("A One", { institutions: [{}, { id: "I1" }] as never }),
+      same("B Two"),
+      same("C Three", { author_position: "last" }),
+    ]);
+    expect(normalizeWorkAuthors(w).authorships![0]!.institutions).toEqual([null, {}, { id: "I1" }]);
+  });
+
+  it("fills the kept identity's missing ORCID from its twin (the same iD, by the veto)", () => {
+    const w = work([
+      same("Ada Lovelace", { author_position: "first" }),
+      same("Basile Chrétien", { id: "https://openalex.org/A5001069481" }),
+      same("Mary Somerville"),
+      same("Ada Lovelace"),
+      same("Basile Chrétien", {
+        id: "A-other",
+        orcid: `https://orcid.org/${OWNER_ORCID}`,
+        institutions: [{ id: "I1" }, { display_name: "Unnamed lab" }],
+      }),
+      same("Mary Somerville", { author_position: "last" }),
+    ]);
+    const basile = normalizeWorkAuthors(w, { authorIds: ["A5001069481"] }).authorships![1]!;
+    expect(basile.author?.id).toBe("https://openalex.org/A5001069481");
+    expect(basile.author?.orcid).toBe(`https://orcid.org/${OWNER_ORCID}`);
+    expect(basile.institutions).toEqual([{ id: "I1" }, { display_name: "Unnamed lab" }]);
   });
 
   it("re-derives first/last once the tail copy of a whole list is dropped", () => {

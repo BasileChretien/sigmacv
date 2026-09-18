@@ -18,8 +18,13 @@ import type { CslName } from "@/types/csl";
  *    uniformly mangled: every ASCII letter after an accented lowercase one is a
  *    capital, and each word's ASCII runs are shaped like title case. So real
  *    internal capitals ("McDonald", "DiCaprio", "hUiginn", "ДиКаприо"), all-caps
- *    names ("GONZáLEZ" is left alone rather than made worse), stylised names
- *    ("PréDiCT") and names that merely lack a space ("JoséLuis García") are kept;
+ *    names ("GONZáLEZ" is left alone rather than made worse) and stylised names
+ *    ("PréDiCT") are kept, and so is a run-together name whose OTHER accented
+ *    letters show it never went through that title-caser ("JoséLuis García": the
+ *    "í" is followed by a lowercase "a"). A lone "JoséLuis" cannot be told from
+ *    "ChréTien" by its letters alone — nor by the byline, from which OpenAlex
+ *    derives the profile name — so it is repaired too ("Joséluis"): the accepted
+ *    cost, far rarer in bylines than the broken capital;
  *  - a U+FFFD (a character lost in some upstream decode) is dropped: "Kenji Uda"
  *    is a better citation than a replacement glyph. The OpenAlex mapper prefers
  *    the name printed on the work when only the profile name is garbled
@@ -28,8 +33,11 @@ import type { CslName } from "@/types/csl";
  *  - decomposed accents are composed (NFC) — except the CJK compatibility
  *    ideographs, which NFC would swap for their unified forms although people
  *    choose those variants for their names; invisibles (BOM, zero-width space,
- *    soft hyphen, control characters) are removed and whitespace is collapsed.
- *    The zero-width joiners are kept: they carry meaning in Indic and Persian.
+ *    soft hyphen, control characters, and the bidirectional embeddings, overrides
+ *    and isolates, which can visually reorder a citation) are removed and
+ *    whitespace is collapsed. The zero-width joiners are kept (they carry meaning
+ *    in Indic and Persian), and so are the plain direction marks (LRM, RLM, ALM),
+ *    which a right-to-left name may need.
  */
 
 const REPLACEMENT = "\uFFFD";
@@ -95,7 +103,8 @@ const SCRIPTS: ReadonlyArray<readonly [string, RegExp]> = [
 ];
 
 /** Invisible characters with no place in a name (joiners excluded, see above). */
-const INVISIBLE = /[\uFEFF\u200B\u2060\u00AD\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g;
+const INVISIBLE =
+  /[\uFEFF\u200B\u2060\u00AD\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069]/g;
 
 /** CJK compatibility ideographs (BMP and supplement): kept out of NFC. */
 const CJK_COMPATIBILITY = /([\uF900-\uFAFF]|\uD87E[\uDC00-\uDE1F])/;
