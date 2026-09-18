@@ -105,13 +105,19 @@ function within<T>(promise: Promise<T>, ms: number, fallback: T): Promise<T> {
   return Promise.race([promise, late]).finally(() => clearTimeout(timer));
 }
 
+/** What `within` yields when the token exchange outlived the call's whole timeout. */
+const EXCHANGE_TIMED_OUT = Symbol("exchange timed out");
+
 /**
  * The default sources, OpenAIRE bound to the access token of this sync — asked
  * for once, at the first OpenAIRE call, so a sync with nothing left for phase 2
  * never exchanges it (null = anonymous). The exchange is bounded by the call's
- * own timeout: past it the call goes anonymous with what time is left, or fails
- * when none is, so a slow token endpoint never stretches the pass beyond its
- * budget. Exported for its test.
+ * own timeout: an exchange that answers in time (a token, or null) leaves the
+ * call what time is left; one that outlives the timeout leaves none, and the
+ * call fails. That is decided by the race itself, not by re-reading the clock,
+ * which can report 19 ms for a 20 ms timer and send a doomed 1 ms request. So a
+ * slow token endpoint never stretches the pass beyond its budget. Exported for
+ * its test.
  */
 export function defaultLookups(
   getToken: () => Promise<string | null> = () => getOpenaireAccessToken().catch(() => null),
@@ -123,7 +129,12 @@ export function defaultLookups(
           source,
           async (doi: string, mailto?: string, timeoutMs: number = COPY_TIMEOUT_MS) => {
             const started = Date.now();
-            const bearer = await within((token ??= getToken()), timeoutMs, null);
+            const bearer = await within<string | null | typeof EXCHANGE_TIMED_OUT>(
+              (token ??= getToken()),
+              timeoutMs,
+              EXCHANGE_TIMED_OUT,
+            );
+            if (bearer === EXCHANGE_TIMED_OUT) return FAILED;
             const left = timeoutMs - (Date.now() - started);
             return left > 0 ? lookupOpenaireCopy(doi, mailto, left, bearer) : FAILED;
           },

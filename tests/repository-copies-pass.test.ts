@@ -446,4 +446,39 @@ describe("enrichCvWithRepositoryCopies", () => {
     });
     expect(openaire.lookup).not.toHaveBeenCalled();
   });
+
+  it("fails an exchange that outlived the timeout whatever the clock reads (it can round 20 ms down to 19)", async () => {
+    // Frozen, the clock reads no time spent at all: only the race itself can say
+    // the exchange ran out. A clock-based check would still see time left and
+    // send a doomed request — the flake this pins.
+    const clock = vi.spyOn(Date, "now").mockReturnValue(Date.parse(NOW));
+    try {
+      openaire.lookup.mockClear();
+      const never = () => new Promise<string | null>(() => {});
+      expect(await defaultLookups(never)[2]![1]("10.1234/W3", MAILTO, 20)).toEqual({
+        status: "failed",
+      });
+      expect(openaire.lookup).not.toHaveBeenCalled();
+    } finally {
+      clock.mockRestore();
+    }
+  });
+
+  it("fails an exchange that answers in time but leaves no time for the call", async () => {
+    // The token arrives, but the clock says the whole budget went on it.
+    const t0 = Date.parse(NOW);
+    const clock = vi
+      .spyOn(Date, "now")
+      .mockReturnValueOnce(t0)
+      .mockReturnValue(t0 + 20);
+    try {
+      openaire.lookup.mockClear();
+      expect(await defaultLookups(async () => "tok")[2]![1]("10.1234/W4", MAILTO, 20)).toEqual({
+        status: "failed",
+      });
+      expect(openaire.lookup).not.toHaveBeenCalled();
+    } finally {
+      clock.mockRestore();
+    }
+  });
 });
