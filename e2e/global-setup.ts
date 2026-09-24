@@ -1,11 +1,11 @@
 import { execSync } from "node:child_process";
-import dotenv from "dotenv";
+import { existsSync } from "node:fs";
 import { db } from "./fixtures/db";
 import { startOpenAlexServer } from "./fixtures/openalex-server";
 
 export default async function globalSetup() {
-  // `quiet` suppresses dotenv's "injected env … // tip: …" promo line on every run.
-  dotenv.config({ path: ".env.e2e", quiet: true });
+  // Local runs only; CI sets these variables in the workflow (see playwright.config.ts).
+  if (existsSync(".env.e2e")) process.loadEnvFile(".env.e2e");
 
   // Guardrail: never touch a non-test database.
   const url = process.env.DATABASE_URL ?? "";
