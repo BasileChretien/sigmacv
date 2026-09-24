@@ -1,9 +1,10 @@
+import { existsSync } from "node:fs";
 import { defineConfig, devices } from "@playwright/test";
-import dotenv from "dotenv";
 
 // E2E runs against the dev server with a dedicated test env (see .env.e2e.example).
-// `quiet` suppresses dotenv's "injected env … // tip: …" promo line on every run.
-dotenv.config({ path: ".env.e2e", quiet: true });
+// The file exists locally only (CI sets these variables in the workflow). Node's
+// loader keeps values already in the environment, as dotenv.config() did.
+if (existsSync(".env.e2e")) process.loadEnvFile(".env.e2e");
 
 const BASE_URL = process.env.AUTH_URL ?? "http://localhost:3100";
 
