@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { faqPageJsonLd } from "@/lib/faqJsonLd";
 import { SUPPORTED_LOCALES } from "@/lib/i18n";
-import { faqStrings } from "@/lib/i18n/faq";
+import {
+  FAQ_EDITORIAL_ROLES_INDEX,
+  FAQ_REQUEST_LINK_INDEX,
+  faqItemAnchor,
+  faqStrings,
+} from "@/lib/i18n/faq";
+import { oepSnapshotDate } from "@/lib/oep/snapshot";
 
 describe("faqStrings", () => {
   it("localizes the FAQ page and falls back to English", () => {
@@ -21,10 +27,10 @@ describe("faqStrings", () => {
     }
   });
 
-  it("has exactly 8 items with non-empty q/a in every locale", () => {
+  it("has exactly 9 items with non-empty q/a in every locale", () => {
     for (const loc of SUPPORTED_LOCALES) {
       const { items } = faqStrings(loc);
-      expect(items).toHaveLength(8);
+      expect(items).toHaveLength(9);
       for (const item of items) {
         expect(item.q.length).toBeGreaterThan(0);
         expect(item.a.length).toBeGreaterThan(0);
@@ -64,6 +70,54 @@ describe("faqStrings", () => {
         expect(a).toContain(proper);
       }
     }
+  });
+
+  // The 9th item (index 8): why an editorial role is missing or out of date.
+  describe("the editorial-roles answer (index 8)", () => {
+    it("is the last item, so the request-link entry keeps its /faq#q8 anchor", () => {
+      expect(FAQ_REQUEST_LINK_INDEX).toBe(7);
+      expect(faqItemAnchor(FAQ_REQUEST_LINK_INDEX)).toBe("q8");
+      expect(faqItemAnchor(FAQ_EDITORIAL_ROLES_INDEX)).toBe("q9");
+      for (const loc of SUPPORTED_LOCALES) {
+        expect(faqStrings(loc).items, loc).toHaveLength(FAQ_EDITORIAL_ROLES_INDEX + 1);
+        // The request-link entry is still the one that carries the link shape.
+        expect(faqStrings(loc).items[FAQ_REQUEST_LINK_INDEX]?.a, loc).toContain("freeze=");
+      }
+    });
+
+    it("names the source and the identifier, and states the collection month, in every locale", () => {
+      for (const loc of SUPPORTED_LOCALES) {
+        const a = faqStrings(loc).items[FAQ_EDITORIAL_ROLES_INDEX]?.a ?? "";
+        expect(a, loc).toContain("Open Editors Plus");
+        expect(a, loc).toContain("ORCID");
+        expect(a, loc).toContain(oepSnapshotDate(loc));
+      }
+    });
+
+    it("leaves no unfilled slot in any answer of any locale", () => {
+      for (const loc of SUPPORTED_LOCALES) {
+        for (const item of faqStrings(loc).items) {
+          expect(item.a, `${loc}: ${item.q}`).not.toMatch(/\{\w+\}/);
+        }
+      }
+    });
+
+    it("is translated, not English left in place", () => {
+      const en = faqStrings("en-US").items[FAQ_EDITORIAL_ROLES_INDEX]!;
+      for (const loc of SUPPORTED_LOCALES.filter((l) => l !== "en-US")) {
+        const item = faqStrings(loc).items[FAQ_EDITORIAL_ROLES_INDEX]!;
+        expect(item.q, loc).not.toBe(en.q);
+        expect(item.a, loc).not.toBe(en.a);
+      }
+    });
+
+    it("reaches the FAQPage structured data with the date filled in", () => {
+      // Derived from the snapshot, not typed: this must keep passing when the
+      // seed is rebuilt from the next edition.
+      const html = faqPageJsonLd(faqStrings("en-US").items);
+      expect(html).toContain(`around ${oepSnapshotDate("en-US")}`);
+      expect(html).not.toContain("{date}");
+    });
   });
 });
 

@@ -1,3 +1,5 @@
+import { oepSnapshotDate } from "@/lib/oep/snapshot";
+import { fill } from "./fill";
 import { asLocale, type Locale } from "./index";
 
 /**
@@ -9,7 +11,8 @@ import { asLocale, type Locale } from "./index";
  * Every locale has the SAME questions in the SAME order; proper nouns
  * (SigmaCV, OpenAlex, ORCID, Crossref, DataCite, OpenAIRE, DBLP, Open Editors
  * Plus, UKRI, NIH, NSF, ClinicalTrials.gov, Wikidata) are kept untranslated.
- * `navLabel` is the short footer label.
+ * `navLabel` is the short footer label. Add a question at the END: the entries
+ * are deep-linked by position (`/faq#q8`).
  */
 export interface FaqStrings {
   metaTitle: string;
@@ -61,6 +64,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         q: "Can an institution, funder or recruiter ask me for a CV in a specific format?",
         a: "Yes, and they need no account. A request is just a link to your editor of the form https://sigmacv.org/cv?freeze=<model>&preset=reader — <model> is a CV model's id or its exact name (the Versions panel lists every model as “name (id)”; for example erc, tenure-us, institutional-assessment or pharma-rd; use 1 for your current layout), preset is reader (assessor evidence marks on) or hiring (contact details on, academic marks off), and label= and by=YYYY-MM-DD are optional. When you open the link, SigmaCV shows exactly what it asks for and lets you freeze a version in that shape with one click. Nothing is sent to the requester and the request is never stored: you send the frozen link yourself.",
       },
+      {
+        q: "Why is one of my editorial roles missing or out of date?",
+        a: "Editorial roles are the one part of your CV that is not read live. They come from Open Editors Plus, a dataset collected from journals' own websites around {date} and replaced about once a year. A role you took up after that arrives with the next edition, and one that has ended stays listed until then. A role can also be missing for two other reasons. Roles are attached to you by an identifier, never by your name alone: when a journal prints no ORCID iD for its editors, the role either comes as a suggestion, hidden until you confirm it, or cannot be attached to you at all. And a journal the dataset does not cover is not there. In every case you can add the role yourself in the editor, and hide one that no longer applies.",
+      },
     ],
   },
   "zh-CN": {
@@ -102,6 +109,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "机构、资助方或招聘方能否要求我提供特定格式的简历？",
         a: "可以，而且无需账户。请求只是一个指向您编辑器的链接，形如 https://sigmacv.org/cv?freeze=<model>&preset=reader ——<model> 是简历模型的 id 或其完整名称（“版本”面板以“名称 (id)”的形式列出每个模型；例如 erc、tenure-us、institutional-assessment 或 pharma-rd；用 1 表示您当前的布局），preset 为 reader（显示评估者证据标记）或 hiring（显示联系方式、隐藏学术标记），label= 和 by=YYYY-MM-DD 为可选项。打开链接后，SigmaCV 会准确显示其请求内容，并让您一键冻结该形态的版本。不会向请求方发送任何内容，请求也不会被存储：冻结后的链接由您自己发送。",
+      },
+      {
+        q: "为什么我的某个编辑职务缺失或已过时？",
+        a: "编辑职务是您的简历中唯一不是实时读取的部分。它们来自 Open Editors Plus，这是一个于{date}前后从各期刊网站采集的数据集，大约每年更换一次。在此之后开始担任的职务会随下一版出现，已结束的职务则会保留到下一版。职务缺失还可能有另外两个原因。职务是通过标识符归属到您的，绝不仅凭姓名：如果期刊没有为编辑刊出 ORCID iD，该职务要么作为建议出现，在您确认之前保持隐藏，要么根本无法归属到您。此外，数据集未收录的期刊不会出现。无论哪种情况，您都可以在编辑器中自行添加职务，并隐藏已不再适用的职务。",
       },
     ],
   },
@@ -145,6 +156,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         q: "¿Puede una institución, un financiador o un reclutador pedirme un CV en un formato concreto?",
         a: "Sí, y no necesitan cuenta. Una solicitud es solo un enlace a tu editor con la forma https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> es el id de un modelo de CV o su nombre exacto (el panel Versiones muestra cada modelo como «nombre (id)»; por ejemplo erc, tenure-us, institutional-assessment o pharma-rd; usa 1 para tu diseño actual), preset es reader (marcas de evidencia para evaluadores activadas) o hiring (datos de contacto activados, marcas académicas desactivadas), y label= y by=AAAA-MM-DD son opcionales. Al abrir el enlace, SigmaCV muestra exactamente lo que pide y te permite congelar una versión con ese formato en un clic. No se envía nada al solicitante y la solicitud nunca se guarda: el enlace congelado lo envías tú.",
       },
+      {
+        q: "¿Por qué falta una de mis funciones editoriales o está desactualizada?",
+        a: "Las funciones editoriales son la única parte de tu CV que no se lee en tiempo real. Proceden de Open Editors Plus, un conjunto de datos recogido de los sitios web de las propias revistas hacia {date} y que se sustituye aproximadamente una vez al año. Una función que hayas asumido después llegará con la siguiente edición, y una que haya terminado seguirá en la lista hasta entonces. Una función también puede faltar por otros dos motivos. Las funciones se te atribuyen mediante un identificador, nunca solo por tu nombre: cuando una revista no publica el iD ORCID de sus editores, la función llega como sugerencia, oculta hasta que la confirmes, o no se te puede atribuir en absoluto. Y una revista que el conjunto de datos no cubre no aparece. En todos los casos puedes añadir la función tú mismo en el editor y ocultar una que ya no corresponda.",
+      },
     ],
   },
   "fr-FR": {
@@ -186,6 +201,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "Une institution, un financeur ou un recruteur peut-il me demander un CV dans un format précis ?",
         a: "Oui, sans compte. Une demande n’est qu’un lien vers votre éditeur de la forme https://sigmacv.org/cv?freeze=<model>&preset=reader : <model> est l’identifiant d’un modèle de CV ou son nom exact (le panneau Versions affiche chaque modèle sous la forme « nom (id) » ; par exemple erc, tenure-us, institutional-assessment ou pharma-rd ; 1 pour votre mise en page actuelle), preset vaut reader (repères de preuve pour évaluateurs activés) ou hiring (coordonnées affichées, repères académiques masqués), et label= et by=AAAA-MM-JJ sont facultatifs. À l’ouverture du lien, SigmaCV affiche exactement ce qui est demandé et vous permet de figer une version dans ce format en un clic. Rien n’est envoyé au demandeur et la demande n’est jamais stockée : c’est vous qui envoyez le lien figé.",
+      },
+      {
+        q: "Pourquoi l'une de mes fonctions éditoriales est-elle absente ou n'est-elle plus à jour ?",
+        a: "Les fonctions éditoriales sont la seule partie de votre CV qui ne soit pas lue en temps réel. Elles proviennent d'Open Editors Plus, un jeu de données relevé sur les sites des revues elles-mêmes vers {date} et remplacé environ une fois par an. Une fonction prise depuis arrivera avec l'édition suivante, et une fonction terminée restera affichée jusque-là. Une fonction peut aussi manquer pour deux autres raisons. Les fonctions vous sont attribuées par un identifiant, jamais par votre seul nom : lorsqu'une revue n'affiche pas l'iD ORCID des membres de son comité éditorial, la fonction arrive comme une suggestion, masquée tant que vous ne l'avez pas confirmée, ou ne peut pas vous être attribuée du tout. Et une revue que le jeu de données ne couvre pas n'y figure pas. Dans tous les cas, vous pouvez ajouter la fonction vous-même dans l'éditeur, et masquer celle qui n'a plus lieu d'être.",
       },
     ],
   },
@@ -229,6 +248,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         q: "Kann eine Institution, ein Förderer oder ein Recruiter einen CV in einem bestimmten Format von mir anfragen?",
         a: "Ja, ohne Konto. Eine Anfrage ist nur ein Link zu Ihrem Editor der Form https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> ist die Kennung eines CV-Modells oder sein genauer Name (das Versionen-Panel listet jedes Modell als „Name (Kennung)“; z. B. erc, tenure-us, institutional-assessment oder pharma-rd; 1 für Ihr aktuelles Layout), preset ist reader (Nachweismarkierungen für Gutachtende an) oder hiring (Kontaktdaten an, akademische Markierungen aus), label= und by=JJJJ-MM-TT sind optional. Beim Öffnen des Links zeigt SigmaCV genau, was angefragt wird, und lässt Sie mit einem Klick eine Version in diesem Format einfrieren. Nichts wird an den Anfragenden gesendet und die Anfrage wird nie gespeichert: Den eingefrorenen Link versenden Sie selbst.",
       },
+      {
+        q: "Warum fehlt eine meiner Herausgebertätigkeiten oder ist veraltet?",
+        a: "Herausgebertätigkeiten sind der einzige Teil Ihres Lebenslaufs, der nicht live gelesen wird. Sie stammen aus Open Editors Plus, einem Datensatz, der etwa im {date} auf den Websites der Zeitschriften erhoben wurde und ungefähr einmal im Jahr ersetzt wird. Eine Tätigkeit, die Sie danach übernommen haben, kommt mit der nächsten Fassung hinzu, und eine beendete bleibt bis dahin aufgeführt. Eine Tätigkeit kann auch aus zwei anderen Gründen fehlen. Tätigkeiten werden Ihnen über eine Kennung zugeordnet, niemals allein über Ihren Namen: Gibt eine Zeitschrift für ihre Herausgeberinnen und Herausgeber keine ORCID iD an, erscheint die Tätigkeit entweder als Vorschlag, der ausgeblendet bleibt, bis Sie ihn bestätigen, oder sie kann Ihnen gar nicht zugeordnet werden. Und eine Zeitschrift, die der Datensatz nicht abdeckt, ist nicht enthalten. In jedem Fall können Sie die Tätigkeit im Editor selbst hinzufügen und eine nicht mehr zutreffende ausblenden.",
+      },
     ],
   },
   "ja-JP": {
@@ -270,6 +293,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "機関・助成機関・採用担当者は、特定の形式の CV を私に求めることができますか？",
         a: "はい、アカウントは不要です。依頼は https://sigmacv.org/cv?freeze=<model>&preset=reader という形のエディタへのリンクにすぎません。<model> は CV モデルの ID またはその正式名称（「バージョン」パネルには各モデルが「名称 (ID)」の形で表示されます。例：erc、tenure-us、institutional-assessment、pharma-rd。現在のレイアウトなら 1）、preset は reader（審査者向けの根拠表示をオン）または hiring（連絡先をオン、学術的な表示をオフ）、label= と by=YYYY-MM-DD は任意です。リンクを開くと、SigmaCV は求められている内容を正確に表示し、その形式のバージョンをワンクリックで固定できます。依頼者には何も送信されず、依頼は保存されません。固定リンクはあなた自身が送ります。",
+      },
+      {
+        q: "編集者としての役割が表示されない、または古いままなのはなぜですか？",
+        a: "編集者としての役割は、CV の中で唯一、リアルタイムに読み込まれない部分です。Open Editors Plus というデータセットに基づいています。このデータセットは{date}頃に各ジャーナルのウェブサイトから収集されたもので、入れ替えはおよそ年1回です。それ以降に始まった役割は次の版で追加され、終了した役割は次の版まで表示されたままになります。役割が表示されない理由は、ほかに2つあります。役割は識別子によってあなたに結び付けられ、名前だけで結び付けることはありません。ジャーナルが編集者の ORCID iD を掲載していない場合、その役割は、あなたが確認するまで非表示の候補として届くか、あなたにまったく結び付けられないかのどちらかです。また、データセットが対象としていないジャーナルの役割は含まれません。いずれの場合も、エディタで役割を自分で追加でき、該当しなくなった役割は非表示にできます。",
       },
     ],
   },
@@ -313,6 +340,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         q: "Uma instituição, financiador ou recrutador pode me pedir um CV em um formato específico?",
         a: "Sim, e sem precisar de conta. Um pedido é apenas um link para o seu editor no formato https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> é o id de um modelo de CV ou seu nome exato (o painel Versões lista cada modelo como “nome (id)”; por exemplo erc, tenure-us, institutional-assessment ou pharma-rd; use 1 para o seu layout atual), preset é reader (marcas de evidência para avaliadores ativadas) ou hiring (dados de contato ativados, marcas acadêmicas desativadas), e label= e by=AAAA-MM-DD são opcionais. Ao abrir o link, o SigmaCV mostra exatamente o que é pedido e permite congelar uma versão nesse formato com um clique. Nada é enviado ao solicitante e o pedido nunca é armazenado: o link congelado é enviado por você.",
       },
+      {
+        q: "Por que uma das minhas funções editoriais está faltando ou desatualizada?",
+        a: "As funções editoriais são a única parte do seu currículo que não é lida em tempo real. Elas vêm do Open Editors Plus, um conjunto de dados coletado nos sites dos próprios periódicos por volta de {date} e substituído cerca de uma vez por ano. Uma função que você assumiu depois disso chegará com a edição seguinte, e uma que terminou continuará listada até lá. Uma função também pode faltar por dois outros motivos. As funções são atribuídas a você por um identificador, nunca apenas pelo seu nome: quando um periódico não publica o iD ORCID de seus editores, a função chega como sugestão, oculta até que você a confirme, ou não pode ser atribuída a você de modo algum. E um periódico que o conjunto de dados não cobre não aparece. Em todos os casos, você pode adicionar a função por conta própria no editor e ocultar uma que não se aplique mais.",
+      },
     ],
   },
   "it-IT": {
@@ -354,6 +385,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
       {
         q: "Un’istituzione, un ente finanziatore o un recruiter può chiedermi un CV in un formato specifico?",
         a: "Sì, e senza account. Una richiesta è solo un link al tuo editor nella forma https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> è l’id di un modello di CV o il suo nome esatto (il pannello Versioni elenca ogni modello come «nome (id)»; ad esempio erc, tenure-us, institutional-assessment o pharma-rd; usa 1 per il layout attuale), preset è reader (contrassegni di evidenza per valutatori attivi) o hiring (contatti attivi, contrassegni accademici disattivati), e label= e by=AAAA-MM-GG sono facoltativi. Aprendo il link, SigmaCV mostra esattamente cosa viene chiesto e ti permette di congelare una versione in quel formato con un clic. Nulla viene inviato al richiedente e la richiesta non viene mai memorizzata: il link congelato lo invii tu.",
+      },
+      {
+        q: "Perché uno dei miei incarichi editoriali manca o non è aggiornato?",
+        a: "Gli incarichi editoriali sono l'unica parte del tuo CV che non viene letta in tempo reale. Provengono da Open Editors Plus, un set di dati ricavato dai siti delle riviste stesse intorno al mese di {date} e sostituito circa una volta all'anno. Un incarico che hai assunto dopo arriverà con l'edizione successiva, e uno concluso resterà in elenco fino ad allora. Un incarico può mancare anche per altri due motivi. Gli incarichi ti vengono attribuiti tramite un identificativo, mai solo in base al nome: quando una rivista non pubblica l'iD ORCID dei membri del suo comitato editoriale, l'incarico arriva come suggerimento, nascosto finché non lo confermi, oppure non può esserti attribuito affatto. E una rivista che il set di dati non copre non è presente. In ogni caso puoi aggiungere l'incarico tu stesso nell'editor e nascondere quello che non è più valido.",
       },
     ],
   },
@@ -397,6 +432,10 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         q: "기관, 연구비 지원 기관 또는 채용 담당자가 특정 형식의 CV를 요청할 수 있나요?",
         a: "네, 계정 없이 가능합니다. 요청은 https://sigmacv.org/cv?freeze=<model>&preset=reader 형태의 편집기 링크일 뿐입니다. <model>은 CV 모델의 id 또는 정확한 이름(버전 패널에 각 모델이 “이름 (id)” 형식으로 표시됩니다. 예: erc, tenure-us, institutional-assessment, pharma-rd; 현재 레이아웃은 1), preset은 reader(심사자용 근거 표시 켬) 또는 hiring(연락처 켬, 학술 표시 끔)이며, label=과 by=YYYY-MM-DD는 선택 사항입니다. 링크를 열면 SigmaCV가 요청 내용을 정확히 보여 주고, 해당 형식의 버전을 클릭 한 번으로 고정할 수 있습니다. 요청자에게는 아무것도 전송되지 않고 요청은 저장되지 않습니다. 고정된 링크는 본인이 직접 보냅니다.",
       },
+      {
+        q: "제 편집 활동 중 하나가 빠져 있거나 최신이 아닌 이유는 무엇인가요?",
+        a: "편집 활동은 회원님의 CV에서 실시간으로 읽어 오지 않는 유일한 부분입니다. 편집 활동은 Open Editors Plus에서 가져오는데, 이 데이터셋은 {date} 무렵 각 학술지 웹사이트에서 수집되었고 약 1년에 한 번 교체됩니다. 그 이후에 시작한 활동은 다음 판에서 추가되고, 종료된 활동은 그때까지 목록에 남습니다. 활동이 빠지는 이유는 두 가지가 더 있습니다. 활동은 식별자로 회원님께 연결되며, 이름만으로는 절대 연결하지 않습니다. 학술지가 편집자의 ORCID iD를 게재하지 않으면, 해당 활동은 제안으로 들어와 회원님이 확인할 때까지 숨겨져 있거나, 아예 회원님께 연결할 수 없습니다. 또한 데이터셋이 다루지 않는 학술지의 활동은 포함되지 않습니다. 어떤 경우든 편집기에서 활동을 직접 추가할 수 있고, 더 이상 해당하지 않는 활동은 숨길 수 있습니다.",
+      },
     ],
   },
   "ru-RU": {
@@ -439,19 +478,36 @@ const FAQ_I18N: Record<Locale, FaqStrings> = {
         q: "Может ли учреждение, фонд или рекрутер запросить у меня CV в определённом формате?",
         a: "Да, и без учётной записи. Запрос — это просто ссылка на ваш редактор вида https://sigmacv.org/cv?freeze=<model>&preset=reader: <model> — идентификатор модели CV или её точное название (панель «Версии» показывает каждую модель как «название (идентификатор)»; например erc, tenure-us, institutional-assessment или pharma-rd; 1 — ваша текущая раскладка), preset — reader (отметки свидетельств для экспертов включены) или hiring (контакты включены, академические отметки скрыты), а label= и by=ГГГГ-ММ-ДД необязательны. Открыв ссылку, вы увидите в SigmaCV, что именно запрошено, и сможете заморозить версию в этом формате одним нажатием. Запрашивающему ничего не отправляется, запрос нигде не хранится: замороженную ссылку отправляете вы сами.",
       },
+      {
+        q: "Почему одна из моих редакционных ролей отсутствует или устарела?",
+        a: "Редакционные роли — единственная часть вашего резюме, которая не считывается в реальном времени. Они берутся из Open Editors Plus — набора данных, собранного с сайтов самих журналов (примерная дата сбора — {date}) и заменяемого примерно раз в год. Роль, которую вы получили позже, появится в следующей версии, а завершившаяся будет отображаться до её выхода. Роль может отсутствовать ещё по двум причинам. Роли привязываются к вам по идентификатору и никогда — только по имени: если журнал не указывает ORCID iD своих редакторов, роль либо приходит как предложение, скрытое до вашего подтверждения, либо вообще не может быть привязана к вам. Кроме того, журнала, который набор данных не охватывает, в нём нет. В любом случае вы можете сами добавить роль в редакторе и скрыть ту, что больше не актуальна.",
+      },
     ],
   },
 };
 
-/** Localized FAQ copy (falls back to English for unknown locales). */
+/**
+ * Localized FAQ copy (falls back to English for unknown locales). The one
+ * `{date}` slot — the month the Open Editors Plus edition in use was collected,
+ * in the editorial-roles answer — is filled here, so the page and the FAQPage
+ * structured data, which both read `items`, print the same sentence.
+ */
 export function faqStrings(locale: string): FaqStrings {
-  return FAQ_I18N[asLocale(locale)];
+  const loc = asLocale(locale);
+  const strings = FAQ_I18N[loc];
+  const date = oepSnapshotDate(loc);
+  return { ...strings, items: strings.items.map(({ q, a }) => ({ q, a: fill(a, { date }) })) };
 }
 
 /** Index (in `items`) of the entry that explains request links — the FAQ entry
  *  the institution page points an assessor at. Every locale keeps the same
  *  order, so one index addresses the same question in all ten. */
 export const FAQ_REQUEST_LINK_INDEX = 7;
+
+/** Index of the entry on why an editorial role is missing or out of date. It is
+ *  the LAST one on purpose: a new entry goes at the end, so the anchors already
+ *  linked from elsewhere (`/faq#q8`) keep their number. */
+export const FAQ_EDITORIAL_ROLES_INDEX = 8;
 
 /** The `id` of the FAQ section for `items[index]`, for deep links (`/faq#q8`). */
 export function faqItemAnchor(index: number): string {

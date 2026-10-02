@@ -15,11 +15,18 @@ describe("Open Editors Plus snapshot date", () => {
   });
 
   it("is shown as the month the collection ended, in the reader's language", () => {
-    expect(oepSnapshotDate("en-US")).toBe("April 2026");
-    expect(oepSnapshotDate("fr-FR")).toBe("avril 2026");
-    expect(oepSnapshotDate("ja-JP")).toBe("2026年4月");
+    // Derived from the constant, never this edition's month typed out: these
+    // must keep passing when the seed is rebuilt from the next edition.
+    const year = OEP_SNAPSHOT.collectedTo.slice(0, 4);
+    const month = Number(OEP_SNAPSHOT.collectedTo.slice(5, 7));
+    // The month the collection ENDED (not the one it began), numeric in Japanese…
+    expect(oepSnapshotDate("ja-JP")).toBe(`${year}年${month}月`);
+    // …and a month name then the year in English and French, capitalised in
+    // English only.
+    expect(oepSnapshotDate("en-US")).toMatch(new RegExp(`^[A-Z][a-z]+ ${year}$`));
+    expect(oepSnapshotDate("fr-FR")).toMatch(new RegExp(`^[a-zéû]+ ${year}$`));
     // An unknown locale falls back to English rather than throwing.
-    expect(oepSnapshotDate("xx-not-a-locale")).toBe("April 2026");
+    expect(oepSnapshotDate("xx-not-a-locale")).toBe(oepSnapshotDate("en-US"));
   });
 
   it("names the year in every supported locale", () => {
