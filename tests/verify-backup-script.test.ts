@@ -1,10 +1,10 @@
-import { execFileSync } from "node:child_process";
 import { mkdtempSync, writeFileSync, utimesSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { dirname } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
+import { bash, runScript } from "./helpers/bashScript";
 
 /**
  * `scripts/verify-backup.sh` is the thing that tells us the Postgres dumps are
@@ -19,14 +19,6 @@ import { afterEach, describe, expect, it } from "vitest";
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const script = join(repoRoot, "scripts", "verify-backup.sh");
 
-// The script is bash; on Windows the vitest run may have no bash on PATH.
-let bashAvailable = true;
-try {
-  execFileSync("bash", ["--version"], { stdio: "ignore" });
-} catch {
-  bashAvailable = false;
-}
-
 const dirs: string[] = [];
 function backupDir(): string {
   const d = mkdtempSync(join(tmpdir(), "sigmacv-bak-"));
@@ -37,20 +29,7 @@ afterEach(() => {
   while (dirs.length) rmSync(dirs.pop()!, { recursive: true, force: true });
 });
 
-/** Run the script and return its exit code plus combined output. */
-function run(env: Record<string, string>): { code: number; out: string } {
-  try {
-    const out = execFileSync("bash", [script], {
-      env: { ...process.env, ...env },
-      encoding: "utf8",
-      stdio: ["ignore", "pipe", "pipe"],
-    });
-    return { code: 0, out };
-  } catch (e) {
-    const err = e as { status?: number; stdout?: string; stderr?: string };
-    return { code: err.status ?? 1, out: `${err.stdout ?? ""}${err.stderr ?? ""}` };
-  }
-}
+const run = (env: Record<string, string>) => runScript(script, env);
 
 function writeDump(dir: string, name: string, bytes: number, ageHours = 0): string {
   const p = join(dir, name);
@@ -62,7 +41,12 @@ function writeDump(dir: string, name: string, bytes: number, ageHours = 0): stri
   return p;
 }
 
-describe.skipIf(!bashAvailable)("verify-backup.sh guards", () => {
+// A skip is silent, and CI is the one place these are guaranteed to run.
+it.runIf(process.env.CI)("has a bash to run the script with on CI", () => {
+  expect(bash).not.toBeNull();
+});
+
+describe.skipIf(bash === null)("verify-backup.sh guards", () => {
   it("refuses to run when the scratch DB is the live DB", () => {
     const dir = backupDir();
     const { code, out } = run({ BACKUP_DIR: dir, PG_DB: "sigmacv", SCRATCH_DB: "sigmacv" });
