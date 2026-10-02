@@ -119,8 +119,8 @@ The Prisma client is generated into **`src/generated/prisma/`** (gitignored — 
 npm run dev            # Next dev server (predev auto-syncs the DB schema)
 npm run build          # production build
 npm run typecheck      # tsc --noEmit  (run this after every code change)
-npm test               # vitest run — full unit/integration suite (~800 tests)
-npm run coverage       # vitest run --coverage — ENFORCES the gate (see below)
+npm test               # vitest run — full unit/integration suite (~4,800 tests)
+npm run coverage       # vitest run --coverage — ENFORCES the gate (see below); this is what CI runs
 npm run e2e            # Playwright E2E (needs e2e DB; e2e:install first)
 npm run fetch-csl      # vendor the CSL styles + en-US locale into citeproc assets
 npm run gen:schema     # regenerate public/schema/cv/v2.json from the Zod canonical schema
@@ -135,7 +135,7 @@ npx vitest run -t "Sidebar template"                 # tests matching a name
 npx vitest tests/curate.test.ts                       # watch one file
 ```
 
-**Verify loop after any `src/lib` change:** `npm run typecheck` then `npm run coverage`. The coverage gate (configured in `vitest.config.ts`, scoped to `src/lib/**`) fails the run below **stmts 98 / branches 87 / funcs 99 / lines 99**. The codebase convention for genuinely unreachable defensive branches is an inline `/* v8 ignore next N -- reason */` comment (grep for examples). One-off QA artifacts (throwaway `.preview/` files, `tests/_*_gen.test.ts`, `scripts/_*.mjs`) must be removed before committing.
+**Verify loop after any `src/lib` change:** `npm run typecheck` then `npm run coverage`. The coverage gate (configured in `vitest.config.ts`, scoped to `src/lib/**`) fails the run below **stmts 98 / branches 87 / funcs 99 / lines 99**. CI enforces it: the test step of `.github/workflows/ci.yml` is `npm run coverage`, not `npm test`, inside the required `Format · Typecheck · Test · Build` check, so a PR that drops below a threshold fails a required check. (Until 2026-10-02 CI ran `npm test` and the gate was only ever checked by hand.) A failing test suppresses Vitest's coverage table, so fix the tests first, then read the thresholds. The codebase convention for genuinely unreachable defensive branches is an inline `/* v8 ignore next N -- reason */` comment (grep for examples). One-off QA artifacts (throwaway `.preview/` files, `tests/_*_gen.test.ts`, `scripts/_*.mjs`) must be removed before committing.
 
 **After changing the canonical schema (`src/lib/canonical/schema.ts`):** run `npm run gen:schema` and commit the regenerated **`public/schema/cv/v2.json`** — the published JSON Schema (served at `/schema/cv/v2.json`, derived from the Zod schema). `tests/cv-json-schema.test.ts` fails if the committed file drifts. (Same spirit as the `db:push` gotcha: a generated artifact that must be re-synced.)
 

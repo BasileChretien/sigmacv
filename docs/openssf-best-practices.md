@@ -69,8 +69,8 @@ Legend: ✅ Met · 🟡 needs a one-time human action · ⬜ unmet (future).
 | `build_floss_tools`           | ✅     | All build tools are FLOSS.                                                                                                  |
 | `test`                        | ✅     | Vitest suite (~800 unit/integration tests) + Playwright E2E; `tests/`.                                                      |
 | `test_invocation`             | ✅     | `npm test` (single documented command).                                                                                     |
-| `test_most`                   | ✅     | Coverage gate enforced on `src/lib/**` (stmts 98 / branches 87 / funcs 99 / lines 99) via `npm run coverage`.               |
-| `test_continuous_integration` | ✅     | GitHub Actions `ci.yml` runs format + typecheck + tests + build on every push/PR.                                           |
+| `test_most`                   | ✅     | Coverage gate enforced in CI on `src/lib/**` (stmts 98 / branches 87 / funcs 99 / lines 99) via `npm run coverage`.         |
+| `test_continuous_integration` | ✅     | GitHub Actions `ci.yml` runs format + typecheck + tests with the coverage gate + build on every push/PR.                    |
 | `test_policy`                 | ✅     | Convention: new `src/lib` code needs tests; coverage gate enforces it (documented in `tests/CLAUDE.md` + root `CLAUDE.md`). |
 | `tests_are_added`             | ✅     | New features ship with tests (PR history shows test files alongside features).                                              |
 | `tests_documented_added`      | ✅     | Test policy documented in `CLAUDE.md` / `tests/CLAUDE.md`.                                                                  |
