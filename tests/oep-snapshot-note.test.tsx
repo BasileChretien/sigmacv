@@ -3,6 +3,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render } from "@testing-library/react";
 import SectionsList from "@/components/SectionsList";
 import { CanonicalCvSchema, type CanonicalCv, type CvItem } from "@/lib/canonical/schema";
+import { oepSnapshotDate } from "@/lib/oep/snapshot";
 
 /**
  * The Editorial Roles section says when its Open Editors Plus roles were
@@ -75,14 +76,14 @@ describe("Editorial Roles — Open Editors Plus date note", () => {
     show([oep, manual]);
     expect(notes()).toHaveLength(1);
     expect(notes()[0]).toContain("Open Editors Plus");
-    expect(notes()[0]).toContain("around April 2026");
+    expect(notes()[0]).toContain(`around ${oepSnapshotDate("en-US")}`);
     expect(notes()[0]).toContain("about once a year");
     expect(notes()[0]).not.toMatch(/[{}]/);
   });
 
   it("is written in the editor's language, date included", () => {
     show([oep], "fr-FR");
-    expect(notes()[0]).toContain("vers avril 2026");
+    expect(notes()[0]).toContain(`vers ${oepSnapshotDate("fr-FR")}`);
   });
 
   it("is absent when every role was typed by the owner", () => {

@@ -112,8 +112,10 @@ describe("faqStrings", () => {
     });
 
     it("reaches the FAQPage structured data with the date filled in", () => {
+      // Derived from the snapshot, not typed: this must keep passing when the
+      // seed is rebuilt from the next edition.
       const html = faqPageJsonLd(faqStrings("en-US").items);
-      expect(html).toContain("around April 2026");
+      expect(html).toContain(`around ${oepSnapshotDate("en-US")}`);
       expect(html).not.toContain("{date}");
     });
   });
