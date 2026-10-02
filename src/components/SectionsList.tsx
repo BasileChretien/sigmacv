@@ -80,6 +80,8 @@ import EvidencePicker from "./EvidencePicker";
 import { isNarrativeAiSection, isUnfilledNarrativeModule } from "@/lib/ai/sections";
 import { narrativeGuidance, narrativeEvidenceLabel } from "@/lib/i18n/narrativeGuidance";
 import { sectionTitle, t, type Locale } from "@/lib/i18n";
+import { fill } from "@/lib/i18n/fill";
+import { oepSnapshotDate } from "@/lib/oep/snapshot";
 import ClaimByDoi from "./ClaimByDoi";
 import NarrativeAiDraft from "./NarrativeAiDraft";
 import ImportBib from "./ImportBib";
@@ -1058,6 +1060,16 @@ const SectionsList = forwardRef<SectionsListHandle, SectionsListProps>(function 
                                   "{sort}",
                                   t(locale, sortLabelKey),
                                 )}
+                              </p>
+                            ) : null}
+                            {/* Open Editors Plus is a yearly dataset, not a live
+                                source: say when it was collected, so a role that
+                                is missing or has ended reads as a matter of date. */}
+                            {items.some((it) => it.source === "oep") ? (
+                              <p className="muted source-snapshot-note">
+                                {fill(t(locale, "oepSnapshotNote"), {
+                                  date: oepSnapshotDate(locale),
+                                })}
                               </p>
                             ) : null}
                             <ul className="cv-item-list">
