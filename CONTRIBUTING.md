@@ -56,7 +56,7 @@ running server at all — the test suite mocks every network call and Prisma:
 ```bash
 npm run typecheck    # tsc --noEmit — run after every code change
 npm test             # vitest run — full unit/integration suite
-npm run coverage     # ENFORCES the coverage gate on src/lib/**
+npm run coverage     # ENFORCES the coverage gate on src/lib/** (CI runs this)
 ```
 
 Before opening a PR:
@@ -65,7 +65,8 @@ Before opening a PR:
 2. `npm run coverage` passes — the gate (scoped to `src/lib/**`) fails below
    **stmts 98 / branches 87 / funcs 99 / lines 99**. New domain code needs
    tests. Genuinely-unreachable defensive branches use an inline
-   `/* v8 ignore next N -- reason */` comment.
+   `/* v8 ignore next N -- reason */` comment. CI runs the same command, so a
+   PR below the gate does not go green.
 3. New user-facing or render strings are defined for **all ten locales**.
 4. Commits follow [Conventional Commits](https://www.conventionalcommits.org/)
    (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`, …).
