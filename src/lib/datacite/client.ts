@@ -62,6 +62,14 @@ export interface DataciteOutput {
    * rightsUri, ... }]` (DataCite REST v2 JSON:API); parsed defensively.
    */
   license?: string;
+  /**
+   * DOIs the repository minted for the individual FILES of this deposit (its
+   * `HasPart` list — see {@link fileDoisOf}). Bare + lower-cased. The files are not
+   * outputs of their own: the build uses these to drop the copy OpenAlex or
+   * OpenAIRE indexed of each one, so the CV shows one line for the dataset, not
+   * one per file. Omitted when the deposit has no file-level DOIs.
+   */
+  fileDois?: string[];
 }
 
 // DataCite relationType values that mark the same deposit under another DOI
@@ -134,10 +142,14 @@ function publisherName(v: unknown): string | undefined {
   return undefined;
 }
 
-/** "https://doi.org/10.5281/Zenodo.1" → "10.5281/zenodo.1" (bare, lower-cased). */
+/** "https://doi.org/10.5281/Zenodo.1" or "doi:10.5281/Zenodo.1" → "10.5281/zenodo.1"
+ *  (bare, lower-cased). Harvard Dataverse writes its related identifiers in the
+ *  `doi:` form. */
 function bareDoiLower(s: unknown): string | undefined {
   const raw = nonEmpty(s);
-  return raw ? raw.replace(/^https?:\/\/(dx\.)?doi\.org\//i, "").toLowerCase() : undefined;
+  return raw
+    ? raw.replace(/^(?:https?:\/\/(?:dx\.)?doi\.org\/|doi:)/i, "").toLowerCase()
+    : undefined;
 }
 
 /** The deposit's creators (name + bare ORCID when present), in order, capped. */
@@ -202,6 +214,54 @@ function linkedDoisOf(attr: any): string[] {
   return relatedDoisOfKind(attr, PUBLICATION_LINK_RELATIONS);
 }
 
+// ── File-level DOIs ──────────────────────────────────────────────────────────
+// Dataverse repositories (Recherche Data Gouv, Harvard Dataverse, DaRUS, GRO.data,
+// …) register a DOI for EVERY FILE of a dataset. Each file record repeats the
+// dataset's creators and their ORCIDs, is typed "Dataset" and is titled with the
+// file name ("Experimental_results.tab"), so an ORCID query returns the dataset
+// once and then once more per file — 98 of one researcher's 117 records, checked
+// live on 2026-10-02. (Reported by a Recherche Data Gouv depositor, 2026-10.)
+// A file is recognised by identifier and landing page, never by its title:
+//  - its landing page is Dataverse's file page, `…/file.xhtml?persistentId=…` or
+//    `…/file.xhtml?fileId=…` (the dataset's own is `…/citation?persistentId=…`); or
+//  - its DOI is the DOI of the deposit it declares itself part of, extended by a
+//    "/suffix" (`10.7910/dvn/svc2fi/hzsfhj` in `10.7910/dvn/svc2fi`).
+// A part with a DOI of its own shape (a Zenodo record in a larger collection, a
+// PANGAEA table in a series) is a deposit in its own right and is kept.
+const DATAVERSE_FILE_PAGE_RE = /\/file\.xhtml(?:[?#]|$)/i;
+const DATAVERSE_DATASET_PAGE_RE = /\/(?:citation|dataset\.xhtml)\?(?:[^#]*&)?persistentId=/i;
+const PART_OF_RELATION = new Set(["ispartof"]);
+const HAS_PART_RELATION = new Set(["haspart"]);
+
+// The same test as a query clause, so the file records never take up the single
+// page the query asks for: a dataset of 150 files would otherwise push the
+// researcher's real deposits off it.
+const NOT_A_DATAVERSE_FILE = "NOT url:*file.xhtml*";
+
+/** Whether `doi` is `parent` extended by a "/suffix" (both bare, lower-cased). */
+function extendsDoi(doi: string, parent: string): boolean {
+  return doi.startsWith(`${parent}/`);
+}
+
+/** Whether a DataCite record is one FILE of a deposit rather than a deposit. */
+function isDepositFile(attr: any, doi: string): boolean {
+  if (DATAVERSE_FILE_PAGE_RE.test(nonEmpty(attr?.url) ?? "")) return true;
+  return relatedDoisOfKind(attr, PART_OF_RELATION).some((parent) => extendsDoi(doi, parent));
+}
+
+/**
+ * The DOIs of a deposit's own files: every `HasPart` DOI of a Dataverse dataset
+ * (Dataverse lists nothing else there), and elsewhere only the parts whose DOI
+ * extends the deposit's own. Not always the whole list: Harvard's older records
+ * name some of their files or none, which is why the build also recognises a
+ * file by its DOI extending a deposit's (`extendsDepositDoi` in canonical/build).
+ */
+function fileDoisOf(attr: any, doi: string): string[] {
+  const parts = relatedDoisOfKind(attr, HAS_PART_RELATION);
+  if (DATAVERSE_DATASET_PAGE_RE.test(nonEmpty(attr?.url) ?? "")) return parts;
+  return parts.filter((part) => extendsDoi(part, doi));
+}
+
 // Relation types under which a Zenodo-style archive commonly points back at its
 // source repository (a URL-typed relatedIdentifier, not a DOI).
 const REPO_RELATIONS = new Set(["issupplementto", "isderivedfrom", "hasversion"]);
@@ -245,28 +305,42 @@ function licenseOf(attr: any): string | undefined {
   return undefined;
 }
 
+/** The first page (100 records) DataCite returns for `query`. */
+function requestDois(query: string): Promise<Response> {
+  const url = new URL(DATACITE_API);
+  url.searchParams.set("query", query);
+  url.searchParams.set("page[size]", "100");
+  return resilientFetch(url, {
+    headers: {
+      Accept: "application/vnd.api+json",
+      // Polite-pool identification (shared convention across all clients).
+      "User-Agent": "SigmaCV (+https://github.com/BasileChretien/sigmacv)",
+    },
+    next: { revalidate: 3600 },
+    timeoutMs: 12_000,
+  });
+}
+
 export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutput[]> {
   const bare = normalizeOrcid(orcid);
-  const url = new URL(DATACITE_API);
   // Match BOTH the URL form ("https://orcid.org/X") and the BARE form ("X") of the
   // ORCID nameIdentifier. The indexed value is matched verbatim, and depositors
   // register either — Zenodo, passing through a bare `.zenodo.json` orcid, stores
   // the bare form (scheme "ORCID"), so querying only the URL form silently misses
   // every such record. The bare ORCID is globally unique, so OR-ing both is safe.
   const field = "creators.nameIdentifiers.nameIdentifier";
-  url.searchParams.set("query", `(${field}:"https://orcid.org/${bare}" OR ${field}:"${bare}")`);
-  url.searchParams.set("page[size]", "100");
+  const byOrcid = `(${field}:"https://orcid.org/${bare}" OR ${field}:"${bare}")`;
 
   try {
-    const res = await resilientFetch(url, {
-      headers: {
-        Accept: "application/vnd.api+json",
-        // Polite-pool identification (shared convention across all clients).
-        "User-Agent": "SigmaCV (+https://github.com/BasileChretien/sigmacv)",
-      },
-      next: { revalidate: 3600 },
-      timeoutMs: 12_000,
-    });
+    let res = await requestDois(`${byOrcid} AND ${NOT_A_DATAVERSE_FILE}`);
+    // A 400 is DataCite refusing the query, and the wildcard clause is the only
+    // part it could refuse. The plain ORCID query still answers, and the files it
+    // brings back are dropped record by record below — but they take up the page
+    // again, so the refusal is logged rather than absorbed.
+    if (res.status === 400) {
+      logger.warn("datacite.file_clause_refused", { status: res.status });
+      res = await requestDois(byOrcid);
+    }
     if (!res.ok) throw new Error(`DataCite request failed (${res.status})`);
     const data = (await res.json()) as any;
     const out: DataciteOutput[] = [];
@@ -276,6 +350,8 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       const type = nonEmpty(attr?.types?.resourceTypeGeneral);
       const doi = nonEmpty(attr?.doi)?.toLowerCase();
       if (!type || !doi || !INCLUDE_TYPES.has(type) || seen.has(doi)) continue;
+      // One file of a deposit is not an output of its own — the deposit is.
+      if (isDepositFile(attr, doi)) continue;
       const title = nonEmpty(Array.isArray(attr?.titles) ? attr.titles[0]?.title : undefined);
       if (!title) continue;
       const publisher = publisherName(attr?.publisher);
@@ -291,6 +367,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
       const repositoryUrl = repositoryUrlOf(attr);
       const version = versionOf(attr);
       const license = licenseOf(attr);
+      const fileDois = fileDoisOf(attr, doi);
       out.push({
         doi,
         title,
@@ -303,6 +380,7 @@ export async function fetchDataciteOutputs(orcid: string): Promise<DataciteOutpu
         ...(repositoryUrl ? { repositoryUrl } : {}),
         ...(version ? { version } : {}),
         ...(license ? { license } : {}),
+        ...(fileDois.length ? { fileDois } : {}),
       });
     }
     return out;
