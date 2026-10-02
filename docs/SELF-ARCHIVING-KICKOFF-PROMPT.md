@@ -286,8 +286,7 @@ PR1 — SCOPE, EXACTLY
    (extend the existing tests, don't fork them), a source-grep test that
    /api/preview/render never imports the oaworks client.
 8. Verification loop: `npm run typecheck` -> `npm run coverage` (CI runs the
-   same command; the Windows workaround that used to stand here, excluding the
-   two bash backup-script test files, is no longer needed). Browser-verify the worklist
+   same command). Browser-verify the worklist
    on the dev server with a CV that has closed works (the owner's own).
 
 PR2 — SCOPE (after PR1 is merged AND deployed)

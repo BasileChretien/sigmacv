@@ -45,7 +45,7 @@ function writeDump(dir: string, name: string, bytes = 50_000, ageHours = 0): voi
 // precondition on any machine, and keeps a real rclone (and a real remote) out of
 // reach if a guard ever stopped holding.
 function runPastRcloneCheck(env: Record<string, string>): { code: number; out: string } {
-  return run({ ...stubCommand(backupDir(), "rclone"), ...env });
+  return run({ ...env, ...stubCommand(backupDir(), "rclone") });
 }
 
 // A skip is silent, and CI is the one place these are guaranteed to run.
