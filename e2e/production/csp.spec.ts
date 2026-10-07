@@ -397,7 +397,8 @@ test.describe("a path with no page behind it", () => {
       // that the browser then corrected would pass.
       if (inHtml) {
         const html = await response.text();
-        expect(html).toContain(`lang="${lang}"`);
+        // On the page's own element: the head's `hrefLang` links name languages too.
+        expect(html).toContain(`class="site-shell" lang="${lang}"`);
         expect(html).toContain(`<h1>${heading}</h1>`);
       }
       await expect(page.locator(".site-shell")).toHaveAttribute("lang", lang);

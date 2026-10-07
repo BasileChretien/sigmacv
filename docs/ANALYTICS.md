@@ -384,12 +384,15 @@ that sentence true:
    (`/Preview/0000-…`, `/cv/0000-…`, `/0000-…`). Such a visit is stored as
    `/Preview/_`, `/cv/_`, `/_`. The rule goes by shape: four groups of four
    digits (the last may be an X) joined by a hyphen, by nothing, or by a
-   percent-encoded hyphen, dash, minus sign or space. The form with its
-   separators is looked for first, so that digits standing in front of an iD
-   cannot take the match, and the two characters of a percent-escape are never
-   counted as digits. It has no checksum, so a run of sixteen digits or more
-   and `2024-2025-2026-2027` are cut as well, and it is not a guarantee: an iD
-   spelled some other way passes. Rows stored before this rule shipped
+   percent-encoded hyphen, dash, minus sign or space. What is cut is the whole
+   run of digits and such separators the iD stands in, not its sixteen digits
+   alone: `/x/9<iD>1`, `/x/2024-<iD>` and `/x/<iD>-1111-2222-3333` are all
+   stored as `/x/_`. Cutting sixteen digits out of a longer run left the rest
+   readable, and which sixteen depended on what was joined to the iD. A
+   percent-escape just in front of an iD is kept (`/x%20<iD>` is stored as
+   `/x%20_`) unless the iD could start inside it, in which case the iD wins. It
+   has no checksum, so sixteen digits in a row and `2024-2025-2026-2027` are
+   cut as well, and it is not a guarantee: an iD spelled some other way passes. Rows stored before this rule shipped
    (2026-10) are not touched by the purge below, which only knows `/preview/`;
    a read-only count on production on 2026-10-07 found none.
 2. **Rows that reached ClickHouse anyway are deleted by `scripts/deploy.sh` on

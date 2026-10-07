@@ -103,26 +103,87 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     }
   });
 
-  it("is not thrown off by digits that stand in front of the iD", () => {
-    const sent = (path: string) =>
-      boot().o!.transformRequest!({ u: `https://sigmacv.org${path}` }).u!.replace(
-        "https://sigmacv.org",
-        "",
-      );
-    // The separated form is looked for first. Otherwise the first sixteen
-    // digits of the run take the match, and the iD can be read in what is left.
-    expect(sent("/x/1234567890123450000-0002-1825-0097")).toBe("/x/123456789012345_");
-    expect(sent("/x/17283000000000000-0002-1825-0097")).toBe("/x/1728300000000_");
-    expect(sent("/x/90000-0002-1825-00971")).toBe("/x/9_1");
-    // Without separators nothing says where the iD starts: the whole run goes.
-    expect(sent("/x/1234567890123450000000218250097")).toBe("/x/_");
-    expect(sent("/x/123456789012345000000021694233X")).toBe("/x/_");
-    // The two characters of a percent-escape are not digits of the address:
-    // a space in front of an iD stays a space, and lends it no digit.
-    expect(sent("/x%200000000218250097")).toBe("/x%20_");
-    expect(sent("/x%200000-0002-1825-0097")).toBe("/x%20_");
-    expect(sent("/x%2F0000000218250097")).toBe("/x%2F_");
-    expect(sent("/a%2012-3456-7890-1234")).toBe("/a%2012-3456-7890-1234");
+  /** What is sent for `path` on the site, without the origin. */
+  const sentPath = (path: string) =>
+    boot().o!.transformRequest!({ u: `https://sigmacv.org${path}` }).u!.replace(
+      "https://sigmacv.org",
+      "",
+    );
+
+  it("cuts the whole run of digits an iD stands in, whatever is joined to it in front or behind", () => {
+    // Cutting sixteen digits out of a longer run leaves the rest to be read.
+    // Digits glued to the front took the match and left the iD…
+    expect(sentPath("/x/1234567890123450000-0002-1825-0097")).toBe("/x/_");
+    expect(sentPath("/x/17283000000000000-0002-1825-0097")).toBe("/x/_");
+    expect(sentPath("/x/90000-0002-1825-00971")).toBe("/x/_");
+    expect(sentPath("/x/1234567890123450000000218250097")).toBe("/x/_");
+    expect(sentPath("/x/123456789012345000000021694233X")).toBe("/x/_");
+    // …and so did groups joined to it by a separator.
+    expect(sentPath("/x/1234-5678-9012-0000-0002-1825-0097")).toBe("/x/_");
+    expect(sentPath("/cv/2024-0000-0002-1825-0097")).toBe("/cv/_");
+    // Behind it: an iD with no hyphens, or with some, followed by groups that
+    // have theirs, must not be taken from its last group on.
+    expect(sentPath("/x/0000000218250097-1111-2222-3333")).toBe("/x/_");
+    expect(sentPath("/x/0000-0002-18250097-1111-2222-3333")).toBe("/x/_");
+    expect(sentPath("/x/0000000218250097-0000-0001-5109-3700")).toBe("/x/_");
+    expect(sentPath("/x?ids=0000000218250097+0000-0001-5109-3700")).toBe("/x?ids=_");
+  });
+
+  it("takes a `%` in front of an iD for an escape only when the iD cannot start inside it", () => {
+    // A space, a non-breaking space or an encoded slash in front of an iD stays.
+    expect(sentPath("/x%200000-0002-1825-0097")).toBe("/x%20_");
+    expect(sentPath("/x%C2%A00000-0002-1825-0097")).toBe("/x%C2%A0_");
+    expect(sentPath("/x%2F0000000218250097")).toBe("/x%2F_");
+    // A bare `%`, or `%` and one digit, is no escape: every iD starts with
+    // `00`, so reading `%00` there would let the whole iD through.
+    expect(sentPath("/cv/%0000-0002-1825-0097")).toBe("/cv/%_");
+    expect(sentPath("/cv/%0000000218250097")).toBe("/cv/%_");
+    expect(sentPath("/cv/%0009-0001-2345-6789")).toBe("/cv/%_");
+    expect(sentPath("/x?id=%0000-0002-1825-0097%")).toBe("/x?id=%_%");
+    expect(sentPath("/cv/%20000-0002-1825-0097")).toBe("/cv/%_");
+    // When the digits after `%` could be either, the iD wins and the escape goes.
+    expect(sentPath("/x%200000000218250097")).toBe("/x%_");
+    expect(sentPath("/a%2012-3456-7890-1234")).toBe("/a%_");
+  });
+
+  it("leaves no twelve digits of an iD in a row, whatever stands around it and however it is spelled", () => {
+    const transform = boot().o!.transformRequest!;
+    const SEPARATORS = /-|[+]|%2D|%20|%E2%80%9[0-5]|%E2%88%92/gi;
+    const groups = ["0000", "0002", "1825", "0097"];
+    const spellings = ["-", "", "%2D", "%E2%80%93", "%E2%88%92", "%20", "+"].map((separator) =>
+      groups.join(separator),
+    );
+    const before = [
+      "",
+      "9",
+      "123456789012345",
+      "1234-5678-9012-",
+      "2024-",
+      "%",
+      "%2",
+      "%20",
+      "%C2%A0",
+      "x",
+      "-",
+      "=",
+    ];
+    const after = ["", "1", "-1111-2222-3333", "-0000-0001-5109-3700", "%20", "/x", "&a=1"];
+    const iDs = [groups.join(""), "0000000151093700"];
+    const leaks: string[] = [];
+    for (const b of before) {
+      for (const spelling of spellings) {
+        for (const a of after) {
+          const u = `https://sigmacv.org/x?v=${b}${spelling}${a}`;
+          const digits = transform({ u }).u!.replace(SEPARATORS, "");
+          for (const iD of iDs) {
+            for (let i = 0; i + 12 <= iD.length; i++) {
+              if (digits.includes(iD.slice(i, i + 12))) leaks.push(u);
+            }
+          }
+        }
+      }
+    }
+    expect([...new Set(leaks)]).toEqual([]);
   });
 
   it("goes by shape alone: it cuts too much rather than too little, and leaves shorter numbers", () => {
@@ -166,6 +227,29 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(transform({ u: "https://sigmacv.org/searching/for/x" }).u).toBe(
       "https://sigmacv.org/searching/for/x",
     );
+  });
+
+  it("finds the lookup's address past a host or a segment that only starts like it", () => {
+    const transform = boot().o!.transformRequest!;
+    const referred = (r: string) => transform({ u: "https://sigmacv.org/", r }).r;
+    // `//search.` in a search engine's own host is not `/search`: the rule has
+    // to go on to the real one, or the query stays in the referrer.
+    expect(referred("https://search.brave.com/search?q=jane+doe&source=web")).toBe(
+      "https://search.brave.com/search",
+    );
+    expect(referred("https://search.yahoo.co.jp/search?p=Jane+Doe")).toBe(
+      "https://search.yahoo.co.jp/search",
+    );
+    expect(transform({ u: "https://sigmacv.org/searching/search?q=Jane%20Doe" }).u).toBe(
+      "https://sigmacv.org/searching/search",
+    );
+    // The path form, in a referrer, on such a host and on any other.
+    expect(referred("https://search.example.org/search/Jane%20Doe")).toBe(
+      "https://search.example.org/search/_",
+    );
+    expect(referred("https://example.org/search/x/y")).toBe("https://example.org/search/_");
+    // A host that is the bare word is cut like the lookup: nothing of the name stays.
+    expect(referred("http://search/search?q=Jane+Doe")).toBe("http://search/_");
     // Not a lookup: a page whose path merely contains "search" keeps its query.
     expect(transform({ u: "https://sigmacv.org/research?x=1" }).u).toBe(
       "https://sigmacv.org/research?x=1",
