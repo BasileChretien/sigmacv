@@ -8,9 +8,12 @@ import { describe, expect, it } from "vitest";
 // data said 0.2.0 through the whole life of 0.3.0, and the registry kit still
 // said 0.1.0. Every file is read here, so a release that misses one is red.
 //
-// Not held here, because they can only be written once the release exists: the
-// versioned DOI Zenodo mints for it (CITATION.cff's identifiers) and the "how to
-// cite" lines that name a release beside its DOI (README, public/llms-full.txt).
+// Two things can only be written once the release exists: the versioned DOI
+// Zenodo mints for it (CITATION.cff's identifiers) and the "how to cite" lines
+// that name a release beside its DOI (README, public/llms-full.txt). They are
+// held by the second group below, against one another and not against
+// package.json: between a release and that follow-up they rightly still name the
+// release before.
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file: string): string => readFileSync(join(repoRoot, file), "utf8");
@@ -103,5 +106,51 @@ describe("release metadata", () => {
     expect(definition(pkg.version)).toBe(
       `[${pkg.version}]: ${repo}/compare/v${previous}...v${pkg.version}`,
     );
+  });
+});
+
+describe("how to cite", () => {
+  // The versioned DOIs in CITATION.cff, oldest first, each with the release its
+  // description names.
+  const minted = [
+    ...read("CITATION.cff").matchAll(
+      /^ {2}- type: doi\r?\n {4}value: "(10\.5281\/zenodo\.\d+)"\r?\n {4}description: Versioned DOI for the SigmaCV v(\d+\.\d+\.\d+) release\.\r?$/gm,
+    ),
+  ].map(([, doi, version]) => ({ doi, version }));
+  const newest = minted.at(-1);
+
+  it("has one versioned DOI per release in CITATION.cff, oldest first", () => {
+    const releases = sections.map((section) => section.version).reverse();
+    // The newest release has none until Zenodo has minted it.
+    expect([releases, releases.slice(0, -1)]).toContainEqual(minted.map((entry) => entry.version));
+    // No DOI twice; compared as lists, so a failure shows the one that repeats.
+    const dois = minted.map((entry) => entry.doi);
+    expect(dois).toEqual([...new Set(dois)]);
+  });
+
+  // public/llms-full.txt was missed by the follow-ups of 0.2.0 and 0.3.0, and
+  // cited v0.1.0 until 0.4.0.
+  it("names the newest release that has a DOI, in the README and in llms-full.txt", () => {
+    const readme = read("README.md");
+    const current =
+      /the current v(\d+\.\d+\.\d+) release itself is\s+\[(10\.5281\/zenodo\.\d+)\]\(https:\/\/doi\.org\/(10\.5281\/zenodo\.\d+)\)/.exec(
+        readme,
+      );
+    expect({
+      "README.md (the current release)": current?.[1],
+      "README.md (its DOI, as text)": current?.[2],
+      "README.md (its DOI, as link)": current?.[3],
+      "README.md (citation)": marker("README.md", /_SigmaCV_ \(v(\d+\.\d+\.\d+)\)\. Zenodo\./),
+      "public/llms-full.txt (citation)": marker(
+        "public/llms-full.txt",
+        /\*SigmaCV\* \(v(\d+\.\d+\.\d+)\)\. Zenodo\./,
+      ),
+    }).toEqual({
+      "README.md (the current release)": newest?.version,
+      "README.md (its DOI, as text)": newest?.doi,
+      "README.md (its DOI, as link)": newest?.doi,
+      "README.md (citation)": newest?.version,
+      "public/llms-full.txt (citation)": newest?.version,
+    });
   });
 });
