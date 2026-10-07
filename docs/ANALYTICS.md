@@ -384,11 +384,18 @@ that sentence true:
    (`/Preview/0000-…`, `/cv/0000-…`, `/0000-…`). Such a visit is stored as
    `/Preview/_`, `/cv/_`, `/_`. The rule goes by shape: four groups of four
    digits (the last may be an X) joined by a hyphen, by nothing, or by a
-   percent-encoded hyphen, dash or space. It has no checksum, so sixteen digits
-   in a row or `2024-2025-2026-2027` are cut as well, and it is not a
-   guarantee: an iD spelled some other way passes. Rows stored before this rule
-   shipped (2026-10) are not touched by the purge below, which only knows
-   `/preview/`.
+   percent-encoded hyphen, dash, minus sign or space. What is cut is the whole
+   run of digits and such separators the iD stands in (with an `x` that ends
+   it, the check character when it is an iD's), not its sixteen digits
+   alone: `/x/9<iD>1`, `/x/2024-<iD>` and `/x/<iD>-1111-2222-3333` are all
+   stored as `/x/_`. Cutting sixteen digits out of a longer run left the rest
+   readable, and which sixteen depended on what was joined to the iD. A
+   percent-escape just in front of an iD is kept (`/x%20<iD>` is stored as
+   `/x%20_`) unless the iD could start inside it, in which case the iD wins. It
+   has no checksum, so sixteen digits in a row and `2024-2025-2026-2027` are
+   cut as well, and it is not a guarantee: an iD spelled some other way passes. Rows stored before this rule shipped
+   (2026-10) are not touched by the purge below, which only knows `/preview/`;
+   a read-only count on production on 2026-10-07 found none.
 2. **Rows that reached ClickHouse anyway are deleted by `scripts/deploy.sh` on
    every deploy** (rows from before the scrub shipped, or from a client running
    an old stub). The two mutations are idempotent, so running them each deploy
@@ -433,9 +440,12 @@ path):
 | `Badge snippet copied` | `format`                                                                                     | a Living-CV badge snippet is copied                                                    |
 
 The pageview scrub in `src/lib/analytics/plausibleInit.ts` cuts `/preview/<iD>`
-to `/preview/_`, replaces an iD anywhere else in the address with `_`, and drops
-the query string from `/search?q=…` before the request leaves the browser, so
-neither a looked-up iD nor a name typed into the lookup reaches the collector.
+to `/preview/_`, replaces an iD anywhere else in the address with `_`, drops the
+query string from `/search?q=…`, and removes the see-it-first box's `who`
+parameter from the query of any page, before the request leaves the browser. So
+neither a looked-up iD nor a name given to the lookup or to the box reaches the
+collector. A 404 is sent with its path as typed: a name written as a path
+(`/search/Jane%20Doe`) is stored with it.
 
 They appear under **Goals / Custom events** in the Plausible dashboard once you
 add them there (Site settings → Goals → Custom event). No extra deploy needed —
