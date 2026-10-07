@@ -7,8 +7,21 @@ import type { OgImageProps } from "@/lib/cv/ogImage";
  * Σ watermark, and the SigmaCV wordmark. All display branching lives in the
  * tested `ogImageProps` helper; this is intentionally presentation-only JSX.
  *
- * Only default/system fonts are used — no remote font fetch — so the card stays
- * self-contained and fast (route comment explains the caching/rate limiting).
+ * No font is passed to next/og. It draws in the one it ships with (Geist), and
+ * for any glyph Geist lacks it goes to Google Fonts itself, when the card is
+ * rendered: for the Σ, set twice below, and for a name, headline or affiliation
+ * in a script Geist has not (Chinese, Japanese and Korean among them). The
+ * missing characters go out as a request's `text` parameter, and none of these
+ * requests carries an abort signal. A font it has loaded is kept, for the same
+ * characters, while the process lives.
+ *
+ * This is read from next/og's source, not seen on the network: `render`,
+ * `loadDynamicAsset`, `FontDetector.load` and `loadGoogleFont` in
+ * `node_modules/next/dist/compiled/@vercel/og/index.node.js` (Next 16.3.8). The
+ * control in `tests/og-card-offline.test.tsx` shows the request for a bare Σ.
+ * The site cards, drawn without their fonts, avoid it by drawing the Σ
+ * (`SigmaMark` in `ogCard.tsx`); this card does not. The route comment explains
+ * the caching and rate limiting.
  */
 
 const CV_OG_SIZE = { width: 1200, height: 630 };

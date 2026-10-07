@@ -209,7 +209,11 @@ const OG_TYPE: Record<Locale, { family: string; bundledFontDraws: boolean }> = {
  * `next build` a stall there holds the card until Next stops the build. So the
  * Σ, which the bundled font lacks, is drawn (`SigmaMark`), and a locale whose
  * script it lacks gets the English copy. `tests/og-card-offline.test.tsx` draws
- * all ten cards this way through the real next/og and fails on any request.
+ * all ten cards this way through the real next/og, with every request refused
+ * (a `data:` URL is let through: it reaches no network). It expects two requests
+ * and no more, both to fonts.googleapis.com and both carrying an abort signal:
+ * `loadOgFonts`'s own, the style sheet of each weight. A third request, one to
+ * another host or one with no signal fails it.
  *
  * A prerendered card is served until the next build, and nothing in a green
  * build shows which variant it is: each departure from the design is logged.

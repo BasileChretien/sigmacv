@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 /**
  * The site social cards (`src/app/ogCard.tsx` and the two `opengraph-image`
  * routes) are prerendered by `next build`, and their fonts come from Google Fonts
- * at that moment. Four things are pinned here:
+ * at that moment. Five things are pinned here:
  *
  *  - a font request that stalls is given up after 5 s and counts as a failure like
  *    any other, instead of holding the page until Next stops the build;
@@ -13,6 +13,8 @@ import { afterEach, describe, expect, it, vi } from "vitest";
  *    cards must not be taken for a stalled connection;
  *  - the fonts asked for cover every glyph the card draws. For a glyph they lack,
  *    next/og fetches a font from Google Fonts itself, with no time limit;
+ *  - each card asks for the family it is designed in, checked against a table
+ *    written out here and not against the one the card is drawn from;
  *  - a card whose fonts did not load asks next/og for nothing a font would have
  *    to be fetched for: the Σ is a drawing, and Chinese, Japanese and Korean give
  *    way to English. (`og-card-offline.test.tsx` draws those cards through the
@@ -97,6 +99,11 @@ function stubFetch(impl: FetchStub) {
 const text = (data: ArrayBuffer): string => new TextDecoder().decode(data);
 const signals = (f: ReturnType<typeof stubFetch>): AbortSignal[] =>
   f.mock.calls.map(([, init]) => init!.signal!);
+/** The `family` parameter of each style sheet asked for, in the order asked. */
+const familiesAsked = (f: ReturnType<typeof stubFetch>): (string | null)[] =>
+  f.mock.calls
+    .filter(([url]) => isStyleSheet(url))
+    .map(([url]) => new URL(url).searchParams.get("family"));
 
 describe("loadOgFonts", () => {
   it("returns the regular and the extra-bold subset, each from its style sheet", async () => {
@@ -349,20 +356,23 @@ function hosts(node: ReactNode, out: ReactElement[] = []): ReactElement[] {
   return hosts((node.props as { children?: ReactNode }).children, [...out, node]);
 }
 
+/** A drawn Σ: the shape of its `<svg>` and `<path>`, and how the path is painted. */
 interface SigmaDrawing {
   viewBox: string;
   d: string;
   strokeWidth: number;
   strokeLinejoin: string;
   strokeLinecap: string;
+  fill: string;
+  stroke: string;
 }
 
 const ICON = readFileSync("public/icon.svg", "utf8");
 const iconPath = (attribute: string): string =>
   new RegExp(`<path[^>]* ${attribute}="([^"]+)"`).exec(ICON)![1]!;
 
-/** The Σ of the favicon: the drawing a card without fonts uses in place of the glyph. */
-const ICON_SIGMA: SigmaDrawing = {
+/** The Σ of the favicon: the shape a card without fonts draws in place of the glyph. */
+const ICON_SIGMA: Omit<SigmaDrawing, "fill" | "stroke"> = {
   viewBox: /viewBox="([^"]+)"/.exec(ICON)![1]!,
   d: iconPath("d"),
   strokeWidth: Number(iconPath("stroke-width")),
@@ -370,14 +380,26 @@ const ICON_SIGMA: SigmaDrawing = {
   strokeLinecap: iconPath("stroke-linecap"),
 };
 
+/**
+ * The two such a card draws, with their paint written out. The path is open: it
+ * is a line, and takes no fill (SVG fills in black unless told otherwise). Each
+ * is the colour the glyph has on the designed card: white on the medallion,
+ * `ACCENT_600` on the CV mock.
+ */
+const DRAWN_SIGMAS: SigmaDrawing[] = [
+  { ...ICON_SIGMA, fill: "none", stroke: "#ffffff" },
+  { ...ICON_SIGMA, fill: "none", stroke: "#2b4fd6" },
+];
+
 /** Every Σ a tree draws: an `<svg>` and the one `<path>` in it. */
 function sigmaDrawings(element: unknown): SigmaDrawing[] {
   const all = hosts(element as ReactNode);
   return all.flatMap((host, i) => {
     if (host.type !== "svg") return [];
     const { viewBox } = host.props as { viewBox: string };
-    const { d, strokeWidth, strokeLinejoin, strokeLinecap } = all[i + 1]!.props as SigmaDrawing;
-    return [{ viewBox, d, strokeWidth, strokeLinejoin, strokeLinecap }];
+    const { d, strokeWidth, strokeLinejoin, strokeLinecap, fill, stroke } = all[i + 1]!
+      .props as SigmaDrawing;
+    return [{ viewBox, d, strokeWidth, strokeLinejoin, strokeLinecap, fill, stroke }];
   });
 }
 
@@ -393,6 +415,24 @@ const CARDS: Card[] = [
   ]),
 ];
 
+/**
+ * The Google Fonts family each card is designed in, written out: read off
+ * `OG_TYPE`, that table would be compared with itself, and a wrong family for a
+ * locale would pass.
+ */
+const DESIGNED_IN: Record<Locale, string> = {
+  "en-US": "Inter",
+  "zh-CN": "Noto Sans SC",
+  "es-ES": "Noto Sans",
+  "fr-FR": "Noto Sans",
+  "de-DE": "Noto Sans",
+  "ja-JP": "Noto Sans JP",
+  "pt-BR": "Noto Sans",
+  "it-IT": "Noto Sans",
+  "ko-KR": "Noto Sans KR",
+  "ru-RU": "Noto Sans",
+};
+
 /** Scripts the font bundled with next/og has no glyphs for. */
 const NOT_IN_BUNDLED_FONT: Locale[] = ["zh-CN", "ja-JP", "ko-KR"];
 
@@ -405,10 +445,10 @@ function expectCardFromDisk(locale: Locale): void {
   expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe("sans-serif");
 
   // That font has no Σ. It is drawn instead, on the medallion and on the CV
-  // mock, as `public/icon.svg` draws it.
+  // mock, in the shape `public/icon.svg` gives it: a line, in each one's colour.
   const words = drawn(element as ReactNode).join(" ");
   expect(words).not.toContain("Σ");
-  expect(sigmaDrawings(element)).toEqual([ICON_SIGMA, ICON_SIGMA]);
+  expect(sigmaDrawings(element)).toEqual(DRAWN_SIGMAS);
 
   // Nor has it Chinese, Japanese or Korean: those cards say it in English.
   const own = landingStrings(locale);
@@ -454,6 +494,39 @@ describe("the social cards", () => {
         const asked = new Set(new URL(url).searchParams.get("text")!);
         expect([...used].filter((glyph) => !asked.has(glyph))).toEqual([]);
       }
+    },
+  );
+
+  it.each(CARDS)(
+    "%s asks Google Fonts for the family it is designed in",
+    async (_path, locale, render) => {
+      const f = stubFetch(answers);
+      await render();
+
+      // The test above holds the card to the fonts it was handed, whatever their
+      // family. This one holds the family, in both weights' requests.
+      const family = DESIGNED_IN[locale];
+      expect(familiesAsked(f)).toEqual([`${family}:wght@400`, `${family}:wght@800`]);
+      const { element } = og.calls[0]!;
+      expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe(family);
+    },
+  );
+
+  it.each(["en", "xx"])(
+    "/%s, a slug that is not prerendered, is drawn in English, in Inter",
+    async (slug) => {
+      // `generateStaticParams` names neither: `en` is the default locale's own
+      // slug, and `xx` is no locale's. Handed either, the route draws the default
+      // locale's card, as `/` does.
+      expect(generateStaticParams()).not.toContainEqual({ locale: slug });
+      const f = stubFetch(answers);
+      await LocaleOpengraphImage({ params: Promise.resolve({ locale: slug }) });
+
+      expect(familiesAsked(f)).toEqual(["Inter:wght@400", "Inter:wght@800"]);
+      const { element } = og.calls[0]!;
+      expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe("Inter");
+      expect(drawn(element as ReactNode).join(" ")).toContain(landingStrings("en-US").heroTitle);
+      expect(logger.warn).not.toHaveBeenCalled();
     },
   );
 

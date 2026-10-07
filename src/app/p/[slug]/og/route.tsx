@@ -39,8 +39,10 @@ function ogResponse(bytes: Uint8Array, indexable: boolean): Response {
  * an unpublished CV's name). All display branching lives in the tested
  * `ogImageProps` helper; the layout JSX lives in the colocated `card.tsx`.
  *
- * Only default/system fonts are used — no remote font fetch — so the card stays
- * self-contained and fast. The robots posture mirrors the page route: the owner
+ * The card is handed no font, so next/og goes to Google Fonts, while this
+ * handler awaits the image, for any glyph its bundled font lacks: the Σ, and a
+ * name, headline or affiliation in a script that font has not (`card.tsx` says
+ * what was read, and where). The robots posture mirrors the page route: the owner
  * opts into indexing per-CV; otherwise the image stays noindex.
  */
 export async function GET(
