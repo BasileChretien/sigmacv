@@ -20,15 +20,19 @@ function parts(file: string): { header: string[]; body: string[] } {
   return { header: lines.slice(0, start), body: lines.slice(start) };
 }
 
+/** A line as a failure quotes it: cut short, since some run past a thousand characters. */
+const quoted = (line: string | undefined): string => `"${(line ?? "").slice(0, 80)}"`;
+
 /** Where the two bodies first part, in words a contributor can act on; SAME if nowhere. */
 function firstDifference(agents: string[], claude: string[]): string {
   for (let i = 0; i < Math.max(agents.length, claude.length); i++) {
     if (agents[i] === claude[i]) continue;
     const where = `body line ${i + 1}`;
     const fix = "Make the same edit in both files.";
-    if (i >= claude.length) return `AGENTS.md has an extra ${where}: "${agents[i]}". ${fix}`;
-    if (i >= agents.length) return `CLAUDE.md has an extra ${where}: "${claude[i]}". ${fix}`;
-    return `${where} differs. CLAUDE.md: "${claude[i]?.slice(0, 80)}". ${fix}`;
+    if (i >= claude.length) return `AGENTS.md has an extra ${where}: ${quoted(agents[i])}. ${fix}`;
+    if (i >= agents.length) return `CLAUDE.md has an extra ${where}: ${quoted(claude[i])}. ${fix}`;
+    // Both sides: a line added after the last one meets the other file's final empty line.
+    return `${where} differs. AGENTS.md: ${quoted(agents[i])}. CLAUDE.md: ${quoted(claude[i])}. ${fix}`;
   }
   return SAME;
 }
@@ -45,9 +49,12 @@ describe("AGENTS.md", () => {
   });
 
   // What stands above the shared body reaches one audience only. CLAUDE.md's part
-  // is pinned, so that guidance added there is added on purpose, here as well.
+  // is pinned, so that guidance added there is a deliberate edit of this test.
   it("leaves nothing but the title and one sentence above CLAUDE.md's shared body", () => {
-    expect(parts("CLAUDE.md").header).toEqual([
+    expect(
+      parts("CLAUDE.md").header,
+      "CLAUDE.md's header changed. If the new text is guidance, AGENTS.md's header needs it too; then update this list.",
+    ).toEqual([
       "# CLAUDE.md",
       "",
       "This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.",

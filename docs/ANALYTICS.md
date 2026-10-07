@@ -398,9 +398,11 @@ that sentence true:
    a read-only count on production on 2026-10-07 found none.
 
    Two of the stub's rules are not tied to the address they are named after, and
-   reach into a parameter's value. There the `/preview/` rule takes everything
-   up to the next `/`, `?` or `#`, the parameters behind it included, so
-   `/about?next=/preview/abc&utm_source=nl` is sent as `/about?next=/preview/_`.
+   reach into a parameter's value. The `/preview/` rule takes the first
+   `/preview/` it finds, there too, with everything up to the next `/`, `?` or
+   `#`, the parameters behind it included, so
+   `/about?next=/preview/abc&utm_source=nl` is sent as `/about?next=/preview/_`;
+   a second `/preview/` in the same address is left as it is.
    The `/search` rule, which drops the query string of the name lookup
    (`/search?q=…`), cuts from the `?` of the first `/search?` it finds, wherever
    that stands in the address, a parameter's value included, to the next `#`,
@@ -465,5 +467,5 @@ parameter from the query of any page, before the request leaves the browser. So
 neither a looked-up iD nor a name given to the lookup or to the box reaches the
 collector. A 404 is sent with its path as typed: a name written as a path
 (`/search/Jane%20Doe`) is stored with it. What the `/preview/` and `/search`
-rules take when they stand in a parameter's value is set out under "Preview
-paths are never stored", item 1.
+rules take from a parameter's value is set out under "Preview paths are never
+stored", item 1.
