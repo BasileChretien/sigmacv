@@ -7,6 +7,7 @@ Next.js 15 App Router: routes, server actions, and API handlers.
 - Marketing/legal pages (`page.tsx`, `about/`, `privacy/`) are mirrored under **`[locale]/`** for the ten locales; the bare versions default to en-US. `manifest.ts`, `robots.ts`, `opengraph-image.tsx` are the PWA/SEO surfaces.
 - **`cv/page.tsx`** — the protected editor (server component that loads the CV, then hands off to the client `CvWorkspace`). Gated by `proxy.ts` (the Next 16 rename of `middleware.ts`).
 - **`p/[slug]/route.ts`** — serves the living public CV page (re-syncs from sources).
+- **`fonts/inter.ts`** — the app-shell font (Inter), loaded with `next/font/local` from the files committed in `fonts/inter/`. Never add a font through `next/font/google`: it fetches Google's stylesheet on every build, and that fetch fails builds at random (vercel/next.js#99114). `tests/app-shell-font.test.ts` enforces it. The CV document's own fonts are a separate system (`src/lib/render/fonts/`).
 
 ## API (`app/api/**`)
 
