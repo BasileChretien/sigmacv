@@ -207,6 +207,33 @@ function collapseDataciteVersions(outputs: DataciteOutput[]): DataciteOutput[] {
   });
 }
 
+/** The DOIs (bare-lowercased) of the deposits themselves, DataCite's and
+ *  OpenAIRE's: what a file-level DOI can extend (see {@link extendsDepositDoi}). */
+function depositParentDois(
+  datacite: readonly DataciteOutput[],
+  openaire: readonly OpenaireOutput[],
+): Set<string> {
+  const out = new Set<string>();
+  for (const o of datacite) out.add(o.doi.toLowerCase());
+  for (const o of openaire) if (o.doi) out.add(o.doi.toLowerCase());
+  return out;
+}
+
+/**
+ * Whether `doi` is a deposit's DOI extended by a "/suffix" — the DOI Dataverse
+ * mints for one FILE of a dataset (`10.7910/dvn/hw9jqy/nkwscd` in
+ * `10.7910/dvn/hw9jqy`). A deposit's `fileDois` cannot be relied on alone: that
+ * Harvard dataset lists none of its 128 files, and another lists 5 of its 9
+ * (checked live, 2026-10-02). Both bare and lower-cased. Identifier only: the "/"
+ * boundary means `10.5281/zenodo.123` never extends `10.5281/zenodo.12`.
+ */
+function extendsDepositDoi(doi: string, parents: ReadonlySet<string>): boolean {
+  for (let i = doi.lastIndexOf("/"); i > 0; i = doi.lastIndexOf("/", i - 1)) {
+    if (parents.has(doi.slice(0, i))) return true;
+  }
+  return false;
+}
+
 /**
  * The DataCite/OpenAIRE deposit ENTRIES that feed the Datasets and Software
  * sections (split by recorded type afterwards — see {@link isSoftwareItem}).
@@ -225,12 +252,14 @@ function buildDepositEntries(
 ): CvItem[] {
   const items: CvItem[] = [];
   let rank = 0;
-  // DOIs DataCite covers — own + Zenodo concept↔version siblings — so an OpenAIRE
-  // record for ANY sibling is suppressed below (no cross-source duplicate).
+  // DOIs DataCite covers — own + Zenodo concept↔version siblings + the deposit's
+  // per-file DOIs — so an OpenAIRE record for ANY of them is suppressed below (no
+  // cross-source duplicate, and no line per file of a Dataverse dataset).
   const seenDois = new Set<string>();
   for (const o of outputs) {
     seenDois.add(o.doi.toLowerCase());
     for (const r of o.relatedDois ?? []) seenDois.add(r.toLowerCase());
+    for (const f of o.fileDois ?? []) seenDois.add(f.toLowerCase());
   }
   // One entry per deposit (concept DOI), not every version.
   const sorted = collapseDataciteVersions(outputs).sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
@@ -270,9 +299,12 @@ function buildDepositEntries(
       },
     });
   }
+  const parentDois = depositParentDois(outputs, openaireOutputs);
   const oaSorted = [...openaireOutputs].sort((a, b) => (b.year ?? 0) - (a.year ?? 0));
   for (const o of oaSorted) {
-    if (o.doi && seenDois.has(o.doi.toLowerCase())) continue; // DataCite already has it
+    const doi = o.doi?.toLowerCase();
+    if (doi && seenDois.has(doi)) continue; // DataCite already has it
+    if (doi && extendsDepositDoi(doi, parentDois)) continue; // one file of a deposit
     const id = `dataset:openaire:${o.openaireId.replace(/[^a-z0-9]+/gi, "-")}`;
     const it = makeEntryItem(
       id,
@@ -370,6 +402,12 @@ function isCarriableUserItem(it: CvItem): boolean {
   return it.source === "manual" || it.meta.claimed === true || it.meta.reviewFlag === "orcid-doi";
 }
 
+/** An ORCID-discovered review candidate the owner has not acted on: still hidden
+ *  as it was built, neither shown nor marked "not mine". */
+function isUntouchedCandidate(it: CvItem): boolean {
+  return it.meta.reviewFlag === "orcid-doi" && !it.included && !it.notMine;
+}
+
 /**
  * User-owned publication/preprint items the fresh pull didn't return (see
  * {@link isCarriableUserItem}). They must survive a re-sync: `mergeSection` only
@@ -433,10 +471,13 @@ function itemDois(items: readonly CvItem[]): Set<string> {
 
 /** Every DOI (bare-lowercased) that identifies a dataset/software deposit already
  *  surfaced as a Datasets or Software entry — each DataCite output's own DOI
- *  PLUS its Zenodo concept↔version siblings, and each OpenAIRE output's DOI. The
+ *  PLUS its Zenodo concept↔version siblings and the DOIs of its individual files
+ *  (Dataverse mints one per file), and each OpenAIRE output's DOI. The
  *  OpenAlex-indexed copy of such a deposit (which often carries the sibling DOI,
  *  Zenodo minting both a concept and per-version DOI) is then dropped from the
- *  works rather than mis-filed in Preprints or double-listed. */
+ *  works rather than mis-filed in Preprints or double-listed — and so is the work
+ *  OpenAlex makes of each file, titled with the file name, which would otherwise
+ *  list the dataset once per file. */
 function collectDatasetDepositDois(
   datacite: DataciteOutput[],
   openaire: OpenaireOutput[],
@@ -445,6 +486,7 @@ function collectDatasetDepositDois(
   for (const o of datacite) {
     if (o.doi) out.add(o.doi.toLowerCase());
     for (const r of o.relatedDois ?? []) out.add(r.toLowerCase());
+    for (const f of o.fileDois ?? []) out.add(f.toLowerCase());
   }
   for (const o of openaire) {
     if (o.doi) out.add(o.doi.toLowerCase());
@@ -2397,10 +2439,29 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   // deposit yet (then `openalexTypeClass` still keeps a dataset/software work out
   // of Preprints, in Datasets/Software or Other Research Outputs).
   const datasetDepositDois = collectDatasetDepositDois(dataciteOutputs, openaireOutputs);
-  const orderedDeduped = ordered.filter((it) => {
-    const doi = it.csl?.DOI?.toLowerCase();
-    return !(doi && datasetDepositDois.has(doi));
-  });
+  const parentDois = depositParentDois(dataciteOutputs, openaireOutputs);
+  /** Whether a DOI is already on the CV as a deposit entry: the deposit's own DOI,
+   *  a version sibling, or one of its files (listed by the deposit, or a DOI that
+   *  extends the deposit's — the work OpenAlex makes of a Dataverse file). */
+  const coveredByDeposit = (doi: string | undefined): boolean => {
+    const key = doi?.toLowerCase();
+    return Boolean(key) && (datasetDepositDois.has(key!) || extendsDepositDoi(key!, parentDois));
+  };
+  const orderedDeduped = ordered.filter((it) => !coveredByDeposit(it.csl?.DOI));
+  // The same holds for a candidate carried from the stored CV: an ORCID-discovered
+  // work the owner never acted on (still hidden, not "not mine") that a deposit
+  // entry now covers is dropped rather than kept as a second, file-named line to
+  // review. One the owner chose to show, or marked "not mine", is their decision
+  // and stays.
+  const carryFrom = previous && {
+    ...previous,
+    sections: previous.sections.map((s) => ({
+      ...s,
+      items: s.items.filter(
+        (it) => !(isUntouchedCandidate(it) && coveredByDeposit(it.csl?.DOI ?? it.meta.doi)),
+      ),
+    })),
+  };
 
   // Route every work into exactly ONE of Publications / Preprints / Other
   // Research Outputs. The default split is OpenAlex's `isPreprint` heuristic;
@@ -2424,7 +2485,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
           !softwareWorkIds.has(it.id) &&
           !preregistrationIds.has(it.id),
       ),
-      previous,
+      carryFrom,
       "publications",
       fetchedIds,
       fetchedDois,
@@ -2433,7 +2494,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const preprintItems = reindexItems(
     carryOverUserItems(
       orderedDeduped.filter((it) => preprintIds.has(it.id)),
-      previous,
+      carryFrom,
       "preprints",
       fetchedIds,
       fetchedDois,
@@ -2442,7 +2503,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const otherItems = reindexItems(
     carryOverUserItems(
       orderedDeduped.filter(isOtherOutput),
-      previous,
+      carryFrom,
       "other",
       fetchedIds,
       fetchedDois,
@@ -2451,7 +2512,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
   const preregItems = reindexItems(
     carryOverUserItems(
       orderedDeduped.filter((it) => preregistrationIds.has(it.id)),
-      previous,
+      carryFrom,
       "preregistrations",
       fetchedIds,
       fetchedDois,
@@ -2480,7 +2541,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
         ...it,
         order: i,
       })),
-      previous,
+      carryFrom,
       "datasets",
       fetchedIds,
       fetchedDois,
@@ -2493,7 +2554,7 @@ export function buildCanonicalCv(args: BuildArgs): CanonicalCv {
         ...it,
         order: i,
       })),
-      previous,
+      carryFrom,
       "software",
       fetchedIds,
       fetchedDois,

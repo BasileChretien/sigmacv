@@ -121,7 +121,11 @@ CI); it's **bus factor 1** plus **funding = your wallet**.
 
 - 🔁 Monthly: backup test-restore (§2 of the runbook), offsite freshness,
   dependency PRs (Dependabot), `docker compose pull` base-image refresh.
-- 🔁 Per OEP dataset release (~yearly): rebuild seed + `npm run oep:import`.
+- 🔁 Per OEP dataset release (~yearly): rebuild seed + `npm run oep:import`,
+  and update `OEP_SNAPSHOT` in `src/lib/oep/snapshot.ts` with the dates the
+  seed script prints. The site shows that date to researchers (Transparency
+  page, editor's Editorial Roles section) and says the data is refreshed about
+  once a year, so keep the rhythm or change the wording.
 - ⏳ Pending external replies (no action until they arrive): FAIRsharing /
   SciCrunch / RSD registry IDs → wire into CITATION.cff; Barcelona Declaration
   supporter listing; EPO OPS credential validation (reminder set 2026-06-15) →

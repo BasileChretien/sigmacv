@@ -2165,6 +2165,134 @@ describe("buildCanonicalCv — OpenAlex dataset/software routing & dedup", () =>
     expect(allItemsWithId(cv, "WOA")).toHaveLength(0);
   });
 
+  it("lists a Dataverse dataset once: the works made of its individual files are dropped", () => {
+    // Recherche Data Gouv (a Dataverse) mints a DOI per FILE. OpenAlex indexes each
+    // as a `dataset` work titled with the file name; the dataset's DataCite record
+    // names them all (`fileDois`), which is the only signal that they are files.
+    const dataset = "10.57745/k3cjow";
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [
+        typedWork("WFILE1", "10.57745/Q6YH0U", "dataset"), // PDO_taxo_kaiju.tab
+        typedWork("WFILE2", "10.57745/rsxbir", "dataset"), // all_bins_classification.tab
+        typedWork("WOTHER", "10.57745/dodrox", "dataset"), // another dataset, not a file
+      ],
+      // A file the owner's ORCID record lists: no candidate is made of it either.
+      orcidDiscoveredWorks: [typedWork("WFILE3", "10.57745/gogdgy", "dataset")],
+      dataciteOutputs: [
+        {
+          doi: dataset,
+          title: "Plant-based cheese analogues metagenomic survey (DOMINO)",
+          type: "Dataset",
+          year: 2026,
+          publisher: "Recherche Data Gouv",
+          fileDois: ["10.57745/q6yh0u", "10.57745/rsxbir", "10.57745/gogdgy", "10.57745/u65v9l"],
+        },
+      ] as unknown as DataciteOutput[],
+      openaireOutputs: [
+        { openaireId: "oai::file", title: "metadata_PBC_PDO.tab", type: "dataset", doi: "10.57745/U65V9L", year: 2026 }, // prettier-ignore
+      ] as unknown as OpenaireOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const dois = sectionOf(cv, "datasets")!.items.map((i) =>
+      (i.meta.doi ?? i.csl?.DOI)?.toLowerCase(),
+    );
+    expect(dois).toEqual([dataset, "10.57745/dodrox"]);
+    for (const id of ["WFILE1", "WFILE2", "WFILE3"]) {
+      expect(allItemsWithId(cv, id)).toHaveLength(0);
+    }
+    // The files were dropped, not moved to another section.
+    expect(cv.sections.flatMap((s) => s.items)).toHaveLength(2);
+  });
+
+  it("drops a file the dataset's record does not list, by its DOI extending the dataset's", () => {
+    // Harvard Dataverse 10.7910/dvn/hw9jqy names none of its 128 files (live,
+    // 2026-10-02), yet OpenAlex indexes them. The file DOI is the dataset's + "/…".
+    const cv = buildCanonicalCv({
+      id: "cv",
+      resolved,
+      works: [
+        typedWork("WHFILE", "10.7910/DVN/HW9JQY/NKWSCD", "dataset"), // NetworkStructure_FirmSort.tab
+        typedWork("WNEAR", "10.7910/dvn/hw9jqyz", "dataset"), // begins the same, no "/" → kept
+      ],
+      dataciteOutputs: [
+        { doi: "10.7910/dvn/hw9jqy", title: "Replication Data", type: "Dataset", year: 2019, publisher: "Harvard Dataverse" }, // prettier-ignore
+      ] as unknown as DataciteOutput[],
+      openaireOutputs: [
+        { openaireId: "oai::hfile", title: "readme.txt", type: "dataset", doi: "10.7910/DVN/HW9JQY/BWW5ZC", year: 2019 }, // prettier-ignore
+        { openaireId: "oai::set", title: "Field notes", type: "dataset", doi: "10.7910/dvn/zzz111", year: 2019 }, // prettier-ignore
+        { openaireId: "oai::sfile", title: "notes.pdf", type: "dataset", doi: "10.7910/dvn/zzz111/aaa", year: 2019 }, // prettier-ignore
+      ] as unknown as OpenaireOutput[],
+      now: "2026-06-02T00:00:00.000Z",
+    });
+    const dois = sectionOf(cv, "datasets")!.items.map((i) =>
+      (i.meta.doi ?? i.csl?.DOI)?.toLowerCase(),
+    );
+    expect(dois.sort()).toEqual(["10.7910/dvn/hw9jqy", "10.7910/dvn/hw9jqyz", "10.7910/dvn/zzz111"]); // prettier-ignore
+    expect(allItemsWithId(cv, "WHFILE")).toHaveLength(0);
+  });
+
+  describe("a stored ORCID-discovered candidate that is a file of a deposit", () => {
+    const fileDoi = "10.57745/gogdgy";
+    const deposit = {
+      doi: "10.57745/k3cjow",
+      title: "Plant-based cheese analogues metagenomic survey (DOMINO)",
+      type: "Dataset",
+      year: 2026,
+      fileDois: [fileDoi],
+    };
+    // First sync, before the fix: the file arrives as a hidden review candidate.
+    const stored = () =>
+      buildCanonicalCv({
+        id: "cv",
+        resolved,
+        works: [],
+        orcidDiscoveredWorks: [typedWork("WCAND", fileDoi, "dataset")],
+        now: "2026-06-01T00:00:00.000Z",
+      });
+    const curate = (cv: ReturnType<typeof build>, patch: Record<string, unknown>) => ({
+      ...cv,
+      sections: cv.sections.map((s) => ({
+        ...s,
+        items: s.items.map((it) => (it.id === "WCAND" ? { ...it, ...patch } : it)),
+      })),
+    });
+    const resync = (previous: ReturnType<typeof build>) =>
+      buildCanonicalCv({
+        id: "cv",
+        resolved,
+        works: [],
+        dataciteOutputs: [deposit] as unknown as DataciteOutput[],
+        previous,
+        now: "2026-06-02T00:00:00.000Z",
+      });
+
+    it("is hidden and flagged when first stored", () => {
+      const cand = allItemsWithId(stored(), "WCAND")[0]!;
+      expect(cand.included).toBe(false);
+      expect(cand.meta.reviewFlag).toBe("orcid-doi");
+    });
+
+    it("is not carried over once the dataset covers it, if the owner never acted on it", () => {
+      const cv = resync(stored());
+      expect(allItemsWithId(cv, "WCAND")).toHaveLength(0);
+      expect(sectionOf(cv, "datasets")!.items).toHaveLength(1);
+    });
+
+    it("stays when the owner chose to show it", () => {
+      const cv = resync(curate(stored(), { included: true }) as ReturnType<typeof build>);
+      expect(allItemsWithId(cv, "WCAND")).toHaveLength(1);
+    });
+
+    it("stays, hidden, when the owner marked it not mine", () => {
+      const cv = resync(curate(stored(), { notMine: true }) as ReturnType<typeof build>);
+      const kept = allItemsWithId(cv, "WCAND");
+      expect(kept).toHaveLength(1);
+      expect(kept[0]!.notMine).toBe(true);
+    });
+  });
+
   it("preserves a user-hidden OpenAlex dataset (Datasets & Software) item across re-sync", () => {
     const first = buildCanonicalCv({
       id: "cv",

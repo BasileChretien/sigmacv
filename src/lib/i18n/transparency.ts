@@ -38,6 +38,10 @@ export interface TransparencyStrings {
   coverageBody: string;
   refreshHeading: string;
   refreshBody: string;
+  /** The one source that is NOT live: Open Editors Plus, a dataset loaded about
+   *  once a year. `{date}` is the month its edition was collected
+   *  (`oepSnapshotDate`, from `lib/oep/snapshot.ts`). */
+  refreshSnapshot: string;
   logHeading: string;
   logBody: string;
   controlHeading: string;
@@ -100,6 +104,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "How often it refreshes",
     refreshBody:
       "Your working CV updates whenever you re-sync. A CV you publish as a living page re-syncs from the sources automatically on a regular schedule, so it stays current without any action from you — and you can trigger a refresh yourself at any time.",
+    refreshSnapshot:
+      "One source is not live. Editorial roles come from Open Editors Plus, a dataset read from the journals' own websites; the edition SigmaCV uses was collected around {date}, and a new one is loaded about once a year. An editorial role that began since then will not show, and one that ended will still show, until the next edition. You can add or hide a role yourself at any time.",
     logHeading: "What we log",
     logBody:
       "By default, nothing about how you use the app. Optional, consent-gated research logging (for studies on author disambiguation and CV composition) stays switched off until an ethics/IRB protocol is in place, and only records anything after you explicitly opt in. Site analytics are cookieless, first-party and aggregate-only — they never profile individuals.",
@@ -149,6 +155,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "它多久刷新一次",
     refreshBody:
       "每当你重新同步时，你的工作简历都会更新。你作为动态页面发布的简历会按固定计划自动从来源重新同步，因此无需你做任何操作即可保持最新——而且你随时可以自行触发刷新。",
+    refreshSnapshot:
+      "有一个来源不是实时的。编辑角色来自 Open Editors Plus，这是一个从各期刊网站采集的数据集；SigmaCV 目前使用的版本采集于{date}前后，大约每年载入一次新版本。此后开始的编辑角色要到下一版才会出现，此后结束的则会继续显示到下一版。你随时可以自行添加或隐藏某个角色。",
     logHeading: "我们记录什么",
     logBody:
       "默认情况下，关于你如何使用应用的内容一概不记录。可选的、需经同意的研究记录（用于作者消歧和简历构成的研究）在伦理／IRB 方案到位之前一直处于关闭状态，并且只有在你明确选择加入之后才会记录任何内容。站点分析是无 Cookie 的、第一方的，且仅为聚合数据——它们绝不会对个人进行画像。",
@@ -205,6 +213,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "Con qué frecuencia se actualiza",
     refreshBody:
       "Tu CV de trabajo se actualiza cada vez que vuelves a sincronizar. Un CV que publicas como página viva se resincroniza desde las fuentes automáticamente según una programación regular, de modo que se mantiene al día sin que hagas nada, y puedes lanzar una actualización tú mismo en cualquier momento.",
+    refreshSnapshot:
+      "Una fuente no es en tiempo real. Las funciones editoriales proceden de Open Editors Plus, un conjunto de datos recogido de los sitios web de las propias revistas; la edición que usa SigmaCV se recogió hacia {date}, y se carga una nueva aproximadamente una vez al año. Una función editorial que haya empezado desde entonces no aparecerá, y una que haya terminado seguirá apareciendo, hasta la siguiente edición. Puedes añadir u ocultar una función tú mismo en cualquier momento.",
     logHeading: "Qué registramos",
     logBody:
       "Por defecto, nada sobre cómo usas la aplicación. El registro de investigación opcional y sujeto a consentimiento (para estudios sobre desambiguación de autores y composición de CV) permanece desactivado hasta que exista un protocolo ético/IRB, y solo registra algo después de que lo aceptes explícitamente. La analítica del sitio es sin cookies, de origen propio y solo agregada: nunca perfila a personas.",
@@ -260,6 +270,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "À quelle fréquence il se met à jour",
     refreshBody:
       "Votre CV de travail se met à jour à chaque resynchronisation. Un CV que vous publiez en page vivante se resynchronise depuis les sources automatiquement selon un calendrier régulier, et reste donc à jour sans aucune action de votre part — et vous pouvez déclencher une mise à jour vous-même à tout moment.",
+    refreshSnapshot:
+      "Une source n'est pas en temps réel. Les rôles éditoriaux proviennent d'Open Editors Plus, un jeu de données relevé sur les sites des revues elles-mêmes ; l'édition utilisée par SigmaCV a été collectée vers {date}, et une nouvelle est chargée environ une fois par an. Un rôle éditorial commencé depuis n'apparaîtra pas, et un rôle terminé restera affiché, jusqu'à l'édition suivante. Vous pouvez à tout moment ajouter ou masquer un rôle vous-même.",
     logHeading: "Ce que nous enregistrons",
     logBody:
       "Par défaut, rien sur la façon dont vous utilisez l'application. La journalisation de recherche facultative et soumise au consentement (pour des études sur la désambiguïsation des auteurs et la composition des CV) reste désactivée tant qu'un protocole éthique/IRB n'est pas en place, et n'enregistre quoi que ce soit qu'après votre accord explicite. Les statistiques du site sont sans cookies, propriétaires et uniquement agrégées — elles ne profilent jamais les individus.",
@@ -315,6 +327,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "Wie oft er aktualisiert wird",
     refreshBody:
       "Dein Arbeits-Lebenslauf wird bei jeder Resynchronisierung aktualisiert. Ein als lebende Seite veröffentlichter Lebenslauf synchronisiert sich automatisch nach einem regelmäßigen Zeitplan erneut mit den Quellen und bleibt so ohne dein Zutun aktuell – und du kannst jederzeit selbst eine Aktualisierung auslösen.",
+    refreshSnapshot:
+      "Eine Quelle ist nicht live. Redaktionelle Rollen stammen aus Open Editors Plus, einem Datensatz, der direkt den Websites der Zeitschriften entnommen wird; die von SigmaCV verwendete Fassung wurde etwa im {date} erhoben, und ungefähr einmal im Jahr wird eine neue geladen. Eine redaktionelle Rolle, die seither begonnen hat, erscheint erst mit der nächsten Fassung, und eine, die geendet hat, wird bis dahin weiter angezeigt. Du kannst eine Rolle jederzeit selbst hinzufügen oder ausblenden.",
     logHeading: "Was wir protokollieren",
     logBody:
       "Standardmäßig nichts darüber, wie du die App nutzt. Die optionale, einwilligungsgebundene Forschungsprotokollierung (für Studien zur Autoren-Disambiguierung und zur Zusammenstellung von Lebensläufen) bleibt ausgeschaltet, bis ein Ethik-/IRB-Protokoll vorliegt, und zeichnet erst nach deiner ausdrücklichen Zustimmung etwas auf. Die Website-Analyse ist cookielos, eigenbetrieben und ausschließlich aggregiert – sie erstellt nie Profile von Einzelpersonen.",
@@ -367,6 +381,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "更新の頻度",
     refreshBody:
       "作業中の CV は、あなたが再同期するたびに更新されます。ライブページとして公開した CV は、定期的なスケジュールで自動的に情報源から再同期されるため、あなたが何もしなくても最新の状態に保たれます——また、いつでも自分で更新を実行できます。",
+    refreshSnapshot:
+      "情報源のうち1つはリアルタイムではありません。編集者としての役割は Open Editors Plus に基づいています。これは各ジャーナルのウェブサイトから収集されたデータセットです。SigmaCV が現在使っている版は{date}頃に収集されたもので、およそ年1回、新しい版に入れ替えます。それ以降に始まった役割は、次の版まで表示されません。終了した役割は、次の版まで表示されたままになります。役割はいつでも自分で追加したり非表示にしたりできます。",
     logHeading: "私たちが記録するもの",
     logBody:
       "既定では、あなたのアプリの使い方については何も記録しません。任意で同意が必要な研究ログ（著者の名寄せと CV 構成に関する研究のため）は、倫理／IRB の手続きが整うまでオフのままであり、あなたが明示的に同意した後にのみ記録します。サイトの分析は Cookie を使わず、ファーストパーティで集計のみ——個人をプロファイリングすることは決してありません。",
@@ -423,6 +439,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "Com que frequência é atualizado",
     refreshBody:
       "Seu currículo de trabalho é atualizado sempre que você sincroniza novamente. Um currículo que você publica como página viva ressincroniza das fontes automaticamente em uma programação regular, mantendo-se atual sem nenhuma ação sua — e você pode disparar uma atualização por conta própria a qualquer momento.",
+    refreshSnapshot:
+      "Uma fonte não é em tempo real. As funções editoriais vêm do Open Editors Plus, um conjunto de dados coletado nos sites dos próprios periódicos; a edição usada pelo SigmaCV foi coletada por volta de {date}, e uma nova é carregada cerca de uma vez por ano. Uma função editorial iniciada desde então não aparecerá, e uma encerrada continuará aparecendo, até a edição seguinte. Você pode adicionar ou ocultar uma função por conta própria a qualquer momento.",
     logHeading: "O que registramos",
     logBody:
       "Por padrão, nada sobre como você usa o aplicativo. O registro de pesquisa opcional e sujeito a consentimento (para estudos sobre desambiguação de autores e composição de currículos) permanece desligado até que exista um protocolo ético/IRB e só registra algo depois que você optar explicitamente por participar. A análise do site é sem cookies, de origem própria e apenas agregada — nunca cria perfis de indivíduos.",
@@ -477,6 +495,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "Con quale frequenza si aggiorna",
     refreshBody:
       "Il tuo CV di lavoro si aggiorna ogni volta che esegui una nuova sincronizzazione. Un CV che pubblichi come pagina viva si risincronizza dalle fonti automaticamente secondo una pianificazione regolare, restando così aggiornato senza alcuna azione da parte tua — e puoi avviare un aggiornamento tu stesso in qualsiasi momento.",
+    refreshSnapshot:
+      "Una fonte non è in tempo reale. I ruoli editoriali provengono da Open Editors Plus, un dataset ricavato dai siti delle riviste stesse; l'edizione usata da SigmaCV è stata raccolta intorno al mese di {date}, e ne viene caricata una nuova circa una volta all'anno. Un ruolo editoriale iniziato da allora non comparirà, e uno concluso continuerà a comparire, fino all'edizione successiva. Puoi aggiungere o nascondere un ruolo tu stesso in qualsiasi momento.",
     logHeading: "Cosa registriamo",
     logBody:
       "Per impostazione predefinita, nulla su come usi l'applicazione. La registrazione a fini di ricerca, facoltativa e soggetta a consenso (per studi sulla disambiguazione degli autori e sulla composizione dei CV), resta disattivata finché non esiste un protocollo etico/IRB e registra qualcosa solo dopo che hai aderito esplicitamente. Le statistiche del sito sono senza cookie, di prima parte e solo aggregate — non profilano mai le persone.",
@@ -529,6 +549,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "얼마나 자주 갱신되는가",
     refreshBody:
       "작업 중인 CV는 다시 동기화할 때마다 갱신됩니다. 살아 있는 페이지로 게시한 CV는 정기적인 일정에 따라 출처에서 자동으로 다시 동기화되어, 당신이 아무 작업을 하지 않아도 최신 상태로 유지됩니다 — 그리고 언제든지 직접 갱신을 실행할 수 있습니다.",
+    refreshSnapshot:
+      "실시간이 아닌 출처가 하나 있습니다. 편집 역할은 각 학술지 웹사이트에서 수집한 데이터셋인 Open Editors Plus에서 가져옵니다. SigmaCV가 사용하는 판은 {date} 무렵에 수집되었으며, 약 1년에 한 번 새 판으로 교체됩니다. 그 이후에 시작된 편집 역할은 다음 판까지 표시되지 않고, 종료된 역할은 다음 판까지 그대로 표시됩니다. 역할은 언제든지 직접 추가하거나 숨길 수 있습니다.",
     logHeading: "우리가 기록하는 것",
     logBody:
       "기본적으로, 당신이 앱을 어떻게 사용하는지에 대해서는 아무것도 기록하지 않습니다. 선택적이고 동의가 필요한 연구 기록(저자 식별 모호성 해소 및 CV 구성에 관한 연구를 위한)은 윤리/IRB 프로토콜이 마련될 때까지 꺼져 있으며, 당신이 명시적으로 동의한 후에만 무언가를 기록합니다. 사이트 분석은 쿠키를 사용하지 않고, 자체적이며, 집계 전용입니다 — 결코 개인을 프로파일링하지 않습니다.",
@@ -585,6 +607,8 @@ const TRANSPARENCY_I18N: Record<Locale, TransparencyStrings> = {
     refreshHeading: "Как часто оно обновляется",
     refreshBody:
       "Ваше рабочее резюме обновляется при каждой повторной синхронизации. Резюме, опубликованное как «живая» страница, автоматически повторно синхронизируется из источников по регулярному расписанию, поэтому остаётся актуальным без каких-либо действий с вашей стороны — и вы можете запустить обновление сами в любой момент.",
+    refreshSnapshot:
+      "Один источник не обновляется в реальном времени. Редакционные роли берутся из Open Editors Plus — набора данных, собранного с сайтов самих журналов; примерная дата сбора версии, которую использует SigmaCV, — {date}, а новая загружается примерно раз в год. Редакционная роль, начавшаяся позже, появится только в следующей версии, а завершившаяся будет отображаться до её выхода. Вы можете в любой момент самостоятельно добавить или скрыть роль.",
     logHeading: "Что мы регистрируем",
     logBody:
       "По умолчанию — ничего о том, как вы пользуетесь приложением. Необязательная регистрация для исследований, требующая согласия (для исследований по разрешению неоднозначности авторов и составу резюме), остаётся отключённой до тех пор, пока не появится этический протокол/IRB, и записывает что-либо только после вашего явного согласия. Аналитика сайта не использует cookie, является собственной и только агрегированной — она никогда не профилирует отдельных людей.",
