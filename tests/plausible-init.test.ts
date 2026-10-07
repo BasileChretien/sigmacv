@@ -95,9 +95,34 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
       // Spaces, as a path encodes them and as a form does.
       "0000%200002%201825%200097",
       "0000+0002+1825+0097",
+      // A minus sign, what a hyphen becomes in a PDF set in maths mode.
+      "0000%E2%88%920002%E2%88%921825%E2%88%920097",
+      "0000%e2%88%920002%e2%88%921825%e2%88%920097",
     ]) {
       expect(sent(path), path).toBe("https://sigmacv.org/x/_");
     }
+  });
+
+  it("is not thrown off by digits that stand in front of the iD", () => {
+    const sent = (path: string) =>
+      boot().o!.transformRequest!({ u: `https://sigmacv.org${path}` }).u!.replace(
+        "https://sigmacv.org",
+        "",
+      );
+    // The separated form is looked for first. Otherwise the first sixteen
+    // digits of the run take the match, and the iD can be read in what is left.
+    expect(sent("/x/1234567890123450000-0002-1825-0097")).toBe("/x/123456789012345_");
+    expect(sent("/x/17283000000000000-0002-1825-0097")).toBe("/x/1728300000000_");
+    expect(sent("/x/90000-0002-1825-00971")).toBe("/x/9_1");
+    // Without separators nothing says where the iD starts: the whole run goes.
+    expect(sent("/x/1234567890123450000000218250097")).toBe("/x/_");
+    expect(sent("/x/123456789012345000000021694233X")).toBe("/x/_");
+    // The two characters of a percent-escape are not digits of the address:
+    // a space in front of an iD stays a space, and lends it no digit.
+    expect(sent("/x%200000000218250097")).toBe("/x%20_");
+    expect(sent("/x%200000-0002-1825-0097")).toBe("/x%20_");
+    expect(sent("/x%2F0000000218250097")).toBe("/x%2F_");
+    expect(sent("/a%2012-3456-7890-1234")).toBe("/a%2012-3456-7890-1234");
   });
 
   it("goes by shape alone: it cuts too much rather than too little, and leaves shorter numbers", () => {
@@ -106,8 +131,6 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(sent("https://sigmacv.org/guides/2024-2025-2026-2027")).toBe(
       "https://sigmacv.org/guides/_",
     );
-    // No word boundary: an iD glued to other digits is still cut out of them.
-    expect(sent("https://sigmacv.org/x/90000-0002-1825-00971")).toBe("https://sigmacv.org/x/9_1");
     // Other numbers stay: three groups, a slug, a ROR id, a millisecond timestamp.
     for (const u of [
       "https://sigmacv.org/guides/2024-2025-2026-cv",
@@ -130,6 +153,18 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     // Another case is a 404, and a 404 is counted too: the name goes all the same.
     expect(transform({ u: "https://sigmacv.org/Search?q=Jane%20Doe" }).u).toBe(
       "https://sigmacv.org/Search",
+    );
+    // So is a name written as a path under the lookup. It is cut to `_`, not
+    // away, so that the 404 is not counted as a visit to the lookup itself.
+    expect(transform({ u: "https://sigmacv.org/search/Jane%20Doe" }).u).toBe(
+      "https://sigmacv.org/search/_",
+    );
+    expect(transform({ u: "https://sigmacv.org/fr/search/Jane/Doe?q=Jane%20Doe#top" }).u).toBe(
+      "https://sigmacv.org/fr/search/_#top",
+    );
+    // Not the lookup: a longer word that starts the same way keeps its path.
+    expect(transform({ u: "https://sigmacv.org/searching/for/x" }).u).toBe(
+      "https://sigmacv.org/searching/for/x",
     );
     // Not a lookup: a page whose path merely contains "search" keeps its query.
     expect(transform({ u: "https://sigmacv.org/research?x=1" }).u).toBe(
