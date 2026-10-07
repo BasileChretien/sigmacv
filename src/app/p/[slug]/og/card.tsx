@@ -28,9 +28,8 @@ import type { OgImageProps } from "@/lib/cv/ogImage";
  * Read in the loader and not held by a test (`loadDynamicAsset` and `loadEmoji`
  * in `node_modules/next/dist/compiled/@vercel/og/index.node.js`, Next 16.3.8):
  * the empty result of 2 is kept under the characters asked for while the
- * process lives, so one such answer for the Σ alone leaves every card that
- * lacks nothing else without it until a restart; and `loadEmoji` does not look
- * at the status, so an error answer to 4 is not a refusal.
+ * process lives; and `loadEmoji` does not look at the status, so an error
+ * answer to 4 is not a refusal.
  *
  * The site cards, drawn without their fonts, draw the Σ instead (`SigmaMark` in
  * `ogCard.tsx`). The route comment explains the caching and rate limiting.
