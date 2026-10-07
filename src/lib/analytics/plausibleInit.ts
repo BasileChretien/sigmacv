@@ -5,8 +5,9 @@
  * `window.plausible(...)` calls made before the async script loads, and an
  * `init` that stores the options for the real script to pick up) PLUS one
  * option: a `transformRequest` that, before the request leaves the browser,
- *  - rewrites `/preview/<ORCID>` to `/preview/_` and drops the query string from
- *    `/search?q=<name>` in the payload's URL (`u`) and referrer (`r`);
+ *  - rewrites `/preview/<ORCID>` to `/preview/_`, drops the query string from
+ *    `/search?q=<name>`, and drops the `who` parameter from any page, in the
+ *    payload's URL (`u`) and referrer (`r`);
  *  - keeps only the origin of a URL an event carries (`p.url` — the clicked link
  *    of an outbound-link event): `https://doi.org/10.1234/x` becomes
  *    `https://doi.org`, user info dropped.
@@ -18,6 +19,11 @@
  * never reaches the analytics origin at all. The name lookup's query is the same
  * kind of thing: Plausible discards query strings before storing, but the typed
  * name would still cross the wire to the collector, so it is cut here too.
+ * `who` is that same name or iD once more: it is the see-it-first box's field,
+ * and a box submitted before its script has run reloads its own page as
+ * `…?who=<what was typed>` (the same URL sits in browser histories from the
+ * months that box had no script on the guides). Only that parameter goes, since
+ * Plausible reads `utm_*`, `ref` and `source` off the same query string.
  * Outbound-link tracking is switched on in the site's Plausible configuration
  * (read off the live `pa-*.js` on 2026-09-15), and its event carries the clicked
  * URL: a click on the owner worklist's ShareYourPaper link, or on any DOI, ORCID
@@ -34,9 +40,12 @@ export const PLAUSIBLE_INIT_SCRIPT =
   "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)}," +
   "plausible.init=plausible.init||function(i){plausible.o=i||{}};" +
   "plausible.init({transformRequest:function(p){" +
-  "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)[?][^#]*/," +
+  "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)[?][^#]*/,rw=/([?&])who=[^&#]*/g," +
   "ou=/^([a-z][a-z0-9+.-]*:[/][/])(?:[^/?#@]*@)?([^/?#]*).*$/i;" +
-  'if(p&&typeof p.u==="string")p.u=p.u.replace(re,"/preview/_").replace(rs,"$1");' +
-  'if(p&&typeof p.r==="string")p.r=p.r.replace(re,"/preview/_").replace(rs,"$1");' +
+  // `who` out, then the `&&`, or the `?`/`&` left dangling, where it stood.
+  'function s(v){var w=v.replace(re,"/preview/_").replace(rs,"$1"),x=w.replace(rw,"$1");' +
+  'return x===w?w:x.replace(/([?&])&+/g,"$1").replace(/[?&](#|$)/,"$1")}' +
+  'if(p&&typeof p.u==="string")p.u=s(p.u);' +
+  'if(p&&typeof p.r==="string")p.r=s(p.r);' +
   'if(p&&p.p&&typeof p.p.url==="string")p.p.url=p.p.url.replace(ou,"$1$2");' +
   "return p}})";

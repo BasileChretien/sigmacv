@@ -67,6 +67,45 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(transform({ u: "https://sigmacv.org/search" }).u).toBe("https://sigmacv.org/search");
   });
 
+  it("drops what was typed into the see-it-first box when the form fell back to a GET (?who=)", () => {
+    // Submitted before the page's script runs, the box reloads its own page as
+    // `…?who=<name or iD>`; that URL also sits in histories from the months the
+    // box had no script at all. It must not reach the collector from any page.
+    const transform = boot().o!.transformRequest!;
+    const out = transform({
+      u: "https://sigmacv.org/guides/how-to-write-an-academic-cv?who=Jane+Doe#top",
+      r: "https://sigmacv.org/fr/orcid-to-cv?who=0000-0002-1825-0097",
+    });
+    expect(out.u).toBe("https://sigmacv.org/guides/how-to-write-an-academic-cv#top");
+    expect(out.r).toBe("https://sigmacv.org/fr/orcid-to-cv");
+    expect(transform({ u: "https://sigmacv.org/?who=Jane%20Doe" }).u).toBe("https://sigmacv.org/");
+
+    // The campaign parameters Plausible reads stay, wherever `who` sits.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x&utm_source=nl&ref=a" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl&ref=a",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl&who=x&ref=a" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl&ref=a",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl&who=x#top" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl#top",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?who=a&who=b" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    // An empty value, and a parameter that merely starts or ends with "who".
+    expect(transform({ u: "https://sigmacv.org/guides?who=" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?whoever=1&xwho=2" }).u).toBe(
+      "https://sigmacv.org/guides?whoever=1&xwho=2",
+    );
+    // A path segment is not a parameter.
+    expect(transform({ u: "https://sigmacv.org/glossary/who=x" }).u).toBe(
+      "https://sigmacv.org/glossary/who=x",
+    );
+  });
+
   it("keeps only the origin of an outbound-link event's URL, so no identifier in a path reaches the collector", () => {
     const transform = boot().o!.transformRequest!;
     type Event = Payload & { p?: Record<string, string> };
