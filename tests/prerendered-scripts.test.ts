@@ -117,18 +117,28 @@ describe("createPrerenderedScriptLookup", () => {
     mkdirSync(distDir);
     logError = vi.spyOn(logger, "error").mockImplementation(() => {});
 
+    // `srcRoute` is the route file a page was built from, as Next writes it.
     writeManifest({
-      "/": { initialRevalidateSeconds: false },
-      "/about": { initialRevalidateSeconds: false },
-      "/fr/about": { initialRevalidateSeconds: false },
-      "/revalidated": { initialRevalidateSeconds: 60 },
-      "/robots.txt": { initialRevalidateSeconds: false },
-      "/broken": { initialRevalidateSeconds: false },
+      "/": { initialRevalidateSeconds: false, srcRoute: "/" },
+      "/about": { initialRevalidateSeconds: false, srcRoute: "/about" },
+      "/fr/about": { initialRevalidateSeconds: false, srcRoute: "/[locale]/about" },
+      "/guides/how-to": { initialRevalidateSeconds: false, srcRoute: "/guides/[slug]" },
+      "/fr/guides/how-to": {
+        initialRevalidateSeconds: false,
+        srcRoute: "/[locale]/guides/[slug]",
+      },
+      "/legacy": { initialRevalidateSeconds: false },
+      "/revalidated": { initialRevalidateSeconds: 60, srcRoute: "/revalidated" },
+      "/robots.txt": { initialRevalidateSeconds: false, srcRoute: "/robots.txt" },
+      "/broken": { initialRevalidateSeconds: false, srcRoute: "/broken" },
       "/nothing": null,
     });
     writePage("index", "<script>home()</script>");
     writePage("about", `<script src="/a.js"></script><script>about()</script>`);
     writePage("fr/about", "<script>apropos()</script>");
+    writePage("guides/how-to", "<script>guide()</script>");
+    writePage("fr/guides/how-to", "<script>guideFr()</script>");
+    writePage("legacy", "<script>legacy()</script>");
     writePage("revalidated", "<script>later()</script>");
     // A directory where the page should be: unreadable, and not merely absent.
     mkdirSync(path.join(distDir, "server", "app", "broken.html"));
@@ -166,11 +176,44 @@ describe("createPrerenderedScriptLookup", () => {
     expect(logError).not.toHaveBeenCalled();
   });
 
-  it("matches a percent-encoded spelling, as Next's router does", () => {
+  // What Next 16.3.8 does, observed on a production build: a segment it reads as
+  // a parameter is percent-decoded before the prerendered page is looked up, and
+  // a fixed segment has to be written as it is (`/%61bout` is a 404).
+  it("counts a percent-encoded spelling only in a segment Next fills from a parameter", () => {
     const lookup = createPrerenderedScriptLookup(distDir);
-    expect(lookup("/%61bout")).toEqual([sha256("about()")]);
-    // Malformed escapes are left alone rather than thrown on.
+    expect(lookup("/guides/how%2Dto")).toEqual([sha256("guide()")]);
+    expect(lookup("/%66r/about")).toEqual([sha256("apropos()")]);
+    expect(lookup("/%66r/guides/h%6Fw-to")).toEqual([sha256("guideFr()")]);
+    // The same page as the plain spelling, read once.
+    expect(lookup("/guides/how%2Dto")).toBe(lookup("/guides/how-to"));
+
+    // A fixed segment, encoded: not the prerendered page.
+    expect(lookup("/%61bout")).toBeNull();
+    expect(lookup("/fr/%61bout")).toBeNull();
+    expect(lookup("/%67uides/how-to")).toBeNull();
+    expect(lookup("/fr/%67uides/how-to")).toBeNull();
+    expect(lookup("/%2F")).toBeNull();
+  });
+
+  it("decodes a parameter once, and never into another path", () => {
+    const lookup = createPrerenderedScriptLookup(distDir);
+    // `%252D` is the text `%2D`, not a hyphen.
+    expect(lookup("/guides/how%252Dto")).toBeNull();
+    // A slash out of an escape would name another route, or add a segment.
+    expect(lookup("/guides%2Fhow-to")).toBeNull();
+    expect(lookup("/fr%2Fguides/how-to")).toBeNull();
+    expect(lookup("/guides/how-to%2F")).toBeNull();
+    // Malformed escapes are refused, not thrown on.
     expect(lookup("/%E0%A4%A")).toBeNull();
+    expect(lookup("/guides/%E0%A4%A")).toBeNull();
+    expect(lookup("/guides/%")).toBeNull();
+    expect(logError).not.toHaveBeenCalled();
+  });
+
+  it("takes only the exact path when the manifest does not say which route built the page", () => {
+    const lookup = createPrerenderedScriptLookup(distDir);
+    expect(lookup("/legacy")).toEqual([sha256("legacy()")]);
+    expect(lookup("/%6Cegacy")).toBeNull();
   });
 
   it("cannot be steered outside the build by the request path", () => {

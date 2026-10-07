@@ -738,6 +738,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **Next.js 16.3.8, a security release.** It closes seven advisories published on
+  30 September 2026. Read against their own text, none of the conditions they
+  name is met here: the image-optimizer request forgery
+  ([GHSA-cjq9-62q9-8jv4](https://github.com/vercel/next.js/security/advisories/GHSA-cjq9-62q9-8jv4),
+  high) needs remote image hosts to be configured, and none is; the two
+  cache-poisoning flaws for pages built ahead of time need Pages Router pages
+  ([GHSA-4jqv-mc3x-m676](https://github.com/vercel/next.js/security/advisories/GHSA-4jqv-mc3x-m676))
+  or a catch-all page at the root
+  ([GHSA-mcj8-r9mp-w47p](https://github.com/vercel/next.js/security/advisories/GHSA-mcj8-r9mp-w47p)),
+  and SigmaCV has neither; the social-card one
+  ([GHSA-f87g-xv8r-7p7x](https://github.com/vercel/next.js/security/advisories/GHSA-f87g-xv8r-7p7x))
+  needs a webpack build, and SigmaCV builds with Turbopack; the last three concern
+  `use cache`, Draft Mode and the development server. The advisories do not
+  publish the requests involved and none was tried, so this is a reading, not a
+  test, and the upgrade is taken. One thing changes for visitors: the address of
+  a page with a fixed part written percent-encoded (`/%61bout` for `/about`) is
+  now answered with the 404 page, where 16.3.6 showed the page. The security
+  policy sent with each page follows: such an address gets the 404's policy, and
+  an address whose language or guide name is written percent-encoded
+  (`/%66r/about`) still gets the page and its policy. Nine other packages move in
+  the same update (docx, fast-xml-parser, vitest, jsdom, prettier and build tools).
 - **Nine advisories against five dependencies, published between 18 September and
   6 October 2026, are closed (`npm audit`: 0 again).** **Next.js 16.3.6** fixes a critical
   remote-code-execution flaw in the renderer behind the social-card images

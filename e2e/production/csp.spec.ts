@@ -39,14 +39,22 @@ const DYNAMIC = ["/", "/fr", "/search"];
  * ahead of time: no route at all, and a route that lists its pages
  * (`dynamicParams = false`) and does not list this one. `/foo` matches
  * `/[locale]`, which calls `notFound()`: it was always rendered per request, and
- * shows the same page.
+ * shows the same page. The last two are a prerendered page's address with a
+ * FIXED segment written percent-encoded (`%61` is `a`). Since Next 16.3.8 that
+ * is not the page but a 404 (16.3.6 served /about for it), so it must get the
+ * nonce policy like any other 404, not /about's hashes.
  */
 const UNKNOWN: [path: string, lang: string, home: string][] = [
   ["/a/b", "en-US", "/"],
   ["/guides/no-such-guide", "en-US", "/"],
   ["/fr/guides/no-such-guide", "fr-FR", "/fr"],
   ["/foo", "en-US", "/"],
+  ["/%61bout", "en-US", "/"],
+  ["/fr/%61bout", "fr-FR", "/fr"],
 ];
+
+/** A prerendered page's address with a PARAMETER segment written percent-encoded. */
+const ENCODED_PARAMETER = ["/%66r/about", "/guides/how%2Dto-write-an-academic-cv"];
 
 /**
  * A page that reads the database. Nothing answers at the address this server
@@ -277,13 +285,24 @@ test.describe("a prerendered page", () => {
     }
   });
 
-  test("a percent-encoded spelling of the path gets the same policy", async ({ page }) => {
-    // Next serves /about for it; a lookup that missed would leave it script-less.
-    const { response, violations } = await open(page, "/%61bout");
-    expect(response.headers()["x-nextjs-prerender"]).toBeTruthy();
-    await expectHydrated(page);
-    expect(await violations()).toEqual([]);
-  });
+  // Next percent-decodes what it reads as a route parameter (`[locale]`, `[slug]`)
+  // before it looks the page up, so these are answered from the prerender, with
+  // no nonce. A lookup that took only the path as written would send them the
+  // nonce policy and they would run no script. A FIXED segment written encoded is
+  // another matter: Next answers a 404 (see UNKNOWN below).
+  for (const path of ENCODED_PARAMETER) {
+    test(`${path}, a parameter written percent-encoded, is still the prerendered page`, async ({
+      page,
+    }) => {
+      const { response, scriptSrc, violations } = await open(page, path);
+      expect(response.status()).toBe(200);
+      expect(response.headers()["x-nextjs-prerender"]).toBeTruthy();
+      expect(scriptSrc).not.toContain("'strict-dynamic'");
+      expect(scriptSrc).toMatch(/'sha256-/);
+      await expectHydrated(page);
+      expect(await violations()).toEqual([]);
+    });
+  }
 
   test("no prerendered page is revalidated at runtime", () => {
     // The hashes are read off the build. A page that is rebuilt while the server
