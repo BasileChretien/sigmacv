@@ -68,9 +68,13 @@ CRITICAL down to INFO have been remediated.
     only Next's own build files are scripts), and that every response the app
     serves carries `X-Content-Type-Options: nosniff`, so no JSON, page or export
     can be run as a script. A new route that answers with a JavaScript type and
-    includes user data would break that. In one respect this shape is the
-    stricter of the two: without `'strict-dynamic'`, a script that is already
-    running cannot add an inline script whose hash is not listed.
+    includes user data would break that: `tests/no-javascript-responses.test.ts`
+    fails when a source file names a JavaScript content type, when a script file
+    appears under `public/`, or when `nosniff` leaves the site-wide headers (it
+    reads the source, so it does not see a type computed at runtime). In one
+    respect this shape is the stricter of the two: without `'strict-dynamic'`,
+    a script that is already running cannot add an inline script whose hash is
+    not listed.
 
   If the build output cannot be read, a prerendered page is sent the nonce shape:
   its scripts stop running, and the policy does not loosen. `npm run e2e:prod`,

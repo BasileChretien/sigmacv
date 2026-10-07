@@ -224,7 +224,8 @@ test.describe("a prerendered page", () => {
   // What keeps a page, a JSON file or an export from being run as one is that
   // the app marks every response `nosniff`. If that header goes, this is where
   // it shows. It tries three fixed URLs: a route added later that answers with a
-  // JavaScript type is NOT caught here.
+  // JavaScript type is not caught here but in tests/no-javascript-responses.test.ts,
+  // which reads the source.
   test("does not run a same-origin response that is not a script", async ({ page, request }) => {
     await open(page, "/about");
     await expectHydrated(page);
