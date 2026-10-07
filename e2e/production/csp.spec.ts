@@ -32,20 +32,45 @@ const PRERENDERED = [
 /** Rendered per request, and reachable without a database. */
 const DYNAMIC = ["/", "/fr", "/search"];
 
+interface UnknownPath {
+  path: string;
+  /** Its 404's language: the first segment's when that is a locale slug, English otherwise. */
+  lang: string;
+  heading: string;
+  /** The home page its link leads to. */
+  home: string;
+  /**
+   * Whether the HTML the server sends holds the page. It does not when a page
+   * calls `notFound()` itself: Next then sends an empty body and the browser
+   * draws the 404.
+   */
+  inHtml: boolean;
+}
+
 /**
- * Paths with no page behind them, the language their 404 is in (that of the
- * first segment when it is a locale slug, English otherwise) and the home page
- * it links to. The first three are of the kinds Next answered with a 404 built
- * ahead of time: no route at all, and a route that lists its pages
- * (`dynamicParams = false`) and does not list this one. `/foo` matches
- * `/[locale]`, which calls `notFound()`: it was always rendered per request, and
- * shows the same page.
+ * Paths with no page behind them. The first three are of the kinds Next
+ * answered with a 404 built ahead of time: no route at all, and a route that
+ * lists its pages (`dynamicParams = false`) and does not list this one. `/foo`
+ * matches `/[locale]`, which calls `notFound()`: it was always rendered per
+ * request, and shows the same page.
  */
-const UNKNOWN: [path: string, lang: string, home: string][] = [
-  ["/a/b", "en-US", "/"],
-  ["/guides/no-such-guide", "en-US", "/"],
-  ["/fr/guides/no-such-guide", "fr-FR", "/fr"],
-  ["/foo", "en-US", "/"],
+const UNKNOWN: UnknownPath[] = [
+  { path: "/a/b", lang: "en-US", heading: "Page not found", home: "/", inHtml: true },
+  {
+    path: "/guides/no-such-guide",
+    lang: "en-US",
+    heading: "Page not found",
+    home: "/",
+    inHtml: true,
+  },
+  {
+    path: "/fr/guides/no-such-guide",
+    lang: "fr-FR",
+    heading: "Page introuvable",
+    home: "/fr",
+    inHtml: true,
+  },
+  { path: "/foo", lang: "en-US", heading: "Page not found", home: "/", inHtml: false },
 ];
 
 /**
@@ -360,16 +385,24 @@ test.describe("a page rendered per request", () => {
 // The not-found page therefore has to be rendered per request, or it is a file
 // without a nonce and the browser refuses its scripts: the 404 is not counted.
 test.describe("a path with no page behind it", () => {
-  for (const [path, lang, home] of UNKNOWN) {
+  for (const { path, lang, heading, home, inHtml } of UNKNOWN) {
     test(`${path} is a 404 that runs its scripts`, async ({ page }) => {
       const { response, scriptSrc, violations, events } = await open(page, path);
 
       expect(response.status()).toBe(404);
       await expectRenderedWithNonce(response, scriptSrc);
 
-      // The site's own 404, in the language the address is written under.
+      // The site's own 404, in the language the address is written under. In
+      // the HTML the server sent first: read off the page alone, an English 404
+      // that the browser then corrected would pass.
+      if (inHtml) {
+        const html = await response.text();
+        // On the page's own element: the head's `hrefLang` links name languages too.
+        expect(html).toContain(`class="site-shell" lang="${lang}"`);
+        expect(html).toContain(`<h1>${heading}</h1>`);
+      }
       await expect(page.locator(".site-shell")).toHaveAttribute("lang", lang);
-      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(heading);
       await expect(page).toHaveTitle("404 — SigmaCV");
       // Counted. The analytics scripts are inserted once React has hydrated.
       await expectAnalyticsRan(page, events);

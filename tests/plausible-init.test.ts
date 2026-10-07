@@ -95,9 +95,131 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
       // Spaces, as a path encodes them and as a form does.
       "0000%200002%201825%200097",
       "0000+0002+1825+0097",
+      // A minus sign, what a hyphen becomes in a PDF set in maths mode.
+      "0000%E2%88%920002%E2%88%921825%E2%88%920097",
+      "0000%e2%88%920002%e2%88%921825%e2%88%920097",
     ]) {
       expect(sent(path), path).toBe("https://sigmacv.org/x/_");
     }
+  });
+
+  /** What is sent for `path` on the site, without the origin. */
+  const sentPath = (path: string) =>
+    boot().o!.transformRequest!({ u: `https://sigmacv.org${path}` }).u!.replace(
+      "https://sigmacv.org",
+      "",
+    );
+
+  it("cuts the whole run of digits an iD stands in, whatever is joined to it in front or behind", () => {
+    // Cutting sixteen digits out of a longer run leaves the rest to be read.
+    // Digits glued to the front took the match and left the iD…
+    expect(sentPath("/x/1234567890123450000-0002-1825-0097")).toBe("/x/_");
+    expect(sentPath("/x/17283000000000000-0002-1825-0097")).toBe("/x/_");
+    expect(sentPath("/x/90000-0002-1825-00971")).toBe("/x/_");
+    expect(sentPath("/x/1234567890123450000000218250097")).toBe("/x/_");
+    expect(sentPath("/x/123456789012345000000021694233X")).toBe("/x/_");
+    // …and so did groups joined to it by a separator.
+    expect(sentPath("/x/1234-5678-9012-0000-0002-1825-0097")).toBe("/x/_");
+    expect(sentPath("/cv/2024-0000-0002-1825-0097")).toBe("/cv/_");
+    // Behind it: an iD with no hyphens, or with some, followed by groups that
+    // have theirs, must not be taken from its last group on.
+    expect(sentPath("/x/0000000218250097-1111-2222-3333")).toBe("/x/_");
+    expect(sentPath("/x/0000-0002-18250097-1111-2222-3333")).toBe("/x/_");
+    expect(sentPath("/x/0000000218250097-0000-0001-5109-3700")).toBe("/x/_");
+    expect(sentPath("/x?ids=0000000218250097+0000-0001-5109-3700")).toBe("/x?ids=_");
+  });
+
+  it("takes a `%` in front of an iD for an escape only when the iD cannot start inside it", () => {
+    // A space, a non-breaking space or an encoded slash in front of an iD stays.
+    expect(sentPath("/x%200000-0002-1825-0097")).toBe("/x%20_");
+    expect(sentPath("/x%C2%A00000-0002-1825-0097")).toBe("/x%C2%A0_");
+    expect(sentPath("/x%2F0000000218250097")).toBe("/x%2F_");
+    // A bare `%`, or `%` and one digit, is no escape: every iD starts with
+    // `00`, so reading `%00` there would let the whole iD through.
+    expect(sentPath("/cv/%0000-0002-1825-0097")).toBe("/cv/%_");
+    expect(sentPath("/cv/%0000000218250097")).toBe("/cv/%_");
+    expect(sentPath("/cv/%0009-0001-2345-6789")).toBe("/cv/%_");
+    expect(sentPath("/x?id=%0000-0002-1825-0097%")).toBe("/x?id=%_%");
+    expect(sentPath("/cv/%20000-0002-1825-0097")).toBe("/cv/%_");
+    // When the digits after `%` could be either, the iD wins and the escape goes.
+    expect(sentPath("/x%200000000218250097")).toBe("/x%_");
+    expect(sentPath("/a%2012-3456-7890-1234")).toBe("/a%_");
+  });
+
+  /** Every way the table below joins an iD's groups, and what an iD separator is. */
+  const SEPARATORS = /-|[+]|%2D|%20|%E2%80%9[0-5]|%E2%88%92/gi;
+  const GROUPS = ["0000", "0002", "1825", "0097"];
+  const TABLE_IDS = [GROUPS.join(""), "0000000151093700"];
+
+  /** What stands in front of an iD x how it is spelled x what stands behind: 588 addresses. */
+  function addressTable(): string[] {
+    const spellings = ["-", "", "%2D", "%E2%80%93", "%E2%88%92", "%20", "+"].map((separator) =>
+      GROUPS.join(separator),
+    );
+    const before = [
+      "",
+      "9",
+      "123456789012345",
+      "1234-5678-9012-",
+      "2024-",
+      "%",
+      "%2",
+      "%20",
+      "%C2%A0",
+      "x",
+      "-",
+      "=",
+    ];
+    const after = ["", "1", "-1111-2222-3333", "-0000-0001-5109-3700", "%20", "/x", "&a=1"];
+    const table: string[] = [];
+    for (const b of before) {
+      for (const spelling of spellings) {
+        for (const a of after) table.push(`https://sigmacv.org/x?v=${b}${spelling}${a}`);
+      }
+    }
+    return table;
+  }
+
+  /** The longest stretch of an iD's digits, in order, that can still be read in `sent`. */
+  function readable(sent: string): number {
+    const digits = sent.replace(SEPARATORS, "");
+    let longest = 0;
+    for (const iD of TABLE_IDS) {
+      for (let i = 0; i < iD.length; i++) {
+        for (let j = iD.length; j > i + longest; j--) {
+          if (digits.includes(iD.slice(i, j))) {
+            longest = j - i;
+            break;
+          }
+        }
+      }
+    }
+    return longest;
+  }
+
+  it("leaves no four digits of an iD in a row, whatever stands around it and however it is spelled", () => {
+    const transform = boot().o!.transformRequest!;
+    const table = addressTable();
+    expect(table).toHaveLength(588);
+    expect(table.filter((u) => readable(transform({ u }).u!) >= 4)).toEqual([]);
+  });
+
+  it("never leaves more of an iD than the rule it replaces did", () => {
+    // That rule, as it stood: the leftmost sixteen digits shaped like an iD, and
+    // on from there. Nothing else in the stub touches the table's addresses.
+    const transform = boot().o!.transformRequest!;
+    const d = "(?:-|[+]|%2D|%20|%E2%80%9[0-5])?";
+    const replaced = new RegExp(`[0-9]{4}${d}[0-9]{4}${d}[0-9]{4}${d}[0-9]{3}[0-9X]`, "gi");
+    const worse: string[] = [];
+    let itLeftSomething = 0;
+    for (const u of addressTable()) {
+      const then = readable(u.replace(replaced, "_"));
+      if (then >= 4) itLeftSomething++;
+      if (readable(transform({ u }).u!) > then) worse.push(u);
+    }
+    expect(worse).toEqual([]);
+    // The comparison means something only if the old rule did leave digits.
+    expect(itLeftSomething).toBeGreaterThan(100);
   });
 
   it("goes by shape alone: it cuts too much rather than too little, and leaves shorter numbers", () => {
@@ -106,8 +228,6 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(sent("https://sigmacv.org/guides/2024-2025-2026-2027")).toBe(
       "https://sigmacv.org/guides/_",
     );
-    // No word boundary: an iD glued to other digits is still cut out of them.
-    expect(sent("https://sigmacv.org/x/90000-0002-1825-00971")).toBe("https://sigmacv.org/x/9_1");
     // Other numbers stay: three groups, a slug, a ROR id, a millisecond timestamp.
     for (const u of [
       "https://sigmacv.org/guides/2024-2025-2026-cv",
@@ -130,6 +250,48 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     // Another case is a 404, and a 404 is counted too: the name goes all the same.
     expect(transform({ u: "https://sigmacv.org/Search?q=Jane%20Doe" }).u).toBe(
       "https://sigmacv.org/Search",
+    );
+    // Not the lookup: a longer word that starts the same way keeps its path.
+    expect(transform({ u: "https://sigmacv.org/searching/for/x" }).u).toBe(
+      "https://sigmacv.org/searching/for/x",
+    );
+  });
+
+  it("cuts nothing but the lookup's own query: `/search/` elsewhere is left as it is", () => {
+    const transform = boot().o!.transformRequest!;
+    // `/search/` inside a parameter's value is not the lookup, and Plausible
+    // reads `utm_*`, `ref` and `source` off this same query. (A rule that cut a
+    // path under /search was tried: it took these parameters with it.)
+    for (const u of [
+      "https://sigmacv.org/about?next=/search/&utm_source=nl&utm_campaign=x",
+      "https://sigmacv.org/guides/how-to-write-an-academic-cv?ref=reddit.com/r/AskAcademia/search/&utm_medium=social&utm_source=reddit",
+      "https://sigmacv.org/about?ref=https://example.org/search/abc&utm_source=nl",
+      "https://sigmacv.org/about#/search/Jane",
+      // A known limit, held here so that it is changed on purpose: a name written
+      // as a path is a 404, and a 404 is sent with its path as typed.
+      "https://sigmacv.org/search/Jane%20Doe",
+    ]) {
+      expect(transform({ u }).u, u).toBe(u);
+    }
+    expect(transform({ u: "https://sigmacv.org/", r: "https://example.org/search/x/y" }).r).toBe(
+      "https://example.org/search/x/y",
+    );
+  });
+
+  it("finds the lookup's query past a host or a segment that only starts like it", () => {
+    const transform = boot().o!.transformRequest!;
+    const referred = (r: string) => transform({ u: "https://sigmacv.org/", r }).r;
+    // `//search.` in a search engine's own host is not `/search?`: the rule has
+    // to reach the real one, or the query stays in the referrer.
+    expect(referred("https://search.brave.com/search?q=jane+doe&source=web")).toBe(
+      "https://search.brave.com/search",
+    );
+    expect(referred("https://search.yahoo.co.jp/search?p=Jane+Doe")).toBe(
+      "https://search.yahoo.co.jp/search",
+    );
+    expect(referred("http://search/search?q=Jane+Doe")).toBe("http://search/search");
+    expect(transform({ u: "https://sigmacv.org/searching/search?q=Jane%20Doe" }).u).toBe(
+      "https://sigmacv.org/searching/search",
     );
     // Not a lookup: a page whose path merely contains "search" keeps its query.
     expect(transform({ u: "https://sigmacv.org/research?x=1" }).u).toBe(
