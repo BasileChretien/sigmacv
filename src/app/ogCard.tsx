@@ -1,4 +1,5 @@
 import type { ReactElement } from "react";
+import { logger } from "@/lib/log";
 
 /**
  * Shared layout + font plumbing for the site-wide Open Graph / social-share
@@ -33,11 +34,38 @@ const FLOATING_CHIPS: { label: string; style: Record<string, string | number> }[
   { label: "Crossref", style: { bottom: 54, left: -38 } },
 ];
 
+/** What `truncate` ends a shortened line with. */
+const ELLIPSIS = "…";
+
 /**
- * Every latin glyph the card renders besides the localized copy — callers add
- * this to the font-subset request so chips/wordmark never fall back to tofu.
+ * Every glyph the card draws that is not in the localized copy handed to
+ * `loadOgFonts`: the wordmark, the Σ, the source chips and the ellipsis of a
+ * shortened line. They go into the font-subset request so that the fonts passed
+ * to next/og cover the whole card. For a glyph they lack, next/og fetches a font
+ * from Google Fonts itself, in requests that carry no time limit.
  */
-const OG_CARD_GLYPHS = `SigmaCV Σ sigmacv.org ${SOURCE_CHIPS.join(" ")}`;
+const OG_CARD_GLYPHS = `SigmaCV Σ sigmacv.org ${SOURCE_CHIPS.join(" ")} ${ELLIPSIS}`;
+
+/**
+ * How long one weight's subset may take, style sheet and font file together
+ * (a few hundred milliseconds is usual). A connection that stalls is not a
+ * failure to Node's fetch, which waits up to 300 s for the headers and 300 s for
+ * the body, while `next build` gives a prerendered card 60 s
+ * (`staticPageGenerationTimeout`), three times, and then stops the build.
+ */
+const OG_FONT_TIMEOUT_MS = 5_000;
+
+/**
+ * The limit is counted in turns of the event loop this far apart, not read off
+ * the clock. `next build` draws up to eight pages at once in one process, and
+ * drawing a card keeps it busy for a second or more at a stretch, so a font that
+ * arrived in 100 ms can wait several seconds to be read: on a 5 s clock that
+ * wait dropped the fonts of four to six cards out of ten in an ordinary build.
+ * However long the process was busy, it costs one turn, and each turn is
+ * followed by a read of what has arrived. Ten cards loading at once need
+ * thirty to forty turns, however slow each turn is; the limit is 250.
+ */
+const OG_FONT_TURN_MS = 20;
 
 export interface OgFont {
   name: string;
@@ -47,37 +75,83 @@ export interface OgFont {
 }
 
 /**
- * Fetch one Google-font weight subset (only `text`'s glyphs) as TTF data for
- * satori. The old UA makes Google serve truetype (satori can't read woff2).
- * Returns null on any failure so the caller can fall back to the default font.
+ * The two requests behind one weight: Google's style sheet for the subset (only
+ * `text`'s glyphs), then the font file it names, as TTF data for satori. Null
+ * when either is answered with an error or the style sheet names no file;
+ * throws on a network error or an abort.
+ */
+async function fetchFontWeight(
+  family: string,
+  weight: 400 | 800,
+  text: string,
+  signal: AbortSignal,
+): Promise<ArrayBuffer | null> {
+  const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
+    family,
+  )}:wght@${weight}&text=${encodeURIComponent(text)}`;
+  const sheet = await fetch(url, {
+    headers: {
+      // Old UA → Google returns a truetype URL (satori cannot use woff2).
+      "User-Agent": "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
+    },
+    signal,
+  });
+  if (!sheet.ok) return null;
+  const match = (await sheet.text()).match(/src:\s*url\(([^)]+)\)/);
+  if (!match) return null;
+  const file = await fetch(match[1]!, { signal });
+  // An error page is not a font: satori throws on one, and the card with it.
+  if (!file.ok) return null;
+  return await file.arrayBuffer();
+}
+
+/**
+ * One Google-font weight subset, or null on any failure so the caller can fall
+ * back to the default font. A request still unanswered after
+ * `OG_FONT_TIMEOUT_MS` (in turns of `OG_FONT_TURN_MS`) is such a failure: it is
+ * aborted, and the answer does not wait for the abort to take effect.
  */
 async function loadFontWeight(
   family: string,
   weight: 400 | 800,
   text: string,
 ): Promise<ArrayBuffer | null> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<null>((resolve) => {
+    let turnsLeft = OG_FONT_TIMEOUT_MS / OG_FONT_TURN_MS;
+    const turn = (): void => {
+      turnsLeft -= 1;
+      if (turnsLeft > 0) {
+        timer = setTimeout(turn, OG_FONT_TURN_MS);
+        return;
+      }
+      controller.abort();
+      // The one failure that is said aloud: nothing else in a green build shows
+      // that a card went out without its font.
+      logger.warn("og_card.font_timed_out", { family, weight, timeoutMs: OG_FONT_TIMEOUT_MS });
+      resolve(null);
+    };
+    timer = setTimeout(turn, OG_FONT_TURN_MS);
+  });
   try {
-    const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
-      family,
-    )}:wght@${weight}&text=${encodeURIComponent(text)}`;
-    const css = await fetch(url, {
-      headers: {
-        // Old UA → Google returns a truetype URL (satori cannot use woff2).
-        "User-Agent": "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
-      },
-    }).then((r) => r.text());
-    const match = css.match(/src:\s*url\(([^)]+)\)/);
-    if (!match) return null;
-    return await fetch(match[1]!).then((r) => r.arrayBuffer());
+    return await Promise.race([fetchFontWeight(family, weight, text, controller.signal), timedOut]);
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 /**
- * Best-effort load of the regular + extra-bold subsets used by the card.
- * Failures (e.g. no network at build) yield an empty array — the card then
- * renders with satori's default font instead of crashing.
+ * Best-effort load of the regular + extra-bold subsets used by the card, given
+ * up after `OG_FONT_TIMEOUT_MS`. Failures (no network at build, a request that
+ * stalls) yield an empty array — the card then renders with satori's default
+ * font instead of crashing.
+ *
+ * That fallback is not free of Google Fonts: the default font has no Σ and no
+ * CJK, so next/og then fetches those glyphs itself, with no time limit of its
+ * own. A stall that outlasts this function's can still hold the card.
  */
 export async function loadOgFonts(family: string, text: string): Promise<OgFont[]> {
   // Include the uppercased copy: the eyebrow renders with text-transform:
@@ -100,7 +174,7 @@ function truncate(s: string, max: number): string {
   const cut = clean.slice(0, max - 1);
   const lastSpace = cut.lastIndexOf(" ");
   const head = lastSpace > max / 2 ? cut.slice(0, lastSpace) : cut;
-  return `${head.trimEnd()}…`;
+  return `${head.trimEnd()}${ELLIPSIS}`;
 }
 
 /** Skeleton bar inside the CV mock (greys mirror the neutral ramp). */
