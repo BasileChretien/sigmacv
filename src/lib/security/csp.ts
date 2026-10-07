@@ -43,9 +43,14 @@ import { THEME_INIT_SHA256 } from "@/lib/themeInit";
  * carries `X-Content-Type-Options: nosniff` (`next.config.ts`), so no JSON, page
  * or export can be run as a script (`e2e/production/csp.spec.ts` checks a sample
  * of those in a browser). A route that answers with a JavaScript type and
- * includes user data would break this; `tests/no-javascript-responses.test.ts`
- * fails when one is written. Stricter: a running script cannot add an inline
- * script whose hash is not listed, which `'strict-dynamic'` permits.
+ * includes user data would break this, and so would a rewrite or a proxy that
+ * makes our origin serve another server's script.
+ * `tests/no-javascript-responses.test.ts` fails when a source file names such a
+ * type, or when a rewrite appears in `next.config.ts` or under `src`. It reads
+ * our source and no more: a type worked out at runtime is not seen, nor is a
+ * path that the reverse proxy in front of the app (the `Caddyfile`) hands to
+ * another server. Stricter: a running script cannot add an inline script whose
+ * hash is not listed, which `'strict-dynamic'` permits.
  *
  * Hence, when adding an inline `<Script>` anywhere in the app: its sha256 must be
  * listed in the prerendered shape (as the analytics stub is), or it will not run

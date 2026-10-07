@@ -68,13 +68,17 @@ CRITICAL down to INFO have been remediated.
     only Next's own build files are scripts), and that every response the app
     serves carries `X-Content-Type-Options: nosniff`, so no JSON, page or export
     can be run as a script. A new route that answers with a JavaScript type and
-    includes user data would break that: `tests/no-javascript-responses.test.ts`
-    fails when a source file names a JavaScript content type, when a script file
-    appears under `public/`, or when `nosniff` leaves the site-wide headers (it
-    reads the source, so it does not see a type computed at runtime). In one
-    respect this shape is the stricter of the two: without `'strict-dynamic'`,
-    a script that is already running cannot add an inline script whose hash is
-    not listed.
+    includes user data would break that, and so would a rewrite or a proxy that
+    makes the site's origin serve another server's script (none exists today:
+    the app rewrites no request, and Caddy hands the site's requests to the app
+    alone). `tests/no-javascript-responses.test.ts` fails when a source file
+    names a JavaScript content type, when a script file appears under `public/`,
+    when `nosniff` leaves the site-wide headers, or when a rewrite appears in
+    `next.config.ts` or in the app's source. It reads the app's source and no
+    more: it does not see a type computed at runtime, nor a path that the
+    `Caddyfile` would proxy to another server. In one respect this shape is the
+    stricter of the two: without `'strict-dynamic'`, a script that is already
+    running cannot add an inline script whose hash is not listed.
 
   If the build output cannot be read, a prerendered page is sent the nonce shape:
   its scripts stop running, and the policy does not loosen. `npm run e2e:prod`,
@@ -105,9 +109,17 @@ CRITICAL down to INFO have been remediated.
     load" with a "Reload" button that reloads. `npm run e2e:prod` opens one.
   - A failure **outside the render** (a module that throws when it is loaded, as
     with an invalid environment) is answered with 21 bytes of plain text,
-    `Internal Server Error`. The server looks for the built page through the
-    Pages Router, which this app does not have, and finds nothing. A route
-    handler that fails answers with an empty body. Neither has a script.
+    `Internal Server Error`. The server looks the built page up twice. The first
+    lookup, as an App Router page, does find `pages/500.html`. The second, as a
+    Pages Router page, is made whatever the first returned and replaces its
+    result. It needs that router's own `_document` and `_app`, which this app
+    does not have, so it finds nothing, and the page found a step earlier is
+    discarded. That ordering inside Next, not anything in this app, is what
+    keeps the built page from being served here, and it is what an upgrade could
+    change. (The lookup order was re-read in the source of Next 16.3.8, the
+    version installed since: `renderErrorToResponseImpl` in
+    `server/base-server.js`.) A route handler that fails answers with an empty
+    body. Neither has a script.
   - The built page is served at one address, `/_global-error` itself. That path
     is a prerendered route like any other, so it is sent its own hashes and its
     scripts run.
