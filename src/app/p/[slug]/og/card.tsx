@@ -7,8 +7,32 @@ import type { OgImageProps } from "@/lib/cv/ogImage";
  * Σ watermark, and the SigmaCV wordmark. All display branching lives in the
  * tested `ogImageProps` helper; this is intentionally presentation-only JSX.
  *
- * Only default/system fonts are used — no remote font fetch — so the card stays
- * self-contained and fast (route comment explains the caching/rate limiting).
+ * No font is passed to next/og. For what the font it ships with lacks, it can
+ * go to a third party itself while the card is rendered.
+ * `tests/og-card-offline.test.tsx` draws this card with no network and holds
+ * the four points below, one test each, as what the card does today and not as
+ * what it should do. No request those tests see carries an abort signal.
+ *
+ *  1. For the Σ, set twice below, it asks Google Fonts (`css2?family=Noto+Sans`,
+ *     no `text` yet). Refused, that is printed (`console.error`, with the
+ *     characters), the card is still drawn, and the next render asks again.
+ *  2. Answered with an error instead (a 503 with an empty body, in the test),
+ *     nothing is printed, the card is still drawn, and the next render of that
+ *     card does not ask.
+ *  3. Characters of the CV that font lacks (a Japanese headline's, in the test)
+ *     go to Google Fonts as the `text` of a second request, once a first has
+ *     been answered with their family's ranges.
+ *  4. For an emoji it asks jsDelivr for a picture named by the code point.
+ *     Refused, that rejects the render.
+ *
+ * Read in the loader and not held by a test (`loadDynamicAsset` and `loadEmoji`
+ * in `node_modules/next/dist/compiled/@vercel/og/index.node.js`, Next 16.3.8):
+ * the empty result of 2 is kept under the characters asked for while the
+ * process lives; and `loadEmoji` does not look at the status, so an error
+ * answer to 4 is not a refusal.
+ *
+ * The site cards, drawn without their fonts, draw the Σ instead (`SigmaMark` in
+ * `ogCard.tsx`). The route comment explains the caching and rate limiting.
  */
 
 const CV_OG_SIZE = { width: 1200, height: 630 };

@@ -45,8 +45,9 @@ const ELLIPSIS = "…";
  * Every glyph the card draws that is not in the localized copy handed to
  * `loadOgFonts`: the wordmark, the Σ, the source chips and the ellipsis of a
  * shortened line. They go into the font-subset request so that the fonts passed
- * to next/og cover the whole card. For a glyph they lack, next/og fetches a font
- * from Google Fonts itself, in requests that carry no time limit.
+ * to next/og cover the whole card. For a glyph they lack, next/og asks Google
+ * Fonts for a font itself (jsDelivr for a picture, were the glyph an emoji), in
+ * requests that carry no time limit.
  */
 const OG_CARD_GLYPHS = `SigmaCV Σ sigmacv.org ${SOURCE_CHIPS.join(" ")} ${ELLIPSIS}`;
 
@@ -204,12 +205,17 @@ const OG_TYPE: Record<Locale, { family: string; bundledFontDraws: boolean }> = {
  *
  * With none (Google Fonts refused, answered an error, or stayed silent past the
  * limit): a card that needs nothing fetched. next/og then draws in its bundled
- * font, and for any glyph that font lacks it fetches one from Google Fonts
- * itself, in requests that carry no time limit and cannot be given one: during
+ * font, and for a glyph that font lacks it asks Google Fonts for a font itself
+ * (jsDelivr for a picture, were the glyph an emoji: the copy has none), in
+ * requests that carry no time limit and cannot be given one: during
  * `next build` a stall there holds the card until Next stops the build. So the
  * Σ, which the bundled font lacks, is drawn (`SigmaMark`), and a locale whose
  * script it lacks gets the English copy. `tests/og-card-offline.test.tsx` draws
- * all ten cards this way through the real next/og and fails on any request.
+ * all ten cards this way through the real next/og, with every request refused
+ * (a `data:` URL is let through: it reaches no network). It expects two requests
+ * and no more, both to fonts.googleapis.com and both carrying an abort signal:
+ * `loadOgFonts`'s own, the style sheet of each weight. A third request, one to
+ * another host or one with no signal fails it.
  *
  * A prerendered card is served until the next build, and nothing in a green
  * build shows which variant it is: each departure from the design is logged.
