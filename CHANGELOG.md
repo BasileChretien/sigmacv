@@ -738,8 +738,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- **Five dependency advisories published between 18 September and 6 October 2026
-  are closed (`npm audit`: 0 again).** **Next.js 16.3.6** fixes a critical
+- **Nine advisories against five dependencies, published between 18 September and
+  6 October 2026, are closed (`npm audit`: 0 again).** **Next.js 16.3.6** fixes a critical
   remote-code-execution flaw in the renderer behind the social-card images
   (`next/og`, [GHSA-vcvr-r3jv-pc5j](https://github.com/advisories/GHSA-vcvr-r3jv-pc5j)).
   The advisory concerns pages that put visitor-supplied values into SVG markup or

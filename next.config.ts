@@ -15,8 +15,10 @@ const nextConfig: NextConfig = {
     ? [process.env.NEXT_ALLOWED_DEV_ORIGIN]
     : [],
 
-  // These packages are native/CommonJS and must not be bundled by the server
-  // compiler — they are required at runtime from node_modules instead.
+  // These packages must not be bundled by the server compiler: they are loaded
+  // from node_modules at runtime instead. Most are native or CommonJS. nodemailer
+  // 10 is an ES module that the build loads with import(), so the standalone
+  // image carries only its dist/esm files and a require("nodemailer") there fails.
   serverExternalPackages: [
     "citeproc",
     "playwright",
