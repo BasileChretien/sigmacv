@@ -127,6 +127,9 @@ describe("createPrerenderedScriptLookup", () => {
         initialRevalidateSeconds: false,
         srcRoute: "/[locale]/guides/[slug]",
       },
+      // A catch-all page. The app has none: this one holds what the lookup does
+      // with one.
+      "/docs/a/b": { initialRevalidateSeconds: false, srcRoute: "/docs/[...path]" },
       "/legacy": { initialRevalidateSeconds: false },
       "/revalidated": { initialRevalidateSeconds: 60, srcRoute: "/revalidated" },
       "/robots.txt": { initialRevalidateSeconds: false, srcRoute: "/robots.txt" },
@@ -138,6 +141,7 @@ describe("createPrerenderedScriptLookup", () => {
     writePage("fr/about", "<script>apropos()</script>");
     writePage("guides/how-to", "<script>guide()</script>");
     writePage("fr/guides/how-to", "<script>guideFr()</script>");
+    writePage("docs/a/b", "<script>docs()</script>");
     writePage("legacy", "<script>legacy()</script>");
     writePage("revalidated", "<script>later()</script>");
     // A directory where the page should be: unreadable, and not merely absent.
@@ -207,6 +211,29 @@ describe("createPrerenderedScriptLookup", () => {
     expect(lookup("/%E0%A4%A")).toBeNull();
     expect(lookup("/guides/%E0%A4%A")).toBeNull();
     expect(lookup("/guides/%")).toBeNull();
+    expect(logError).not.toHaveBeenCalled();
+  });
+
+  // The slashes above leave one segment too few or too many, and the segment
+  // count refuses them by itself. Under a catch-all the count agrees:
+  // `/docs/a%2Fb` is three segments as written, like `/docs/[...path]`, and it
+  // decodes to the address of the page built for `a` then `b`. Only the rule
+  // that a parameter holds no slash keeps it from that page's hashes.
+  it("does not take a slash that came out of an escape for a segment boundary", () => {
+    const lookup = createPrerenderedScriptLookup(distDir);
+    expect(lookup("/docs/a/b")).toEqual([sha256("docs()")]);
+    expect(lookup("/docs/a%2Fb")).toBeNull();
+  });
+
+  // Not supported, and pinned so that it is known. Next is expected to answer
+  // these from the prerender, as it does a parameter written percent-encoded
+  // (not measured: the app has no such page). The lookup sets the four segments
+  // against the three of `/docs/[...path]` and says null, so the page would get
+  // the nonce policy and run no script.
+  it("matches a catch-all page of several segments only as written", () => {
+    const lookup = createPrerenderedScriptLookup(distDir);
+    expect(lookup("/docs/%61/b")).toBeNull();
+    expect(lookup("/docs/a/%62")).toBeNull();
     expect(logError).not.toHaveBeenCalled();
   });
 
