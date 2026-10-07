@@ -396,6 +396,21 @@ that sentence true:
    cut as well, and it is not a guarantee: an iD spelled some other way passes. Rows stored before this rule shipped
    (2026-10) are not touched by the purge below, which only knows `/preview/`;
    a read-only count on production on 2026-10-07 found none.
+
+   Two of the stub's rules are not tied to the address they are named after, and
+   reach into a parameter's value. There the `/preview/` rule takes everything
+   up to the next `/`, `?` or `#`, the parameters behind it included, so
+   `/about?next=/preview/abc&utm_source=nl` is sent as `/about?next=/preview/_`.
+   The `/search` rule, which drops the query string of the name lookup
+   (`/search?q=…`), cuts from the `?` of the first `/search?` it finds, wherever
+   that stands in the address, a parameter's value included, to the next `#`,
+   so `/about?next=/search?&utm_source=nl&utm_campaign=x` is sent as
+   `/about?next=/search`. The cost: campaign parameters behind such a value are
+   lost, and the visit is counted without its campaign. The `/search` rule is
+   kept as it is because the same reach takes the name out of a lookup address
+   that another address carries unencoded, such as
+   `?callbackUrl=/search?q=<name>`.
+
 2. **Rows that reached ClickHouse anyway are deleted by `scripts/deploy.sh` on
    every deploy** (rows from before the scrub shipped, or from a client running
    an old stub). The two mutations are idempotent, so running them each deploy
@@ -439,14 +454,16 @@ path):
 | `Publish nudge`        | `action`                                                                                     | the post-export publish nudge is followed                                              |
 | `Badge snippet copied` | `format`                                                                                     | a Living-CV badge snippet is copied                                                    |
 
+They appear under **Goals / Custom events** in the Plausible dashboard once you
+add them there (Site settings → Goals → Custom event). No extra deploy needed —
+the `window.plausible()` queue stub is already in the root layout.
+
 The pageview scrub in `src/lib/analytics/plausibleInit.ts` cuts `/preview/<iD>`
 to `/preview/_`, replaces an iD anywhere else in the address with `_`, drops the
 query string from `/search?q=…`, and removes the see-it-first box's `who`
 parameter from the query of any page, before the request leaves the browser. So
 neither a looked-up iD nor a name given to the lookup or to the box reaches the
 collector. A 404 is sent with its path as typed: a name written as a path
-(`/search/Jane%20Doe`) is stored with it.
-
-They appear under **Goals / Custom events** in the Plausible dashboard once you
-add them there (Site settings → Goals → Custom event). No extra deploy needed —
-the `window.plausible()` queue stub is already in the root layout.
+(`/search/Jane%20Doe`) is stored with it. What the `/preview/` and `/search`
+rules take when they stand in a parameter's value is set out under "Preview
+paths are never stored", item 1.
