@@ -44,6 +44,53 @@ CRITICAL down to INFO have been remediated.
   `href`s are scheme-allow-listed; the photo data-URL is a strict, end-anchored
   base64 boundary (no SVG); JSON-LD is `<`-escaped via a shared helper; the public
   page ships a strict `default-src 'none'` CSP as an HTTP header.
+- **App-shell Content-Security-Policy** — every page outside `/api` and `/p/` is
+  served a policy that never allows `'unsafe-inline'` or `'unsafe-eval'` for
+  scripts, with `object-src 'none'`, `base-uri 'self'`, `form-action 'self'` and
+  `frame-ancestors 'none'` (`src/proxy.ts`, `src/lib/security/csp.ts`).
+  `script-src` has two shapes, because a nonce can only be put on a page that is
+  rendered per request:
+  - A page **rendered per request** (the home page, the editor, the preview, the
+    name lookup, the institution pages) gets a per-request 128-bit nonce and
+    `'strict-dynamic'`.
+  - A page **prerendered at build time** (About, FAQ, the legal pages, the guides,
+    the glossary, the examples and the landing pages, in every locale) has no
+    nonce in its HTML. It gets `'self'` and the sha256 of each inline script it
+    was built with, read off the build output when the page is served, plus, when
+    analytics is configured, the analytics script's exact URL and the hash of its
+    init stub. This is an allow-list, not a nonce policy: any script file served
+    from the site's own origin may load. A policy belongs to the document, so it
+    also stays in force when a visitor moves on by client-side navigation: the
+    name lookup, the preview and the editor, reached from a guide without a full
+    page load, run under this allow-list too. What it relies on, there as on the
+    prerendered pages themselves, is that the site's own origin serves no
+    JavaScript-typed response carrying user-influenced content (none does today;
+    only Next's own build files are scripts), and that every response the app
+    serves carries `X-Content-Type-Options: nosniff`, so no JSON, page or export
+    can be run as a script. A new route that answers with a JavaScript type and
+    includes user data would break that: `tests/no-javascript-responses.test.ts`
+    fails when a source file names a JavaScript content type, when a script file
+    appears under `public/`, or when `nosniff` leaves the site-wide headers (it
+    reads the source, so it does not see a type computed at runtime). In one
+    respect this shape is the stricter of the two: without `'strict-dynamic'`,
+    a script that is already running cannot add an inline script whose hash is
+    not listed.
+
+  If the build output cannot be read, a prerendered page is sent the nonce shape:
+  its scripts stop running, and the policy does not loosen. `npm run e2e:prod`,
+  run in CI on every pull request, opens a production build in Chromium and
+  checks that each kind of page runs its own scripts, that an injected script is
+  refused, and that a same-origin page, JSON file or text file named as a script
+  is refused too (the `nosniff` assumption above).
+
+  Until 2026-10 prerendered pages were sent the nonce shape, which their HTML
+  could not satisfy: the browser refused every script on them except the theme
+  bootstrap, which is listed by hash. The policy was never looser than described
+  here; those pages did not respond to input and were not counted by analytics.
+  One case remains: Next's default 404 page, served as a static file for most
+  unknown paths, is still sent the nonce shape, so its scripts do not run. It has
+  nothing interactive on it.
+
 - **SSRF** — outbound fetches (claim-by-DOI, custom-CSL, OEP) use fixed hosts /
   host allow-lists with **manual redirect re-validation** and timeouts; private /
   link-local / metadata targets are blocked.
