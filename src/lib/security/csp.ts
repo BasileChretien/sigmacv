@@ -34,12 +34,18 @@ import { THEME_INIT_SHA256 } from "@/lib/themeInit";
  * Neither shape allows `'unsafe-inline'` or `'unsafe-eval'` for scripts. The
  * prerendered shape is an allow-list rather than a nonce policy, and differs
  * from the nonce shape both ways. Looser: any script FILE on our own origin may
- * load. What makes `'self'` safe to allow is that the pages it covers are built
- * without user data and that every response the app serves carries
- * `X-Content-Type-Options: nosniff` (`next.config.ts`), so no same-origin JSON or
- * export can be run as a script (`e2e/production/csp.spec.ts` checks that in a
- * browser). Stricter: a running script cannot add an inline script whose hash is
- * not listed, which `'strict-dynamic'` permits.
+ * load. And a policy belongs to the document, not to the route: a visitor who
+ * goes from a guide to the lookup, the preview or the editor by client-side
+ * navigation is still under the guide's allow-list there. So what makes `'self'`
+ * safe to allow is not that prerendered pages hold no user data. It is that our
+ * origin serves no JavaScript-typed response carrying user-influenced content
+ * (only Next's build files are scripts), and that every response the app serves
+ * carries `X-Content-Type-Options: nosniff` (`next.config.ts`), so no JSON, page
+ * or export can be run as a script (`e2e/production/csp.spec.ts` checks a sample
+ * of those in a browser). A route that answers with a JavaScript type and
+ * includes user data would break this; `tests/no-javascript-responses.test.ts`
+ * fails when one is written. Stricter: a running script cannot add an inline
+ * script whose hash is not listed, which `'strict-dynamic'` permits.
  *
  * Hence, when adding an inline `<Script>` anywhere in the app: its sha256 must be
  * listed in the prerendered shape (as the analytics stub is), or it will not run
