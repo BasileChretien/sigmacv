@@ -106,6 +106,26 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     );
   });
 
+  it("removes `who` from the query string only, never from a path or a fragment", () => {
+    // `/about&who=x` is an address that does not exist (a 404 that still counts
+    // a pageview). Cut there, it would be filed as a view of the real /about.
+    const transform = boot().o!.transformRequest!;
+    for (const url of [
+      "https://sigmacv.org/about&who=x",
+      "https://sigmacv.org/i/02abc&who=Jane+Doe",
+      "https://sigmacv.org/guides/x&who=y?utm_source=nl",
+      "https://sigmacv.org/guides#a&who=x",
+      "https://sigmacv.org/guides#a?who=x",
+      "https://sigmacv.org/guides?utm_source=nl#a&who=x",
+    ]) {
+      expect(transform({ u: url, r: url })).toEqual({ u: url, r: url });
+    }
+    // In the query it still goes, whatever follows in the fragment.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x#a&who=y" }).u).toBe(
+      "https://sigmacv.org/guides#a&who=y",
+    );
+  });
+
   it("keeps only the origin of an outbound-link event's URL, so no identifier in a path reaches the collector", () => {
     const transform = boot().o!.transformRequest!;
     type Event = Payload & { p?: Record<string, string> };

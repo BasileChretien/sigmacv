@@ -6,8 +6,8 @@
  * `init` that stores the options for the real script to pick up) PLUS one
  * option: a `transformRequest` that, before the request leaves the browser,
  *  - rewrites `/preview/<ORCID>` to `/preview/_`, drops the query string from
- *    `/search?q=<name>`, and drops the `who` parameter from any page, in the
- *    payload's URL (`u`) and referrer (`r`);
+ *    `/search?q=<name>`, and drops the `who` parameter from the query string
+ *    of any page, in the payload's URL (`u`) and referrer (`r`);
  *  - keeps only the origin of a URL an event carries (`p.url` — the clicked link
  *    of an outbound-link event): `https://doi.org/10.1234/x` becomes
  *    `https://doi.org`, user info dropped.
@@ -40,11 +40,14 @@ export const PLAUSIBLE_INIT_SCRIPT =
   "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)}," +
   "plausible.init=plausible.init||function(i){plausible.o=i||{}};" +
   "plausible.init({transformRequest:function(p){" +
-  "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)[?][^#]*/,rw=/([?&])who=[^&#]*/g," +
+  "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)[?][^#]*/,rw=/([?&])who=[^&]*/g," +
   "ou=/^([a-z][a-z0-9+.-]*:[/][/])(?:[^/?#@]*@)?([^/?#]*).*$/i;" +
-  // `who` out, then the `&&`, or the `?`/`&` left dangling, where it stood.
-  'function s(v){var w=v.replace(re,"/preview/_").replace(rs,"$1"),x=w.replace(rw,"$1");' +
-  'return x===w?w:x.replace(/([?&])&+/g,"$1").replace(/[?&](#|$)/,"$1")}' +
+  // `who` goes from the query string alone (first `?` up to the `#`): in a path,
+  // `/about&who=x` is another address, and cutting it would file a view of
+  // /about. Then the `&&`, or the `?`/`&` left dangling, where it stood.
+  'function s(v){return v.replace(re,"/preview/_").replace(rs,"$1")' +
+  '.replace(/^([^?#]*)([?][^#]*)/,function(m,a,q){var x=q.replace(rw,"$1");' +
+  'return a+(x===q?q:x.replace(/([?&])&+/g,"$1").replace(/[?&]$/,""))})}' +
   'if(p&&typeof p.u==="string")p.u=s(p.u);' +
   'if(p&&typeof p.r==="string")p.r=s(p.r);' +
   'if(p&&p.p&&typeof p.p.url==="string")p.p.url=p.p.url.replace(ou,"$1$2");' +
