@@ -79,6 +79,14 @@ const isStyleSheet = (url: string): boolean => new URL(url).hostname === "fonts.
 const answers: FetchStub = async (url) => (isStyleSheet(url) ? styleSheet(url) : fontFile(url));
 /** A request that is accepted and then never answered, whatever its signal does. */
 const never = (): Promise<Response> => new Promise<Response>(() => {});
+/** A response whose headers came and whose body never does. */
+const headersOnly = (): Response =>
+  ({
+    ok: true,
+    status: 200,
+    text: () => new Promise<string>(() => {}),
+    arrayBuffer: () => new Promise<ArrayBuffer>(() => {}),
+  }) as unknown as Response;
 
 function stubFetch(impl: FetchStub) {
   const f = vi.fn(impl);
@@ -181,10 +189,83 @@ describe("loadOgFonts", () => {
     expect(signals(f).every((signal) => signal.aborted)).toBe(true);
     expect(vi.getTimerCount()).toBe(0);
     // Said in the build log, once per weight: nothing else shows the card changed.
+    const said = { timeoutMs: 5_000, waitedMs: 5_000 };
     expect(vi.mocked(logger.warn).mock.calls).toEqual([
-      ["og_card.font_timed_out", { family: "Inter", weight: 400, timeoutMs: 5_000 }],
-      ["og_card.font_timed_out", { family: "Inter", weight: 800, timeoutMs: 5_000 }],
+      ["og_card.font_timed_out", { family: "Inter", weight: 400, ...said }],
+      ["og_card.font_timed_out", { family: "Inter", weight: 800, ...said }],
     ]);
+  });
+
+  it("logs how long it really waited, which a busy process makes longer than the limit", async () => {
+    vi.useFakeTimers();
+    stubFetch(never);
+    void loadOgFonts("Inter", "Hello");
+
+    await vi.advanceTimersByTimeAsync(4_980);
+    // Six seconds in which the event loop never came round: no turn is counted.
+    vi.setSystemTime(Date.now() + 6_000);
+    expect(logger.warn).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(20);
+    expect(logger.warn).toHaveBeenCalledWith("og_card.font_timed_out", {
+      family: "Inter",
+      weight: 400,
+      timeoutMs: 5_000,
+      waitedMs: 11_000,
+    });
+  });
+
+  it.each([
+    ["the style sheet", isStyleSheet, 2],
+    ["the font file", (url: string) => !isStyleSheet(url), 4],
+  ])(
+    "gives up after 5 s when %s answers and its body never comes",
+    async (_what, stalls, requests) => {
+      vi.useFakeTimers();
+      // Headers at once, then nothing: the second 300 s Node's fetch would wait.
+      const f = stubFetch(async (url) => (stalls(url) ? headersOnly() : answers(url)));
+      let fonts: unknown;
+      void loadOgFonts("Inter", "Hello").then((loaded) => (fonts = loaded));
+
+      await vi.advanceTimersByTimeAsync(4_999);
+      expect(fonts).toBeUndefined();
+      expect(f).toHaveBeenCalledTimes(requests);
+
+      await vi.advanceTimersByTimeAsync(1);
+      expect(fonts).toEqual([]);
+      expect(signals(f).every((signal) => signal.aborted)).toBe(true);
+      expect(vi.getTimerCount()).toBe(0);
+    },
+  );
+
+  it("gives up after 5 s on requests that fail when aborted, as fetch does, and says so once", async () => {
+    vi.useFakeTimers();
+    // Node's fetch with a silent peer: nothing, until its signal fires, and then
+    // a rejection with the signal's reason. The limit and the rejection arrive
+    // together.
+    let rejected = 0;
+    stubFetch(
+      (_url, init) =>
+        new Promise<Response>((_, reject) => {
+          init!.signal!.addEventListener("abort", () => {
+            rejected += 1;
+            reject(init!.signal!.reason);
+          });
+        }),
+    );
+    let fonts: unknown;
+    void loadOgFonts("Inter", "Hello").then((loaded) => (fonts = loaded));
+
+    await vi.advanceTimersByTimeAsync(4_999);
+    expect(fonts).toBeUndefined();
+    expect(rejected).toBe(0);
+
+    await vi.advanceTimersByTimeAsync(1);
+    expect(fonts).toEqual([]);
+    expect(rejected).toBe(2);
+    // One line per weight, not two; and no rejection is left without a handler,
+    // which would fail the run.
+    expect(logger.warn).toHaveBeenCalledTimes(2);
   });
 
   it("counts the 5 s from the start, not from each request: a font file that stalls", async () => {

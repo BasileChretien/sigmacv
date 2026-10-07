@@ -68,6 +68,10 @@ const OG_FONT_TIMEOUT_MS = 5_000;
  * However long the process was busy, it costs one turn, and each turn is
  * followed by a read of what has arrived. Ten cards loading at once need
  * thirty to forty turns, however slow each turn is; the limit is 250.
+ *
+ * `OG_FONT_TIMEOUT_MS` is therefore the least a stalled request is waited for:
+ * a busy process waits longer, and the log line says how long. There is no
+ * ceiling on the clock on purpose, since that would be the clock again.
  */
 const OG_FONT_TURN_MS = 20;
 
@@ -121,6 +125,7 @@ async function loadFontWeight(
   text: string,
 ): Promise<ArrayBuffer | null> {
   const controller = new AbortController();
+  const started = Date.now();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timedOut = new Promise<null>((resolve) => {
     let turnsLeft = OG_FONT_TIMEOUT_MS / OG_FONT_TURN_MS;
@@ -131,9 +136,14 @@ async function loadFontWeight(
         return;
       }
       controller.abort();
-      // The one failure that is said aloud: nothing else in a green build shows
-      // that a card went out without its font.
-      logger.warn("og_card.font_timed_out", { family, weight, timeoutMs: OG_FONT_TIMEOUT_MS });
+      // `siteOgImage` logs that a card went out without a font; this says why,
+      // and how long the request was really waited for.
+      logger.warn("og_card.font_timed_out", {
+        family,
+        weight,
+        timeoutMs: OG_FONT_TIMEOUT_MS,
+        waitedMs: Date.now() - started,
+      });
       resolve(null);
     };
     timer = setTimeout(turn, OG_FONT_TURN_MS);
