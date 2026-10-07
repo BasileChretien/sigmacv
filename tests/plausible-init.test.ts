@@ -70,6 +70,11 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(sent("https://sigmacv.org/about?next=/preview/abc&a=1#top")).toBe(
       "https://sigmacv.org/about?next=/preview/_#top",
     );
+    // Like the `/search?` rule it stops at the first: on the preview page itself
+    // a `/preview/` in a value stays, and the parameters behind it with it.
+    expect(
+      sent("https://sigmacv.org/preview/0000-0002-1825-0097?next=/preview/abc&utm_source=nl"),
+    ).toBe("https://sigmacv.org/preview/_?next=/preview/abc&utm_source=nl");
   });
 
   it("cuts an ORCID iD out of any other address, so a 404 on a mistyped one is not stored with it", () => {
@@ -162,8 +167,9 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(sentPath("/img/0000-0002-1825-0097x200.png")).toBe("/img/_200.png");
     // A run with no iD in it is put back whole, its x included.
     expect(sentPath("/x/1920x1080")).toBe("/x/1920x1080");
-    // Nor into "an x only when nothing follows it": the first iD below would
-    // then be fifteen digits, put back as they are, with its X behind them.
+    // Nor is the rule to be tidied into "an x only when nothing follows it": the
+    // first iD below would then be fifteen digits, put back as they are, with
+    // its X behind them.
     expect(sentPath("/x/0000-0002-1694-233X0000-0002-1825-0097")).toBe("/x/__");
   });
 

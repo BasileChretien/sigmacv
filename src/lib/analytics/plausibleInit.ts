@@ -58,10 +58,11 @@
  * `/about?next=/search`, without its campaign parameters. That cost is kept
  * for what the same reach does: a lookup address that another address carries
  * unencoded (`?callbackUrl=/search?q=<name>`) loses the name too. The
- * `/preview/` rule (`re`) is not tied to the path either: in a value it takes
- * everything up to the next `/`, `?` or `#`, the parameters behind it
- * included, so `/about?next=/preview/abc&utm_source=nl` is sent as
- * `/about?next=/preview/_`.
+ * `/preview/` rule (`re`) is not tied to the path either: the first
+ * `/preview/` it finds, in a value too, is taken with everything up to the next
+ * `/`, `?` or `#`, the parameters behind it included, so
+ * `/about?next=/preview/abc&utm_source=nl` is sent as `/about?next=/preview/_`.
+ * A second `/preview/` in the same address is left as it is.
  * Outbound-link tracking is switched on in the site's Plausible configuration
  * (read off the live `pa-*.js` on 2026-09-15), and its event carries the clicked
  * URL: a click on the owner worklist's ShareYourPaper link, or on any DOI, ORCID

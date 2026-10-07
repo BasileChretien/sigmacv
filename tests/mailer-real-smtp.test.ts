@@ -215,6 +215,21 @@ describe("nodemailer, unmocked", () => {
     expect(session.data).toContain("Two new works.");
   });
 
+  it("stores a message whose lines start with dots as it was written", async () => {
+    // One, two and three dots, written on purpose: the sign-in mail below has a
+    // dot-led line only because of where nodemailer wraps its link.
+    const ok = await sendMail({
+      to: "reader@example.org",
+      subject: "Dots",
+      text: ["a", ".b", "..c", "...d"].join("\n"),
+    });
+
+    expect(ok).toBe(true);
+    const session = lastSession();
+    expect(session.wire).toContain(["", "a", "..b", "...c", "....d"].join("\r\n"));
+    expect(session.data).toContain(["", "a", ".b", "..c", "...d"].join("\r\n"));
+  });
+
   it("returns false, without throwing, when the server refuses the recipient", async () => {
     const logged = vi.spyOn(console, "error").mockImplementation(() => {});
 

@@ -422,6 +422,11 @@ test.describe("a prerendered page", () => {
       .filter(([, route]) => route.srcRoute?.includes("[..."))
       .map(([pathname]) => pathname);
     expect(Object.keys(manifest.routes).length).toBeGreaterThan(0);
+    // The field the filter reads is there: the guides are built from this route.
+    // Without it the filter would find nothing in any build, and pass.
+    expect(Object.values(manifest.routes).map((route) => route.srcRoute)).toContain(
+      "/guides/[slug]",
+    );
     expect(catchAll).toEqual([]);
   });
 
