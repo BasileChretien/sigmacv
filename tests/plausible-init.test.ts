@@ -52,6 +52,26 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(out.n).toBe("pageview");
   });
 
+  it("rewrites `/preview/` in a parameter's value too, with the parameters behind it", () => {
+    const transform = boot().o!.transformRequest!;
+    const sent = (u: string) => transform({ u }).u;
+    // The rule is not tied to the path, and `&` does not end what it takes: the
+    // campaign parameter goes. Held here so that it is changed on purpose.
+    expect(sent("https://sigmacv.org/about?next=/preview/abc&utm_source=nl")).toBe(
+      "https://sigmacv.org/about?next=/preview/_",
+    );
+    // What ends it is the next `/`, `?` or `#`, left where it stood.
+    expect(sent("https://sigmacv.org/about?next=/preview/abc&a=1/b&c=2")).toBe(
+      "https://sigmacv.org/about?next=/preview/_/b&c=2",
+    );
+    expect(sent("https://sigmacv.org/about?next=/preview/abc&a=1?b=2")).toBe(
+      "https://sigmacv.org/about?next=/preview/_?b=2",
+    );
+    expect(sent("https://sigmacv.org/about?next=/preview/abc&a=1#top")).toBe(
+      "https://sigmacv.org/about?next=/preview/_#top",
+    );
+  });
+
   it("cuts an ORCID iD out of any other address, so a 404 on a mistyped one is not stored with it", () => {
     const transform = boot().o!.transformRequest!;
     const sent = (u: string) => transform({ u }).u;
@@ -130,15 +150,20 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
   });
 
   it("takes an X or x that ends a cut run with it, whatever follows the letter", () => {
-    // It is the check character when the run is an iD's. A letter that only
-    // happens to follow an iD goes the same way: `xml` is left as `ml`.
+    // It is the check character when the run is an iD's, and an iD that ends in
+    // X can have a letter right behind it. Without its X that run is fifteen
+    // digits, no iD, and is put back whole.
+    expect(sentPath("/x/0000-0002-1694-233Xml")).toBe("/x/_ml");
+    // So the letter goes whatever follows it, and an x that only happens to
+    // follow an iD goes too, because it stands where that check character
+    // would: `xml` is left as `ml`. Held here so that it is not tidied into
+    // "leave the x when a letter follows": the iD above would go out whole.
     expect(sentPath("/x/0000-0002-1825-0097xml")).toBe("/x/_ml");
     expect(sentPath("/img/0000-0002-1825-0097x200.png")).toBe("/img/_200.png");
     // A run with no iD in it is put back whole, its x included.
     expect(sentPath("/x/1920x1080")).toBe("/x/1920x1080");
-    // Held here so that it is not tidied into "an x only when nothing follows
-    // it": the first iD below would then be fifteen digits, put back as they
-    // are, with its X behind them.
+    // Nor into "an x only when nothing follows it": the first iD below would
+    // then be fifteen digits, put back as they are, with its X behind them.
     expect(sentPath("/x/0000-0002-1694-233X0000-0002-1825-0097")).toBe("/x/__");
   });
 
@@ -336,6 +361,20 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
         u: "https://sigmacv.org/about?utm_source=nl&callbackUrl=/search?q=Jane%20Doe#top",
       }).u,
     ).toBe("https://sigmacv.org/about?utm_source=nl&callbackUrl=/search#top");
+  });
+
+  it("cuts at the first `/search?` only, and only at one written unencoded", () => {
+    const transform = boot().o!.transformRequest!;
+    // Two known limits, held here so that they are changed on purpose. A lookup
+    // address percent-encoded into a parameter is not seen: it is sent as it
+    // is, name included.
+    const encoded = "https://sigmacv.org/about?next=%2Fsearch%3Fq%3DJane%20Doe&utm_source=nl";
+    expect(transform({ u: encoded }).u).toBe(encoded);
+    // And of two, the second stays. It can only stand behind the `#` that ends
+    // the first cut.
+    expect(transform({ u: "https://sigmacv.org/search?q=Jane#/search?q=John" }).u).toBe(
+      "https://sigmacv.org/search#/search?q=John",
+    );
   });
 
   it("finds the lookup's query past a host or a segment that only starts like it", () => {

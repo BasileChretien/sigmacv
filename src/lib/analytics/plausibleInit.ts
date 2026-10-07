@@ -7,8 +7,8 @@
  * option: a `transformRequest` that, before the request leaves the browser,
  *  - rewrites `/preview/<ORCID>` to `/preview/_`, drops the query string from
  *    `/search?q=<name>` (in any case; the cut runs from the `?` of the first
- *    `/search?` it finds to the next `#`, wherever that stands, a parameter's
- *    value included), and drops the `who` parameter from the query string of
+ *    `/search?` it finds, wherever that stands, a parameter's value included,
+ *    to the next `#`), and drops the `who` parameter from the query string of
  *    any page, in the payload's URL (`u`) and referrer (`r`);
  *  - replaces an ORCID iD, wherever else it stands in those two, with `_`: four
  *    groups of four, the last digit possibly an X, joined by a hyphen, by
@@ -57,7 +57,11 @@
  * `/about?next=/search?&utm_source=nl&utm_campaign=x` is sent as
  * `/about?next=/search`, without its campaign parameters. That cost is kept
  * for what the same reach does: a lookup address that another address carries
- * unencoded (`?callbackUrl=/search?q=<name>`) loses the name too.
+ * unencoded (`?callbackUrl=/search?q=<name>`) loses the name too. The
+ * `/preview/` rule (`re`) is not tied to the path either: in a value it takes
+ * everything up to the next `/`, `?` or `#`, the parameters behind it
+ * included, so `/about?next=/preview/abc&utm_source=nl` is sent as
+ * `/about?next=/preview/_`.
  * Outbound-link tracking is switched on in the site's Plausible configuration
  * (read off the live `pa-*.js` on 2026-09-15), and its event carries the clicked
  * URL: a click on the owner worklist's ShareYourPaper link, or on any DOI, ORCID
