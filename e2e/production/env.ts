@@ -18,7 +18,8 @@ export const PLAUSIBLE_SRC =
  * Build-time and run-time env of the server under test. No database is touched:
  * the specs open prerendered pages and anonymous dynamic ones, and the URL
  * points at a port nothing listens on, so a developer's local Postgres is never
- * dialled either.
+ * dialled either. One spec counts on that: it opens a page that reads the
+ * database to see what a failing render is answered with.
  */
 export const SERVER_ENV: Record<string, string> = {
   NODE_ENV: "production",
