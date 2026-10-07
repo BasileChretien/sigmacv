@@ -27,7 +27,9 @@ interface SmtpSession {
   auth: string | null;
   mailFrom: string | null;
   rcptTo: string[];
-  /** The raw message, headers and body, as sent after `DATA`. */
+  /** What followed `DATA` on the wire: the message with its dot-stuffing still in. */
+  wire: string;
+  /** The raw message, headers and body: `wire` with the dot-stuffing undone. */
   data: string;
 }
 
@@ -71,7 +73,9 @@ function serve(socket: Socket, session: SmtpSession): void {
       const piece = buffer.slice(0, end);
       buffer = buffer.slice(end + terminator.length);
       if (inData) {
-        session.data = piece;
+        session.wire = piece;
+        // The client doubles a dot that starts a line; the receiver removes it (RFC 5321, 4.5.2).
+        session.data = piece.replace(/(^|\r\n)\./g, "$1");
         inData = false;
         socket.write("250 queued\r\n");
         continue;
@@ -95,6 +99,47 @@ function headerLines(raw: string): string[] {
     .split("\r\n");
 }
 
+/** The value of the named header among unfolded header lines. */
+function headerValue(lines: string[], name: string): string | undefined {
+  const prefix = `${name.toLowerCase()}:`;
+  return lines
+    .find((line) => line.toLowerCase().startsWith(prefix))
+    ?.slice(prefix.length)
+    .trim();
+}
+
+/**
+ * The body part of a multipart message that has the given media type, whatever
+ * the order of the parts: the transfer encoding it declares and its body as sent.
+ */
+function mimePart(raw: string, mediaType: string): { encoding: string | undefined; body: string } {
+  const contentType = headerValue(headerLines(raw), "Content-Type") ?? "";
+  const boundary = /boundary="?([^";\s]+)/.exec(contentType)?.[1];
+  if (!boundary) throw new Error("not a multipart message");
+  // What precedes the first delimiter line is the message's own header block;
+  // what follows the closing one ("--boundary--") is the end of the message.
+  for (const piece of raw.split(`\r\n--${boundary}`).slice(1, -1)) {
+    const part = piece.slice("\r\n".length);
+    const headers = headerLines(part);
+    if (headerValue(headers, "Content-Type")?.split(";")[0] !== mediaType) continue;
+    return {
+      encoding: headerValue(headers, "Content-Transfer-Encoding"),
+      body: part.slice(part.indexOf("\r\n\r\n") + "\r\n\r\n".length),
+    };
+  }
+  throw new Error(`the message has no ${mediaType} part`);
+}
+
+/**
+ * A quoted-printable body read back: soft line breaks removed, "=XX" turned back
+ * into its character. Enough for the ASCII bodies sent here.
+ */
+function quotedPrintableDecoded(body: string): string {
+  return body
+    .replace(/=\r\n/g, "")
+    .replace(/=([0-9A-F]{2})/g, (_, hex: string) => String.fromCharCode(parseInt(hex, 16)));
+}
+
 const sessions: SmtpSession[] = [];
 const sockets = new Set<Socket>();
 let sink: Server;
@@ -108,7 +153,7 @@ function lastSession(): SmtpSession {
 
 beforeAll(async () => {
   sink = createServer((socket) => {
-    const session: SmtpSession = { auth: null, mailFrom: null, rcptTo: [], data: "" };
+    const session: SmtpSession = { auth: null, mailFrom: null, rcptTo: [], wire: "", data: "" };
     sessions.push(session);
     sockets.add(socket);
     socket.on("close", () => sockets.delete(socket));
@@ -184,25 +229,55 @@ describe("nodemailer, unmocked", () => {
 
   it("delivers the Auth.js sign-in link through the provider's own send", async () => {
     const provider = Nodemailer({ id: "email", server: smtpUrl, from: process.env.EMAIL_FROM });
+    // The link in the shape Auth.js gives it (@auth/core/lib/actions/signin/send-token.js):
+    // the provider's callback path, then callbackUrl, a 64-hex token and the address,
+    // in that order. 195 characters: a short stand-in is not sent the way a real link is.
+    // The address is chosen for its length: with it the text part is wrapped just
+    // before ".org", so one line of the message starts with a dot (asserted below).
+    const identifier = "signin-test@example.org";
+    const token = "0123456789abcdef".repeat(4);
+    const url = `https://cv.example.org/api/auth/callback/email?${new URLSearchParams({
+      callbackUrl: "https://cv.example.org/cv",
+      token,
+      email: identifier,
+    })}`;
 
     await provider.sendVerificationRequest({
-      identifier: "signin@example.org",
-      url: "https://cv.example.org/api/auth/callback/email?token=abc",
+      identifier,
+      url,
       expires: new Date("2026-10-08T00:00:00.000Z"),
       provider: { ...provider, server: smtpUrl, from: process.env.EMAIL_FROM },
-      token: "abc",
+      token,
       theme: {},
       request: new Request("https://cv.example.org/api/auth/signin/email"),
     });
 
     const session = lastSession();
-    expect(session.rcptTo).toEqual(["signin@example.org"]);
+    expect(session.rcptTo).toEqual([identifier]);
     expect(headerLines(session.data)).toContain("Subject: Sign in to cv.example.org");
-    // The plain-text part goes out as it is; the HTML part is quoted-printable ("="
-    // is written "=3D", long lines end in a soft break). The link must be whole,
-    // token included, in both.
-    const body = session.data.replace(/=\r\n/g, "");
-    expect(body).toContain("https://cv.example.org/api/auth/callback/email?token=abc");
-    expect(body).toContain('href=3D"https://cv.example.org/api/auth/callback/email?token=3Dabc"');
+    // The HTML part is quoted-printable whatever the link: its markup has lines over
+    // 76 characters. A link of this length takes the text part over 76 as well, so
+    // nodemailer sends that part quoted-printable too, where a short link leaves it
+    // 7bit. In both, "=" is written "=3D" and the link is cut by soft line breaks,
+    // one of them inside the token: the link as built above is nowhere in the raw
+    // message.
+    const text = mimePart(session.data, "text/plain");
+    const html = mimePart(session.data, "text/html");
+    expect(text.encoding).toBe("quoted-printable");
+    expect(html.encoding).toBe("quoted-printable");
+    // Read back, it must be whole in both: on a line of its own in the text part,
+    // and as the href in the HTML part, where Auth.js writes it as it is ("&"
+    // between the parameters, not "&amp;").
+    expect(quotedPrintableDecoded(text.body)).toContain(`\r\n${url}\r\n`);
+    expect(quotedPrintableDecoded(html.body)).toContain(`href="${url}"`);
+    // One break of the text part leaves ".org" at the start of a line, and the
+    // client doubles that dot on the wire: the link above is whole only because the
+    // sink removes it again ("example..org" otherwise). Should nodemailer come to
+    // wrap elsewhere, pick an address that puts a dot there again: without one this
+    // test would pass with a sink that undoes nothing.
+    expect(
+      session.wire,
+      "no line of the sign-in mail starts with a dot: it no longer exercises dot-stuffing",
+    ).toMatch(/\r\n\.\./);
   });
 });
