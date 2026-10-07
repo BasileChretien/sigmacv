@@ -129,6 +129,19 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(sentPath("/x?ids=0000000218250097+0000-0001-5109-3700")).toBe("/x?ids=_");
   });
 
+  it("takes an X or x that ends a cut run with it, whatever follows the letter", () => {
+    // It is the check character when the run is an iD's. A letter that only
+    // happens to follow an iD goes the same way: `xml` is left as `ml`.
+    expect(sentPath("/x/0000-0002-1825-0097xml")).toBe("/x/_ml");
+    expect(sentPath("/img/0000-0002-1825-0097x200.png")).toBe("/img/_200.png");
+    // A run with no iD in it is put back whole, its x included.
+    expect(sentPath("/x/1920x1080")).toBe("/x/1920x1080");
+    // Held here so that it is not tidied into "an x only when nothing follows
+    // it": the first iD below would then be fifteen digits, put back as they
+    // are, with its X behind them.
+    expect(sentPath("/x/0000-0002-1694-233X0000-0002-1825-0097")).toBe("/x/__");
+  });
+
   it("takes a `%` in front of an iD for an escape only when the iD cannot start inside it", () => {
     // A space, a non-breaking space or an encoded slash in front of an iD stays.
     expect(sentPath("/x%200000-0002-1825-0097")).toBe("/x%20_");
@@ -151,8 +164,28 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
   const GROUPS = ["0000", "0002", "1825", "0097"];
   const TABLE_IDS = [GROUPS.join(""), "0000000151093700"];
 
+  /**
+   * Where the table puts an iD and what stands around it (`cell`): the address
+   * `put` builds around it, and the field of the payload that address is sent in.
+   */
+  const POSITIONS: { where: string; field: "u" | "r"; put: (cell: string) => string }[] = [
+    { where: "in a query value", field: "u", put: (cell) => `https://sigmacv.org/x?v=${cell}` },
+    { where: "in a path segment", field: "u", put: (cell) => `https://sigmacv.org/x/${cell}` },
+    { where: "as the first segment", field: "u", put: (cell) => `https://sigmacv.org/${cell}` },
+    { where: "in a fragment", field: "u", put: (cell) => `https://sigmacv.org/x#${cell}` },
+    { where: "in a referrer's path", field: "r", put: (cell) => `https://example.org/a/${cell}` },
+    { where: "at the start of the address", field: "u", put: (cell) => cell },
+  ];
+
+  /** What the collector is sent for an address, in the field of the payload it is put in. */
+  function sender(field: "u" | "r"): (address: string) => string {
+    const transform = boot().o!.transformRequest!;
+    return (address) =>
+      transform(field === "r" ? { u: "https://sigmacv.org/", r: address } : { u: address })[field]!;
+  }
+
   /** What stands in front of an iD x how it is spelled x what stands behind: 588 addresses. */
-  function addressTable(): string[] {
+  function addressTable(put: (cell: string) => string): string[] {
     const spellings = ["-", "", "%2D", "%E2%80%93", "%E2%88%92", "%20", "+"].map((separator) =>
       GROUPS.join(separator),
     );
@@ -174,7 +207,7 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     const table: string[] = [];
     for (const b of before) {
       for (const spelling of spellings) {
-        for (const a of after) table.push(`https://sigmacv.org/x?v=${b}${spelling}${a}`);
+        for (const a of after) table.push(put(`${b}${spelling}${a}`));
       }
     }
     return table;
@@ -197,30 +230,39 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     return longest;
   }
 
-  it("leaves no four digits of an iD in a row, whatever stands around it and however it is spelled", () => {
-    const transform = boot().o!.transformRequest!;
-    const table = addressTable();
-    expect(table).toHaveLength(588);
-    expect(table.filter((u) => readable(transform({ u }).u!) >= 4)).toEqual([]);
-  });
+  it.each(POSITIONS)(
+    "leaves no two digits of an iD in a row $where, whatever stands around it and however it is spelled",
+    ({ field, put }) => {
+      const sent = sender(field);
+      const table = addressTable(put);
+      expect(table).toHaveLength(588);
+      // Two, not one: a single digit can be the table's own (the `1` of `&a=1`
+      // behind the iD, the `2` and the `0` of `%C2%A0` in front), and an iD has
+      // those digits too.
+      expect(table.filter((row) => readable(sent(row)) >= 2)).toEqual([]);
+    },
+  );
 
-  it("never leaves more of an iD than the rule it replaces did", () => {
-    // That rule, as it stood: the leftmost sixteen digits shaped like an iD, and
-    // on from there. Nothing else in the stub touches the table's addresses.
-    const transform = boot().o!.transformRequest!;
-    const d = "(?:-|[+]|%2D|%20|%E2%80%9[0-5])?";
-    const replaced = new RegExp(`[0-9]{4}${d}[0-9]{4}${d}[0-9]{4}${d}[0-9]{3}[0-9X]`, "gi");
-    const worse: string[] = [];
-    let itLeftSomething = 0;
-    for (const u of addressTable()) {
-      const then = readable(u.replace(replaced, "_"));
-      if (then >= 4) itLeftSomething++;
-      if (readable(transform({ u }).u!) > then) worse.push(u);
-    }
-    expect(worse).toEqual([]);
-    // The comparison means something only if the old rule did leave digits.
-    expect(itLeftSomething).toBeGreaterThan(100);
-  });
+  it.each(POSITIONS)(
+    "never leaves more of an iD $where than the rule it replaces did",
+    ({ field, put }) => {
+      // That rule, as it stood: the leftmost sixteen digits shaped like an iD, and
+      // on from there. Nothing else in the stub touches the table's addresses.
+      const sent = sender(field);
+      const d = "(?:-|[+]|%2D|%20|%E2%80%9[0-5])?";
+      const replaced = new RegExp(`[0-9]{4}${d}[0-9]{4}${d}[0-9]{4}${d}[0-9]{3}[0-9X]`, "gi");
+      const worse: string[] = [];
+      let itLeftSomething = 0;
+      for (const row of addressTable(put)) {
+        const then = readable(row.replace(replaced, "_"));
+        if (then >= 4) itLeftSomething++;
+        if (readable(sent(row)) > then) worse.push(row);
+      }
+      expect(worse).toEqual([]);
+      // The comparison means something only if the old rule did leave digits.
+      expect(itLeftSomething).toBeGreaterThan(100);
+    },
+  );
 
   it("goes by shape alone: it cuts too much rather than too little, and leaves shorter numbers", () => {
     const sent = (u: string) => boot().o!.transformRequest!({ u }).u;
@@ -257,7 +299,7 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     );
   });
 
-  it("cuts nothing but the lookup's own query: `/search/` elsewhere is left as it is", () => {
+  it("leaves `/search/` as it is, wherever it stands: the rule needs `/search?`", () => {
     const transform = boot().o!.transformRequest!;
     // `/search/` inside a parameter's value is not the lookup, and Plausible
     // reads `utm_*`, `ref` and `source` off this same query. (A rule that cut a
@@ -276,6 +318,24 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(transform({ u: "https://sigmacv.org/", r: "https://example.org/search/x/y" }).r).toBe(
       "https://example.org/search/x/y",
     );
+  });
+
+  it("cuts from `/search?` wherever it stands, a parameter's value included, up to the `#`", () => {
+    const transform = boot().o!.transformRequest!;
+    // The rule is not tied to the lookup's own address. In a value, the campaign
+    // parameters behind it go with the rest: a cost, held here so that it is
+    // changed on purpose.
+    expect(
+      transform({ u: "https://sigmacv.org/about?next=/search?&utm_source=nl&utm_campaign=x" }).u,
+    ).toBe("https://sigmacv.org/about?next=/search");
+    // What the same reach is kept for: a lookup address that another address
+    // carries unencoded loses the name. What stands in front of it stays, and
+    // so does the fragment.
+    expect(
+      transform({
+        u: "https://sigmacv.org/about?utm_source=nl&callbackUrl=/search?q=Jane%20Doe#top",
+      }).u,
+    ).toBe("https://sigmacv.org/about?utm_source=nl&callbackUrl=/search#top");
   });
 
   it("finds the lookup's query past a host or a segment that only starts like it", () => {
@@ -385,15 +445,26 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
       "https://sigmacv.org/guides?a=1&&b=2&",
     );
     expect(transform({ u: "https://sigmacv.org/guides?" }).u).toBe("https://sigmacv.org/guides?");
-    // With `who` gone and only empty segments left, no `?` is left hanging.
+    // With `who` gone, a query left empty goes with its `?`: no lone `?` is left
+    // behind. One empty segment beside `who` is an empty query…
     expect(transform({ u: "https://sigmacv.org/guides?who=x&" }).u).toBe(
       "https://sigmacv.org/guides",
     );
     expect(transform({ u: "https://sigmacv.org/guides?&who=x#top" }).u).toBe(
       "https://sigmacv.org/guides#top",
     );
+    // …and beside another parameter it stays where it was.
     expect(transform({ u: "https://sigmacv.org/guides?a=1&who=x&" }).u).toBe(
       "https://sigmacv.org/guides?a=1&",
+    );
+    // Two empty segments are not an empty query: they stay as they stood in the
+    // address, with the `&` between them, so `?who=x&&` is sent as `?&`. Held
+    // here so that it is tidied on purpose.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x&&" }).u).toBe(
+      "https://sigmacv.org/guides?&",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?&&who=x" }).u).toBe(
+      "https://sigmacv.org/guides?&",
     );
     // A typed value is percent-encoded by the browser; whatever it holds goes.
     expect(transform({ u: "https://sigmacv.org/guides?who=a%26b%3Dc%3Fd&ref=x" }).u).toBe(

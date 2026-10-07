@@ -6,8 +6,10 @@
  * `init` that stores the options for the real script to pick up) PLUS one
  * option: a `transformRequest` that, before the request leaves the browser,
  *  - rewrites `/preview/<ORCID>` to `/preview/_`, drops the query string from
- *    `/search?q=<name>` (in any case), and drops the `who` parameter from the
- *    query string of any page, in the payload's URL (`u`) and referrer (`r`);
+ *    `/search?q=<name>` (in any case; the cut runs from the `?` of the first
+ *    `/search?` it finds to the next `#`, wherever that stands, a parameter's
+ *    value included), and drops the `who` parameter from the query string of
+ *    any page, in the payload's URL (`u`) and referrer (`r`);
  *  - replaces an ORCID iD, wherever else it stands in those two, with `_`: four
  *    groups of four, the last digit possibly an X, joined by a hyphen, by
  *    nothing, or by a percent-encoded hyphen, dash, minus sign or space;
@@ -48,8 +50,14 @@
  * name written in a path: `/search/Jane%20Doe` is a 404, and a 404 is sent
  * with its path as typed. A rule for that one address was tried and taken out
  * again: it cut `/search/` wherever it stood, a parameter's value included,
- * and took the campaign parameters behind it. Of a query, only the lookup's
- * own and the box's `who` are cut.
+ * and took the campaign parameters behind it. The rule that stays (`rs`) does
+ * the same with `/search?`: it is not tied to the lookup's own address. It
+ * cuts from the `?` of the first `/search?` it finds, wherever that stands, a
+ * parameter's value included, to the next `#`:
+ * `/about?next=/search?&utm_source=nl&utm_campaign=x` is sent as
+ * `/about?next=/search`, without its campaign parameters. That cost is kept
+ * for what the same reach does: a lookup address that another address carries
+ * unencoded (`?callbackUrl=/search?q=<name>`) loses the name too.
  * Outbound-link tracking is switched on in the site's Plausible configuration
  * (read off the live `pa-*.js` on 2026-09-15), and its event carries the clicked
  * URL: a click on the owner worklist's ShareYourPaper link, or on any DOI, ORCID

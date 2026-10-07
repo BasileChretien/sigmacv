@@ -447,6 +447,15 @@ neither a looked-up iD nor a name given to the lookup or to the box reaches the
 collector. A 404 is sent with its path as typed: a name written as a path
 (`/search/Jane%20Doe`) is stored with it.
 
+The `/search` rule is not tied to the lookup's own address. It cuts from the `?`
+of the first `/search?` it finds, wherever that stands in the address, a
+parameter's value included, to the next `#`. The cost: campaign parameters
+behind such a value are lost, so a visit to
+`/about?next=/search?&utm_source=nl&utm_campaign=x` is sent as
+`/about?next=/search` and counted without its campaign. It is kept because the
+same reach takes the name out of a lookup address that another address carries
+unencoded, such as `?callbackUrl=/search?q=<name>`.
+
 They appear under **Goals / Custom events** in the Plausible dashboard once you
 add them there (Site settings → Goals → Custom event). No extra deploy needed —
 the `window.plausible()` queue stub is already in the root layout.
