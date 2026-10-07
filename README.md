@@ -311,6 +311,7 @@ the default deployment is ORCID-only — no dead buttons.
 | `npm run fetch-csl`           | Vendor CSL styles + locale into the citeproc assets |
 | `npm run db:migrate`          | `prisma migrate dev`                                |
 | `npm run e2e`                 | Playwright end-to-end journeys (needs a test DB)    |
+| `npm run e2e:prod`            | Build, then check the production CSP in a browser   |
 
 ### Self-host the full stack
 
