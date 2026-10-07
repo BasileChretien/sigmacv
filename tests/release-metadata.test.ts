@@ -123,7 +123,9 @@ describe("how to cite", () => {
     const releases = sections.map((section) => section.version).reverse();
     // The newest release has none until Zenodo has minted it.
     expect([releases, releases.slice(0, -1)]).toContainEqual(minted.map((entry) => entry.version));
-    expect(new Set(minted.map((entry) => entry.doi)).size).toBe(minted.length);
+    // No DOI twice; compared as lists, so a failure shows the one that repeats.
+    const dois = minted.map((entry) => entry.doi);
+    expect(dois).toEqual([...new Set(dois)]);
   });
 
   // public/llms-full.txt was missed by the follow-ups of 0.2.0 and 0.3.0, and
