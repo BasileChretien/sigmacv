@@ -138,7 +138,10 @@ describe("nodemailer, unmocked", () => {
   it("exposes the two export shapes the app imports", async () => {
     const mod = await import("nodemailer");
     expect(typeof mod.default.createTransport).toBe("function"); // src/lib/email/mailer.ts
-    expect(typeof mod.createTransport).toBe("function"); // Auth.js: import { createTransport }
+    // Auth.js: import { createTransport }. Read from the module's own keys: vitest
+    // answers a property read on an external module from its default export when
+    // the named export is missing, so `typeof mod.createTransport` could not fail.
+    expect(Object.keys(mod)).toContain("createTransport");
   });
 
   it("delivers a digest mail with the one-click unsubscribe headers", async () => {
@@ -195,9 +198,11 @@ describe("nodemailer, unmocked", () => {
     const session = lastSession();
     expect(session.rcptTo).toEqual(["signin@example.org"]);
     expect(headerLines(session.data)).toContain("Subject: Sign in to cv.example.org");
-    // The body is quoted-printable: drop its soft line breaks before looking for the link.
-    expect(session.data.replace(/=\r\n/g, "")).toContain(
-      "https://cv.example.org/api/auth/callback/email",
-    );
+    // The plain-text part goes out as it is; the HTML part is quoted-printable ("="
+    // is written "=3D", long lines end in a soft break). The link must be whole,
+    // token included, in both.
+    const body = session.data.replace(/=\r\n/g, "");
+    expect(body).toContain("https://cv.example.org/api/auth/callback/email?token=abc");
+    expect(body).toContain('href=3D"https://cv.example.org/api/auth/callback/email?token=3Dabc"');
   });
 });
