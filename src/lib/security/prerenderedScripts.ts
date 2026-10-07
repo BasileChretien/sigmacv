@@ -7,10 +7,14 @@ import { logger } from "@/lib/log";
  * The inline scripts of the pages `next build` prerendered, as sha256 hashes for
  * the Content-Security-Policy (`csp.ts` explains why prerendered pages need them).
  *
- * Read off the build output Next itself serves from: `prerender-manifest.json`
- * names the prerendered routes, `server/app/<route>.html` is the page. Nothing
- * here runs at build time, so there is no artifact to regenerate or to copy into
- * the standalone image: the hashes are computed from the bytes that are served.
+ * Read off the build output: `prerender-manifest.json` names the prerendered
+ * routes, `server/app/<route>.html` is the page as built. Nothing here runs at
+ * build time, so there is no artifact to regenerate or to copy into the
+ * standalone image. Since 16.3.8 Next answers from a copy of that file, which it
+ * makes on the page's first request (`server/route-cache/…`): the same bytes, so
+ * the same hashes, as long as nothing rewrites the copy. One thing can, on a
+ * case-insensitive filesystem only: see the mis-cased address test in
+ * `e2e/production/csp.spec.ts`.
  *
  * Fails closed. A route this cannot vouch for (not in the manifest, revalidated
  * at runtime, file unreadable) gets null, and the caller then sends the nonce

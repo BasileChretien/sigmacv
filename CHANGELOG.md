@@ -740,7 +740,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Next.js 16.3.8, a security release.** It closes seven advisories published on
   30 September 2026. Read against their own text, none of the conditions they
-  name is met here: the image-optimizer request forgery
+  name is met by the site as it runs in production: the image-optimizer request
+  forgery
   ([GHSA-cjq9-62q9-8jv4](https://github.com/vercel/next.js/security/advisories/GHSA-cjq9-62q9-8jv4),
   high) needs remote image hosts to be configured, and none is; the two
   cache-poisoning flaws for pages built ahead of time need Pages Router pages
@@ -749,14 +750,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   ([GHSA-mcj8-r9mp-w47p](https://github.com/vercel/next.js/security/advisories/GHSA-mcj8-r9mp-w47p)),
   and SigmaCV has neither; the social-card one
   ([GHSA-f87g-xv8r-7p7x](https://github.com/vercel/next.js/security/advisories/GHSA-f87g-xv8r-7p7x))
-  needs a webpack build, and SigmaCV builds with Turbopack; the last three concern
-  `use cache`, Draft Mode and the development server. The advisories do not
-  publish the requests involved and none was tried, so this is a reading, not a
-  test, and the upgrade is taken. One thing changes for visitors: the address of
-  a page with a fixed part written percent-encoded (`/%61bout` for `/about`) is
-  now answered with the 404 page, where 16.3.6 showed the page. The security
-  policy sent with each page follows: such an address gets the 404's policy, and
-  an address whose language or guide name is written percent-encoded
+  needs a webpack build, and SigmaCV builds with Turbopack; two more concern
+  `use cache` and Draft Mode, which SigmaCV does not use. The seventh concerns
+  the development server (`next dev`), which is how SigmaCV is developed: it
+  does not touch the production server, and a developer's machine gets the fix by
+  installing this update. The advisories do not publish the requests involved and
+  none was tried, so this is a reading, not a test, and the upgrade is taken. One
+  thing changes for visitors: `/%61bout`, the address of About with one letter
+  written percent-encoded, is now answered with the 404 page, where 16.3.6 showed
+  About. Longer addresses written that way (`/fr/%61bout`) were 404s already.
+  The security policy sent with each page follows: such an address gets the 404's
+  policy, and an address whose language or guide name is written percent-encoded
   (`/%66r/about`) still gets the page and its policy. Nine other packages move in
   the same update (docx, fast-xml-parser, vitest, jsdom, prettier and build tools).
 - **Nine advisories against five dependencies, published between 18 September and

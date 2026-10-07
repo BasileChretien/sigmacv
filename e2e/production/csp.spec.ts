@@ -333,6 +333,44 @@ test.describe("a prerendered page", () => {
     });
   }
 
+  // Since 16.3.8 Next answers a prerendered page from a copy it keeps on disk, in
+  // a file named after the address. Asked for an address that differs from a
+  // page's only by case (a 404), it files that 404 under the mis-cased name. On a
+  // case-insensitive filesystem that name is the page's own file: the page then
+  // answers the stored 404, with another request's nonce, until the cache is
+  // deleted or the app rebuilt (seen on Windows; the defect is Next's). The
+  // production image and CI run on Linux, where the two names are two files.
+  // This checks that it stays so there. Elsewhere it is skipped: it would fail,
+  // and leave the build's cache altered for every later run on that build.
+  test("an address that differs from a page's only by case does not replace the page", async ({
+    page,
+    request,
+  }) => {
+    test.skip(
+      process.platform !== "linux",
+      "on a case-insensitive filesystem Next 16.3.8 overwrites the page's stored copy",
+    );
+    const real = "/fr/about";
+    const before = await request.get(real);
+    expect(before.status()).toBe(200);
+    expect(before.headers()["x-nextjs-prerender"]).toBeTruthy();
+
+    // The first one twice: a 404 kept from the first request would show here.
+    for (const wrong of ["/Fr/about", "/FR/about", "/fr/About", "/Fr/about"]) {
+      const response = await request.get(wrong);
+      expect(response.status(), wrong).toBe(404);
+      expect(response.headers()["x-nextjs-prerender"], wrong).toBeUndefined();
+    }
+
+    const after = await request.get(real);
+    expect(after.status()).toBe(200);
+    expect(await after.text()).toBe(await before.text());
+    const { response, violations } = await open(page, real);
+    expect(response.headers()["x-nextjs-prerender"]).toBeTruthy();
+    await expectHydrated(page);
+    expect(await violations()).toEqual([]);
+  });
+
   test("no prerendered page is revalidated at runtime", () => {
     // The hashes are read off the build. A page that is rebuilt while the server
     // runs (`revalidate`, a cached fetch) would be sent the nonce policy instead
