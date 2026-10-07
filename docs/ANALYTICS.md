@@ -385,7 +385,8 @@ that sentence true:
    `/Preview/_`, `/cv/_`, `/_`. The rule goes by shape: four groups of four
    digits (the last may be an X) joined by a hyphen, by nothing, or by a
    percent-encoded hyphen, dash, minus sign or space. What is cut is the whole
-   run of digits and such separators the iD stands in, not its sixteen digits
+   run of digits and such separators the iD stands in (with an `x` that ends
+   it, the check character when it is an iD's), not its sixteen digits
    alone: `/x/9<iD>1`, `/x/2024-<iD>` and `/x/<iD>-1111-2222-3333` are all
    stored as `/x/_`. Cutting sixteen digits out of a longer run left the rest
    readable, and which sixteen depended on what was joined to the iD. A
@@ -440,12 +441,11 @@ path):
 
 The pageview scrub in `src/lib/analytics/plausibleInit.ts` cuts `/preview/<iD>`
 to `/preview/_`, replaces an iD anywhere else in the address with `_`, drops the
-query string from `/search?q=…`, cuts a path written under the lookup
-(`/search/Jane%20Doe`, a 404) to `/search/_`, and removes the see-it-first box's
-`who` parameter from the query of any page, before the request leaves the
-browser. So neither a looked-up iD nor a name given to the lookup or to the box
-reaches the collector. A 404 on any other address is sent with its path as
-typed.
+query string from `/search?q=…`, and removes the see-it-first box's `who`
+parameter from the query of any page, before the request leaves the browser. So
+neither a looked-up iD nor a name given to the lookup or to the box reaches the
+collector. A 404 is sent with its path as typed: a name written as a path
+(`/search/Jane%20Doe`) is stored with it.
 
 They appear under **Goals / Custom events** in the Plausible dashboard once you
 add them there (Site settings → Goals → Custom event). No extra deploy needed —

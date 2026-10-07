@@ -146,12 +146,15 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(sentPath("/a%2012-3456-7890-1234")).toBe("/a%_");
   });
 
-  it("leaves no twelve digits of an iD in a row, whatever stands around it and however it is spelled", () => {
-    const transform = boot().o!.transformRequest!;
-    const SEPARATORS = /-|[+]|%2D|%20|%E2%80%9[0-5]|%E2%88%92/gi;
-    const groups = ["0000", "0002", "1825", "0097"];
+  /** Every way the table below joins an iD's groups, and what an iD separator is. */
+  const SEPARATORS = /-|[+]|%2D|%20|%E2%80%9[0-5]|%E2%88%92/gi;
+  const GROUPS = ["0000", "0002", "1825", "0097"];
+  const TABLE_IDS = [GROUPS.join(""), "0000000151093700"];
+
+  /** What stands in front of an iD x how it is spelled x what stands behind: 588 addresses. */
+  function addressTable(): string[] {
     const spellings = ["-", "", "%2D", "%E2%80%93", "%E2%88%92", "%20", "+"].map((separator) =>
-      groups.join(separator),
+      GROUPS.join(separator),
     );
     const before = [
       "",
@@ -168,22 +171,55 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
       "=",
     ];
     const after = ["", "1", "-1111-2222-3333", "-0000-0001-5109-3700", "%20", "/x", "&a=1"];
-    const iDs = [groups.join(""), "0000000151093700"];
-    const leaks: string[] = [];
+    const table: string[] = [];
     for (const b of before) {
       for (const spelling of spellings) {
-        for (const a of after) {
-          const u = `https://sigmacv.org/x?v=${b}${spelling}${a}`;
-          const digits = transform({ u }).u!.replace(SEPARATORS, "");
-          for (const iD of iDs) {
-            for (let i = 0; i + 12 <= iD.length; i++) {
-              if (digits.includes(iD.slice(i, i + 12))) leaks.push(u);
-            }
+        for (const a of after) table.push(`https://sigmacv.org/x?v=${b}${spelling}${a}`);
+      }
+    }
+    return table;
+  }
+
+  /** The longest stretch of an iD's digits, in order, that can still be read in `sent`. */
+  function readable(sent: string): number {
+    const digits = sent.replace(SEPARATORS, "");
+    let longest = 0;
+    for (const iD of TABLE_IDS) {
+      for (let i = 0; i < iD.length; i++) {
+        for (let j = iD.length; j > i + longest; j--) {
+          if (digits.includes(iD.slice(i, j))) {
+            longest = j - i;
+            break;
           }
         }
       }
     }
-    expect([...new Set(leaks)]).toEqual([]);
+    return longest;
+  }
+
+  it("leaves no four digits of an iD in a row, whatever stands around it and however it is spelled", () => {
+    const transform = boot().o!.transformRequest!;
+    const table = addressTable();
+    expect(table).toHaveLength(588);
+    expect(table.filter((u) => readable(transform({ u }).u!) >= 4)).toEqual([]);
+  });
+
+  it("never leaves more of an iD than the rule it replaces did", () => {
+    // That rule, as it stood: the leftmost sixteen digits shaped like an iD, and
+    // on from there. Nothing else in the stub touches the table's addresses.
+    const transform = boot().o!.transformRequest!;
+    const d = "(?:-|[+]|%2D|%20|%E2%80%9[0-5])?";
+    const replaced = new RegExp(`[0-9]{4}${d}[0-9]{4}${d}[0-9]{4}${d}[0-9]{3}[0-9X]`, "gi");
+    const worse: string[] = [];
+    let itLeftSomething = 0;
+    for (const u of addressTable()) {
+      const then = readable(u.replace(replaced, "_"));
+      if (then >= 4) itLeftSomething++;
+      if (readable(transform({ u }).u!) > then) worse.push(u);
+    }
+    expect(worse).toEqual([]);
+    // The comparison means something only if the old rule did leave digits.
+    expect(itLeftSomething).toBeGreaterThan(100);
   });
 
   it("goes by shape alone: it cuts too much rather than too little, and leaves shorter numbers", () => {
@@ -215,41 +251,48 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(transform({ u: "https://sigmacv.org/Search?q=Jane%20Doe" }).u).toBe(
       "https://sigmacv.org/Search",
     );
-    // So is a name written as a path under the lookup. It is cut to `_`, not
-    // away, so that the 404 is not counted as a visit to the lookup itself.
-    expect(transform({ u: "https://sigmacv.org/search/Jane%20Doe" }).u).toBe(
-      "https://sigmacv.org/search/_",
-    );
-    expect(transform({ u: "https://sigmacv.org/fr/search/Jane/Doe?q=Jane%20Doe#top" }).u).toBe(
-      "https://sigmacv.org/fr/search/_#top",
-    );
     // Not the lookup: a longer word that starts the same way keeps its path.
     expect(transform({ u: "https://sigmacv.org/searching/for/x" }).u).toBe(
       "https://sigmacv.org/searching/for/x",
     );
   });
 
-  it("finds the lookup's address past a host or a segment that only starts like it", () => {
+  it("cuts nothing but the lookup's own query: `/search/` elsewhere is left as it is", () => {
+    const transform = boot().o!.transformRequest!;
+    // `/search/` inside a parameter's value is not the lookup, and Plausible
+    // reads `utm_*`, `ref` and `source` off this same query. (A rule that cut a
+    // path under /search was tried: it took these parameters with it.)
+    for (const u of [
+      "https://sigmacv.org/about?next=/search/&utm_source=nl&utm_campaign=x",
+      "https://sigmacv.org/guides/how-to-write-an-academic-cv?ref=reddit.com/r/AskAcademia/search/&utm_medium=social&utm_source=reddit",
+      "https://sigmacv.org/about?ref=https://example.org/search/abc&utm_source=nl",
+      "https://sigmacv.org/about#/search/Jane",
+      // A known limit, held here so that it is changed on purpose: a name written
+      // as a path is a 404, and a 404 is sent with its path as typed.
+      "https://sigmacv.org/search/Jane%20Doe",
+    ]) {
+      expect(transform({ u }).u, u).toBe(u);
+    }
+    expect(transform({ u: "https://sigmacv.org/", r: "https://example.org/search/x/y" }).r).toBe(
+      "https://example.org/search/x/y",
+    );
+  });
+
+  it("finds the lookup's query past a host or a segment that only starts like it", () => {
     const transform = boot().o!.transformRequest!;
     const referred = (r: string) => transform({ u: "https://sigmacv.org/", r }).r;
-    // `//search.` in a search engine's own host is not `/search`: the rule has
-    // to go on to the real one, or the query stays in the referrer.
+    // `//search.` in a search engine's own host is not `/search?`: the rule has
+    // to reach the real one, or the query stays in the referrer.
     expect(referred("https://search.brave.com/search?q=jane+doe&source=web")).toBe(
       "https://search.brave.com/search",
     );
     expect(referred("https://search.yahoo.co.jp/search?p=Jane+Doe")).toBe(
       "https://search.yahoo.co.jp/search",
     );
+    expect(referred("http://search/search?q=Jane+Doe")).toBe("http://search/search");
     expect(transform({ u: "https://sigmacv.org/searching/search?q=Jane%20Doe" }).u).toBe(
       "https://sigmacv.org/searching/search",
     );
-    // The path form, in a referrer, on such a host and on any other.
-    expect(referred("https://search.example.org/search/Jane%20Doe")).toBe(
-      "https://search.example.org/search/_",
-    );
-    expect(referred("https://example.org/search/x/y")).toBe("https://example.org/search/_");
-    // A host that is the bare word is cut like the lookup: nothing of the name stays.
-    expect(referred("http://search/search?q=Jane+Doe")).toBe("http://search/_");
     // Not a lookup: a page whose path merely contains "search" keeps its query.
     expect(transform({ u: "https://sigmacv.org/research?x=1" }).u).toBe(
       "https://sigmacv.org/research?x=1",

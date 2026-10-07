@@ -6,9 +6,8 @@
  * `init` that stores the options for the real script to pick up) PLUS one
  * option: a `transformRequest` that, before the request leaves the browser,
  *  - rewrites `/preview/<ORCID>` to `/preview/_`, drops the query string from
- *    `/search?q=<name>` and cuts a path written under it to `/search/_` (in any
- *    case), and drops the `who` parameter from the query string of any page,
- *    in the payload's URL (`u`) and referrer (`r`);
+ *    `/search?q=<name>` (in any case), and drops the `who` parameter from the
+ *    query string of any page, in the payload's URL (`u`) and referrer (`r`);
  *  - replaces an ORCID iD, wherever else it stands in those two, with `_`: four
  *    groups of four, the last digit possibly an X, joined by a hyphen, by
  *    nothing, or by a percent-encoded hyphen, dash, minus sign or space;
@@ -22,12 +21,7 @@
  * the privacy notice says we do not keep. The scrub runs client-side so the iD
  * never reaches the analytics origin at all. The name lookup's query is the same
  * kind of thing: Plausible discards query strings before storing, but the typed
- * name would still cross the wire to the collector, so it is cut here too. A
- * name written as a path (`/search/Jane%20Doe`) is a 404, and a 404 is counted:
- * it becomes `/search/_`, not `/search`, so that it is not taken for a visit to
- * the lookup. The rule wants `/search` to end its segment and is applied to
- * every occurrence: a search engine's own host (`//search.example.org/search?…`)
- * starts the same way, and stopping there left the query in the referrer.
+ * name would still cross the wire to the collector, so it is cut here too.
  * `who` is that same name or iD once more: it is the see-it-first box's field,
  * and a box submitted before its script has run reloads its own page as
  * `…?who=<what was typed>` (the same URL sits in browser histories from the
@@ -40,7 +34,8 @@
  * checksum, so it also cuts any sixteen digits in a row and any four groups of
  * four (`2024-2025-2026-2027`): cutting too much costs a path in a report,
  * cutting too little stores a person. What is cut is the whole RUN the iD
- * stands in (`ru`: digits, joined by the separators an iD can have), not the
+ * stands in (`ru`: digits, joined by the separators an iD can have, and an X
+ * or x that ends it, which is the check character when it is an iD's), not the
  * sixteen digits alone. Cutting sixteen out of a longer run leaves the rest to
  * be read, and which sixteen depends on where the search starts: digits glued
  * to the front of an iD took the match and left the iD, and so did groups
@@ -50,8 +45,11 @@
  * `%00` in `%<iD>` would let the whole iD through; where the digits after a
  * `%` could be either, the iD wins and the escape goes. It is not a guarantee.
  * An iD spelled another way (spaces typed as `_`, say) passes, and so does a
- * name written in the path of an address that is not the lookup's. Of a query,
- * only the lookup's own and the box's `who` are cut.
+ * name written in a path: `/search/Jane%20Doe` is a 404, and a 404 is sent
+ * with its path as typed. A rule for that one address was tried and taken out
+ * again: it cut `/search/` wherever it stood, a parameter's value included,
+ * and took the campaign parameters behind it. Of a query, only the lookup's
+ * own and the box's `who` are cut.
  * Outbound-link tracking is switched on in the site's Plausible configuration
  * (read off the live `pa-*.js` on 2026-09-15), and its event carries the clicked
  * URL: a click on the owner worklist's ShareYourPaper link, or on any DOI, ORCID
@@ -68,7 +66,7 @@ export const PLAUSIBLE_INIT_SCRIPT =
   "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)}," +
   "plausible.init=plausible.init||function(i){plausible.o=i||{}};" +
   "plausible.init({transformRequest:function(p){" +
-  "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)(?=[/?#]|$)(?:([/])[^?#]*)?(?:[?][^#]*)?/gi," +
+  "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)[?][^#]*/i," +
   'g="[0-9]{4}",d="(?:-|[+]|%2D|%20|%E2%80%9[0-5]|%E2%88%92)",' +
   'sh=new RegExp(g+d+"?"+g+d+"?"+g+d+"?[0-9]{3}[0-9X]","i"),' +
   'ru=new RegExp("[0-9]+(?:"+d+"[0-9]+)*X?","gi"),' +
@@ -86,8 +84,7 @@ export const PLAUSIBLE_INIT_SCRIPT =
   // starts after it.
   'function c(m,f,z){var n=m.search(sh),l=z.charAt(f-1)==="%"?2:z.charAt(f-2)==="%"?1:0;' +
   'return n<0?m:(n<l?"":m.slice(0,l))+"_"}' +
-  'function h(m,a,b){return a+(b?"/_":"")}' +
-  'function s(v){return v.replace(re,"/preview/_").replace(rs,h)' +
+  'function s(v){return v.replace(re,"/preview/_").replace(rs,"$1")' +
   '.replace(/^([^?#]*)[?]([^#]*)/,function(m,a,q){var k=q.split("&"),o=[],i,j;' +
   'for(i=0;i<k.length;i++)if(k[i].indexOf("who=")!==0)o.push(k[i]);' +
   'j=o.join("&");return o.length===k.length?m:a+(j?"?"+j:"")})' +
