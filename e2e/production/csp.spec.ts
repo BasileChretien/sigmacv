@@ -406,6 +406,25 @@ test.describe("a prerendered page", () => {
     expect(revalidated).toEqual([]);
   });
 
+  test("no prerendered page is built from a catch-all route", () => {
+    // The lookup sets a page's address against its route segment by segment, and
+    // `[...path]` is one segment that stands for several. Such a page would be
+    // matched only as written: asked for with a segment percent-encoded, it
+    // would be sent the nonce policy and run no script. No page is built from
+    // one today; if one needs to be, `prerenderedRouteFor` in
+    // src/lib/security/prerenderedScripts.ts has to learn about catch-all routes
+    // first (tests/prerendered-scripts.test.ts pins what it answers until then).
+    const manifest = JSON.parse(readFileSync(".next/prerender-manifest.json", "utf8")) as {
+      routes: Record<string, { srcRoute?: string | null }>;
+    };
+    // `[...` is in the optional form too, `[[...path]]`.
+    const catchAll = Object.entries(manifest.routes)
+      .filter(([, route]) => route.srcRoute?.includes("[..."))
+      .map(([pathname]) => pathname);
+    expect(Object.keys(manifest.routes).length).toBeGreaterThan(0);
+    expect(catchAll).toEqual([]);
+  });
+
   test("the guide's see-it-first box is handled by its script, not by a form GET", async ({
     page,
   }) => {

@@ -47,10 +47,11 @@ import { THEME_INIT_SHA256 } from "@/lib/themeInit";
  * makes our origin serve another server's script.
  * `tests/no-javascript-responses.test.ts` fails when a source file names such a
  * type, or when a rewrite appears in `next.config.ts` or under `src`. It reads
- * our source and no more: a type worked out at runtime is not seen, nor is a
- * path that the reverse proxy in front of the app (the `Caddyfile`) hands to
- * another server. Stricter: a running script cannot add an inline script whose
- * hash is not listed, which `'strict-dynamic'` permits.
+ * our source and no more. Not seen: a type worked out at runtime, a route
+ * handler that passes on another server's response with its type, and a path
+ * that the reverse proxy in front of the app (the `Caddyfile`) hands to another
+ * server. Stricter: a running script cannot add an inline script whose hash is
+ * not listed, which `'strict-dynamic'` permits.
  *
  * Hence, when adding an inline `<Script>` anywhere in the app: its sha256 must be
  * listed in the prerendered shape (as the analytics stub is), or it will not run

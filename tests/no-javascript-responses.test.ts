@@ -78,8 +78,13 @@ describe("the origin serves no JavaScript but Next's own build files", () => {
     expect(linesMatching([...ownSources(), "next.config.ts"], JAVASCRIPT_TYPE)).toEqual([]);
   });
 
-  // A rewrite to another path of this app would do no harm, and fails here all
-  // the same: exempt it by name once it is known where it leads.
+  // A rewrite to another path of this app serves no foreign script, and fails
+  // here all the same. Before exempting one by name: `src/proxy.ts` picks the
+  // policy from the address as requested, and Next runs it before the rewrites
+  // of the config. So a rewrite onto a prerendered page sends that page the
+  // nonce shape, under which none of its scripts run, unless the lookup learns
+  // of it (`src/lib/security/prerenderedScripts.ts`). Read off Next's router,
+  // not tried: there is no rewrite to try it on.
   it("no request is rewritten: not by the Next config, not by a source file", () => {
     expect(nextConfig.rewrites).toBeUndefined();
     expect(linesMatching(ownSources(), REWRITE_CALL)).toEqual([]);

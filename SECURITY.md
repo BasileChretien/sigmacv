@@ -70,12 +70,14 @@ CRITICAL down to INFO have been remediated.
     can be run as a script. A new route that answers with a JavaScript type and
     includes user data would break that, and so would a rewrite or a proxy that
     makes the site's origin serve another server's script (none exists today:
-    the app rewrites no request, and Caddy hands the site's requests to the app
-    alone). `tests/no-javascript-responses.test.ts` fails when a source file
-    names a JavaScript content type, when a script file appears under `public/`,
-    when `nosniff` leaves the site-wide headers, or when a rewrite appears in
+    the app rewrites no request and passes on no other server's response, and
+    Caddy hands the site's requests to the app alone).
+    `tests/no-javascript-responses.test.ts` fails when a source file names a
+    JavaScript content type, when a script file appears under `public/`, when
+    `nosniff` leaves the site-wide headers, or when a rewrite appears in
     `next.config.ts` or in the app's source. It reads the app's source and no
-    more: it does not see a type computed at runtime, nor a path that the
+    more: it does not see a type computed at runtime, nor a route handler that
+    passes on another server's response with its type, nor a path that the
     `Caddyfile` would proxy to another server. In one respect this shape is the
     stricter of the two: without `'strict-dynamic'`, a script that is already
     running cannot add an inline script whose hash is not listed.
