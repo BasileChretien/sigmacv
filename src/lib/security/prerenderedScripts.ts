@@ -94,6 +94,12 @@ function htmlFile(distDir: string, route: string): string {
  * way is the bug this module exists to prevent or its mirror: a prerendered
  * page sent the nonce policy runs no script, and a page rendered per request
  * does not need the allow-list.
+ *
+ * A catch-all parameter (`[...path]`) is not followed across segments: a
+ * prerendered catch-all page with several segments under it is matched only as
+ * written, and a percent-encoded spelling of it gets null. No such page exists
+ * today (the only catch-all is a route handler, `api/auth/[...nextauth]`), and
+ * `e2e/production/csp.spec.ts` fails on a build that has one.
  */
 function prerenderedRouteFor(
   pathname: string,

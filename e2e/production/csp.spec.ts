@@ -88,6 +88,10 @@ const ENCODED_PARAMETER = ["/%66r/about", "/guides/how%2Dto-write-an-academic-cv
 /**
  * A page that reads the database. Nothing answers at the address this server
  * was given for it (`env.ts`), so its render fails on every request.
+ *
+ * The test that opens it needs a render that FAILS. Making `/i` fail soft (a
+ * page that shows without its database) means choosing another failing page
+ * here, not loosening that test.
  */
 const FAILING = "/i";
 
@@ -333,15 +337,29 @@ test.describe("a prerendered page", () => {
     });
   }
 
-  // Since 16.3.8 Next answers a prerendered page from a copy it keeps on disk, in
-  // a file named after the address. Asked for an address that differs from a
-  // page's only by case (a 404), it files that 404 under the mis-cased name. On a
-  // case-insensitive filesystem that name is the page's own file: the page then
-  // answers the stored 404, with another request's nonce, until the cache is
-  // deleted or the app rebuilt (seen on Windows; the defect is Next's). The
-  // production image and CI run on Linux, where the two names are two files.
-  // This checks that it stays so there. Elsewhere it is skipped: it would fail,
-  // and leave the build's cache altered for every later run on that build.
+  // Since 16.3.8 Next answers a prerendered page from a copy it keeps on disk
+  // (`server/route-cache`), in a file named after the address. An address that
+  // differs from a page's only by case is no page: `/Fr/about` is a 404.
+  //
+  // On Linux, where the production image and CI run, that is all: the 404 is
+  // rendered for the request and nothing is filed. This checks that it stays so.
+  //
+  // On a case-insensitive filesystem the mis-cased name is the page's own file
+  // (seen on Windows; the defect is Next's). The first such request finds the
+  // page's copy there and is answered 200 with it. The re-render that follows
+  // stores the 404 over that copy. The running server goes on answering the real
+  // address from memory; once restarted it answers the stored 404, until the
+  // cache is deleted or the app rebuilt.
+  //
+  // So the proof is the loop: where the defect is present, its first request
+  // fails with "expected 404, received 200". The lines after the loop cannot see
+  // a replaced copy, since the server they ask is still the running one. They
+  // show that the page is still served, unchanged, and still runs its scripts
+  // once the mis-cased requests have been made, and no more.
+  //
+  // Skipped off Linux: it would fail, and leave the page's stored copy replaced
+  // (`scripts/start-standalone.mjs` deletes that cache before it serves a build,
+  // so that one such request does not outlive the server that got it).
   test("an address that differs from a page's only by case does not replace the page", async ({
     page,
     request,
@@ -362,6 +380,8 @@ test.describe("a prerendered page", () => {
       expect(response.headers()["x-nextjs-prerender"], wrong).toBeUndefined();
     }
 
+    // Not the proof (see above): this server answers these from memory, whatever
+    // the stored copy has become.
     const after = await request.get(real);
     expect(after.status()).toBe(200);
     expect(await after.text()).toBe(await before.text());
@@ -384,6 +404,25 @@ test.describe("a prerendered page", () => {
       .map(([pathname]) => pathname);
     expect(Object.keys(manifest.routes).length).toBeGreaterThan(0);
     expect(revalidated).toEqual([]);
+  });
+
+  test("no prerendered page is built from a catch-all route", () => {
+    // The lookup sets a page's address against its route segment by segment, and
+    // `[...path]` is one segment that stands for several. Such a page would be
+    // matched only as written: asked for with a segment percent-encoded, it
+    // would be sent the nonce policy and run no script. No page is built from
+    // one today; if one needs to be, `prerenderedRouteFor` in
+    // src/lib/security/prerenderedScripts.ts has to learn about catch-all routes
+    // first (tests/prerendered-scripts.test.ts pins what it answers until then).
+    const manifest = JSON.parse(readFileSync(".next/prerender-manifest.json", "utf8")) as {
+      routes: Record<string, { srcRoute?: string | null }>;
+    };
+    // `[...` is in the optional form too, `[[...path]]`.
+    const catchAll = Object.entries(manifest.routes)
+      .filter(([, route]) => route.srcRoute?.includes("[..."))
+      .map(([pathname]) => pathname);
+    expect(Object.keys(manifest.routes).length).toBeGreaterThan(0);
+    expect(catchAll).toEqual([]);
   });
 
   test("the guide's see-it-first box is handled by its script, not by a form GET", async ({
@@ -522,9 +561,22 @@ test.describe("a server failure", () => {
     // (The server logs the database error: that is this test at work.)
     const { response, scriptSrc, violations } = await open(page, FAILING);
 
+    // The core: a failure, answered with Next's error document rendered for
+    // this request, whose scripts carry the nonce, run, and are not refused.
     expect(response.status()).toBe(500);
     await expectRenderedWithNonce(response, scriptSrc);
+    expect(await response.text()).toContain('id="__next_error__"');
+    await expect(page.locator("html#__next_error__")).toBeAttached();
+    await expect
+      .poll(() => page.evaluate(() => typeof Reflect.get(self, "__next_f")))
+      .toBe("object");
+    expect(await violations()).toEqual([]);
 
+    // The rest reads Next's own wording and markup: "couldn't load", a heading
+    // drawn by script, a button named "Reload". It is the part to revisit on a
+    // Next upgrade: when it fails and the lines above pass, look at Next's copy
+    // before the policy.
+    //
     // The message is not in the HTML that was served: the page's scripts drew it.
     expect(await response.text()).not.toContain("load</h1>");
     await expect(page.getByRole("heading", { level: 1 })).toHaveText(/couldn.t load/);
@@ -562,6 +614,8 @@ test.describe("a server failure", () => {
 
     test("the built error page still reloads", async ({ page }) => {
       await page.goto(BUILT_ERROR_ROUTE);
+      await expect(page.locator("html#__next_error__")).toBeAttached();
+      // Next's wording, here and in the button's name: revisit on a Next upgrade.
       await expect(page.getByRole("heading", { level: 1 })).toHaveText(/couldn.t load/);
 
       const [again] = await Promise.all([
