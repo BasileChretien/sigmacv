@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { expect, test, type Page, type Response } from "@playwright/test";
-import { PLAUSIBLE_SRC } from "./env";
+import { BASE_URL, PLAUSIBLE_SRC } from "./env";
 
 /**
  * Does a browser run each page's scripts under the Content-Security-Policy that
@@ -31,6 +31,32 @@ const PRERENDERED = [
 
 /** Rendered per request, and reachable without a database. */
 const DYNAMIC = ["/", "/fr", "/search"];
+
+/**
+ * Paths with no page behind them, the language their 404 is in (that of the
+ * first segment when it is a locale slug, English otherwise) and the home page
+ * it links to. The first three are of the kinds Next answered with a 404 built
+ * ahead of time: no route at all, and a route that lists its pages
+ * (`dynamicParams = false`) and does not list this one. `/foo` matches
+ * `/[locale]`, which calls `notFound()`: it was always rendered per request, and
+ * shows the same page.
+ */
+const UNKNOWN: [path: string, lang: string, home: string][] = [
+  ["/a/b", "en-US", "/"],
+  ["/guides/no-such-guide", "en-US", "/"],
+  ["/fr/guides/no-such-guide", "fr-FR", "/fr"],
+  ["/foo", "en-US", "/"],
+];
+
+/**
+ * A page that reads the database. Nothing answers at the address this server
+ * was given for it (`env.ts`), so its render fails on every request.
+ */
+const FAILING = "/i";
+
+/** The page `next build` writes for a server failure. Its route, and its file. */
+const BUILT_ERROR_ROUTE = "/_global-error";
+const BUILT_ERROR_FILE = ".next/server/app/_global-error.html";
 
 interface Opened {
   response: Response;
@@ -119,6 +145,19 @@ async function expectAnalyticsRan(page: Page, events: string[]): Promise<void> {
   // …the tracker script loaded, and its pageview got out.
   await expect.poll(() => page.evaluate(() => Reflect.get(window, "__trackerRan"))).toBe(true);
   await expect.poll(() => events.length).toBeGreaterThan(0);
+}
+
+/** The page was rendered for this request: the nonce policy, and the nonce on every script. */
+async function expectRenderedWithNonce(response: Response, scriptSrc: string): Promise<void> {
+  expect(response.headers()["x-nextjs-prerender"]).toBeUndefined();
+  expect(scriptSrc).toContain("'strict-dynamic'");
+  expect(scriptSrc).not.toMatch(/'unsafe-inline'|'unsafe-eval'/);
+
+  const nonce = /'nonce-([^']+)'/.exec(scriptSrc)?.[1];
+  expect(nonce).toBeTruthy();
+  const external = (await response.text()).match(/<script\b[^>]*\bsrc=[^>]*>/g) ?? [];
+  expect(external.length).toBeGreaterThan(0);
+  for (const tag of external) expect(tag).toContain(`nonce="${nonce}"`);
 }
 
 /**
@@ -300,15 +339,7 @@ test.describe("a page rendered per request", () => {
       const { response, scriptSrc, violations, events } = await open(page, path);
 
       expect(response.status()).toBe(200);
-      expect(response.headers()["x-nextjs-prerender"]).toBeUndefined();
-      expect(scriptSrc).toContain("'strict-dynamic'");
-      expect(scriptSrc).not.toMatch(/'unsafe-inline'|'unsafe-eval'/);
-
-      const nonce = /'nonce-([^']+)'/.exec(scriptSrc)?.[1];
-      expect(nonce).toBeTruthy();
-      const external = (await response.text()).match(/<script\b[^>]*\bsrc=[^>]*>/g) ?? [];
-      expect(external.length).toBeGreaterThan(0);
-      for (const tag of external) expect(tag).toContain(`nonce="${nonce}"`);
+      await expectRenderedWithNonce(response, scriptSrc);
 
       await expectHydrated(page);
       await expectAnalyticsRan(page, events);
@@ -322,5 +353,128 @@ test.describe("a page rendered per request", () => {
     expect(await injectedHandlerRuns(page)).toBe(false);
     expect(await evalRuns(page)).toBe(false);
     expect((await violations()).join("\n")).toMatch(/script-src/);
+  });
+});
+
+// The proxy cannot tell that a path will be a 404, so it sends the nonce shape.
+// The not-found page therefore has to be rendered per request, or it is a file
+// without a nonce and the browser refuses its scripts: the 404 is not counted.
+test.describe("a path with no page behind it", () => {
+  for (const [path, lang, home] of UNKNOWN) {
+    test(`${path} is a 404 that runs its scripts`, async ({ page }) => {
+      const { response, scriptSrc, violations, events } = await open(page, path);
+
+      expect(response.status()).toBe(404);
+      await expectRenderedWithNonce(response, scriptSrc);
+
+      // The site's own 404, in the language the address is written under.
+      await expect(page.locator(".site-shell")).toHaveAttribute("lang", lang);
+      await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
+      await expect(page).toHaveTitle("404 — SigmaCV");
+      // Counted. The analytics scripts are inserted once React has hydrated.
+      await expectAnalyticsRan(page, events);
+
+      // Its one job is to lead home, and it does so in the same document: the
+      // link is React's, and the next page's scripts load under this policy.
+      await page.evaluate(() => Reflect.set(window, "__sameDocument", true));
+      await page.getByRole("main").getByRole("link").click();
+      await expect(page).toHaveURL(new URL(home, BASE_URL).href);
+      await expect(page.getByTestId("see-it-first")).toBeVisible();
+      expect(await page.evaluate(() => Reflect.get(window, "__sameDocument"))).toBe(true);
+      expect(await violations()).toEqual([]);
+    });
+  }
+
+  test("only the 404 was taken out of the prerender to get its nonce", () => {
+    // Next renders the not-found page into the tree of every other page too. If
+    // it read the request (`connection()`, `headers()`), they would all become
+    // dynamic; the build says nothing, and 460 pages are rendered on each visit.
+    const manifest = JSON.parse(readFileSync(".next/prerender-manifest.json", "utf8")) as {
+      routes: Record<string, unknown>;
+    };
+    expect(manifest.routes["/_not-found"]).toBeUndefined();
+    for (const path of PRERENDERED) expect(manifest.routes[path], path).toBeDefined();
+  });
+
+  test("an iD in the address of a 404 is cut from what the tracker is handed to send", async ({
+    page,
+  }) => {
+    // Another case than the preview's: a 404, and an address the `/preview/` rule
+    // does not know. A 404 is a pageview now, and Plausible stores the pathname.
+    const { response, events } = await open(page, "/Preview/0000-0002-1825-0097");
+    expect(response.status()).toBe(404);
+    await expectAnalyticsRan(page, events);
+
+    // The stand-in tracker posts the bare pathname. The real one passes its
+    // payload through the function the init stub registered, so ask that.
+    const sent = await page.evaluate(() => {
+      const transform = Reflect.get(window, "plausible").o.transformRequest;
+      return transform({ n: "pageview", u: location.href }).u as string;
+    });
+    expect(sent).toBe(new URL("/Preview/_", BASE_URL).href);
+  });
+});
+
+// Next builds its page for a server failure ahead of time, so without a nonce.
+// Were that file the answer to a failing request, it would arrive under the
+// nonce shape (the proxy sees the failing path, not a prerendered route) and the
+// browser would refuse every script in it. It is not the answer: SECURITY.md,
+// "App-shell Content-Security-Policy", says what each kind of failure gets. These
+// tests hold the parts of that account a browser can see on this server.
+test.describe("a server failure", () => {
+  test(`${FAILING}, whose render fails, is an error page rendered for the request`, async ({
+    page,
+  }) => {
+    // (The server logs the database error: that is this test at work.)
+    const { response, scriptSrc, violations } = await open(page, FAILING);
+
+    expect(response.status()).toBe(500);
+    await expectRenderedWithNonce(response, scriptSrc);
+
+    // The message is not in the HTML that was served: the page's scripts drew it.
+    expect(await response.text()).not.toContain("load</h1>");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/couldn.t load/);
+    expect(await violations()).toEqual([]);
+
+    // Its one control asks the server for the page again.
+    const [again] = await Promise.all([
+      page.waitForRequest((request) => request.isNavigationRequest()),
+      page.getByRole("button", { name: "Reload" }).click(),
+    ]);
+    expect(new URL(again.url()).pathname).toBe(FAILING);
+  });
+
+  test("the error page built ahead of time is served at its own address, with its hashes", async ({
+    page,
+  }) => {
+    const { response, scriptSrc, violations } = await open(page, BUILT_ERROR_ROUTE);
+
+    // The file itself, and a prerendered route to the proxy like any other.
+    expect(response.status()).toBe(500);
+    expect(await response.text()).toBe(readFileSync(BUILT_ERROR_FILE, "utf8"));
+    expect(scriptSrc).not.toContain("'strict-dynamic'");
+    expect(scriptSrc).toMatch(/'sha256-/);
+
+    await expect
+      .poll(() => page.evaluate(() => typeof Reflect.get(self, "__next_f")))
+      .toBe("object");
+    expect(await violations()).toEqual([]);
+  });
+
+  // What would be left of that page under the nonce shape, where none of its
+  // scripts run: everything, as long as the button stays a form's submit button.
+  test.describe("with JavaScript turned off", () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("the built error page still reloads", async ({ page }) => {
+      await page.goto(BUILT_ERROR_ROUTE);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(/couldn.t load/);
+
+      const [again] = await Promise.all([
+        page.waitForRequest((request) => request.isNavigationRequest()),
+        page.getByRole("button", { name: "Reload" }).click(),
+      ]);
+      expect(new URL(again.url()).pathname).toBe(BUILT_ERROR_ROUTE);
+    });
   });
 });

@@ -82,6 +82,16 @@ export function localeForSlug(slug: string): Locale | undefined {
   return (Object.entries(LOCALE_SLUGS) as [Locale, string][]).find(([, s]) => s === slug)?.[0];
 }
 
+/**
+ * Locale a pathname is written under: its first segment when that is a locale
+ * slug (`/fr/guides/x` → fr-FR), the default otherwise. For a page that is
+ * handed a path and no params, which is the not-found page.
+ */
+export function localeForPathname(pathname: string | null | undefined): Locale {
+  const first = /^\/([^/]*)/.exec(pathname ?? "")?.[1] ?? "";
+  return localeForSlug(first) ?? DEFAULT_UI_LOCALE;
+}
+
 /** Bare language code for a locale (the `inLanguage` / `lang` value): "fr-FR" → "fr". */
 export function localeLanguageCode(locale: string): string {
   // Every supported locale is `xx-YY` with a two-letter language subtag.
