@@ -51,8 +51,8 @@ CRITICAL down to INFO have been remediated.
   `script-src` has two shapes, because a nonce can only be put on a page that is
   rendered per request:
   - A page **rendered per request** (the home page, the editor, the preview, the
-    name lookup, the institution pages) gets a per-request 128-bit nonce and
-    `'strict-dynamic'`.
+    name lookup, the institution pages, the 404 page) gets a per-request 128-bit
+    nonce and `'strict-dynamic'`.
   - A page **prerendered at build time** (About, FAQ, the legal pages, the guides,
     the glossary, the examples and the landing pages, in every locale) has no
     nonce in its HTML. It gets `'self'` and the sha256 of each inline script it
@@ -87,9 +87,15 @@ CRITICAL down to INFO have been remediated.
   could not satisfy: the browser refused every script on them except the theme
   bootstrap, which is listed by hash. The policy was never looser than described
   here; those pages did not respond to input and were not counted by analytics.
-  One case remains: Next's default 404 page, served as a static file for most
-  unknown paths, is still sent the nonce shape, so its scripts do not run. It has
-  nothing interactive on it.
+  The 404 page was in the same state. The proxy cannot tell that a path will be a
+  404, so it cannot send a prerendered 404 the hashes it would need: the page is
+  rendered per request instead (`src/app/not-found.tsx`) and gets the nonce. It
+  shows fixed text and takes nothing from the address but its language. An
+  unknown path under `/api` or `/p/`, which the proxy does not cover, is answered
+  with the same page and no app-shell policy, as before. One page built once is
+  left: the framework's own page for a server failure (`/_global-error`). It
+  carries no nonce either, so wherever it is served under the nonce shape its
+  scripts are refused and its "Reload" button does nothing. No test opens it.
 
 - **SSRF** — outbound fetches (claim-by-DOI, custom-CSL, OEP) use fixed hosts /
   host allow-lists with **manual redirect re-validation** and timeouts; private /
