@@ -285,11 +285,8 @@ PR1 — SCOPE, EXACTLY
    item / no DOI), statutory table invariants, i18n ban across all wl keys
    (extend the existing tests, don't fork them), a source-grep test that
    /api/preview/render never imports the oaworks client.
-8. Verification loop: `npm run typecheck` -> `npm run coverage` (on Windows
-   the two bash backup-script test files fail regardless and Vitest then hides
-   the coverage table: run `npx vitest run --coverage --exclude
-   tests/verify-backup-script.test.ts --exclude tests/offsite-backup-script.test.ts`
-   to read the gate; CI on Linux runs everything). Browser-verify the worklist
+8. Verification loop: `npm run typecheck` -> `npm run coverage` (CI runs the
+   same command). Browser-verify the worklist
    on the dev server with a CV that has closed works (the owner's own).
 
 PR2 — SCOPE (after PR1 is merged AND deployed)
