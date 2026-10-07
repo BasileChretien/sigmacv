@@ -21,8 +21,14 @@ import { logger } from "@/lib/log";
  * contains safe.
  */
 
-/** `<script …>…</script>`; an attribute value may contain `>`. */
-const SCRIPT_ELEMENT = /<script\b((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script\s*>/gi;
+/**
+ * `<script …>…</script …>`, cut where the HTML tokenizer cuts it: a tag name ends
+ * at whitespace, `/` or `>` (so `<script-x>` is not a script, and `</script
+ * bar>` does close one), and an attribute value may contain `>`. A script cut
+ * anywhere else would be hashed as text the browser never runs.
+ */
+const SCRIPT_ELEMENT =
+  /<script(?=[\t\n\f\r />])((?:[^>"']|"[^"]*"|'[^']*')*)>([\s\S]*?)<\/script(?=[\t\n\f\r />])(?:[^>"']|"[^"]*"|'[^']*')*>/gi;
 const HAS_SRC = /(?:^|\s)src\s*=/i;
 /** Data blocks (JSON-LD…) are never executed, so CSP never asks about them. */
 const DATA_BLOCK_TYPE = /(?:^|\s)type\s*=\s*["']?application\/(?:ld\+)?json\b/i;

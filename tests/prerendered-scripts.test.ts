@@ -60,6 +60,37 @@ describe("inlineScriptHashes", () => {
     ]);
   });
 
+  it("ends a script where the browser does: at any `</script` end tag", () => {
+    // A browser closes the element at each of these, so each is its own script.
+    // Missing one would hash two scripts as one text that never runs.
+    const html = [
+      "<script>a()</script\t\n bar>",
+      "<script>b()</script/>",
+      `<script>c()</script data-x="1>2">`,
+      "<script>d()</script>",
+    ].join("<p>between</p>");
+    expect(inlineScriptHashes(html)).toEqual([
+      sha256("a()"),
+      sha256("b()"),
+      sha256("c()"),
+      sha256("d()"),
+    ]);
+  });
+
+  it("does not take a longer tag name for a script", () => {
+    // `</scripts>` does not close a script, so it is part of the text.
+    expect(inlineScriptHashes("<script>a('</scripts>')</script>")).toEqual([
+      sha256("a('</scripts>')"),
+    ]);
+    // A custom element is not a script at all.
+    expect(inlineScriptHashes("<script-loader>b()</script-loader>")).toEqual([]);
+    expect(inlineScriptHashes("<scripted>c()</scripted>")).toEqual([]);
+  });
+
+  it("reads a start tag written with a trailing slash", () => {
+    expect(inlineScriptHashes("<script/>e()</script>")).toEqual([sha256("e()")]);
+  });
+
   it("returns nothing for a page without scripts", () => {
     expect(inlineScriptHashes("<html><body><p>hello</p></body></html>")).toEqual([]);
   });
