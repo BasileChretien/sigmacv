@@ -126,6 +126,58 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     );
   });
 
+  it("leaves the other parameters exactly as they were: inside a query only `&` separates", () => {
+    const transform = boot().o!.transformRequest!;
+    // A `?` after the first one is part of a value, not a separator.
+    expect(
+      transform({
+        u: "https://sigmacv.org/guides?utm_campaign=whats-new?&utm_source=nl&who=Jane",
+      }).u,
+    ).toBe("https://sigmacv.org/guides?utm_campaign=whats-new?&utm_source=nl");
+    expect(transform({ u: "https://sigmacv.org/guides?who=Jane&ref=whats-new?" }).u).toBe(
+      "https://sigmacv.org/guides?ref=whats-new?",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?ref=whats-new?&who=Jane" }).u).toBe(
+      "https://sigmacv.org/guides?ref=whats-new?",
+    );
+    // So this holds no `who` parameter at all (and the box cannot produce it).
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl?who=Jane" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl?who=Jane",
+    );
+    // What was odd before stays odd: nothing but `who` is touched.
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&&who=x&b=2" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&&b=2",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&&b=2&" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&&b=2&",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?" }).u).toBe("https://sigmacv.org/guides?");
+    // With `who` gone and only empty segments left, no `?` is left hanging.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x&" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?&who=x#top" }).u).toBe(
+      "https://sigmacv.org/guides#top",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&who=x&" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&",
+    );
+    // A typed value is percent-encoded by the browser; whatever it holds goes.
+    expect(transform({ u: "https://sigmacv.org/guides?who=a%26b%3Dc%3Fd&ref=x" }).u).toBe(
+      "https://sigmacv.org/guides?ref=x",
+    );
+    // Only the box's own field name: a browser writes it as `who`, never encoded,
+    // and never without `=`. Hand-built look-alikes are left as they are.
+    for (const url of [
+      "https://sigmacv.org/guides?%77ho=Jane",
+      "https://sigmacv.org/guides?WHO=Jane",
+      "https://sigmacv.org/guides?who",
+      "https://sigmacv.org/guides?x=who=1",
+    ]) {
+      expect(transform({ u: url }).u).toBe(url);
+    }
+  });
+
   it("keeps only the origin of an outbound-link event's URL, so no identifier in a path reaches the collector", () => {
     const transform = boot().o!.transformRequest!;
     type Event = Payload & { p?: Record<string, string> };

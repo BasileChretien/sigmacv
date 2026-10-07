@@ -40,14 +40,17 @@ export const PLAUSIBLE_INIT_SCRIPT =
   "window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)}," +
   "plausible.init=plausible.init||function(i){plausible.o=i||{}};" +
   "plausible.init({transformRequest:function(p){" +
-  "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)[?][^#]*/,rw=/([?&])who=[^&]*/g," +
+  "var re=/[/]preview[/][^/?#]+/,rs=/([/]search)[?][^#]*/," +
   "ou=/^([a-z][a-z0-9+.-]*:[/][/])(?:[^/?#@]*@)?([^/?#]*).*$/i;" +
-  // `who` goes from the query string alone (first `?` up to the `#`): in a path,
-  // `/about&who=x` is another address, and cutting it would file a view of
-  // /about. Then the `&&`, or the `?`/`&` left dangling, where it stood.
+  // `who` goes from the query string alone (after the first `?`, up to the `#`):
+  // in a path, `/about&who=x` is another address, and cutting it would file a
+  // view of /about. The query is taken apart on `&`, its only separator (a later
+  // `?` is part of a value), the `who=` parameters are left out and the rest is
+  // put back as it was. Nothing to leave out: the URL is returned untouched.
   'function s(v){return v.replace(re,"/preview/_").replace(rs,"$1")' +
-  '.replace(/^([^?#]*)([?][^#]*)/,function(m,a,q){var x=q.replace(rw,"$1");' +
-  'return a+(x===q?q:x.replace(/([?&])&+/g,"$1").replace(/[?&]$/,""))})}' +
+  '.replace(/^([^?#]*)[?]([^#]*)/,function(m,a,q){var k=q.split("&"),o=[],i,j;' +
+  'for(i=0;i<k.length;i++)if(k[i].indexOf("who=")!==0)o.push(k[i]);' +
+  'j=o.join("&");return o.length===k.length?m:a+(j?"?"+j:"")})}' +
   'if(p&&typeof p.u==="string")p.u=s(p.u);' +
   'if(p&&typeof p.r==="string")p.r=s(p.r);' +
   'if(p&&p.p&&typeof p.p.url==="string")p.p.url=p.p.url.replace(ou,"$1$2");' +
