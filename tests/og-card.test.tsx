@@ -1,18 +1,22 @@
+import { readFileSync } from "node:fs";
 import { isValidElement, type ReactElement, type ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 /**
  * The site social cards (`src/app/ogCard.tsx` and the two `opengraph-image`
  * routes) are prerendered by `next build`, and their fonts come from Google Fonts
- * at that moment. Three things are pinned here:
+ * at that moment. Four things are pinned here:
  *
  *  - a font request that stalls is given up after 5 s and counts as a failure like
- *    any other, so the card falls back to the default font instead of holding the
- *    page until Next stops the build;
+ *    any other, instead of holding the page until Next stops the build;
  *  - those 5 s are not read off the clock: a build worker busy drawing other
  *    cards must not be taken for a stalled connection;
  *  - the fonts asked for cover every glyph the card draws. For a glyph they lack,
- *    next/og fetches a font from Google Fonts itself, with no time limit.
+ *    next/og fetches a font from Google Fonts itself, with no time limit;
+ *  - a card whose fonts did not load asks next/og for nothing a font would have
+ *    to be fetched for: the Σ is a drawing, and Chinese, Japanese and Korean give
+ *    way to English. (`og-card-offline.test.tsx` draws those cards through the
+ *    real next/og and counts its requests.)
  *
  * No network: `fetch` is stubbed, and next/og is replaced by a recorder.
  */
@@ -33,6 +37,8 @@ vi.mock("@/lib/log", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.
 import LocaleOpengraphImage, { generateStaticParams } from "@/app/[locale]/opengraph-image";
 import OpengraphImage from "@/app/opengraph-image";
 import { loadOgFonts } from "@/app/ogCard";
+import { localeForSlug, type Locale } from "@/lib/i18n";
+import { landingStrings } from "@/lib/i18n/landing";
 import { logger } from "@/lib/log";
 
 afterEach(() => {
@@ -250,36 +256,125 @@ function drawn(node: ReactNode, out: string[] = []): string[] {
   ];
 }
 
+/** The host elements of a tree, in order; components are called, as above. */
+function hosts(node: ReactNode, out: ReactElement[] = []): ReactElement[] {
+  if (Array.isArray(node)) {
+    return node.reduce<ReactElement[]>((acc, child) => hosts(child, acc), out);
+  }
+  if (!isValidElement(node)) return out;
+  if (typeof node.type === "function") {
+    return hosts((node.type as (props: unknown) => ReactNode)(node.props), out);
+  }
+  return hosts((node.props as { children?: ReactNode }).children, [...out, node]);
+}
+
+interface SigmaDrawing {
+  viewBox: string;
+  d: string;
+  strokeWidth: number;
+  strokeLinejoin: string;
+  strokeLinecap: string;
+}
+
+const ICON = readFileSync("public/icon.svg", "utf8");
+const iconPath = (attribute: string): string =>
+  new RegExp(`<path[^>]* ${attribute}="([^"]+)"`).exec(ICON)![1]!;
+
+/** The Σ of the favicon: the drawing a card without fonts uses in place of the glyph. */
+const ICON_SIGMA: SigmaDrawing = {
+  viewBox: /viewBox="([^"]+)"/.exec(ICON)![1]!,
+  d: iconPath("d"),
+  strokeWidth: Number(iconPath("stroke-width")),
+  strokeLinejoin: iconPath("stroke-linejoin"),
+  strokeLinecap: iconPath("stroke-linecap"),
+};
+
+/** Every Σ a tree draws: an `<svg>` and the one `<path>` in it. */
+function sigmaDrawings(element: unknown): SigmaDrawing[] {
+  const all = hosts(element as ReactNode);
+  return all.flatMap((host, i) => {
+    if (host.type !== "svg") return [];
+    const { viewBox } = host.props as { viewBox: string };
+    const { d, strokeWidth, strokeLinejoin, strokeLinecap } = all[i + 1]!.props as SigmaDrawing;
+    return [{ viewBox, d, strokeWidth, strokeLinejoin, strokeLinecap }];
+  });
+}
+
+type Card = [path: string, locale: Locale, render: () => Promise<unknown>];
+
 /** The ten cards `next build` prerenders: the default one, then one per locale. */
-const CARDS: [string, () => Promise<unknown>][] = [
-  ["/", () => OpengraphImage()],
-  ...generateStaticParams().map(({ locale }): [string, () => Promise<unknown>] => [
+const CARDS: Card[] = [
+  ["/", "en-US", () => OpengraphImage()],
+  ...generateStaticParams().map(({ locale }): Card => [
     `/${locale}`,
+    localeForSlug(locale)!,
     () => LocaleOpengraphImage({ params: Promise.resolve({ locale }) }),
   ]),
 ];
+
+/** Scripts the font bundled with next/og has no glyphs for. */
+const NOT_IN_BUNDLED_FONT: Locale[] = ["zh-CN", "ja-JP", "ko-KR"];
+
+/** What a card must be when none of its fonts loaded: nothing left to fetch. */
+function expectCardFromDisk(locale: Locale): void {
+  expect(og.calls).toHaveLength(1);
+  const { element, options } = og.calls[0]!;
+  // No fonts handed over: next/og draws in the one it ships with.
+  expect(options).toEqual({ width: 1200, height: 630 });
+  expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe("sans-serif");
+
+  // That font has no Σ. It is drawn instead, on the medallion and on the CV
+  // mock, as `public/icon.svg` draws it.
+  const words = drawn(element as ReactNode).join(" ");
+  expect(words).not.toContain("Σ");
+  expect(sigmaDrawings(element)).toEqual([ICON_SIGMA, ICON_SIGMA]);
+
+  // Nor has it Chinese, Japanese or Korean: those cards say it in English.
+  const own = landingStrings(locale);
+  const english = landingStrings("en-US");
+  if (NOT_IN_BUNDLED_FONT.includes(locale)) {
+    expect(words).toContain(english.heroTitle);
+    expect(words).not.toContain(own.heroTitle);
+  } else {
+    expect(words).toContain(own.heroTitle);
+  }
+
+  // A green build shows nothing of this; the log does.
+  expect(logger.warn).toHaveBeenCalledWith("og_card.drawn_without_fonts", { locale });
+}
 
 describe("the social cards", () => {
   it("are ten", () => {
     expect(CARDS).toHaveLength(10);
   });
 
-  it.each(CARDS)("%s is drawn in fonts that have every glyph it uses", async (_path, render) => {
-    const f = stubFetch(answers);
-    await render();
+  it.each(CARDS)(
+    "%s is drawn in fonts that have every glyph it uses",
+    async (_path, locale, render) => {
+      const f = stubFetch(answers);
+      await render();
 
-    const { element, options } = og.calls[0]!;
-    const fonts = options.fonts as { name: string; weight: number }[];
-    expect(fonts.map((font) => font.weight)).toEqual([400, 800]);
-    expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe(fonts[0]!.name);
+      const { element, options } = og.calls[0]!;
+      const fonts = options.fonts as { name: string; weight: number }[];
+      expect(fonts.map((font) => font.weight)).toEqual([400, 800]);
+      expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe(
+        fonts[0]!.name,
+      );
 
-    const used = new Set(drawn(element as ReactNode).join(""));
-    expect(used.has("Σ")).toBe(true);
-    for (const [url] of f.mock.calls.filter(([url]) => isStyleSheet(url))) {
-      const asked = new Set(new URL(url).searchParams.get("text")!);
-      expect([...used].filter((glyph) => !asked.has(glyph))).toEqual([]);
-    }
-  });
+      // As designed: its own copy, and the Σ as a glyph of its font.
+      const words = drawn(element as ReactNode).join(" ");
+      expect(words).toContain(landingStrings(locale).heroTitle);
+      expect(sigmaDrawings(element)).toEqual([]);
+      expect(logger.warn).not.toHaveBeenCalled();
+
+      const used = new Set(words);
+      expect(used.has("Σ")).toBe(true);
+      for (const [url] of f.mock.calls.filter(([url]) => isStyleSheet(url))) {
+        const asked = new Set(new URL(url).searchParams.get("text")!);
+        expect([...used].filter((glyph) => !asked.has(glyph))).toEqual([]);
+      }
+    },
+  );
 
   it("asks for the ellipsis of a shortened line (seven cards shorten their sub-heading)", async () => {
     const f = stubFetch(answers);
@@ -290,9 +385,42 @@ describe("the social cards", () => {
     }
   });
 
+  it("stays as designed, in the one weight that loaded, when the other does not", async () => {
+    stubFetch(async (url) => {
+      if (url.includes("800")) throw new TypeError("fetch failed");
+      return answers(url);
+    });
+    await LocaleOpengraphImage({ params: Promise.resolve({ locale: "ja" }) });
+
+    const { element, options } = og.calls[0]!;
+    expect((options.fonts as { weight: number }[]).map((font) => font.weight)).toEqual([400]);
+    expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe("Noto Sans JP");
+    // Each weight is asked for every glyph of the card (the test above), so one
+    // is enough to draw it, Σ included, in its own copy.
+    const words = drawn(element as ReactNode).join(" ");
+    expect(words).toContain(landingStrings("ja-JP").heroTitle);
+    expect(words).toContain("Σ");
+    expect(sigmaDrawings(element)).toEqual([]);
+    // Not as designed all the same, and said so.
+    expect(vi.mocked(logger.warn).mock.calls).toEqual([
+      ["og_card.drawn_in_one_weight", { locale: "ja-JP", weight: 400 }],
+    ]);
+  });
+
   it.each(CARDS)(
-    "%s stops waiting for its fonts after 5 s when Google Fonts stalls, and asks next/og for the default font",
-    async (_path, render) => {
+    "%s is drawn from what is on disk when Google Fonts cannot be reached",
+    async (_path, locale, render) => {
+      stubFetch(async () => {
+        throw new TypeError("fetch failed");
+      });
+      await render();
+      expectCardFromDisk(locale);
+    },
+  );
+
+  it.each(CARDS)(
+    "%s is drawn from what is on disk once Google Fonts has stalled for 5 s",
+    async (_path, locale, render) => {
       vi.useFakeTimers();
       stubFetch(never);
       let done = false;
@@ -300,12 +428,11 @@ describe("the social cards", () => {
 
       await vi.advanceTimersByTimeAsync(4_999);
       expect(done).toBe(false);
+      expect(og.calls).toHaveLength(0);
       await vi.advanceTimersByTimeAsync(1);
       expect(done).toBe(true);
 
-      const { element, options } = og.calls[0]!;
-      expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe("sans-serif");
-      expect(options).toEqual({ width: 1200, height: 630 });
+      expectCardFromDisk(locale);
     },
   );
 });
