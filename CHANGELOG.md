@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **The citation in `llms-full.txt` names the current release.** The "How to cite" lines of [sigmacv.org/llms-full.txt](https://sigmacv.org/llms-full.txt), the description of the site written for language models, still cited v0.1.0: the steps after a release update the citation in the README, and that file was missed twice. It now cites v0.4.0, and a test fails when the README or that file names another release than the newest one with a DOI of its own.
+
 ## [0.4.0] - 2026-10-07
 
 ### Security
