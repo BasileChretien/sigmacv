@@ -52,6 +52,73 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(out.n).toBe("pageview");
   });
 
+  it("cuts an ORCID iD out of any other address, so a 404 on a mistyped one is not stored with it", () => {
+    const transform = boot().o!.transformRequest!;
+    const sent = (u: string) => transform({ u }).u;
+    // Not the preview route: another case, another path, no path at all.
+    expect(sent("https://sigmacv.org/Preview/0000-0002-1825-0097")).toBe(
+      "https://sigmacv.org/Preview/_",
+    );
+    expect(sent("https://sigmacv.org/cv/0000-0002-1825-0097")).toBe("https://sigmacv.org/cv/_");
+    expect(sent("https://sigmacv.org/0000-0002-1694-233X")).toBe("https://sigmacv.org/_");
+    // Every occurrence, in the query and the fragment too, and a lower-case check digit.
+    expect(
+      sent(
+        "https://sigmacv.org/a/0000-0002-1694-233x/b?id=0000-0002-1825-0097#0000-0001-5109-3700",
+      ),
+    ).toBe("https://sigmacv.org/a/_/b?id=_#_");
+    // Inside an encoded ORCID URL.
+    expect(sent("https://sigmacv.org/x/https%3A%2F%2Forcid.org%2F0000-0002-1825-0097")).toBe(
+      "https://sigmacv.org/x/https%3A%2F%2Forcid.org%2F_",
+    );
+    // The referrer as well: a page named after an iD, here or elsewhere.
+    const out = transform({
+      u: "https://sigmacv.org/",
+      r: "https://example.org/people/0000-0002-1825-0097",
+    });
+    expect(out).toEqual({ u: "https://sigmacv.org/", r: "https://example.org/people/_" });
+  });
+
+  it("cuts an iD however an address joins its four groups", () => {
+    const sent = (path: string) =>
+      boot().o!.transformRequest!({ u: `https://sigmacv.org/x/${path}` }).u;
+    for (const path of [
+      // Typed without hyphens.
+      "0000000218250097",
+      "000000021694233X",
+      // The hyphen percent-encoded, in either case of the escape.
+      "0000%2D0002%2D1825%2D0097",
+      "0000%2d0002%2d1825%2d0097",
+      // Copied from a PDF or a word processor: an en dash, a non-breaking hyphen.
+      "0000%E2%80%930002%E2%80%931825%E2%80%930097",
+      "0000%e2%80%910002%e2%80%911825%e2%80%910097",
+      // Spaces, as a path encodes them and as a form does.
+      "0000%200002%201825%200097",
+      "0000+0002+1825+0097",
+    ]) {
+      expect(sent(path), path).toBe("https://sigmacv.org/x/_");
+    }
+  });
+
+  it("goes by shape alone: it cuts too much rather than too little, and leaves shorter numbers", () => {
+    const sent = (u: string) => boot().o!.transformRequest!({ u }).u;
+    // No checksum: four groups of four that are not an iD go too.
+    expect(sent("https://sigmacv.org/guides/2024-2025-2026-2027")).toBe(
+      "https://sigmacv.org/guides/_",
+    );
+    // No word boundary: an iD glued to other digits is still cut out of them.
+    expect(sent("https://sigmacv.org/x/90000-0002-1825-00971")).toBe("https://sigmacv.org/x/9_1");
+    // Other numbers stay: three groups, a slug, a ROR id, a millisecond timestamp.
+    for (const u of [
+      "https://sigmacv.org/guides/2024-2025-2026-cv",
+      "https://sigmacv.org/p/jane-doe-1234",
+      "https://sigmacv.org/i/02feahw73",
+      "https://sigmacv.org/x?t=1728300000000",
+    ]) {
+      expect(sent(u), u).toBe(u);
+    }
+  });
+
   it("drops the typed name from /search?q= (bare and localized), keeping the fragment", () => {
     const transform = boot().o!.transformRequest!;
     const out = transform({
@@ -60,6 +127,10 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     });
     expect(out.u).toBe("https://sigmacv.org/search#top");
     expect(out.r).toBe("https://sigmacv.org/fr/search");
+    // Another case is a 404, and a 404 is counted too: the name goes all the same.
+    expect(transform({ u: "https://sigmacv.org/Search?q=Jane%20Doe" }).u).toBe(
+      "https://sigmacv.org/Search",
+    );
     // Not a lookup: a page whose path merely contains "search" keeps its query.
     expect(transform({ u: "https://sigmacv.org/research?x=1" }).u).toBe(
       "https://sigmacv.org/research?x=1",

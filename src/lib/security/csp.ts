@@ -26,6 +26,11 @@ import { THEME_INIT_SHA256 } from "@/lib/themeInit";
  *    to a server action without JavaScript bypasses the prerender) carries it on
  *    every script, and the page then works under the same policy.
  *
+ * One page is rendered per request for this policy's sake: the 404. Whoever
+ * sends the policy (`src/proxy.ts`) cannot tell that a path will be a 404, so a
+ * prerendered 404 could not be sent its hashes. `src/app/not-found.tsx` keeps
+ * it out of the prerender, and it gets the first shape like any dynamic route.
+ *
  * Neither shape allows `'unsafe-inline'` or `'unsafe-eval'` for scripts. The
  * prerendered shape is an allow-list rather than a nonce policy, and differs
  * from the nonce shape both ways. Looser: any script FILE on our own origin may
