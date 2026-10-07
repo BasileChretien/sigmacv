@@ -733,6 +733,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
+- **Five dependency advisories published between 18 September and 6 October 2026
+  are closed (`npm audit`: 0 again).** **Next.js 16.3.6** fixes a critical
+  remote-code-execution flaw in the renderer behind the social-card images
+  (`next/og`, [GHSA-vcvr-r3jv-pc5j](https://github.com/advisories/GHSA-vcvr-r3jv-pc5j)).
+  The advisory concerns pages that put visitor-supplied values into SVG markup or
+  styles; SigmaCV's cards draw no SVG element and the only value that reaches a
+  style is a validated six-digit colour, but the cards do print a name, a headline
+  and an affiliation their owner typed, so the upgrade is not optional. The mail
+  library moves to **nodemailer 10**, the only line that fixes five address-parser
+  and TLS advisories (the highest,
+  [GHSA-v53p-9fqp-m79j](https://github.com/advisories/GHSA-v53p-9fqp-m79j), lets a
+  long crafted address stall the server). Its one breaking change is to require
+  Node.js 20, which SigmaCV already exceeds, and it ships its own types, so
+  `@types/nodemailer` is dropped. **sharp 0.35.5**
+  ([GHSA-wq5f-xc86-pv6w](https://github.com/advisories/GHSA-wq5f-xc86-pv6w), SVG
+  decoding; SigmaCV decodes no SVG with it), **source-map-js 1.2.2**
+  ([GHSA-68fv-2mgg-jv7q](https://github.com/advisories/GHSA-68fv-2mgg-jv7q), build
+  tooling only) and **fast-uri 3.1.8**
+  ([GHSA-hrr3-gc8f-f4qj](https://github.com/advisories/GHSA-hrr3-gc8f-f4qj), inside
+  the Prisma CLI) are lockfile updates.
+
 - **All known dependency advisories are closed again (`npm audit`: 0).** The mail
   library used for magic-link sign-in and digest mail moved to **nodemailer 9**,
   which closes a high-severity advisory with no fix in the 8.x line
