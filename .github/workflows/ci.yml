@@ -49,3 +49,26 @@ jobs:
           ORCID_CLIENT_SECRET: ci-dummy
           ORCID_ENVIRONMENT: sandbox
           OPENALEX_MAILTO: ci@example.com
+          # Inlined at build time. Nothing answers at this host: the check below
+          # fulfils its requests itself (e2e/production/env.ts has the same URL).
+          NEXT_PUBLIC_PLAUSIBLE_SRC: https://plausible.e2e.test/js/pa-e2e.js
+
+      # The journeys (e2e.yml) run `next dev`, whose CSP allows every script, and
+      # the unit tests only read the header string. Whether a browser runs a
+      # page's scripts under the PRODUCTION policy can only be seen on the build
+      # above, served the way the Docker image serves it. Needs no database.
+      - name: Install Playwright (chromium)
+        run: npx playwright install --with-deps chromium
+
+      - name: Production CSP check (prerendered and dynamic pages run their scripts)
+        run: npm run e2e:prod
+        env:
+          E2E_PROD_REUSE_BUILD: "1"
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-prod
+          path: playwright-report-prod/
+          retention-days: 7
+          if-no-files-found: ignore

@@ -378,6 +378,17 @@ that sentence true:
    stub in a sandbox and asserts the rewrite. Top Pages therefore shows one row,
    `/preview/_`, for all previews. Verify after deploy: open a preview, then
    check that no `/preview/0000-…` row appears in Plausible's realtime view.
+   The same function replaces an ORCID iD anywhere else in the URL or the
+   referrer with `_`. That is for the addresses the first rule does not know:
+   a 404 is counted like any other page, and a mistyped address can hold an iD
+   (`/Preview/0000-…`, `/cv/0000-…`, `/0000-…`). Such a visit is stored as
+   `/Preview/_`, `/cv/_`, `/_`. The rule goes by shape: four groups of four
+   digits (the last may be an X) joined by a hyphen, by nothing, or by a
+   percent-encoded hyphen, dash or space. It has no checksum, so sixteen digits
+   in a row or `2024-2025-2026-2027` are cut as well, and it is not a
+   guarantee: an iD spelled some other way passes. Rows stored before this rule
+   shipped (2026-10) are not touched by the purge below, which only knows
+   `/preview/`.
 2. **Rows that reached ClickHouse anyway are deleted by `scripts/deploy.sh` on
    every deploy** (rows from before the scrub shipped, or from a client running
    an old stub). The two mutations are idempotent, so running them each deploy
@@ -422,9 +433,9 @@ path):
 | `Badge snippet copied` | `format`                                                                                     | a Living-CV badge snippet is copied                                                    |
 
 The pageview scrub in `src/lib/analytics/plausibleInit.ts` cuts `/preview/<iD>`
-to `/preview/_` and drops the query string from `/search?q=…` before the request
-leaves the browser, so neither a looked-up iD nor a typed name reaches the
-collector.
+to `/preview/_`, replaces an iD anywhere else in the address with `_`, and drops
+the query string from `/search?q=…` before the request leaves the browser, so
+neither a looked-up iD nor a name typed into the lookup reaches the collector.
 
 They appear under **Goals / Custom events** in the Plausible dashboard once you
 add them there (Site settings → Goals → Custom event). No extra deploy needed —

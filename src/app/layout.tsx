@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import Script from "next/script";
 import { PLAUSIBLE_INIT_SCRIPT } from "@/lib/analytics/plausibleInit";
+import { INTER_ROOT_STYLE } from "./fonts/inter";
 import "./globals.css";
 import { SITE_URL } from "@/lib/siteUrl";
 import { landingStrings } from "@/lib/i18n/landing";
@@ -14,13 +14,6 @@ import { THEME_INIT_SCRIPT } from "@/lib/themeInit";
 // https://plausible.sigmacv.org/js/pa-<id>.js — the site is baked into that
 // script, so v3 needs no data-domain attribute.
 const PLAUSIBLE_SRC = process.env.NEXT_PUBLIC_PLAUSIBLE_SRC;
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-  weight: ["400", "500", "600", "700"],
-});
 
 const home = landingStrings("en-US");
 
@@ -91,7 +84,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     // suppressHydrationWarning: the no-flash init script sets data-theme on <html>
     // before React hydrates, so the attribute legitimately differs from SSR.
-    <html lang="en" className={inter.variable} suppressHydrationWarning>
+    <html lang="en" style={INTER_ROOT_STYLE} suppressHydrationWarning>
       <body>
         {/* No-flash theme bootstrap — must run before paint. Static content,
             allow-listed by its sha256 in the CSP (see proxy.ts / themeInit.ts). */}

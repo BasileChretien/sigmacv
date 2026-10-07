@@ -36,6 +36,7 @@
     "db:push:e2e": "dotenv -e .env.e2e -- prisma db push",
     "e2e": "playwright test",
     "e2e:ui": "playwright test --ui",
+    "e2e:prod": "playwright test -c playwright.prod.config.ts",
     "e2e:install": "playwright install --with-deps chromium",
     "postinstall": "prisma generate",
     "prepare": "husky || true"

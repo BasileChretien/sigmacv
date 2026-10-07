@@ -1,66 +1,51 @@
+import path from "node:path";
 import { NextResponse, type NextRequest } from "next/server";
-import { THEME_INIT_SHA256 } from "@/lib/themeInit";
+import { contentSecurityPolicy } from "@/lib/security/csp";
+import { createPrerenderedScriptLookup } from "@/lib/security/prerenderedScripts";
 
 /**
  * App-shell Content-Security-Policy.
  *
  * The CV *document* (preview iframe + PDF) already ships its own strict CSP;
- * this header secures the Next.js app shell (landing + /cv editor). We use a
- * per-request nonce + `strict-dynamic` so Next can nonce its own hydration
- * scripts (it reads the CSP from the request header). In development we relax
- * script-src (HMR needs eval) and allow the HMR websocket, so the dev server
- * isn't broken — production gets the strict policy.
+ * this header secures the Next.js app shell (landing + /cv editor). A route
+ * rendered per request gets a per-request nonce + `strict-dynamic`, so Next can
+ * nonce its own hydration scripts (it reads the CSP from the request header). A
+ * prerendered route carries no nonce in its HTML, so it gets the hashes of its
+ * inline scripts instead — `src/lib/security/csp.ts` has the two shapes and the
+ * reasoning. In development we relax script-src (HMR needs eval) and allow the
+ * HMR websocket, so the dev server isn't broken — production gets the strict
+ * policy.
  *
  * Excludes /api (JSON), Next static assets, and /p/ (the public CV document,
  * which carries its own CSP) — see `config.matcher`.
  *
  * Next 16 renamed the `middleware` file convention to `proxy` (same request
- * interception, same `config` export); this is that file.
+ * interception, same `config` export); this is that file. It runs on the Node.js
+ * runtime, which is what lets it read the build output.
  */
+
+// The build this server serves: `next start` and the standalone `server.js` both
+// run with the directory that holds `.next` as their working directory. (A
+// custom `distDir`, or `next start <dir>` from elsewhere, would not be found:
+// prerendered pages would then get the nonce policy and run no script.)
+const prerenderedScriptHashes = createPrerenderedScriptLookup(
+  path.join(/* turbopackIgnore: true */ process.cwd(), ".next"),
+);
+
 export function proxy(request: NextRequest): NextResponse {
   const isDev = process.env.NODE_ENV !== "production";
   // Base64 of 16 RAW random bytes (128 bits) — stronger and more standard than
   // base64-ing the 36-char UUID *string* (which only encodes hex ASCII).
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
 
-  // Self-hosted analytics (Plausible) lives on a different origin and posts
-  // pageviews there via fetch(), so its origin MUST be in connect-src — otherwise
-  // the hardened `connect-src 'self'` silently blocks every event. Derived from
-  // the configured script URL (build-time-inlined); unset/blank → no addition.
-  let analyticsOrigin = "";
-  try {
-    const analyticsSrc = process.env.NEXT_PUBLIC_PLAUSIBLE_SRC;
-    if (analyticsSrc) analyticsOrigin = new URL(analyticsSrc).origin;
-  } catch {
-    analyticsOrigin = "";
-  }
-
-  // The static no-flash theme script (themeInit.ts) is inline and has no nonce,
-  // so under `strict-dynamic` it's allow-listed by its sha256 hash. (Dev already
-  // permits 'unsafe-inline', so the hash is only needed in production.)
-  const scriptSrc = isDev
-    ? "'self' 'unsafe-eval' 'unsafe-inline'"
-    : `'self' 'nonce-${nonce}' 'sha256-${THEME_INIT_SHA256}' 'strict-dynamic'`;
-  const connectSrc = isDev
-    ? "'self' ws: wss:"
-    : `'self'${analyticsOrigin ? ` ${analyticsOrigin}` : ""}`;
-
-  const csp = [
-    "default-src 'self'",
-    `script-src ${scriptSrc}`,
-    // React inline style attributes (style={{…}}) need 'unsafe-inline'; the
-    // security value of CSP is overwhelmingly in script-src anyway.
-    "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data:",
-    "font-src 'self'",
-    `connect-src ${connectSrc}`,
-    // The live-preview is a sandboxed srcdoc <iframe>.
-    "frame-src 'self'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-    "frame-ancestors 'none'",
-  ].join("; ");
+  const csp = contentSecurityPolicy({
+    isDev,
+    nonce,
+    // Build-time-inlined; unset/blank → analytics is not in the policy at all.
+    analyticsSrc: process.env.NEXT_PUBLIC_PLAUSIBLE_SRC,
+    // `next dev` prerenders nothing, and its policy does not need hashes.
+    prerenderedScriptHashes: isDev ? null : prerenderedScriptHashes(request.nextUrl.pathname),
+  });
 
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
