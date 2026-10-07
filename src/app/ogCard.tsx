@@ -1,8 +1,13 @@
+import { ImageResponse } from "next/og";
 import type { ReactElement } from "react";
+import { DEFAULT_UI_LOCALE, type Locale } from "@/lib/i18n";
+import { landingStrings } from "@/lib/i18n/landing";
+import { logger } from "@/lib/log";
 
 /**
- * Shared layout + font plumbing for the site-wide Open Graph / social-share
- * cards (the root `opengraph-image` and its per-locale variant). The design
+ * The site-wide Open Graph / social-share cards (the root `opengraph-image` and
+ * its per-locale variant both return `siteOgImage`): layout, fonts, and the
+ * variant drawn when the fonts could not be loaded. The design
  * mirrors the homepage hero: deep indigo brand gradient with soft glows, the Σ
  * medallion wordmark, and a white CV-document mock with the signature
  * identifier-driven self-name highlight, ringed by open-data source chips.
@@ -33,11 +38,42 @@ const FLOATING_CHIPS: { label: string; style: Record<string, string | number> }[
   { label: "Crossref", style: { bottom: 54, left: -38 } },
 ];
 
+/** What `truncate` ends a shortened line with. */
+const ELLIPSIS = "…";
+
 /**
- * Every latin glyph the card renders besides the localized copy — callers add
- * this to the font-subset request so chips/wordmark never fall back to tofu.
+ * Every glyph the card draws that is not in the localized copy handed to
+ * `loadOgFonts`: the wordmark, the Σ, the source chips and the ellipsis of a
+ * shortened line. They go into the font-subset request so that the fonts passed
+ * to next/og cover the whole card. For a glyph they lack, next/og fetches a font
+ * from Google Fonts itself, in requests that carry no time limit.
  */
-const OG_CARD_GLYPHS = `SigmaCV Σ sigmacv.org ${SOURCE_CHIPS.join(" ")}`;
+const OG_CARD_GLYPHS = `SigmaCV Σ sigmacv.org ${SOURCE_CHIPS.join(" ")} ${ELLIPSIS}`;
+
+/**
+ * How long one weight's subset may take, style sheet and font file together
+ * (a few hundred milliseconds is usual). A connection that stalls is not a
+ * failure to Node's fetch, which waits up to 300 s for the headers and 300 s for
+ * the body, while `next build` gives a prerendered card 60 s
+ * (`staticPageGenerationTimeout`), three times, and then stops the build.
+ */
+const OG_FONT_TIMEOUT_MS = 5_000;
+
+/**
+ * The limit is counted in turns of the event loop this far apart, not read off
+ * the clock. `next build` draws up to eight pages at once in one process, and
+ * drawing a card keeps it busy for a second or more at a stretch, so a font that
+ * arrived in 100 ms can wait several seconds to be read: on a 5 s clock that
+ * wait dropped the fonts of four to six cards out of ten in an ordinary build.
+ * However long the process was busy, it costs one turn, and each turn is
+ * followed by a read of what has arrived. Ten cards loading at once need
+ * thirty to forty turns, however slow each turn is; the limit is 250.
+ *
+ * `OG_FONT_TIMEOUT_MS` is therefore the least a stalled request is waited for:
+ * a busy process waits longer, and the log line says how long. There is no
+ * ceiling on the clock on purpose, since that would be the clock again.
+ */
+const OG_FONT_TURN_MS = 20;
 
 export interface OgFont {
   name: string;
@@ -47,37 +83,85 @@ export interface OgFont {
 }
 
 /**
- * Fetch one Google-font weight subset (only `text`'s glyphs) as TTF data for
- * satori. The old UA makes Google serve truetype (satori can't read woff2).
- * Returns null on any failure so the caller can fall back to the default font.
+ * The two requests behind one weight: Google's style sheet for the subset (only
+ * `text`'s glyphs), then the font file it names, as TTF data for satori. Null
+ * when either is answered with an error or the style sheet names no file;
+ * throws on a network error or an abort.
+ */
+async function fetchFontWeight(
+  family: string,
+  weight: 400 | 800,
+  text: string,
+  signal: AbortSignal,
+): Promise<ArrayBuffer | null> {
+  const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
+    family,
+  )}:wght@${weight}&text=${encodeURIComponent(text)}`;
+  const sheet = await fetch(url, {
+    headers: {
+      // Old UA → Google returns a truetype URL (satori cannot use woff2).
+      "User-Agent": "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
+    },
+    signal,
+  });
+  if (!sheet.ok) return null;
+  const match = (await sheet.text()).match(/src:\s*url\(([^)]+)\)/);
+  if (!match) return null;
+  const file = await fetch(match[1]!, { signal });
+  // An error page is not a font: satori throws on one, and the card with it.
+  if (!file.ok) return null;
+  return await file.arrayBuffer();
+}
+
+/**
+ * One Google-font weight subset, or null on any failure so the caller can fall
+ * back to the default font. A request still unanswered after
+ * `OG_FONT_TIMEOUT_MS` (in turns of `OG_FONT_TURN_MS`) is such a failure: it is
+ * aborted, and the answer does not wait for the abort to take effect.
  */
 async function loadFontWeight(
   family: string,
   weight: 400 | 800,
   text: string,
 ): Promise<ArrayBuffer | null> {
+  const controller = new AbortController();
+  const started = Date.now();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timedOut = new Promise<null>((resolve) => {
+    let turnsLeft = OG_FONT_TIMEOUT_MS / OG_FONT_TURN_MS;
+    const turn = (): void => {
+      turnsLeft -= 1;
+      if (turnsLeft > 0) {
+        timer = setTimeout(turn, OG_FONT_TURN_MS);
+        return;
+      }
+      controller.abort();
+      // `siteOgImage` logs that a card went out without a font; this says why,
+      // and how long the request was really waited for.
+      logger.warn("og_card.font_timed_out", {
+        family,
+        weight,
+        timeoutMs: OG_FONT_TIMEOUT_MS,
+        waitedMs: Date.now() - started,
+      });
+      resolve(null);
+    };
+    timer = setTimeout(turn, OG_FONT_TURN_MS);
+  });
   try {
-    const url = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(
-      family,
-    )}:wght@${weight}&text=${encodeURIComponent(text)}`;
-    const css = await fetch(url, {
-      headers: {
-        // Old UA → Google returns a truetype URL (satori cannot use woff2).
-        "User-Agent": "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
-      },
-    }).then((r) => r.text());
-    const match = css.match(/src:\s*url\(([^)]+)\)/);
-    if (!match) return null;
-    return await fetch(match[1]!).then((r) => r.arrayBuffer());
+    return await Promise.race([fetchFontWeight(family, weight, text, controller.signal), timedOut]);
   } catch {
     return null;
+  } finally {
+    clearTimeout(timer);
   }
 }
 
 /**
- * Best-effort load of the regular + extra-bold subsets used by the card.
- * Failures (e.g. no network at build) yield an empty array — the card then
- * renders with satori's default font instead of crashing.
+ * Best-effort load of the regular + extra-bold subsets used by the card, given
+ * up after `OG_FONT_TIMEOUT_MS`. Failures (no network at build, a request that
+ * stalls) yield an empty array, and `siteOgImage` then draws the card that needs
+ * no font fetched.
  */
 export async function loadOgFonts(family: string, text: string): Promise<OgFont[]> {
   // Include the uppercased copy: the eyebrow renders with text-transform:
@@ -93,6 +177,75 @@ export async function loadOgFonts(family: string, text: string): Promise<OgFont[
   return fonts;
 }
 
+/**
+ * Per locale: the Google Fonts family that has its script (Inter for English,
+ * Noto elsewhere), and whether the font next/og ships with can draw its copy
+ * when that family could not be loaded. That font, Geist, has Latin and
+ * Cyrillic, and no Chinese, Japanese or Korean.
+ */
+const OG_TYPE: Record<Locale, { family: string; bundledFontDraws: boolean }> = {
+  "en-US": { family: "Inter", bundledFontDraws: true },
+  "zh-CN": { family: "Noto Sans SC", bundledFontDraws: false },
+  "es-ES": { family: "Noto Sans", bundledFontDraws: true },
+  "fr-FR": { family: "Noto Sans", bundledFontDraws: true },
+  "de-DE": { family: "Noto Sans", bundledFontDraws: true },
+  "ja-JP": { family: "Noto Sans JP", bundledFontDraws: false },
+  "pt-BR": { family: "Noto Sans", bundledFontDraws: true },
+  "it-IT": { family: "Noto Sans", bundledFontDraws: true },
+  "ko-KR": { family: "Noto Sans KR", bundledFontDraws: false },
+  "ru-RU": { family: "Noto Sans", bundledFontDraws: true },
+};
+
+/**
+ * The social card of one locale, as the response its route returns.
+ *
+ * With its fonts: the card as designed, in that locale's copy. One weight of
+ * the two is enough for that, since each is asked for every glyph of the card.
+ *
+ * With none (Google Fonts refused, answered an error, or stayed silent past the
+ * limit): a card that needs nothing fetched. next/og then draws in its bundled
+ * font, and for any glyph that font lacks it fetches one from Google Fonts
+ * itself, in requests that carry no time limit and cannot be given one: during
+ * `next build` a stall there holds the card until Next stops the build. So the
+ * Σ, which the bundled font lacks, is drawn (`SigmaMark`), and a locale whose
+ * script it lacks gets the English copy. `tests/og-card-offline.test.tsx` draws
+ * all ten cards this way through the real next/og and fails on any request.
+ *
+ * A prerendered card is served until the next build, and nothing in a green
+ * build shows which variant it is: each departure from the design is logged.
+ */
+export async function siteOgImage(locale: Locale): Promise<ImageResponse> {
+  const { family, bundledFontDraws } = OG_TYPE[locale];
+  const copy = landingStrings(locale);
+  const fonts = await loadOgFonts(family, `${copy.heroTitle} ${copy.heroSub} ${copy.eyebrow}`);
+  if (fonts.length) {
+    if (fonts.length === 1) {
+      logger.warn("og_card.drawn_in_one_weight", { locale, weight: fonts[0]!.weight });
+    }
+    return new ImageResponse(
+      <SiteOgCard
+        eyebrow={copy.eyebrow}
+        title={copy.heroTitle}
+        sub={copy.heroSub}
+        fontFamily={family}
+      />,
+      { ...OG_SIZE, fonts },
+    );
+  }
+  logger.warn("og_card.drawn_without_fonts", { locale });
+  const plain = bundledFontDraws ? copy : landingStrings(DEFAULT_UI_LOCALE);
+  return new ImageResponse(
+    <SiteOgCard
+      eyebrow={plain.eyebrow}
+      title={plain.heroTitle}
+      sub={plain.heroSub}
+      fontFamily="sans-serif"
+      drawnSigma
+    />,
+    OG_SIZE,
+  );
+}
+
 /** Trim to `max` chars on a word boundary when possible, adding an ellipsis. */
 function truncate(s: string, max: number): string {
   const clean = s.replace(/\s+/g, " ").trim();
@@ -100,7 +253,7 @@ function truncate(s: string, max: number): string {
   const cut = clean.slice(0, max - 1);
   const lastSpace = cut.lastIndexOf(" ");
   const head = lastSpace > max / 2 ? cut.slice(0, lastSpace) : cut;
-  return `${head.trimEnd()}…`;
+  return `${head.trimEnd()}${ELLIPSIS}`;
 }
 
 /** Skeleton bar inside the CV mock (greys mirror the neutral ramp). */
@@ -140,7 +293,27 @@ function HighlightBar({ width }: { width: number }) {
   );
 }
 
-export interface SiteOgCardProps {
+/**
+ * The Σ as a drawing: the mark of `public/icon.svg`, in the proportions it has
+ * there (`size` is its 64-unit square, in pixels). For a card with no font
+ * loaded, since the bundled one has no Σ.
+ */
+function SigmaMark({ size, color }: { size: number; color: string }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64">
+      <path
+        d="M44 16H22.5l12.2 16L22 48h22"
+        fill="none"
+        stroke={color}
+        strokeWidth={5.5}
+        strokeLinejoin="round"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+interface SiteOgCardProps {
   /** Small uppercase line above the title (the localized landing eyebrow). */
   eyebrow: string;
   /** Big headline (the localized hero title). */
@@ -149,10 +322,18 @@ export interface SiteOgCardProps {
   sub: string;
   /** Font family to render with (loaded via `loadOgFonts`, or a fallback). */
   fontFamily: string;
+  /** Draw the Σ instead of setting it as a glyph: no loaded font has one. */
+  drawnSigma?: boolean;
 }
 
 /** The 1200×630 site-wide share card. */
-export function SiteOgCard({ eyebrow, title, sub, fontFamily }: SiteOgCardProps): ReactElement {
+function SiteOgCard({
+  eyebrow,
+  title,
+  sub,
+  fontFamily,
+  drawnSigma = false,
+}: SiteOgCardProps): ReactElement {
   const titleSize = title.length > 75 ? 44 : title.length > 45 ? 52 : 60;
   return (
     <div
@@ -248,7 +429,7 @@ export function SiteOgCard({ eyebrow, title, sub, fontFamily }: SiteOgCardProps)
                 fontWeight: 800,
               }}
             >
-              Σ
+              {drawnSigma ? <SigmaMark size={58} color="#ffffff" /> : "Σ"}
             </div>
             <div style={{ marginLeft: 18, fontSize: 36, fontWeight: 800, letterSpacing: -0.5 }}>
               SigmaCV
@@ -355,7 +536,7 @@ export function SiteOgCard({ eyebrow, title, sub, fontFamily }: SiteOgCardProps)
                   color: ACCENT_600,
                 }}
               >
-                Σ
+                {drawnSigma ? <SigmaMark size={52} color={ACCENT_600} /> : "Σ"}
               </div>
               <div style={{ display: "flex", flexDirection: "column", marginLeft: 14 }}>
                 <div

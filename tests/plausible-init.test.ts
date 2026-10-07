@@ -67,6 +67,117 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(transform({ u: "https://sigmacv.org/search" }).u).toBe("https://sigmacv.org/search");
   });
 
+  it("drops what was typed into the see-it-first box when the form fell back to a GET (?who=)", () => {
+    // Submitted before the page's script runs, the box reloads its own page as
+    // `…?who=<name or iD>`; that URL also sits in histories from the months the
+    // box had no script at all. It must not reach the collector from any page.
+    const transform = boot().o!.transformRequest!;
+    const out = transform({
+      u: "https://sigmacv.org/guides/how-to-write-an-academic-cv?who=Jane+Doe#top",
+      r: "https://sigmacv.org/fr/orcid-to-cv?who=0000-0002-1825-0097",
+    });
+    expect(out.u).toBe("https://sigmacv.org/guides/how-to-write-an-academic-cv#top");
+    expect(out.r).toBe("https://sigmacv.org/fr/orcid-to-cv");
+    expect(transform({ u: "https://sigmacv.org/?who=Jane%20Doe" }).u).toBe("https://sigmacv.org/");
+
+    // The campaign parameters Plausible reads stay, wherever `who` sits.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x&utm_source=nl&ref=a" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl&ref=a",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl&who=x&ref=a" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl&ref=a",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl&who=x#top" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl#top",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?who=a&who=b" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    // An empty value, and a parameter that merely starts or ends with "who".
+    expect(transform({ u: "https://sigmacv.org/guides?who=" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?whoever=1&xwho=2" }).u).toBe(
+      "https://sigmacv.org/guides?whoever=1&xwho=2",
+    );
+    // A path segment is not a parameter.
+    expect(transform({ u: "https://sigmacv.org/glossary/who=x" }).u).toBe(
+      "https://sigmacv.org/glossary/who=x",
+    );
+  });
+
+  it("removes `who` from the query string only, never from a path or a fragment", () => {
+    // `/about&who=x` is an address that does not exist (a 404 that still counts
+    // a pageview). Cut there, it would be filed as a view of the real /about.
+    const transform = boot().o!.transformRequest!;
+    for (const url of [
+      "https://sigmacv.org/about&who=x",
+      "https://sigmacv.org/i/02abc&who=Jane+Doe",
+      "https://sigmacv.org/guides/x&who=y?utm_source=nl",
+      "https://sigmacv.org/guides#a&who=x",
+      "https://sigmacv.org/guides#a?who=x",
+      "https://sigmacv.org/guides?utm_source=nl#a&who=x",
+    ]) {
+      expect(transform({ u: url, r: url })).toEqual({ u: url, r: url });
+    }
+    // In the query it still goes, whatever follows in the fragment.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x#a&who=y" }).u).toBe(
+      "https://sigmacv.org/guides#a&who=y",
+    );
+  });
+
+  it("leaves the other parameters exactly as they were: inside a query only `&` separates", () => {
+    const transform = boot().o!.transformRequest!;
+    // A `?` after the first one is part of a value, not a separator.
+    expect(
+      transform({
+        u: "https://sigmacv.org/guides?utm_campaign=whats-new?&utm_source=nl&who=Jane",
+      }).u,
+    ).toBe("https://sigmacv.org/guides?utm_campaign=whats-new?&utm_source=nl");
+    expect(transform({ u: "https://sigmacv.org/guides?who=Jane&ref=whats-new?" }).u).toBe(
+      "https://sigmacv.org/guides?ref=whats-new?",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?ref=whats-new?&who=Jane" }).u).toBe(
+      "https://sigmacv.org/guides?ref=whats-new?",
+    );
+    // So this holds no `who` parameter at all (and the box cannot produce it).
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl?who=Jane" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl?who=Jane",
+    );
+    // What was odd before stays odd: nothing but `who` is touched.
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&&who=x&b=2" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&&b=2",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&&b=2&" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&&b=2&",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?" }).u).toBe("https://sigmacv.org/guides?");
+    // With `who` gone and only empty segments left, no `?` is left hanging.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x&" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?&who=x#top" }).u).toBe(
+      "https://sigmacv.org/guides#top",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&who=x&" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&",
+    );
+    // A typed value is percent-encoded by the browser; whatever it holds goes.
+    expect(transform({ u: "https://sigmacv.org/guides?who=a%26b%3Dc%3Fd&ref=x" }).u).toBe(
+      "https://sigmacv.org/guides?ref=x",
+    );
+    // Only the box's own field name: a browser writes it as `who`, never encoded,
+    // and never without `=`. Hand-built look-alikes are left as they are.
+    for (const url of [
+      "https://sigmacv.org/guides?%77ho=Jane",
+      "https://sigmacv.org/guides?WHO=Jane",
+      "https://sigmacv.org/guides?who",
+      "https://sigmacv.org/guides?x=who=1",
+    ]) {
+      expect(transform({ u: url }).u).toBe(url);
+    }
+  });
+
   it("keeps only the origin of an outbound-link event's URL, so no identifier in a path reaches the collector", () => {
     const transform = boot().o!.transformRequest!;
     type Event = Payload & { p?: Record<string, string> };
