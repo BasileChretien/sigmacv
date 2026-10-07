@@ -33,8 +33,11 @@ jobs:
       - name: Typecheck
         run: npm run typecheck
 
-      - name: Unit tests
-        run: npm test
+      # `coverage` is `vitest run --coverage`: the same suite as `npm test`, plus the
+      # src/lib/** thresholds from vitest.config.ts. Below any of them the step
+      # fails, and so does this job, which is a required check.
+      - name: Unit tests + coverage gate
+        run: npm run coverage
 
       # Vendored CSL assets are committed, so no fetch-csl step is needed.
       # env.ts is lazy (build doesn't require secrets); dummy values are a safety
