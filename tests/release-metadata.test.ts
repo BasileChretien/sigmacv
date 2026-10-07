@@ -3,14 +3,14 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 
-// A release is announced in seven places, and they have to agree. 0.3.0 left two
-// behind: the lockfile said 0.2.0 at the tag, and the home page's structured data
-// said 0.2.0 through the whole life of 0.3.0. Every place is read here, so a
-// release that misses one is red.
+// A release names its version in eight files, and they have to agree. 0.3.0 left
+// three behind: the lockfile said 0.2.0 at the tag, the home page's structured
+// data said 0.2.0 through the whole life of 0.3.0, and the registry kit still
+// said 0.1.0. Every file is read here, so a release that misses one is red.
 //
-// Not held here, because they can only be written after the release exists: the
-// versioned DOI Zenodo mints for it (CITATION.cff's identifiers) and the version
-// label beside it in the README's "Citing" block.
+// Not held here, because they can only be written once the release exists: the
+// versioned DOI Zenodo mints for it (CITATION.cff's identifiers) and the "how to
+// cite" lines that name a release beside its DOI (README, public/llms-full.txt).
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (file: string): string => readFileSync(join(repoRoot, file), "utf8");
@@ -34,8 +34,12 @@ const codemeta = JSON.parse(read("codemeta.json")) as {
 };
 const zenodo = JSON.parse(read(".zenodo.json")) as { version: string };
 
-/** The newest dated section of the changelog: `## [x.y.z] - yyyy-mm-dd`. */
-const released = /^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})\r?$/m.exec(read("CHANGELOG.md"));
+const changelog = read("CHANGELOG.md");
+/** The changelog's dated sections, newest first: `## [x.y.z] - yyyy-mm-dd`. */
+const sections = [...changelog.matchAll(/^## \[(\d+\.\d+\.\d+)\] - (\d{4}-\d{2}-\d{2})\r?$/gm)].map(
+  ([, version, date]) => ({ version, date }),
+);
+const released = sections[0];
 
 describe("release metadata", () => {
   it("names one version everywhere", () => {
@@ -49,7 +53,11 @@ describe("release metadata", () => {
         "src/components/StructuredData.tsx",
         /const APP_VERSION = "([^"]+)";/,
       ),
-      "CHANGELOG.md (newest dated section)": released?.[1],
+      "docs/registry-submissions.md": marker(
+        "docs/registry-submissions.md",
+        /^\| Version +\| (\S+) +\|\r?$/m,
+      ),
+      "CHANGELOG.md (newest dated section)": released?.version,
     }).toEqual({
       "package-lock.json": pkg.version,
       "package-lock.json (root package)": pkg.version,
@@ -57,6 +65,7 @@ describe("release metadata", () => {
       "codemeta.json": pkg.version,
       ".zenodo.json": pkg.version,
       "src/components/StructuredData.tsx": pkg.version,
+      "docs/registry-submissions.md": pkg.version,
       "CHANGELOG.md (newest dated section)": pkg.version,
     });
     // Zenodo's field carries the tag, the others the bare number.
@@ -72,7 +81,7 @@ describe("release metadata", () => {
         "src/components/StructuredData.tsx",
         /const DATE_PUBLISHED = "([^"]+)";/,
       ),
-      "CHANGELOG.md (newest dated section)": released?.[2],
+      "CHANGELOG.md (newest dated section)": released?.date,
     }).toEqual({
       "codemeta.json datePublished": date,
       "codemeta.json dateModified": date,
@@ -82,14 +91,17 @@ describe("release metadata", () => {
   });
 
   it("links the changelog's sections to the tags they compare", () => {
-    const changelog = read("CHANGELOG.md");
     const repo = "https://github.com/BasileChretien/sigmacv";
-    expect(changelog).toContain(`[Unreleased]: ${repo}/compare/v${pkg.version}...HEAD`);
-    expect(changelog).toMatch(
-      new RegExp(
-        `^\\[${pkg.version.replace(/\./g, "\\.")}\\]: ${repo}/compare/v\\d+\\.\\d+\\.\\d+\\.\\.\\.v${pkg.version.replace(/\./g, "\\.")}\\r?$`,
-        "m",
-      ),
+    const lines = changelog.split(/\r?\n/);
+    const definition = (label: string): string | undefined =>
+      lines.find((line) => line.startsWith(`[${label}]: `));
+    // Whole lines, and the base is read off the section below this release's: a
+    // line copied from the last release with only its right-hand tag changed is
+    // caught.
+    const previous = sections[1]?.version;
+    expect(definition("Unreleased")).toBe(`[Unreleased]: ${repo}/compare/v${pkg.version}...HEAD`);
+    expect(definition(pkg.version)).toBe(
+      `[${pkg.version}]: ${repo}/compare/v${previous}...v${pkg.version}`,
     );
   });
 });
