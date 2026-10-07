@@ -17,12 +17,15 @@
  * wrapper lang (WCAG 3.1.1). The slug equals the BCP-47 language subtag (en, fr,
  * de, …), so no map is needed.
  *
- * The app's strict CSP uses `strict-dynamic`, which ignores `'self'` and only
- * runs nonce'd or HASH'd scripts. Reading the per-request nonce in the *root*
- * layout would force every (statically generated) marketing page to render
- * dynamically — so instead this script is STATIC and allow-listed by its sha256
- * hash (added to `script-src` in `proxy.ts`). `tests/theme-init.test.ts` recomputes
- * the hash from the script and fails if they drift.
+ * On a page rendered per request the app's CSP uses `strict-dynamic`, which
+ * ignores `'self'` and only runs nonce'd or HASH'd scripts. Reading the
+ * per-request nonce in the *root* layout would force every (statically generated)
+ * marketing page to render dynamically — so instead this script is STATIC and
+ * allow-listed by its sha256 hash (added to `script-src` in
+ * `src/lib/security/csp.ts`). `tests/theme-init.test.ts` recomputes the hash from
+ * the script and fails if they drift. On a prerendered page the hash reaches the
+ * policy another way: it is read off the built HTML with the page's other inline
+ * scripts (`src/lib/security/prerenderedScripts.ts`).
  *
  * Resilience: the CSS keeps a `@media (prefers-color-scheme: dark)` fallback for
  * `:root:not([data-theme])`, so if this script is ever blocked (or JS is off),

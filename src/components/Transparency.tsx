@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { asLocale, t } from "@/lib/i18n";
+import { fill } from "@/lib/i18n/fill";
 import { principlesStrings } from "@/lib/i18n/principles";
 import { type TransparencyStrings, transparencyStrings } from "@/lib/i18n/transparency";
+import { oepSnapshotDate } from "@/lib/oep/snapshot";
 import {
   localeHomePath,
   localePrinciplesPath,
@@ -82,6 +84,7 @@ export default function Transparency({ locale }: { locale: string }) {
 
         <h2>{s.refreshHeading}</h2>
         <p>{s.refreshBody}</p>
+        <p>{fill(s.refreshSnapshot, { date: oepSnapshotDate(loc) })}</p>
 
         <h2>{s.logHeading}</h2>
         <p>{s.logBody}</p>

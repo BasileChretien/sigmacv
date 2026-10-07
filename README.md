@@ -166,7 +166,7 @@ behalf. It draws on **12 open sources**:
 | [DataCite](https://datacite.org)                    | Your datasets and software                                                                                 |
 | [OpenAIRE](https://www.openaire.eu)                 | Additional datasets and software                                                                           |
 | [DBLP](https://dblp.org)                            | Your computer-science conference papers                                                                    |
-| [Open Editors Plus](https://openeditors-plus.org)   | Journal editorial roles (editor / editorial-board memberships)                                             |
+| [Open Editors Plus](https://openeditors-plus.org)   | Journal editorial roles (editor / editorial-board memberships), from a dataset collected once a year       |
 | [ClinicalTrials.gov](https://clinicaltrials.gov)    | Clinical trials where you're listed as an investigator                                                     |
 | [EU CTIS](https://euclinicaltrials.eu)              | Clinical trials from the EU's public portal                                                                |
 | [EPO](https://www.epo.org) (European Patent Office) | Your patents _(see note below)_                                                                            |
@@ -311,6 +311,7 @@ the default deployment is ORCID-only — no dead buttons.
 | `npm run fetch-csl`           | Vendor CSL styles + locale into the citeproc assets |
 | `npm run db:migrate`          | `prisma migrate dev`                                |
 | `npm run e2e`                 | Playwright end-to-end journeys (needs a test DB)    |
+| `npm run e2e:prod`            | Build, then check the production CSP in a browser   |
 
 ### Self-host the full stack
 

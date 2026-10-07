@@ -50,6 +50,22 @@ as **review candidates that you confirm**, rather than added silently. You then
 curate the list, marking anything wrong as **"not mine"** (it's hidden, never
 deleted).
 
+### Why is one of my editorial roles missing or out of date?
+
+Editorial roles are the one part of your CV that is **not read live**. They come
+from Open Editors Plus, a dataset collected from journals' own websites and
+replaced **about once a year**; the
+[Transparency page](https://sigmacv.org/transparency) gives the date of the
+edition in use. A role you took up after that arrives with the next edition, and
+one that has ended stays listed until then.
+
+A role can also be missing for two other reasons. Roles are attached to you by an
+identifier, never by your name alone: when a journal prints no ORCID iD for its
+editors, the role either comes as a suggestion, hidden until you confirm it, or
+cannot be attached to you at all. And a journal the dataset does not cover is not
+there. In every case you can **add the role yourself** in the editor, and hide
+one that no longer applies.
+
 ### Will citation metrics or the Impact Factor be shown?
 
 No metrics are shown by default. Metrics are **opt-in** and you choose them; we

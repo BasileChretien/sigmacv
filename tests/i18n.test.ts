@@ -4,6 +4,7 @@ import {
   consentStrings,
   DEFAULT_UI_LOCALE,
   isDefaultSectionTitle,
+  localeForPathname,
   localeForSlug,
   LOCALE_LABELS,
   LOCALE_SLUGS,
@@ -137,6 +138,25 @@ describe("locale URL slugs", () => {
   it("falls back to the default slug and rejects unknown slugs", () => {
     expect(slugForLocale("xx-XX")).toBe("en");
     expect(localeForSlug("zz")).toBeUndefined();
+  });
+  it("reads a pathname's locale off its first segment, and only an exact slug counts", () => {
+    expect(localeForPathname("/fr")).toBe("fr-FR");
+    expect(localeForPathname("/ja/guides/no-such-guide")).toBe("ja-JP");
+    expect(localeForPathname("/en/about")).toBe("en-US");
+    // Not a slug: a longer word, another case, a later segment, a property name.
+    for (const pathname of [
+      "/french/x",
+      "/FR/x",
+      "/guides/fr",
+      "/constructor/x",
+      "/",
+      "",
+      "fr/x",
+    ]) {
+      expect(localeForPathname(pathname), pathname).toBe("en-US");
+    }
+    expect(localeForPathname(null)).toBe("en-US");
+    expect(localeForPathname(undefined)).toBe("en-US");
   });
   it("has a unique slug per locale", () => {
     const slugs = Object.values(LOCALE_SLUGS);

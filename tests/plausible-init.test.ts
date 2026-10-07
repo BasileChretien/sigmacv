@@ -52,6 +52,73 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     expect(out.n).toBe("pageview");
   });
 
+  it("cuts an ORCID iD out of any other address, so a 404 on a mistyped one is not stored with it", () => {
+    const transform = boot().o!.transformRequest!;
+    const sent = (u: string) => transform({ u }).u;
+    // Not the preview route: another case, another path, no path at all.
+    expect(sent("https://sigmacv.org/Preview/0000-0002-1825-0097")).toBe(
+      "https://sigmacv.org/Preview/_",
+    );
+    expect(sent("https://sigmacv.org/cv/0000-0002-1825-0097")).toBe("https://sigmacv.org/cv/_");
+    expect(sent("https://sigmacv.org/0000-0002-1694-233X")).toBe("https://sigmacv.org/_");
+    // Every occurrence, in the query and the fragment too, and a lower-case check digit.
+    expect(
+      sent(
+        "https://sigmacv.org/a/0000-0002-1694-233x/b?id=0000-0002-1825-0097#0000-0001-5109-3700",
+      ),
+    ).toBe("https://sigmacv.org/a/_/b?id=_#_");
+    // Inside an encoded ORCID URL.
+    expect(sent("https://sigmacv.org/x/https%3A%2F%2Forcid.org%2F0000-0002-1825-0097")).toBe(
+      "https://sigmacv.org/x/https%3A%2F%2Forcid.org%2F_",
+    );
+    // The referrer as well: a page named after an iD, here or elsewhere.
+    const out = transform({
+      u: "https://sigmacv.org/",
+      r: "https://example.org/people/0000-0002-1825-0097",
+    });
+    expect(out).toEqual({ u: "https://sigmacv.org/", r: "https://example.org/people/_" });
+  });
+
+  it("cuts an iD however an address joins its four groups", () => {
+    const sent = (path: string) =>
+      boot().o!.transformRequest!({ u: `https://sigmacv.org/x/${path}` }).u;
+    for (const path of [
+      // Typed without hyphens.
+      "0000000218250097",
+      "000000021694233X",
+      // The hyphen percent-encoded, in either case of the escape.
+      "0000%2D0002%2D1825%2D0097",
+      "0000%2d0002%2d1825%2d0097",
+      // Copied from a PDF or a word processor: an en dash, a non-breaking hyphen.
+      "0000%E2%80%930002%E2%80%931825%E2%80%930097",
+      "0000%e2%80%910002%e2%80%911825%e2%80%910097",
+      // Spaces, as a path encodes them and as a form does.
+      "0000%200002%201825%200097",
+      "0000+0002+1825+0097",
+    ]) {
+      expect(sent(path), path).toBe("https://sigmacv.org/x/_");
+    }
+  });
+
+  it("goes by shape alone: it cuts too much rather than too little, and leaves shorter numbers", () => {
+    const sent = (u: string) => boot().o!.transformRequest!({ u }).u;
+    // No checksum: four groups of four that are not an iD go too.
+    expect(sent("https://sigmacv.org/guides/2024-2025-2026-2027")).toBe(
+      "https://sigmacv.org/guides/_",
+    );
+    // No word boundary: an iD glued to other digits is still cut out of them.
+    expect(sent("https://sigmacv.org/x/90000-0002-1825-00971")).toBe("https://sigmacv.org/x/9_1");
+    // Other numbers stay: three groups, a slug, a ROR id, a millisecond timestamp.
+    for (const u of [
+      "https://sigmacv.org/guides/2024-2025-2026-cv",
+      "https://sigmacv.org/p/jane-doe-1234",
+      "https://sigmacv.org/i/02feahw73",
+      "https://sigmacv.org/x?t=1728300000000",
+    ]) {
+      expect(sent(u), u).toBe(u);
+    }
+  });
+
   it("drops the typed name from /search?q= (bare and localized), keeping the fragment", () => {
     const transform = boot().o!.transformRequest!;
     const out = transform({
@@ -60,11 +127,145 @@ describe("PLAUSIBLE_INIT_SCRIPT", () => {
     });
     expect(out.u).toBe("https://sigmacv.org/search#top");
     expect(out.r).toBe("https://sigmacv.org/fr/search");
+    // Another case is a 404, and a 404 is counted too: the name goes all the same.
+    expect(transform({ u: "https://sigmacv.org/Search?q=Jane%20Doe" }).u).toBe(
+      "https://sigmacv.org/Search",
+    );
     // Not a lookup: a page whose path merely contains "search" keeps its query.
     expect(transform({ u: "https://sigmacv.org/research?x=1" }).u).toBe(
       "https://sigmacv.org/research?x=1",
     );
     expect(transform({ u: "https://sigmacv.org/search" }).u).toBe("https://sigmacv.org/search");
+  });
+
+  it("drops what was typed into the see-it-first box when the form fell back to a GET (?who=)", () => {
+    // Submitted before the page's script runs, the box reloads its own page as
+    // `…?who=<name or iD>`; that URL also sits in histories from the months the
+    // box had no script at all. It must not reach the collector from any page.
+    const transform = boot().o!.transformRequest!;
+    const out = transform({
+      u: "https://sigmacv.org/guides/how-to-write-an-academic-cv?who=Jane+Doe#top",
+      r: "https://sigmacv.org/fr/orcid-to-cv?who=0000-0002-1825-0097",
+    });
+    expect(out.u).toBe("https://sigmacv.org/guides/how-to-write-an-academic-cv#top");
+    expect(out.r).toBe("https://sigmacv.org/fr/orcid-to-cv");
+    expect(transform({ u: "https://sigmacv.org/?who=Jane%20Doe" }).u).toBe("https://sigmacv.org/");
+
+    // The campaign parameters Plausible reads stay, wherever `who` sits.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x&utm_source=nl&ref=a" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl&ref=a",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl&who=x&ref=a" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl&ref=a",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl&who=x#top" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl#top",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?who=a&who=b" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    // An empty value, and a parameter that merely starts or ends with "who".
+    expect(transform({ u: "https://sigmacv.org/guides?who=" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?whoever=1&xwho=2" }).u).toBe(
+      "https://sigmacv.org/guides?whoever=1&xwho=2",
+    );
+    // A path segment is not a parameter.
+    expect(transform({ u: "https://sigmacv.org/glossary/who=x" }).u).toBe(
+      "https://sigmacv.org/glossary/who=x",
+    );
+  });
+
+  it("removes `who` from the query string only, never from a path or a fragment", () => {
+    // `/about&who=x` is an address that does not exist (a 404 that still counts
+    // a pageview). Cut there, it would be filed as a view of the real /about.
+    const transform = boot().o!.transformRequest!;
+    for (const url of [
+      "https://sigmacv.org/about&who=x",
+      "https://sigmacv.org/i/02abc&who=Jane+Doe",
+      "https://sigmacv.org/guides/x&who=y?utm_source=nl",
+      "https://sigmacv.org/guides#a&who=x",
+      "https://sigmacv.org/guides#a?who=x",
+      "https://sigmacv.org/guides?utm_source=nl#a&who=x",
+    ]) {
+      expect(transform({ u: url, r: url })).toEqual({ u: url, r: url });
+    }
+    // In the query it still goes, whatever follows in the fragment.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x#a&who=y" }).u).toBe(
+      "https://sigmacv.org/guides#a&who=y",
+    );
+  });
+
+  it("leaves the other parameters exactly as they were: inside a query only `&` separates", () => {
+    const transform = boot().o!.transformRequest!;
+    // A `?` after the first one is part of a value, not a separator.
+    expect(
+      transform({
+        u: "https://sigmacv.org/guides?utm_campaign=whats-new?&utm_source=nl&who=Jane",
+      }).u,
+    ).toBe("https://sigmacv.org/guides?utm_campaign=whats-new?&utm_source=nl");
+    expect(transform({ u: "https://sigmacv.org/guides?who=Jane&ref=whats-new?" }).u).toBe(
+      "https://sigmacv.org/guides?ref=whats-new?",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?ref=whats-new?&who=Jane" }).u).toBe(
+      "https://sigmacv.org/guides?ref=whats-new?",
+    );
+    // So this holds no `who` parameter at all (and the box cannot produce it).
+    expect(transform({ u: "https://sigmacv.org/guides?utm_source=nl?who=Jane" }).u).toBe(
+      "https://sigmacv.org/guides?utm_source=nl?who=Jane",
+    );
+    // What was odd before stays odd: nothing but `who` is touched.
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&&who=x&b=2" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&&b=2",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&&b=2&" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&&b=2&",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?" }).u).toBe("https://sigmacv.org/guides?");
+    // With `who` gone and only empty segments left, no `?` is left hanging.
+    expect(transform({ u: "https://sigmacv.org/guides?who=x&" }).u).toBe(
+      "https://sigmacv.org/guides",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?&who=x#top" }).u).toBe(
+      "https://sigmacv.org/guides#top",
+    );
+    expect(transform({ u: "https://sigmacv.org/guides?a=1&who=x&" }).u).toBe(
+      "https://sigmacv.org/guides?a=1&",
+    );
+    // A typed value is percent-encoded by the browser; whatever it holds goes.
+    expect(transform({ u: "https://sigmacv.org/guides?who=a%26b%3Dc%3Fd&ref=x" }).u).toBe(
+      "https://sigmacv.org/guides?ref=x",
+    );
+    // Only the box's own field name: a browser writes it as `who`, never encoded,
+    // and never without `=`. Hand-built look-alikes are left as they are.
+    for (const url of [
+      "https://sigmacv.org/guides?%77ho=Jane",
+      "https://sigmacv.org/guides?WHO=Jane",
+      "https://sigmacv.org/guides?who",
+      "https://sigmacv.org/guides?x=who=1",
+    ]) {
+      expect(transform({ u: url }).u).toBe(url);
+    }
+  });
+
+  it("takes `who` out first, then cuts an iD left anywhere else in the same address", () => {
+    const transform = boot().o!.transformRequest!;
+    // An iD typed into the box goes with the parameter, and leaves no `_` behind.
+    expect(transform({ u: "https://sigmacv.org/guides/x?who=0000-0002-1825-0097" }).u).toBe(
+      "https://sigmacv.org/guides/x",
+    );
+    // One in the path or in another parameter is cut, and the rest of the query
+    // is put back as the `who` rule leaves it.
+    expect(
+      transform({
+        u: "https://sigmacv.org/cv/0000-0002-1825-0097?utm_source=a&who=Jane%20Doe&id=0000-0002-1694-233X#top",
+      }).u,
+    ).toBe("https://sigmacv.org/cv/_?utm_source=a&id=_#top");
+    // No `who` at all: the iD rule still runs on the address returned untouched.
+    expect(transform({ u: "https://sigmacv.org/x?id=0000-0002-1825-0097&ref=a" }).u).toBe(
+      "https://sigmacv.org/x?id=_&ref=a",
+    );
   });
 
   it("keeps only the origin of an outbound-link event's URL, so no identifier in a path reaches the collector", () => {

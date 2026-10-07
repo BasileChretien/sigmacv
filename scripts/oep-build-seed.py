@@ -136,6 +136,33 @@ def main():
     print(f"distinct ORCIDs  : {distinct}")
     print(f"output           : {OUT}")
     print(f"output size      : {size/1e6:.1f} MB (gzip)")
+    print_snapshot()
+
+
+def print_snapshot():
+    """Print what src/lib/oep/snapshot.ts must say about this edition.
+
+    The site tells researchers when the editorial-roles data was collected
+    (Transparency page, editor's Editorial Roles section). That date is a
+    constant, OEP_SNAPSHOT, and nothing else can derive it: the seed carries no
+    dates. Update the constant with the values printed here.
+    """
+    names = set(pq.read_schema(SRC).names)
+    wanted = [c for c in ("scraped_at", "data_version") if c in names]
+    if "scraped_at" not in wanted:
+        print("snapshot         : no scraped_at column -- set OEP_SNAPSHOT by hand")
+        return
+    table = pq.read_table(SRC, columns=wanted)
+    days = sorted({str(v)[:10] for v in table.column("scraped_at").to_pylist() if v})
+    versions = (
+        sorted({str(v) for v in table.column("data_version").to_pylist() if v is not None})
+        if "data_version" in wanted
+        else []
+    )
+    print("snapshot         : update OEP_SNAPSHOT in src/lib/oep/snapshot.ts")
+    print(f"  collectedFrom  : {days[0] if days else '?'}")
+    print(f"  collectedTo    : {days[-1] if days else '?'}")
+    print(f"  dataVersion    : {', '.join(versions) or '?'}")
 
 
 if __name__ == "__main__":
