@@ -10,32 +10,48 @@ import { describe, expect, it } from "vitest";
 
 const repoRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 const BODY_STARTS = "> **Not a user guide.**";
+const SAME = "same";
 
-/** The lines of a guidance file from its shared opening line on, line endings aside. */
-function body(file: string): string[] {
+/** A guidance file as its own header and the body it shares, line endings aside. */
+function parts(file: string): { header: string[]; body: string[] } {
   const lines = readFileSync(join(repoRoot, file), "utf8").split(/\r?\n/);
   const start = lines.findIndex((line) => line.startsWith(BODY_STARTS));
   if (start === -1) throw new Error(`${file} has no line starting with "${BODY_STARTS}"`);
-  return lines.slice(start);
+  return { header: lines.slice(0, start), body: lines.slice(start) };
+}
+
+/** Where the two bodies first part, in words a contributor can act on; SAME if nowhere. */
+function firstDifference(agents: string[], claude: string[]): string {
+  for (let i = 0; i < Math.max(agents.length, claude.length); i++) {
+    if (agents[i] === claude[i]) continue;
+    const where = `body line ${i + 1}`;
+    const fix = "Make the same edit in both files.";
+    if (i >= claude.length) return `AGENTS.md has an extra ${where}: "${agents[i]}". ${fix}`;
+    if (i >= agents.length) return `CLAUDE.md has an extra ${where}: "${claude[i]}". ${fix}`;
+    return `${where} differs. CLAUDE.md: "${claude[i]?.slice(0, 80)}". ${fix}`;
+  }
+  return SAME;
 }
 
 describe("AGENTS.md", () => {
   it("is CLAUDE.md under its own header", () => {
-    const agents = body("AGENTS.md");
-    const claude = body("CLAUDE.md");
-    const differs = claude.findIndex((line, i) => line !== agents[i]);
-    // Named line by line so a failure says where to look, not just "not equal".
-    expect(
-      differs === -1
-        ? "same"
-        : `first difference at body line ${differs + 1}: ${claude[differs]?.slice(0, 80)}`,
-    ).toBe("same");
-    expect(agents).toHaveLength(claude.length);
+    expect(firstDifference(parts("AGENTS.md").body, parts("CLAUDE.md").body)).toBe(SAME);
   });
 
   it("keeps its own header, which says it is a mirror", () => {
-    const head = readFileSync(join(repoRoot, "AGENTS.md"), "utf8").split(BODY_STARTS)[0];
-    expect(head).toContain("# AGENTS.md");
-    expect(head).toContain("Mirror of [`CLAUDE.md`](CLAUDE.md)");
+    const header = parts("AGENTS.md").header.join("\n");
+    expect(header).toContain("# AGENTS.md");
+    expect(header).toContain("Mirror of [`CLAUDE.md`](CLAUDE.md)");
+  });
+
+  // What stands above the shared body reaches one audience only. CLAUDE.md's part
+  // is pinned, so that guidance added there is added on purpose, here as well.
+  it("leaves nothing but the title and one sentence above CLAUDE.md's shared body", () => {
+    expect(parts("CLAUDE.md").header).toEqual([
+      "# CLAUDE.md",
+      "",
+      "This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.",
+      "",
+    ]);
   });
 });
