@@ -39,11 +39,18 @@ function ogResponse(bytes: Uint8Array, indexable: boolean): Response {
  * an unpublished CV's name). All display branching lives in the tested
  * `ogImageProps` helper; the layout JSX lives in the colocated `card.tsx`.
  *
- * The card is handed no font, so next/og goes to Google Fonts, while this
- * handler awaits the image, for any glyph its bundled font lacks: the Σ, and a
- * name, headline or affiliation in a script that font has not (`card.tsx` says
- * what was read, and where). The robots posture mirrors the page route: the owner
- * opts into indexing per-CV; otherwise the image stays noindex.
+ * The card is handed no font, so while this handler awaits the image next/og
+ * asks third parties itself for what its bundled font lacks: Google Fonts for a
+ * glyph (the Σ; a name, headline or affiliation in a script that font has not),
+ * jsDelivr for an emoji's picture. A font request that fails is logged by
+ * next/og and the card is drawn without those glyphs. A picture request that
+ * fails is caught neither there nor here: the render rejects and this handler
+ * throws, to which Next's route template answers 500 (read in
+ * `next/dist/build/templates/app-route.js`, not observed). `card.tsx` has the
+ * detail; `tests/og-card-offline.test.tsx` holds the card's part of it.
+ *
+ * The robots posture mirrors the page route: the owner opts into indexing
+ * per-CV; otherwise the image stays noindex.
  */
 export async function GET(
   req: Request,

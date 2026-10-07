@@ -12,9 +12,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
  *  - those 5 s are not read off the clock: a build worker busy drawing other
  *    cards must not be taken for a stalled connection;
  *  - the fonts asked for cover every glyph the card draws. For a glyph they lack,
- *    next/og fetches a font from Google Fonts itself, with no time limit;
- *  - each card asks for the family it is designed in, checked against a table
- *    written out here and not against the one the card is drawn from;
+ *    next/og asks Google Fonts for a font itself (jsDelivr for a picture, were it
+ *    an emoji), with no time limit;
+ *  - each path's card asks for the family it is designed in and carries its own
+ *    locale's copy, checked against a table written out here, path by path, and
+ *    not against the ones the card is drawn from;
  *  - a card whose fonts did not load asks next/og for nothing a font would have
  *    to be fetched for: the Σ is a drawing, and Chinese, Japanese and Korean give
  *    way to English. (`og-card-offline.test.tsx` draws those cards through the
@@ -416,21 +418,23 @@ const CARDS: Card[] = [
 ];
 
 /**
- * The Google Fonts family each card is designed in, written out: read off
- * `OG_TYPE`, that table would be compared with itself, and a wrong family for a
- * locale would pass.
+ * Each card as designed, written out by path: the locale whose copy it carries,
+ * and the Google Fonts family it is set in. Neither is read off the code that
+ * draws the card. Off `OG_TYPE`, the family would be compared with itself, and a
+ * wrong one for a locale would pass. Off `localeForSlug`, as `CARDS` reads the
+ * locale, two slugs that changed places would pass.
  */
-const DESIGNED_IN: Record<Locale, string> = {
-  "en-US": "Inter",
-  "zh-CN": "Noto Sans SC",
-  "es-ES": "Noto Sans",
-  "fr-FR": "Noto Sans",
-  "de-DE": "Noto Sans",
-  "ja-JP": "Noto Sans JP",
-  "pt-BR": "Noto Sans",
-  "it-IT": "Noto Sans",
-  "ko-KR": "Noto Sans KR",
-  "ru-RU": "Noto Sans",
+const DESIGNED: Record<string, [locale: Locale, family: string]> = {
+  "/": ["en-US", "Inter"],
+  "/zh": ["zh-CN", "Noto Sans SC"],
+  "/es": ["es-ES", "Noto Sans"],
+  "/fr": ["fr-FR", "Noto Sans"],
+  "/de": ["de-DE", "Noto Sans"],
+  "/ja": ["ja-JP", "Noto Sans JP"],
+  "/pt": ["pt-BR", "Noto Sans"],
+  "/it": ["it-IT", "Noto Sans"],
+  "/ko": ["ko-KR", "Noto Sans KR"],
+  "/ru": ["ru-RU", "Noto Sans"],
 };
 
 /** Scripts the font bundled with next/og has no glyphs for. */
@@ -498,17 +502,20 @@ describe("the social cards", () => {
   );
 
   it.each(CARDS)(
-    "%s asks Google Fonts for the family it is designed in",
-    async (_path, locale, render) => {
+    "%s asks Google Fonts for the family it is designed in, and carries its own locale's copy",
+    async (path, _locale, render) => {
       const f = stubFetch(answers);
       await render();
 
       // The test above holds the card to the fonts it was handed, whatever their
-      // family. This one holds the family, in both weights' requests.
-      const family = DESIGNED_IN[locale];
+      // family, and to the copy of the locale `localeForSlug` gives its slug.
+      // This one holds both to the table: the family, in both weights' requests,
+      // and the copy.
+      const [locale, family] = DESIGNED[path]!;
       expect(familiesAsked(f)).toEqual([`${family}:wght@400`, `${family}:wght@800`]);
       const { element } = og.calls[0]!;
       expect((element as ReactElement<{ fontFamily: string }>).props.fontFamily).toBe(family);
+      expect(drawn(element as ReactNode).join(" ")).toContain(landingStrings(locale).heroTitle);
     },
   );
 

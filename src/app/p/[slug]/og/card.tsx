@@ -8,20 +8,32 @@ import type { OgImageProps } from "@/lib/cv/ogImage";
  * tested `ogImageProps` helper; this is intentionally presentation-only JSX.
  *
  * No font is passed to next/og. It draws in the one it ships with (Geist), and
- * for any glyph Geist lacks it goes to Google Fonts itself, when the card is
- * rendered: for the Σ, set twice below, and for a name, headline or affiliation
- * in a script Geist has not (Chinese, Japanese and Korean among them). The
- * missing characters go out as a request's `text` parameter, and none of these
- * requests carries an abort signal. A font it has loaded is kept, for the same
- * characters, while the process lives.
+ * when the card is rendered it asks a third party itself for what Geist lacks,
+ * in requests that carry no abort signal. There are two:
  *
- * This is read from next/og's source, not seen on the network: `render`,
- * `loadDynamicAsset`, `FontDetector.load` and `loadGoogleFont` in
- * `node_modules/next/dist/compiled/@vercel/og/index.node.js` (Next 16.3.8). The
- * control in `tests/og-card-offline.test.tsx` shows the request for a bare Σ.
- * The site cards, drawn without their fonts, avoid it by drawing the Σ
- * (`SigmaMark` in `ogCard.tsx`); this card does not. The route comment explains
- * the caching and rate limiting.
+ *  - Google Fonts, for a glyph: the Σ, set twice below, and a name, headline or
+ *    affiliation in a script Geist has not (Chinese, Japanese and Korean among
+ *    them). First the style sheet of the Noto family or families it looks for
+ *    the glyph in (`css2?family=Noto+Sans&display=swap` for the Σ), read for
+ *    their unicode ranges; then a subset request with the missing characters as
+ *    its `text` parameter, and the font file that one names. A failure is
+ *    caught there and printed with the characters (`console.error`, "Failed to
+ *    load dynamic font for"), the card is drawn without those glyphs, and the
+ *    next render asks again. What did load is kept while the process lives.
+ *  - jsDelivr, for an emoji: its Twemoji picture, named by code point
+ *    (`cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/svg/1f9ec.svg`). A
+ *    failure there is not caught: the render rejects, and with it the route's
+ *    `GET`, which has no catch around it.
+ *
+ * Read from next/og's source: `render`, `loadDynamicAsset`, `loadEmoji`,
+ * `FontDetector.load` and `loadGoogleFont` in
+ * `node_modules/next/dist/compiled/@vercel/og/index.node.js` (Next 16.3.8).
+ * `tests/og-card-offline.test.tsx` draws this card with no network and holds
+ * these requests and both failures, as what the card does today and not as what
+ * it should do; the font file's request, what is kept, and `GET` having no catch
+ * are read only. The site cards, drawn without their fonts, avoid the font
+ * request by drawing the Σ (`SigmaMark` in `ogCard.tsx`); this card does not.
+ * The route comment explains the caching and rate limiting.
  */
 
 const CV_OG_SIZE = { width: 1200, height: 630 };
