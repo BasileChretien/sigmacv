@@ -48,6 +48,16 @@ const UNKNOWN: [path: string, lang: string, home: string][] = [
   ["/foo", "en-US", "/"],
 ];
 
+/**
+ * A page that reads the database. Nothing answers at the address this server
+ * was given for it (`env.ts`), so its render fails on every request.
+ */
+const FAILING = "/i";
+
+/** The page `next build` writes for a server failure. Its route, and its file. */
+const BUILT_ERROR_ROUTE = "/_global-error";
+const BUILT_ERROR_FILE = ".next/server/app/_global-error.html";
+
 interface Opened {
   response: Response;
   scriptSrc: string;
@@ -402,5 +412,69 @@ test.describe("a path with no page behind it", () => {
       return transform({ n: "pageview", u: location.href }).u as string;
     });
     expect(sent).toBe(new URL("/Preview/_", BASE_URL).href);
+  });
+});
+
+// Next builds its page for a server failure ahead of time, so without a nonce.
+// Were that file the answer to a failing request, it would arrive under the
+// nonce shape (the proxy sees the failing path, not a prerendered route) and the
+// browser would refuse every script in it. It is not the answer: SECURITY.md,
+// "App-shell Content-Security-Policy", says what each kind of failure gets. These
+// tests hold the parts of that account a browser can see on this server.
+test.describe("a server failure", () => {
+  test(`${FAILING}, whose render fails, is an error page rendered for the request`, async ({
+    page,
+  }) => {
+    // (The server logs the database error: that is this test at work.)
+    const { response, scriptSrc, violations } = await open(page, FAILING);
+
+    expect(response.status()).toBe(500);
+    await expectRenderedWithNonce(response, scriptSrc);
+
+    // The message is not in the HTML that was served: the page's scripts drew it.
+    expect(await response.text()).not.toContain("load</h1>");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText(/couldn.t load/);
+    expect(await violations()).toEqual([]);
+
+    // Its one control asks the server for the page again.
+    const [again] = await Promise.all([
+      page.waitForRequest((request) => request.isNavigationRequest()),
+      page.getByRole("button", { name: "Reload" }).click(),
+    ]);
+    expect(new URL(again.url()).pathname).toBe(FAILING);
+  });
+
+  test("the error page built ahead of time is served at its own address, with its hashes", async ({
+    page,
+  }) => {
+    const { response, scriptSrc, violations } = await open(page, BUILT_ERROR_ROUTE);
+
+    // The file itself, and a prerendered route to the proxy like any other.
+    expect(response.status()).toBe(500);
+    expect(await response.text()).toBe(readFileSync(BUILT_ERROR_FILE, "utf8"));
+    expect(scriptSrc).not.toContain("'strict-dynamic'");
+    expect(scriptSrc).toMatch(/'sha256-/);
+
+    await expect
+      .poll(() => page.evaluate(() => typeof Reflect.get(self, "__next_f")))
+      .toBe("object");
+    expect(await violations()).toEqual([]);
+  });
+
+  // What would be left of that page under the nonce shape, where none of its
+  // scripts run: everything, as long as the button stays a form's submit button.
+  test.describe("with JavaScript turned off", () => {
+    test.use({ javaScriptEnabled: false });
+
+    test("the built error page still reloads", async ({ page }) => {
+      await page.goto(BUILT_ERROR_ROUTE);
+      await expect(page.getByRole("heading", { level: 1 })).toHaveText(/couldn.t load/);
+
+      const [again] = await Promise.all([
+        page.waitForRequest((request) => request.isNavigationRequest()),
+        page.getByRole("button", { name: "Reload" }).click(),
+      ]);
+      expect(new URL(again.url()).pathname).toBe(BUILT_ERROR_ROUTE);
+    });
   });
 });

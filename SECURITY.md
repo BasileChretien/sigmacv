@@ -92,10 +92,30 @@ CRITICAL down to INFO have been remediated.
   rendered per request instead (`src/app/not-found.tsx`) and gets the nonce. It
   shows fixed text and takes nothing from the address but its language. An
   unknown path under `/api` or `/p/`, which the proxy does not cover, is answered
-  with the same page and no app-shell policy, as before. One page built once is
-  left: the framework's own page for a server failure (`/_global-error`). It
-  carries no nonce either, so wherever it is served under the nonce shape its
-  scripts are refused and its "Reload" button does nothing. No test opens it.
+  with the same page and no app-shell policy, as before.
+
+  One more page is built once without a nonce: the framework's own page for a
+  server failure (`/_global-error`, which the build also copies to
+  `pages/500.html`). It was suspected of being served for a failing request,
+  under the nonce shape, with every script refused. Checked in Chromium on a
+  production build (Next 16.3.6, 2026-10-07), it is not:
+  - A page whose **render fails** (the database cannot be reached, say) is
+    answered with an error page rendered for that request. Every script carries
+    the nonce, the browser runs them, and the page shows "This page couldn't
+    load" with a "Reload" button that reloads. `npm run e2e:prod` opens one.
+  - A failure **outside the render** (a module that throws when it is loaded, as
+    with an invalid environment) is answered with 21 bytes of plain text,
+    `Internal Server Error`. The server looks for the built page through the
+    Pages Router, which this app does not have, and finds nothing. A route
+    handler that fails answers with an empty body. Neither has a script.
+  - The built page is served at one address, `/_global-error` itself. That path
+    is a prerendered route like any other, so it is sent its own hashes and its
+    scripts run.
+
+  Should a later release of the framework serve the built page for a failing
+  request, the nonce shape would refuse its scripts. The page would still show
+  and still reload: its "Reload" button is the submit button of a form and needs
+  no script (`npm run e2e:prod` checks that with JavaScript turned off).
 
 - **SSRF** — outbound fetches (claim-by-DOI, custom-CSL, OEP) use fixed hosts /
   host allow-lists with **manual redirect re-validation** and timeouts; private /
