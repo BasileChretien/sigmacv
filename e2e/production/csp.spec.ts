@@ -53,6 +53,13 @@ interface UnknownPath {
  * lists its pages (`dynamicParams = false`) and does not list this one. `/foo`
  * matches `/[locale]`, which calls `notFound()`: it was always rendered per
  * request, and shows the same page.
+ *
+ * The last two are a prerendered page's address with a FIXED segment written
+ * percent-encoded (`%61` is `a`). Neither is the page. `/%61bout` goes to
+ * `/[locale]` like `/foo`; Next 16.3.6 answered it with /about's prerender all
+ * the same, and 16.3.8 no longer does. `/fr/%61bout` matches no route. Both must
+ * get the nonce policy like any other 404, not the hashes of the page they
+ * resemble, which a lookup that decodes the whole path would hand them.
  */
 const UNKNOWN: UnknownPath[] = [
   { path: "/a/b", lang: "en-US", heading: "Page not found", home: "/", inHtml: true },
@@ -71,7 +78,12 @@ const UNKNOWN: UnknownPath[] = [
     inHtml: true,
   },
   { path: "/foo", lang: "en-US", heading: "Page not found", home: "/", inHtml: false },
+  { path: "/%61bout", lang: "en-US", heading: "Page not found", home: "/", inHtml: false },
+  { path: "/fr/%61bout", lang: "fr-FR", heading: "Page introuvable", home: "/fr", inHtml: true },
 ];
+
+/** A prerendered page's address with a PARAMETER segment written percent-encoded. */
+const ENCODED_PARAMETER = ["/%66r/about", "/guides/how%2Dto-write-an-academic-cv"];
 
 /**
  * A page that reads the database. Nothing answers at the address this server
@@ -302,9 +314,58 @@ test.describe("a prerendered page", () => {
     }
   });
 
-  test("a percent-encoded spelling of the path gets the same policy", async ({ page }) => {
-    // Next serves /about for it; a lookup that missed would leave it script-less.
-    const { response, violations } = await open(page, "/%61bout");
+  // Next percent-decodes what it reads as a route parameter (`[locale]`, `[slug]`)
+  // before it looks the page up, so these are answered from the prerender, with
+  // no nonce. A lookup that took only the path as written would send them the
+  // nonce policy and they would run no script. A FIXED segment written encoded is
+  // another matter: Next answers a 404 (see UNKNOWN below).
+  for (const path of ENCODED_PARAMETER) {
+    test(`${path}, a parameter written percent-encoded, is still the prerendered page`, async ({
+      page,
+    }) => {
+      const { response, scriptSrc, violations } = await open(page, path);
+      expect(response.status()).toBe(200);
+      expect(response.headers()["x-nextjs-prerender"]).toBeTruthy();
+      expect(scriptSrc).not.toContain("'strict-dynamic'");
+      expect(scriptSrc).toMatch(/'sha256-/);
+      await expectHydrated(page);
+      expect(await violations()).toEqual([]);
+    });
+  }
+
+  // Since 16.3.8 Next answers a prerendered page from a copy it keeps on disk, in
+  // a file named after the address. Asked for an address that differs from a
+  // page's only by case (a 404), it files that 404 under the mis-cased name. On a
+  // case-insensitive filesystem that name is the page's own file: the page then
+  // answers the stored 404, with another request's nonce, until the cache is
+  // deleted or the app rebuilt (seen on Windows; the defect is Next's). The
+  // production image and CI run on Linux, where the two names are two files.
+  // This checks that it stays so there. Elsewhere it is skipped: it would fail,
+  // and leave the build's cache altered for every later run on that build.
+  test("an address that differs from a page's only by case does not replace the page", async ({
+    page,
+    request,
+  }) => {
+    test.skip(
+      process.platform !== "linux",
+      "on a case-insensitive filesystem Next 16.3.8 overwrites the page's stored copy",
+    );
+    const real = "/fr/about";
+    const before = await request.get(real);
+    expect(before.status()).toBe(200);
+    expect(before.headers()["x-nextjs-prerender"]).toBeTruthy();
+
+    // The first one twice: a 404 kept from the first request would show here.
+    for (const wrong of ["/Fr/about", "/FR/about", "/fr/About", "/Fr/about"]) {
+      const response = await request.get(wrong);
+      expect(response.status(), wrong).toBe(404);
+      expect(response.headers()["x-nextjs-prerender"], wrong).toBeUndefined();
+    }
+
+    const after = await request.get(real);
+    expect(after.status()).toBe(200);
+    expect(await after.text()).toBe(await before.text());
+    const { response, violations } = await open(page, real);
     expect(response.headers()["x-nextjs-prerender"]).toBeTruthy();
     await expectHydrated(page);
     expect(await violations()).toEqual([]);
