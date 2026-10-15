@@ -216,6 +216,9 @@ describe("/i/[ror]", () => {
     listed(3);
     const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
     const s = institutionStrings("en-US");
+    // Let through by the per-IP bucket, then by the institution pages' own
+    // global ceiling — never the CV pages' (2026-09-08 panel, defect 7).
+    expect(mocks.enforceRateLimit).toHaveBeenCalledWith("instpage:global", 1_000, 60_000);
     expect(html).toContain('lang="en-US"');
     expect(html).toContain(NAME);
     expect(html).toContain("3 researchers list this affiliation");
@@ -604,7 +607,8 @@ describe("/i/[ror]", () => {
     const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
     expect(html).toContain(institutionStrings("en-US").rateLimitedHeading);
     expect(html).not.toContain("3 researchers");
-    expect(mocks.enforceRateLimit).toHaveBeenCalledWith("instpage:203.0.113.9", 60, 60_000);
+    // The CV pages' per-IP figure: a room behind one address keeps its budget.
+    expect(mocks.enforceRateLimit).toHaveBeenCalledWith("instpage:203.0.113.9", 120, 60_000);
     // A scan of ROR ids must never spend the ceiling researchers' own pages live
     // under (2026-09-08 panel, defect 7).
     expect(mocks.enforceRateLimit.mock.calls.some((c) => String(c[0]).startsWith("pubpage:"))).toBe(
