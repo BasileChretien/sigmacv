@@ -47,7 +47,7 @@ import { Prisma } from "@/generated/prisma/client";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { __resetPublicPageCache } from "@/lib/cv/publicPageCache";
 import { INSTITUTION_PAGE_ROW_LIMIT } from "@/lib/cv/listed";
-import { institutionStrings } from "@/lib/i18n/institutions";
+import { fillInstitutionString, institutionStrings } from "@/lib/i18n/institutions";
 import IndexPage, {
   dynamic as indexDynamic,
   generateMetadata as indexMetadata,
@@ -213,14 +213,15 @@ describe("route configuration", () => {
 
 describe("/i/[ror]", () => {
   it("renders the name, the count, the ROR link, the OAI set and the About block", async () => {
-    listed(3);
+    listed(5);
     const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
     const s = institutionStrings("en-US");
     expect(html).toContain('lang="en-US"');
     expect(html).toContain(NAME);
-    expect(html).toContain("3 researchers list this affiliation");
+    expect(html).toContain("5 researchers list this affiliation");
     expect(html).toContain(`https://ror.org/${ROR}`);
     expect(html).toContain(`set=ror:${ROR}`);
+    expect(text(html)).not.toContain(fillInstitutionString(s.oaiSetClosed, { k: "5" }));
     expect(html).toContain(s.aboutHeading);
     expect(html).toContain("Basile Chrétien");
     expect(text(html)).toContain(s.aboutReader);
@@ -268,8 +269,19 @@ describe("/i/[ror]", () => {
     expect(org.name).toBe(`ROR ${ROR}`);
   });
 
+  it("below five listed researchers, links no OAI set and says when it opens (2026-09-08 panel, defect 2)", async () => {
+    listed(4);
+    const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
+    const s = institutionStrings("en-US");
+    // A set of four would name them: the page neither links it nor names it in JSON-LD.
+    expect(html).not.toContain(`set=ror:${ROR}`);
+    expect(text(html)).toContain(fillInstitutionString(s.oaiSetClosed, { k: "5" }));
+    expect(html).not.toContain("DataFeed");
+    expect(html).toContain("4 researchers list this affiliation");
+  });
+
   it("embeds an Organization JSON-LD keyed by the ROR IRI and the trusted name — never an employee or member claim", async () => {
-    listed(3);
+    listed(5);
     const html = renderToStaticMarkup(await RorPage(params({ ror: ROR })));
     const scripts = [...html.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)].map(
       (m) => JSON.parse(m[1]!.replace(/\\u003c/g, "<")),

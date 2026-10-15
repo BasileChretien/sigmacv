@@ -6,7 +6,6 @@ const mocks = vi.hoisted(() => ({
   findFirst: vi.fn(),
   findMany: vi.fn(),
   findUnique: vi.fn(),
-  cvFindUnique: vi.fn(),
   warn: vi.fn(),
 }));
 
@@ -19,12 +18,10 @@ vi.mock("@/lib/db", () => ({
       findMany: mocks.findMany,
       findUnique: mocks.findUnique,
     },
-    cv: { findUnique: mocks.cvFindUnique },
   },
 }));
 vi.mock("@/lib/log", () => ({ logger: { info: vi.fn(), warn: mocks.warn, error: vi.fn() } }));
 
-import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   OAI_DELETION_RETENTION_DAYS,
   applyOaiDeletions,
@@ -32,30 +29,9 @@ import {
   hasOaiDeletions,
   listOaiDeletions,
   purgeExpiredOaiDeletions,
-  withdrawOaiRecords,
 } from "@/lib/cv/oaiDeletions";
-import { harvestExposure, harvestRecord } from "@/lib/cv/oaiState";
-import type { OpenAlexWork } from "@/lib/openalex/types";
-import worksFixture from "./fixtures/openalex-works.json";
 
 const NOW = new Date("2026-10-15T08:00:00.000Z");
-const CV = buildCanonicalCv({
-  id: "cv_1",
-  resolved: {
-    orcid: "0000-0002-7483-2489",
-    authorIds: ["A5001069481"],
-    displayName: "Ada",
-  },
-  works: worksFixture as unknown as OpenAlexWork[],
-  now: "2026-06-02T00:00:00.000Z",
-});
-const ROW = {
-  published: true,
-  publicIndexable: true,
-  publicSlug: "ada-x7",
-  listUnderAffiliation: true,
-  currentRorId: "04chrp450",
-};
 
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
@@ -128,50 +104,6 @@ describe("applyOaiDeletions", () => {
       applyOaiDeletions({ served: { ids: ["x"], set: null }, deletions: [] }, NOW),
     ).resolves.toBeUndefined();
     expect(mocks.warn).toHaveBeenCalledWith("oai.deletions_failed", expect.anything());
-  });
-});
-
-describe("withdrawOaiRecords (account deletion)", () => {
-  it("deletes everything the stored exposure says the CV served", async () => {
-    const exposure = { ids: ["oai:sigmacv.org:a", "oai:sigmacv.org:a/w/1"], set: "ror:04chrp450" };
-    mocks.cvFindUnique.mockResolvedValue({ ...ROW, oaiExposure: exposure, document: CV });
-    await withdrawOaiRecords("u1", NOW);
-    expect(mocks.cvFindUnique.mock.calls[0]![0].where).toEqual({ userId: "u1" });
-    const data = mocks.createMany.mock.calls[0]![0].data;
-    expect(data).toHaveLength(4);
-    expect(data).toContainEqual({ identifier: "oai:sigmacv.org:a", setSpec: "", deletedAt: NOW });
-    expect(data).toContainEqual({
-      identifier: "oai:sigmacv.org:a/w/1",
-      setSpec: "ror:04chrp450",
-      deletedAt: NOW,
-    });
-  });
-
-  it("derives it from the document for a row written before the column existed", async () => {
-    mocks.cvFindUnique.mockResolvedValue({ ...ROW, oaiExposure: null, document: CV });
-    await withdrawOaiRecords("u1", NOW);
-    const expected = harvestExposure(harvestRecord(ROW, CV, NOW)).ids;
-    const data = mocks.createMany.mock.calls[0]![0].data as Array<{ identifier: string }>;
-    expect(new Set(data.map((d) => d.identifier))).toEqual(new Set(expected));
-  });
-
-  it("does nothing for an account with no CV, or a CV that served nothing", async () => {
-    mocks.cvFindUnique.mockResolvedValue(null);
-    await withdrawOaiRecords("u1", NOW);
-    mocks.cvFindUnique.mockResolvedValue({
-      ...ROW,
-      published: false,
-      oaiExposure: null,
-      document: { bad: 1 },
-    });
-    await withdrawOaiRecords("u1", NOW);
-    expect(mocks.createMany).not.toHaveBeenCalled();
-  });
-
-  it("never throws: the erasure never waits on it", async () => {
-    mocks.cvFindUnique.mockRejectedValue(new Error("db down"));
-    await expect(withdrawOaiRecords("u1", NOW)).resolves.toBeUndefined();
-    expect(mocks.warn).toHaveBeenCalledWith("oai.withdraw_failed", expect.anything());
   });
 });
 

@@ -1,16 +1,6 @@
 import { prisma } from "@/lib/db";
 import { logger } from "@/lib/log";
-import { safeParseCanonicalCv } from "@/lib/canonical/schema";
-import {
-  NOTHING_EXPOSED,
-  WHOLE_REPOSITORY,
-  deletionsBetween,
-  harvestExposure,
-  harvestRecord,
-  parseHarvestExposure,
-  type HarvestExposure,
-  type OaiDeletionKey,
-} from "@/lib/cv/oaiState";
+import { WHOLE_REPOSITORY, type HarvestExposure, type OaiDeletionKey } from "@/lib/cv/oaiState";
 
 /**
  * The OAI-PMH endpoint's deleted records (`OaiDeletion`): what a write or an
@@ -68,19 +58,23 @@ export async function applyOaiDeletions(change: OaiDeletionChange, now: Date): P
         where: { identifier: { in: ids }, setSpec: { in: servedSets } },
       });
     }
+    const { deletions } = change;
     // A key deleted again moves to the new date: its old row goes first. Set
     // by set, so a delete matches exactly the keys it names (a cross product
     // of identifiers and sets would reach other keys), and every delete runs
     // before any write, so no chunk can remove a row another chunk wrote.
     const bySet = new Map<string, string[]>();
-    for (const k of change.deletions)
-      bySet.set(k.setSpec, [...(bySet.get(k.setSpec) ?? []), k.identifier]);
+    for (const k of deletions) {
+      const ids = bySet.get(k.setSpec);
+      if (ids) ids.push(k.identifier);
+      else bySet.set(k.setSpec, [k.identifier]);
+    }
     for (const [setSpec, identifiers] of bySet) {
       for (const ids of chunks(identifiers)) {
         await prisma.oaiDeletion.deleteMany({ where: { identifier: { in: ids }, setSpec } });
       }
     }
-    for (const keys of chunks(change.deletions)) {
+    for (const keys of chunks(deletions)) {
       await prisma.oaiDeletion.createMany({
         data: keys.map((k) => ({ ...k, deletedAt: now })),
         skipDuplicates: true,
@@ -88,40 +82,6 @@ export async function applyOaiDeletions(change: OaiDeletionChange, now: Date): P
     }
   } catch (err) {
     logger.warn("oai.deletions_failed", { deletions: change.deletions.length, err });
-  }
-}
-
-/**
- * Before an account is deleted: record everything its CV serves as deleted
- * (the cascade is about to remove the row that knows it). Reads the stored
- * exposure, or derives it from the document for a row that has none.
- * Fail-soft: the erasure itself never waits on this.
- */
-export async function withdrawOaiRecords(userId: string, now: Date): Promise<void> {
-  try {
-    const row = await prisma.cv.findUnique({
-      where: { userId },
-      select: {
-        published: true,
-        publicIndexable: true,
-        publicSlug: true,
-        listUnderAffiliation: true,
-        currentRorId: true,
-        oaiExposure: true,
-        document: true,
-      },
-    });
-    if (!row) return;
-    const parsed = safeParseCanonicalCv(row.document);
-    const before =
-      parseHarvestExposure(row.oaiExposure) ??
-      harvestExposure(harvestRecord(row, parsed.success ? parsed.data : null, now));
-    await applyOaiDeletions(
-      { deletions: deletionsBetween(before, NOTHING_EXPOSED), served: NOTHING_EXPOSED },
-      now,
-    );
-  } catch (err) {
-    logger.warn("oai.withdraw_failed", { err });
   }
 }
 

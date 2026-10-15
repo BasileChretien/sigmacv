@@ -31,7 +31,9 @@ import { creatorName, doiIri, escapeXml, oaiDatestamp, workYear } from "./shared
  * search indexing (an institution-keyed harvest is systematic processing the
  * indexing consent never covered). The set is named as a self-declared current
  * affiliation, never as institutional output: it is what each researcher wrote
- * on their own CV.
+ * on their own CV. It is published only from `MIN_SET_MEMBERS` listed
+ * researchers (`cv/listed.ts`): the readers apply that floor, this module
+ * renders what they hand it.
  *
  * Consent model, in one line: nothing is harvestable without `publicIndexable`
  * (whose consent copy names this endpoint), and nothing is in a set without

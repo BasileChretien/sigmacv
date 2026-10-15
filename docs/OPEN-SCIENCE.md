@@ -55,7 +55,9 @@ This is a living document. Items marked _planned_ are tracked in the
   (one per institution) contain only CVs whose owner _separately_ opted into
   "list under my current affiliation" — each set is labelled as a
   self-declared current affiliation, never as an institution's record of its
-  output. The privacy notice names OAI-PMH harvesters as recipients.
+  output, and is published only once at least five researchers are listed in
+  it (a smaller set would name them; the same threshold as the institution
+  page's figures). The privacy notice names OAI-PMH harvesters as recipients.
   Incremental harvesting works as the protocol intends: a record's datestamp
   is when what the endpoint serves for that CV last changed (its CV record, a
   per-work record or its set), not when the row was last written, so a

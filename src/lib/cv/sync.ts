@@ -15,10 +15,17 @@ import {
 } from "@/lib/cv/institutionConsent";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { applyOaiDeletions } from "@/lib/cv/oaiDeletions";
+import { applySetCrossings, readSetFloor } from "@/lib/cv/oaiSetFloor";
 import { harvestRecord, harvestWrite } from "@/lib/cv/oaiState";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
-import { recordInstitutions, trustedInstitutionNames } from "@/lib/cv/listed";
+import {
+  MIN_SET_MEMBERS,
+  countListedCvsByRor,
+  openAffiliationSets,
+  recordInstitutions,
+  trustedInstitutionNames,
+} from "@/lib/cv/listed";
 import { computeCvAggregates } from "@/lib/institutions/cvAggregates";
 import { provenanceLedger, type ProvenanceLedger } from "@/lib/cv/provenanceLedger";
 import { resolveCoauthorCvs, type CoauthorCvLink } from "@/lib/cv/coauthorLinks";
@@ -703,12 +710,16 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   const flags = existing
     ? await prisma.cv.findUnique({ where: { userId }, select: HARVEST_FLAGS })
     : null;
+  const nextFlags = { ...(flags ?? NOT_HARVESTABLE), currentRorId };
+  const floor = await readSetFloor(existing ? id : null, flags, nextFlags);
   const harvest = harvestWrite(
-    { ...(flags ?? NOT_HARVESTABLE), currentRorId },
+    nextFlags,
     cv,
     flags ?? {},
-    () => (flags ? harvestRecord(flags, previous, now) : null),
+    () => (flags ? harvestRecord(flags, previous, now, floor.openBefore) : null),
     now,
+    floor.openAfter,
+    floor.servedBeforeIn,
   );
   await prisma.cv.upsert({
     where: { userId },
@@ -737,8 +748,10 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       ...harvest.columns,
     },
   });
-  // What the write stopped serving is now a deleted record (oaiDeletions.ts).
+  // What the write stopped serving is now a deleted record (oaiDeletions.ts),
+  // and a set it took across the floor moves its other members (oaiSetFloor.ts).
   await applyOaiDeletions(harvest, now);
+  await applySetCrossings(floor, id, now);
 
   // AFTER the write: the OpenAlex funder crosswalk for the funders printed on
   // the owner's works (the owner worklist's funder join reads it). Reference
@@ -793,12 +806,15 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
 
   const currentRorId = currentRorKey(reconciled);
   const now = new Date();
+  const floor = await readSetFloor(existing.id, existing, { ...existing, currentRorId });
   const harvest = harvestWrite(
     { ...existing, currentRorId },
     reconciled,
     existing,
-    () => harvestRecord(existing, previous, now),
+    () => harvestRecord(existing, previous, now, floor.openBefore),
     now,
+    floor.openAfter,
+    floor.servedBeforeIn,
   );
   await prisma.cv.update({
     where: { userId },
@@ -813,6 +829,7 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
     },
   });
   await applyOaiDeletions(harvest, now);
+  await applySetCrossings(floor, existing.id, now);
 
   // The anonymous /preview/[orcid] build applies this researcher's own
   // disambiguation corrections, so a cached preview is stale the moment they
@@ -947,12 +964,22 @@ export async function setPublishState(
     shareReconciliationRows,
   );
   const now = new Date();
+  const nextRow = {
+    published,
+    publicIndexable,
+    publicSlug: slug,
+    listUnderAffiliation: listed,
+    currentRorId,
+  };
+  const floor = await readSetFloor(row.id, row, nextRow);
   const harvest = harvestWrite(
-    { published, publicIndexable, publicSlug: slug, listUnderAffiliation: listed, currentRorId },
+    nextRow,
     cv,
     row,
-    () => harvestRecord(row, cv, now),
+    () => harvestRecord(row, cv, now, floor.openBefore),
     now,
+    floor.openAfter,
+    floor.servedBeforeIn,
   );
   const updated = await prisma.cv.update({
     where: { userId },
@@ -982,6 +1009,7 @@ export async function setPublishState(
   if (updated.publicSlug) invalidatePublicPage(updated.publicSlug);
   // Withdrawn (or out of its set): harvesters running deltas are told.
   await applyOaiDeletions(harvest, now);
+  await applySetCrossings(floor, row.id, now);
   // Every institution page this CV was, or is now, consented to: a withdrawal
   // (explicit, or via indexing / unpublish) must be visible at once, not
   // within the TTL. Cheap — at most a handful of ids, usually none.
@@ -1093,6 +1121,11 @@ export async function listPublicCvRecords(opts: {
   until?: Date;
   set?: string;
 }): Promise<PublicCvRecordPage> {
+  // A set below the floor is not published: no live record is listed in it
+  // (its deleted records still are — `oaiHarvest.ts`).
+  if (opts.set && !(await openAffiliationSets([opts.set])).has(opts.set)) {
+    return { records: [], next: null };
+  }
   const where: Prisma.CvWhereInput = {
     published: true,
     publicIndexable: true,
@@ -1128,11 +1161,14 @@ export async function listPublicCvRecords(opts: {
     ...(opts.offset ? { skip: opts.offset } : {}),
   });
   const page = rows.slice(0, opts.limit);
+  const open = opts.set
+    ? new Set([opts.set])
+    : await openAffiliationSets(page.flatMap((row) => setKey(row)));
   const records: OaiRecordInput[] = [];
   for (const row of page) {
     const parsed = safeParseCanonicalCv(row.document);
     const record = harvestRecord(row, parsed.success ? parsed.data : null, row.publicChangedAt);
-    if (record) records.push(record);
+    if (record) records.push(withinFloor(record, row, open));
   }
   if (rows.length <= opts.limit) return { records, next: null };
   // `limit` ≥ 1, so when a row follows the page the page has a last row.
@@ -1148,7 +1184,29 @@ export async function getPublicCvRecord(slug: string): Promise<OaiRecordInput | 
   const row = await prisma.cv.findUnique({ where: { publicSlug: slug } });
   if (!row) return null;
   const parsed = safeParseCanonicalCv(row.document);
-  return harvestRecord(row, parsed.success ? parsed.data : null, row.publicChangedAt);
+  const record = harvestRecord(row, parsed.success ? parsed.data : null, row.publicChangedAt);
+  if (!record?.setSpec) return record;
+  return withinFloor(record, row, await openAffiliationSets(setKey(row)));
+}
+
+/** The set key of a row that is listed under one (zero or one id). */
+function setKey(row: { listUnderAffiliation: boolean; currentRorId: string | null }): string[] {
+  return row.listUnderAffiliation && row.currentRorId ? [row.currentRorId] : [];
+}
+
+/**
+ * A record as the endpoint serves it under the set floor: its header names its
+ * set only while that set is open (`MIN_SET_MEMBERS` listed researchers);
+ * below, the record is served without it, as for a CV that never opted in.
+ */
+function withinFloor(
+  record: OaiRecordInput,
+  row: { currentRorId: string | null },
+  open: ReadonlySet<string>,
+): OaiRecordInput {
+  return record.setSpec && !(row.currentRorId && open.has(row.currentRorId))
+    ? { ...record, setSpec: undefined }
+    : record;
 }
 
 /** Bound on the number of affiliation sets ListSets enumerates (one per
@@ -1159,35 +1217,26 @@ const MAX_AFFILIATION_SETS = 5_000;
 /**
  * The OAI-PMH `ror:<id>` sets: one per distinct current-affiliation ROR id
  * among the CVs that are published, indexable AND opted into the affiliation
- * listing. The `listUnderAffiliation` filter is the consent gate — a set must
- * contain only researchers who chose to be listed, so an institution with
- * researchers on SigmaCV but no opt-in has no set at all. The set name is the
+ * listing, and only once at least `MIN_SET_MEMBERS` of them are (a smaller
+ * set would name its members; `listed.ts`). The `listUnderAffiliation` filter
+ * is the consent gate — a set must contain only researchers who chose to be
+ * listed, so an institution with researchers on SigmaCV but no opt-in has no
+ * set at all. The set name is the
  * institution's TRUSTED name — ROR's own record in the `Institution` table,
  * never anything from a CV (an owner controls a manual position's text) — and
  * falls back to the id; it is labelled as a self-declared affiliation by the
  * response builder, never as institutional output.
  */
 export async function listAffiliationSets(): Promise<OaiSet[]> {
-  const rows = await prisma.cv.findMany({
-    where: {
-      published: true,
-      publicIndexable: true,
-      listUnderAffiliation: true,
-      currentRorId: { not: null },
-    },
-    distinct: ["currentRorId"],
-    // One small denormalised column — never the documents (an unauthenticated
-    // verb must not load every opted-in CV), and never `currentAffiliationName`.
-    select: { currentRorId: true },
-    orderBy: { currentRorId: "asc" },
-    take: MAX_AFFILIATION_SETS,
-  });
-  const rorIds: string[] = [];
-  for (const row of rows) {
-    /* v8 ignore next -- the where clause already excludes null keys */
-    if (!row.currentRorId) continue;
-    rorIds.push(row.currentRorId);
-  }
+  // One grouped count under the consent gate — one small denormalised column,
+  // never the documents (an unauthenticated verb must not load every opted-in
+  // CV), and never `currentAffiliationName`.
+  const counts = await countListedCvsByRor();
+  const rorIds = [...counts]
+    .filter(([, members]) => members >= MIN_SET_MEMBERS)
+    .map(([rorId]) => rorId)
+    .sort()
+    .slice(0, MAX_AFFILIATION_SETS);
   const names = await trustedInstitutionNames(rorIds);
   return rorIds.map((rorId) => ({
     spec: rorSetSpec(rorId),

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { withdrawOaiRecords } from "@/lib/cv/oaiDeletions";
+import { applyOaiWithdrawal, readOaiWithdrawal } from "@/lib/cv/oaiSetFloor";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { purgeInstitutionPages } from "@/lib/cv/publicPageCache";
 import { withdrawMintedSnapshotDois } from "@/lib/cv/snapshotStore";
@@ -86,10 +86,13 @@ export async function DELETE(req: Request) {
     });
     await withdrawDois(session.user.id);
     // Every OAI record the CV served becomes a deleted record (30 days), so the
-    // repositories that harvested it are told to delete their copy; the
-    // cascade below removes the row that knows them. Fail-soft.
-    await withdrawOaiRecords(session.user.id, new Date());
+    // repositories that harvested it are told to delete their copy. Read now
+    // (the cascade below removes the row that knows them), applied once the
+    // deletion has happened. Fail-soft.
+    const now = new Date();
+    const oaiWithdrawal = await readOaiWithdrawal(session.user.id, now);
     await prisma.user.delete({ where: { id: session.user.id } });
+    if (oaiWithdrawal) await applyOaiWithdrawal(oaiWithdrawal, now);
     if (deleting?.orcid) invalidateOrcidPreview(deleting.orcid);
     purgeInstitutionListings(deleting?.cv?.consentedRorIds ?? []);
     await sweepRateLimitCounters(session.user.id);

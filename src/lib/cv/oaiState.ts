@@ -38,19 +38,21 @@ export function affiliationSetSpec(
  * The CV record the endpoint serves for this row, or null when it serves none:
  * not published, not indexable (the consent whose copy names the endpoint),
  * no slug, or no parseable document. The document is the public projection,
- * as on the public page.
+ * as on the public page. `setOpen` false serves it without its set — the set
+ * floor (`oaiSetFloor.ts`): a set below `MIN_SET_MEMBERS` is served to nobody.
  */
 export function harvestRecord(
   row: HarvestColumns,
   cv: CanonicalCv | null,
   datestamp: Date,
+  setOpen = true,
 ): OaiRecordInput | null {
   if (!row.published || !row.publicIndexable || !row.publicSlug || !cv) return null;
   return {
     slug: row.publicSlug,
     datestamp,
     cv: projectCvForPublic(cv),
-    setSpec: affiliationSetSpec(row),
+    setSpec: setOpen ? affiliationSetSpec(row) : undefined,
   };
 }
 
@@ -120,6 +122,11 @@ export function deletionsBetween(
   return out;
 }
 
+/** An exposure that also counts as served in `set` (when it names none). */
+export function withServedSet(exposure: HarvestExposure, set: string | null): HarvestExposure {
+  return exposure.set === null && set !== null ? { ...exposure, set } : exposure;
+}
+
 /** What a writer read from the row before writing. */
 export interface StoredHarvestState {
   oaiFingerprint?: string | null;
@@ -149,7 +156,19 @@ export interface HarvestWrite {
  * the column existed) counts as changed — one spurious re-harvest is better
  * than a missed change. The deletions are the stored exposure minus the new
  * one; a row with no stored exposure diffs against `previous()`, the record
- * its previous state served (called only then).
+ * its previous state served (called only then). `setOpen`: whether the CV's
+ * set is open once the write lands (the set floor, `oaiSetFloor.ts`); a closed
+ * set enters neither the fingerprint nor the exposure, because nobody is
+ * served it. `servedBeforeIn`: the set the live floor says the CV was served
+ * in before this write (null when none). A stored exposure that names no set
+ * takes it, so an exposure left without its set (two writes that crossed the
+ * floor at the same moment, or a crossing cut short) does not cost a harvester
+ * the deleted record that tells it to drop the CV. That is the one case it
+ * covers: a stored exposure naming another set is kept as it is. A crossing
+ * writes a member only while it is still listed in the set (`oaiSetFloor.ts`),
+ * so it does not store a wrong set over a member's own move; what is left
+ * without a per-institution lock is the moment between that write and the
+ * member's own, two consecutive queries (a residual stated in #563).
  */
 export function harvestWrite(
   row: HarvestColumns,
@@ -157,11 +176,16 @@ export function harvestWrite(
   stored: StoredHarvestState,
   previous: () => OaiRecordInput | null,
   now: Date,
+  setOpen = true,
+  servedBeforeIn: string | null = null,
 ): HarvestWrite {
-  const record = harvestRecord(row, cv, now);
+  const record = harvestRecord(row, cv, now, setOpen);
   const fingerprint = oaiFingerprint(record);
   const served = harvestExposure(record);
-  const before = parseHarvestExposure(stored.oaiExposure) ?? harvestExposure(previous());
+  const before = withServedSet(
+    parseHarvestExposure(stored.oaiExposure) ?? harvestExposure(previous()),
+    servedBeforeIn,
+  );
   return {
     columns:
       fingerprint === stored.oaiFingerprint

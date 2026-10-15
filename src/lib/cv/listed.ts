@@ -218,6 +218,50 @@ export async function countReconciliationSources(rorId: string): Promise<number>
   return prisma.cv.count({ where: reconciliationWhere(rorId) });
 }
 
+/**
+ * The fewest researchers an OAI-PMH `ror:<id>` set must hold before it is
+ * published: below this, `ListSets` does not name it, a list asking for it
+ * answers no live record, no record header carries it and the institution page
+ * does not link it. A set is a roster by design — each member opted into it —
+ * but a set of one or two is a pointer to named people under an institution's
+ * name, and its records would undo the k-anonymity of the same page's figures
+ * (the 2026-09-08 panel's defect 2). The same k as those figures
+ * (`K_ANONYMITY` in `institutions/aggregateSum.ts`; a test holds them equal).
+ */
+export const MIN_SET_MEMBERS = 5;
+
+/** How many OTHER CVs than `cvId` are listed under a bare ROR id: what a
+ *  write reads to place its own CV against the set floor (`oaiSetFloor.ts`),
+ *  whether or not its own row has been written yet. */
+export async function countListedCvsExcept(rorId: string, cvId: string | null): Promise<number> {
+  return prisma.cv.count({
+    where: { ...listedUnderRorWhere(rorId), ...(cvId ? { id: { not: cvId } } : {}) },
+  });
+}
+
+/** Which of these bare ROR ids are open sets — at least
+ *  {@link MIN_SET_MEMBERS} listed CVs under the listing's consent gate. One
+ *  grouped query; no id in, no query. */
+export async function openAffiliationSets(rorIds: readonly string[]): Promise<Set<string>> {
+  const open = new Set<string>();
+  const ids = [...new Set(rorIds)];
+  if (ids.length === 0) return open;
+  const groups = await prisma.cv.groupBy({
+    by: ["currentRorId"],
+    where: {
+      published: true,
+      publicIndexable: true,
+      listUnderAffiliation: true,
+      currentRorId: { in: ids },
+    },
+    _count: { _all: true },
+  });
+  for (const g of groups) {
+    if (g.currentRorId && g._count._all >= MIN_SET_MEMBERS) open.add(g.currentRorId);
+  }
+  return open;
+}
+
 /** Listed-CV counts per ROR key, for the institution index — one grouped query
  *  under the same consent gate, instead of one count per set. */
 export async function countListedCvsByRor(): Promise<Map<string, number>> {
