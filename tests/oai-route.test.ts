@@ -138,7 +138,7 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
   it("page 2 of a set-filtered harvest is still filtered by that set (the token carries it)", async () => {
     mocks.listPublicCvRecords.mockResolvedValue({
       records: [{ ...RECORD, setSpec: "ror:04chrp450" }],
-      next: "ada-x7",
+      next: { after: "cv-2" },
     });
     const first = await (
       await get("verb=ListRecords&metadataPrefix=oai_dc&set=ror:04chrp450")
@@ -147,7 +147,7 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
     mocks.listPublicCvRecords.mockClear();
     await get(`verb=ListRecords&resumptionToken=${encodeURIComponent(token)}`);
     expect(mocks.listPublicCvRecords).toHaveBeenCalledWith(
-      expect.objectContaining({ set: "04chrp450", after: "ada-x7" }),
+      expect.objectContaining({ set: "04chrp450", after: "cv-2" }),
     );
     // A forged token naming another set, or none, is refused — never widened.
     const forged = Buffer.from("o=1&s=zz", "utf8").toString("base64url");
@@ -195,20 +195,25 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
     expect(rolled).toContain('<error code="badArgument">');
   });
 
-  it("a token issued before resumption by slug still finishes its harvest, and closes it", async () => {
-    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: null });
+  it("a token issued before resumption by row id still finishes its harvest, by offset, and closes it", async () => {
     const legacy = Buffer.from("o=100&s=04chrp450", "utf8").toString("base64url");
-    const xml = await (await get(`verb=ListRecords&resumptionToken=${legacy}`)).text();
+    // A further page follows: the harvest goes on by offset, in the order it began in.
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: { offset: 200 } });
+    const middle = await (await get(`verb=ListRecords&resumptionToken=${legacy}`)).text();
     expect(mocks.listPublicCvRecords).toHaveBeenCalledWith(
       expect.objectContaining({ offset: 100, set: "04chrp450", after: undefined }),
     );
+    const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(middle)![1]!;
+    expect(Buffer.from(token, "base64url").toString("utf8")).toBe("o=200&s=04chrp450");
     // The last page of a list that paged at all ends with an empty token.
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: null });
+    const xml = await (await get(`verb=ListRecords&resumptionToken=${token}`)).text();
     expect(xml).toContain("<resumptionToken/>");
   });
 
   it("a resumed page that finds nothing left is badResumptionToken, a first page noRecordsMatch", async () => {
     mocks.listPublicCvRecords.mockResolvedValue({ records: [], next: null });
-    const token = Buffer.from("a=ada-x7", "utf8").toString("base64url");
+    const token = Buffer.from("a=cv-2", "utf8").toString("base64url");
     expect(await (await get(`verb=ListRecords&resumptionToken=${token}`)).text()).toContain(
       '<error code="badResumptionToken">',
     );
@@ -272,7 +277,7 @@ describe("OAI-PMH route: oaire metadata format", () => {
   });
 
   it("ListRecords with metadataPrefix=oaire keeps the format on page 2 via the token", async () => {
-    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: "ada-x7" });
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: { after: "cv-2" } });
     const first = await (await get("verb=ListRecords&metadataPrefix=oaire")).text();
     expect(first).toContain("<oaire:resource");
     const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(first)![1]!;

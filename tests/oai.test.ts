@@ -289,7 +289,7 @@ describe("OAI response builders", () => {
     const page: OaiListPage = {
       records: recs,
       resumed: false,
-      next: "a",
+      next: { after: "a" },
       filters: { set: "04chrp450", from, until },
     };
     const xml = listRecordsResponse(
@@ -324,16 +324,17 @@ describe("OAI response builders", () => {
     expect(parseResumptionToken(forged("o=100&s=04chrp450&f=2026-13-01"))).toBeNull();
     expect(parseResumptionToken(forged("o=abc"))).toBeNull();
     expect(parseResumptionToken(forged("s=04chrp450"))).toBeNull();
-    // Where the next page starts: exactly one of a slug or an offset, and a slug
-    // only in the shape the server mints (no SQL-ish or oversized comparison value).
+    // Where the next page starts: exactly one of a row id or an offset, and an id
+    // only in the shape the database mints (no SQL-ish or oversized comparison value).
     expect(parseResumptionToken(forged("a=ada-x7&o=1"))).toBeNull();
     expect(parseResumptionToken(forged("a=Ada"))).toBeNull();
     expect(parseResumptionToken(forged("a=-ada"))).toBeNull();
     expect(parseResumptionToken(forged("a=ada%27%20OR%201%3D1"))).toBeNull();
-    expect(parseResumptionToken(forged(`a=${"a".repeat(201)}`))).toBeNull();
-    expect(parseResumptionToken(forged(`a=${"a".repeat(200)}`))).toEqual({
-      after: "a".repeat(200),
-    });
+    expect(parseResumptionToken(forged(`a=${"a".repeat(65)}`))).toBeNull();
+    expect(parseResumptionToken(forged(`a=${"a".repeat(64)}`))).toEqual({ after: "a".repeat(64) });
+    // A UUID (the id a first sync mints) and a cuid both pass.
+    expect(parseResumptionToken(forged("a=0b6f1c2e-5d4a-4c3b-9a8f-7e6d5c4b3a21"))).not.toBeNull();
+    expect(parseResumptionToken(forged("a=cmg2x3y4z0000abcd1234efgh"))).not.toBeNull();
     expect(parseResumptionToken("not*base64")).toBeNull();
     expect(
       validateOaiRequest({ verb: "ListRecords", resumptionToken: forged("o=1&s=!") }),
@@ -342,7 +343,7 @@ describe("OAI response builders", () => {
 
   it("ListRecords includes a resumptionToken only when more pages remain", () => {
     const recs = [makeRecord({ slug: "a" }), makeRecord({ slug: "b" })];
-    const more: OaiListPage = { records: recs, resumed: false, next: "b" };
+    const more: OaiListPage = { records: recs, resumed: false, next: { after: "b" } };
     const xml = listRecordsResponse({ verb: "ListRecords", metadataPrefix: "oai_dc" }, more, OPTS);
     // Pages are cut at CV boundaries (a CV's per-work records ride with it), so
     // the size of the complete RECORD list is unknown: the optional
@@ -692,7 +693,7 @@ describe("oaire metadata prefix", () => {
     const page: OaiListPage = {
       records: [makeRecord({ slug: "a" })],
       resumed: false,
-      next: "a",
+      next: { after: "a" },
       metadataPrefix: "oaire",
       filters: { set: "04chrp450" },
     };

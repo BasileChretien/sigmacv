@@ -1507,6 +1507,7 @@ describe("getPublicCv", () => {
 describe("OAI harvest helpers", () => {
   /** A harvestable row as the reader selects it (the SQL already filtered it). */
   const harvestable = (slug: string, extra: Record<string, unknown> = {}) => ({
+    id: `id-${slug}`,
     published: true,
     publicIndexable: true,
     publicSlug: slug,
@@ -1529,11 +1530,12 @@ describe("OAI harvest helpers", () => {
     expect(records[0]!.cv.owner.displayName).toBe("Basile Chrétien");
     // The page read two rows and a third follows: the next page starts after the
     // last row READ, corrupt or not, so a corrupt row is never read twice.
-    expect(next).toBe("bad");
+    expect(next).toEqual({ after: "id-bad" });
     const query = mocks.findMany.mock.calls[0]![0];
     expect(query.take).toBe(3);
-    expect(query.orderBy).toEqual({ publicSlug: "asc" });
+    expect(query.orderBy).toEqual({ id: "asc" });
     expect(query.where.publicSlug).toEqual({ not: null });
+    expect(query.where).not.toHaveProperty("id");
     expect(query).not.toHaveProperty("skip");
     // No count query any more: whether a page follows is read, not computed.
     expect(mocks.count).not.toHaveBeenCalled();
@@ -1544,28 +1546,49 @@ describe("OAI harvest helpers", () => {
     expect((await listPublicCvRecords({ limit: 2 })).next).toBeNull();
   });
 
-  it("a page ending on a slug longer than a token carries resumes at its prefix: that CV is sent again, none is skipped", async () => {
-    // The owner's display name may be 1,000 characters and cvSlug never truncates.
-    const long = `${cvSlug("a".repeat(250))}-0123456789abcdef0123`;
-    mocks.findMany.mockResolvedValue([harvestable("ada"), harvestable(long), harvestable("zed")]);
-    const { next } = await listPublicCvRecords({ limit: 2 });
+  it("no slug can stall a harvest: 101 CVs whose slugs share their first 250 characters still page forward", async () => {
+    // The owner's display name may be 1,000 characters and cvSlug never truncates,
+    // so anyone can mint many slugs with one long common start (review of #560).
+    const shared = cvSlug("a".repeat(250));
+    const rows = Array.from({ length: 101 }, (_, i) =>
+      harvestable(`${shared}-${String(i).padStart(20, "0")}`, {
+        id: `c${String(i).padStart(4, "0")}`,
+      }),
+    );
+    const byId = (after?: string) => rows.filter((r) => after === undefined || r.id > after);
+    mocks.findMany.mockImplementation(async (q: { where: { id?: { gt: string } }; take: number }) =>
+      byId(q.where.id?.gt).slice(0, q.take),
+    );
+    const first = await listPublicCvRecords({ limit: 100 });
     // The endpoint accepts the token it issues ...
-    expect(parseResumptionToken(encodeResumptionToken({ after: next! }))).toEqual({ after: next });
-    // ... and resuming after it still reaches the long-slug CV (sent twice, never skipped).
-    expect(long > next!).toBe(true);
-    expect(long.startsWith(next!)).toBe(true);
+    const token = encodeResumptionToken({ ...first.next! });
+    expect(parseResumptionToken(token)).toEqual(first.next);
+    // ... and the next page moves on: the 101st CV, then the end.
+    const second = await listPublicCvRecords({
+      limit: 100,
+      after: (first.next as { after: string }).after,
+    });
+    expect(second.records.map((r) => r.slug)).toEqual([rows[100]!.publicSlug]);
+    expect(second.next).toBeNull();
   });
 
-  it("resumes AFTER the last slug read, so a CV leaving the list between pages skips nobody", async () => {
+  it("resumes AFTER the last row id read, so a CV leaving the list between pages skips nobody", async () => {
     mocks.findMany.mockResolvedValue([harvestable("cy")]);
-    await listPublicCvRecords({ limit: 100, after: "bad" });
+    await listPublicCvRecords({ limit: 100, after: "id-bad" });
     const query = mocks.findMany.mock.calls[0]![0];
-    expect(query.where.publicSlug).toEqual({ gt: "bad" });
+    expect(query.where.id).toEqual({ gt: "id-bad" });
+    expect(query.where.publicSlug).toEqual({ not: null });
+    expect(query.orderBy).toEqual({ id: "asc" });
     expect(query).not.toHaveProperty("skip");
-    // A token issued before `after` existed still resumes at its offset.
-    mocks.findMany.mockClear();
-    await listPublicCvRecords({ limit: 100, offset: 200 });
-    expect(mocks.findMany.mock.calls[0]![0].skip).toBe(200);
+  });
+
+  it("a harvest begun with an offset token keeps that token's slug order and offsets to its end", async () => {
+    mocks.findMany.mockResolvedValue([harvestable("ada"), harvestable("bad"), harvestable("cy")]);
+    const { next } = await listPublicCvRecords({ limit: 2, offset: 200 });
+    const query = mocks.findMany.mock.calls[0]![0];
+    expect(query.skip).toBe(200);
+    expect(query.orderBy).toEqual({ publicSlug: "asc" });
+    expect(next).toEqual({ offset: 202 });
   });
 
   it("stamps records with publicChangedAt and filters from/until on it, until inclusive to the second", async () => {

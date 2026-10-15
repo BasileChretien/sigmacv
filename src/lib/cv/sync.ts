@@ -45,7 +45,7 @@ import {
   withRorProvenance,
 } from "@/lib/canonical/enrich";
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
-import { OAI_CURSOR_MAX, rorSetSpec, type OaiRecordInput, type OaiSet } from "@/lib/oai/oai";
+import { rorSetSpec, type ListPosition, type OaiRecordInput, type OaiSet } from "@/lib/oai/oai";
 import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/client";
 import { recordWorkFunders } from "@/lib/openalex/funders";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
@@ -1054,10 +1054,10 @@ const DATESTAMP_GRANULARITY_MS = 1000;
 /** A page of OAI CV records and where the next page starts. */
 export interface PublicCvRecordPage {
   records: OaiRecordInput[];
-  /** Where the next page starts: the slug of the last row this page read
-   *  (corrupt rows included), cut to OAI_CURSOR_MAX characters, or null when
-   *  no row follows it. */
-  next: string | null;
+  /** Where the next page starts — after the id of the last row this page
+   *  read (corrupt rows included), or at the next offset for a harvest begun
+   *  with an offset — or null when no row follows it. */
+  next: ListPosition | null;
 }
 
 /**
@@ -1065,9 +1065,10 @@ export interface PublicCvRecordPage {
  * public-projected cv, set membership}. Gated on `publicIndexable` (the same
  * discovery opt-in the sitemap uses). With `set` (a bare ROR id), ONLY the CVs
  * that opted into the affiliation listing under that id match — never a CV that
- * merely carries the affiliation. Ordered by slug and resumed AFTER the last
- * slug read (`after`), so a CV that leaves or joins the list between two pages
- * shifts nothing; `offset` serves the tokens issued before that. The datestamp
+ * merely carries the affiliation. Ordered by row id and resumed AFTER the last
+ * id read (`after`), so a CV that leaves or joins the list between two pages
+ * shifts nothing and no slug can stall the list; `offset` serves the tokens
+ * issued before that, in the slug order they were cut from. The datestamp
  * is `publicChangedAt` — when what the endpoint serves for the CV last changed
  * (`oaiState.ts`), not when the row was last written — and `from`/`until`
  * (both inclusive, to the second) filter on it. One row past the page is read
@@ -1084,7 +1085,8 @@ export async function listPublicCvRecords(opts: {
   const where: Prisma.CvWhereInput = {
     published: true,
     publicIndexable: true,
-    publicSlug: opts.after === undefined ? { not: null } : { gt: opts.after },
+    publicSlug: { not: null },
+    ...(opts.after === undefined ? {} : { id: { gt: opts.after } }),
   };
   if (opts.set) {
     where.listUnderAffiliation = true;
@@ -1099,6 +1101,7 @@ export async function listPublicCvRecords(opts: {
   const rows = await prisma.cv.findMany({
     where,
     select: {
+      id: true,
       published: true,
       publicIndexable: true,
       publicSlug: true,
@@ -1107,7 +1110,9 @@ export async function listPublicCvRecords(opts: {
       listUnderAffiliation: true,
       currentRorId: true,
     },
-    orderBy: { publicSlug: "asc" },
+    // By id (unique, short): the cursor. A harvest begun with an offset token
+    // keeps the slug order that token was cut from, to its end.
+    orderBy: opts.offset === undefined ? { id: "asc" } : { publicSlug: "asc" },
     take: opts.limit + 1,
     ...(opts.offset ? { skip: opts.offset } : {}),
   });
@@ -1118,11 +1123,12 @@ export async function listPublicCvRecords(opts: {
     const record = harvestRecord(row, parsed.success ? parsed.data : null, row.publicChangedAt);
     if (record) records.push(record);
   }
-  // The next page starts after (at most) the first OAI_CURSOR_MAX characters
-  // of the last slug read: a longer slug is resumed AT, so that CV is sent
-  // again rather than any CV skipped (see OAI_CURSOR_MAX).
-  const last = page[page.length - 1]?.publicSlug ?? null;
-  const next = rows.length > opts.limit && last !== null ? last.slice(0, OAI_CURSOR_MAX) : null;
+  if (rows.length <= opts.limit) return { records, next: null };
+  // `limit` ≥ 1, so when a row follows the page the page has a last row.
+  const next: ListPosition =
+    opts.offset === undefined
+      ? { after: page[page.length - 1]!.id }
+      : { offset: opts.offset + page.length };
   return { records, next };
 }
 

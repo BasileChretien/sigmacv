@@ -46,8 +46,10 @@ const OAI_REPO_ID = "sigmacv.org";
 const OAI_EARLIEST_DATESTAMP = "2026-06-08T00:00:00Z";
 /** CVs per ListRecords/ListIdentifiers page. A page is cut at CV boundaries
  *  (a CV's per-work records always ride with it) and the next one resumes
- *  AFTER the last slug read, never at an offset: a CV that leaves or joins the
- *  list between two pages cannot make the harvester skip another. */
+ *  AFTER the last row read (its id: unique and short), never at an offset: a CV
+ *  that leaves or joins the list between two pages cannot make the harvester
+ *  skip another, and no slug, however long or however many share a start, can
+ *  stall it. */
 export const OAI_PAGE_SIZE = 100;
 /** The supported metadata prefixes: Dublin Core, and OpenAIRE Guidelines v4. */
 const OAI_METADATA_PREFIXES = ["oai_dc", "oaire"] as const;
@@ -104,9 +106,8 @@ export interface OaiListPage {
   /** True when the request carried a resumption token: the last page of a
    *  list that paged at all closes with an empty token. */
   resumed: boolean;
-  /** The slug of the last CV this page read (the next page starts after it),
-   *  or null when this is the last page. */
-  next: string | null;
+  /** Where the next page starts, or null when this is the last page. */
+  next: ListPosition | null;
   /** The list's filters, carried into the next page's resumption token so a
    *  set-filtered (or dated) harvest can never lose its filter on page 2. */
   filters?: ListFilters;
@@ -114,6 +115,11 @@ export interface OaiListPage {
    *  the resumption token so page 2 of an `oaire` harvest is still `oaire`. */
   metadataPrefix?: OaiMetadataPrefix;
 }
+
+/** Where the next page of a list starts: after the id of the last row read
+ *  (what this provider issues), or, for a harvest begun with a token issued
+ *  before that existed, at an offset in the order that token was cut from. */
+export type ListPosition = { after: string } | { offset: number };
 
 /** The filters of a list request (`set` = bare ROR id). Both dates are
  *  inclusive at the repository's one-second granularity: `until` is the last
@@ -401,7 +407,7 @@ export function oaiFingerprint(record: OaiRecordInput | null): string {
 }
 
 /**
- * `<resumptionToken>` element (resumes after the last slug read). Omitted when
+ * `<resumptionToken>` element (resumes after the last row read). Omitted when
  * there's no next page; on the LAST page of a multi-page list an empty token
  * signals the end. The optional `completeListSize` / `cursor` attributes are
  * deliberately NOT emitted: pages are cut at CV boundaries and a CV's per-work
@@ -416,7 +422,7 @@ function resumptionTokenXml(page: OaiListPage): string {
     return `    <resumptionToken/>`;
   }
   const token = encodeResumptionToken({
-    after: page.next,
+    ...page.next,
     ...page.filters,
     metadataPrefix: page.metadataPrefix,
   });
@@ -425,8 +431,8 @@ function resumptionTokenXml(page: OaiListPage): string {
 
 /** What a resumption token carries: where the next page starts, the list's
  *  filters AND its format (absent = `oai_dc`, which is also what every
- *  pre-`oaire` token meant). The provider issues `after` (the last slug a page
- *  read); `offset` is what tokens issued before that meant, still honoured so a
+ *  pre-`oaire` token meant). The provider issues `after` (the id of the last
+ *  row a page read); `offset` is what tokens issued before that meant, still honoured so a
  *  harvest running across a deploy finishes. */
 export interface ResumptionState extends ListFilters {
   after?: string;
@@ -434,19 +440,10 @@ export interface ResumptionState extends ListFilters {
   metadataPrefix?: OaiMetadataPrefix;
 }
 
-/**
- * The longest slug prefix a resumption token carries. A slug can be longer —
- * it is `cvSlug(displayName)` plus 20 hex characters, `cvSlug` never truncates,
- * and a display name may run to 1,000 characters — so the reader hands on the
- * first {@link OAI_CURSOR_MAX} characters of the last slug it read: the next
- * page starts AT that CV, which is sent once more and never skipped.
- */
-export const OAI_CURSOR_MAX = 200;
-
-/** A slug prefix in the shape the server mints slugs in: the only shape a
+/** A row id as the database mints them (a cuid or a UUID): the only shape a
  *  token's `after` may carry, so a token can never smuggle in a SQL-shaped or
  *  oversized comparison value. */
-const TOKEN_SLUG = new RegExp(`^[a-z0-9][a-z0-9-]{0,${OAI_CURSOR_MAX - 1}}$`);
+const TOKEN_ROW_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
 /** `YYYY-MM-DDThh:mm:ssZ` — the OAI seconds form `parseOaiDate` accepts. */
 function oaiSeconds(d: Date): string {
@@ -652,7 +649,7 @@ function untilBound(d: OaiDate): Date {
  * Decode a resumption token into its state, or null when malformed. Accepts the
  * pre-set-era bare integer (offset only, no filters — those tokens never had
  * any) and the encoded form, which names where the next page starts by EXACTLY
- * one of `a` (the last slug read — what this provider issues) or `o` (an
+ * one of `a` (the id of the last row read — what this provider issues) or `o` (an
  * offset — what it issued before); every carried field is re-validated exactly
  * as the original request argument would be (a tampered set or date is
  * rejected, never widened into an unfiltered list). The dates come back as the
@@ -674,7 +671,7 @@ export function parseResumptionToken(token: string): ResumptionState | null {
   if ((a === null) === (o === null)) return null;
   const state: ResumptionState = {};
   if (a !== null) {
-    if (!TOKEN_SLUG.test(a)) return null;
+    if (!TOKEN_ROW_ID.test(a)) return null;
     state.after = a;
   }
   if (o !== null) {
