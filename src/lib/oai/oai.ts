@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { licenseInfo } from "@/lib/canonical/license";
 import type { CanonicalCv, CvItem, CvSectionType } from "@/lib/canonical/schema";
 import { citationItems, selectSections } from "@/lib/render/citationItems";
@@ -30,11 +31,20 @@ import { creatorName, doiIri, escapeXml, oaiDatestamp, workYear } from "./shared
  * search indexing (an institution-keyed harvest is systematic processing the
  * indexing consent never covered). The set is named as a self-declared current
  * affiliation, never as institutional output: it is what each researcher wrote
- * on their own CV.
+ * on their own CV. It is published only from `MIN_SET_MEMBERS` listed
+ * researchers (`cv/listed.ts`): the readers apply that floor, this module
+ * renders what they hand it.
  *
  * Consent model, in one line: nothing is harvestable without `publicIndexable`
  * (whose consent copy names this endpoint), and nothing is in a set without
  * `listUnderAffiliation`.
+ *
+ * Deleted records. What stops being served — a CV withdrawn (unpublished,
+ * indexing off, account deleted), a work taken off its page, a CV that left
+ * its set — is answered as a header with `status="deleted"` for 30 days
+ * (`deletedRecord=transient`; the rows are `OaiDeletion`, written by
+ * `cv/oaiDeletions.ts`), so a harvester running deltas removes its copy. A
+ * list hands on to them once every served CV has been listed.
  *
  * Spec: https://www.openarchives.org/OAI/openarchivesprotocol.html
  */
@@ -43,8 +53,12 @@ import { creatorName, doiIri, escapeXml, oaiDatestamp, workYear } from "./shared
 const OAI_REPO_ID = "sigmacv.org";
 /** Repository inception — a valid `earliestDatestamp` (≤ every record's stamp). */
 const OAI_EARLIEST_DATESTAMP = "2026-06-08T00:00:00Z";
-/** CVs per ListRecords/ListIdentifiers page (offset-based resumption). A page
- *  is cut at CV boundaries: a CV's per-work records always ride with it. */
+/** CVs per ListRecords/ListIdentifiers page. A page is cut at CV boundaries
+ *  (a CV's per-work records always ride with it) and the next one resumes
+ *  AFTER the last row read (its id: unique and short), never at an offset: a CV
+ *  that leaves or joins the list between two pages cannot make the harvester
+ *  skip another, and no slug, however long or however many share a start, can
+ *  stall it. */
 export const OAI_PAGE_SIZE = 100;
 /** The supported metadata prefixes: Dublin Core, and OpenAIRE Guidelines v4. */
 const OAI_METADATA_PREFIXES = ["oai_dc", "oaire"] as const;
@@ -95,14 +109,30 @@ export interface OaiSet {
   name: string;
 }
 
-/** A page of CV records for a list verb (offset-resumption over CVs). */
+/** A record the endpoint no longer serves — in the repository, or in the set
+ *  a list asked for — answered as a header with `status="deleted"` and the
+ *  date it went. */
+export interface OaiDeletedRecord {
+  identifier: string;
+  datestamp: Date;
+  /** The set it left, in a set-filtered list. */
+  setSpec?: string;
+  deleted: true;
+}
+
+/** Deleted records per page (one header each, no metadata). */
+export const OAI_DELETED_PAGE_SIZE = 1000;
+
+/** A page of a list verb: served CV records, then deleted records (resumption by row id). */
 export interface OaiListPage {
   records: OaiRecordInput[];
-  /** Offset (in CVs) of this page's first record — only used to decide whether
-   *  the final page must emit a closing (empty) resumption token. */
-  cursor: number;
-  /** Offset of the next page, or null when this is the last page. */
-  nextOffset: number | null;
+  /** Deleted records, listed once every served CV has been (header only). */
+  deleted?: OaiDeletedRecord[];
+  /** True when the request carried a resumption token: the last page of a
+   *  list that paged at all closes with an empty token. */
+  resumed: boolean;
+  /** Where the next page starts, or null when this is the last page. */
+  next: ListPosition | null;
   /** The list's filters, carried into the next page's resumption token so a
    *  set-filtered (or dated) harvest can never lose its filter on page 2. */
   filters?: ListFilters;
@@ -111,7 +141,17 @@ export interface OaiListPage {
   metadataPrefix?: OaiMetadataPrefix;
 }
 
-/** The filters of a list request (`set` = bare ROR id). */
+/** Where the next page of a list starts: after the id of the last row read
+ *  (what this provider issues); for a harvest begun with a token issued before
+ *  that existed, at an offset in the order that token was cut from; or, once
+ *  every served CV has been listed, among the deleted records after the id of
+ *  the last one read ("" = from the first). */
+export type ListPosition = { after: string } | { offset: number } | { deletedAfter: string };
+
+/** The filters of a list request (`set` = bare ROR id). Both dates are
+ *  inclusive at the repository's one-second granularity: `until` is the last
+ *  second a datestamp may show (a day-form `until` is that day's 23:59:59), so
+ *  the reader selects every row stamped before `until` + 1 s. */
 export interface ListFilters {
   set?: string;
   from?: Date;
@@ -328,31 +368,40 @@ export function findWorkRecord(record: OaiRecordInput, itemId: string): OaiWorkR
   return workRecords(record).find((w) => w.itemId === itemId) ?? null;
 }
 
-type OaiAnyRecord = OaiRecordInput | OaiWorkRecord;
+type OaiAnyRecord = OaiRecordInput | OaiWorkRecord | OaiDeletedRecord;
 
 function isWorkRecord(r: OaiAnyRecord): r is OaiWorkRecord {
   return "itemId" in r;
 }
 
+function isDeletedRecord(r: OaiAnyRecord): r is OaiDeletedRecord {
+  return "deleted" in r;
+}
+
+function identifierOf(r: OaiRecordInput | OaiWorkRecord): string {
+  return isWorkRecord(r) ? oaiWorkIdentifier(r.slug, r.itemId) : oaiIdentifier(r.slug);
+}
+
 function headerXml(record: OaiAnyRecord): string {
-  const identifier = isWorkRecord(record)
-    ? oaiWorkIdentifier(record.slug, record.itemId)
-    : oaiIdentifier(record.slug);
+  const deleted = isDeletedRecord(record);
+  const identifier = deleted ? record.identifier : identifierOf(record);
   const set = record.setSpec ? `\n        <setSpec>${escapeXml(record.setSpec)}</setSpec>` : "";
-  return `      <header>
+  return `      <header${deleted ? ' status="deleted"' : ""}>
         <identifier>${escapeXml(identifier)}</identifier>
         <datestamp>${oaiDatestamp(record.datestamp)}</datestamp>${set}
       </header>`;
 }
 
 /** The `<metadata>` payload of a record in the requested format. */
-function metadataXml(record: OaiAnyRecord, prefix: OaiMetadataPrefix): string {
+function metadataXml(record: OaiRecordInput | OaiWorkRecord, prefix: OaiMetadataPrefix): string {
   if (prefix === "oaire")
     return isWorkRecord(record) ? oaireWorkMetadata(record) : oaireCvMetadata(record);
   return isWorkRecord(record) ? workDcMetadata(record) : dcMetadata(record);
 }
 
 function recordXml(record: OaiAnyRecord, prefix: OaiMetadataPrefix): string {
+  // A deleted record is its header alone (protocol: no metadata).
+  if (isDeletedRecord(record)) return `    <record>\n${headerXml(record)}\n    </record>`;
   return `    <record>
 ${headerXml(record)}
       <metadata>
@@ -364,38 +413,78 @@ ${metadataXml(record, prefix)}
 /** A page's CV records expanded into the wire order: each CV record followed
  *  by its per-work records. */
 function expandPage(page: OaiListPage): OaiAnyRecord[] {
-  return page.records.flatMap((record) => [record, ...workRecords(record)]);
+  return [
+    ...page.records.flatMap((record) => [record, ...workRecords(record)]),
+    ...(page.deleted ?? []),
+  ];
+}
+
+/** The fingerprint of a CV the endpoint serves nothing for (unpublished, not
+ *  indexable, unparseable): one constant, so going dark is a change too. */
+export const NOT_SERVED_FINGERPRINT = "none";
+
+/** The datestamp every record is rendered with for {@link oaiFingerprint}. */
+const FINGERPRINT_DATESTAMP = new Date(0);
+
+/**
+ * A hash of everything the endpoint serves for one CV — its CV record and
+ * every per-work record, headers (identifiers, set) and metadata, in BOTH
+ * formats — rendered at one fixed datestamp, so the hash moves with what the
+ * records say and never with when the row was last written. The writer stores
+ * it and moves the CV's OAI datestamp (`Cv.publicChangedAt`) only when it
+ * changes: a sync that changes nothing public, or the resync job's lock, no
+ * longer re-sends a CV to every incremental harvester.
+ */
+export function oaiFingerprint(record: OaiRecordInput | null): string {
+  if (!record) return NOT_SERVED_FINGERPRINT;
+  const fixed: OaiRecordInput = { ...record, datestamp: FINGERPRINT_DATESTAMP };
+  const hash = createHash("sha256");
+  for (const r of [fixed, ...workRecords(fixed)]) {
+    for (const prefix of OAI_METADATA_PREFIXES) hash.update(recordXml(r, prefix));
+  }
+  return hash.digest("hex");
 }
 
 /**
- * `<resumptionToken>` element (offset-based, in CVs). Omitted when there's no
- * next page; on the LAST page of a multi-page list an empty token signals the
- * end. The optional `completeListSize` / `cursor` attributes are deliberately
- * NOT emitted: pages are cut at CV boundaries and a CV's per-work records ride
- * with it, so the size of the complete RECORD list is unknown without reading
- * every document — better omitted than misreported.
+ * `<resumptionToken>` element (resumes after the last row read). Omitted when
+ * there's no next page; on the LAST page of a multi-page list an empty token
+ * signals the end. The optional `completeListSize` / `cursor` attributes are
+ * deliberately NOT emitted: pages are cut at CV boundaries and a CV's per-work
+ * records ride with it, so the size of the complete RECORD list is unknown
+ * without reading every document — better omitted than misreported.
  */
 function resumptionTokenXml(page: OaiListPage): string {
-  if (page.nextOffset === null) {
+  if (page.next === null) {
     // Only emit a (closing) empty token when we paged at all. Otherwise omit
     // entirely (complete list in one go).
-    if (page.cursor === 0) return "";
+    if (!page.resumed) return "";
     return `    <resumptionToken/>`;
   }
   const token = encodeResumptionToken({
-    offset: page.nextOffset,
+    ...page.next,
     ...page.filters,
     metadataPrefix: page.metadataPrefix,
   });
   return `    <resumptionToken>${escapeXml(token)}</resumptionToken>`;
 }
 
-/** What a resumption token carries: the offset, the list's filters AND its
- *  format (absent = `oai_dc`, which is also what every pre-`oaire` token meant). */
+/** What a resumption token carries: where the next page starts, the list's
+ *  filters AND its format (absent = `oai_dc`, which is also what every
+ *  pre-`oaire` token meant). The provider issues `after` (the id of the last
+ *  row a page read); `offset` is what tokens issued before that meant, still honoured so a
+ *  harvest running across a deploy finishes. */
 export interface ResumptionState extends ListFilters {
-  offset: number;
+  after?: string;
+  offset?: number;
+  /** Among the deleted records, after this row id ("" = from the first). */
+  deletedAfter?: string;
   metadataPrefix?: OaiMetadataPrefix;
 }
+
+/** A row id as the database mints them (a cuid or a UUID): the only shape a
+ *  token's `after` may carry, so a token can never smuggle in a SQL-shaped or
+ *  oversized comparison value. */
+const TOKEN_ROW_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
 
 /** `YYYY-MM-DDThh:mm:ssZ` — the OAI seconds form `parseOaiDate` accepts. */
 function oaiSeconds(d: Date): string {
@@ -404,17 +493,19 @@ function oaiSeconds(d: Date): string {
 
 /**
  * Encode the resumption state as an opaque, URL-safe token: base64url of a
- * query string (`o=<offset>&s=<rorId>&f=<from>&u=<until>&m=<prefix>`). The
- * consent-bearing `set` filter rides the token, so page 2 of
- * `ListRecords&set=ror:X` is still page 2 OF THAT SET — a bare offset would
- * silently continue over every indexable CV, including researchers who never
- * opted into the institution listing. The format rides it too (only when it is
- * not the default, so an `oai_dc` token is unchanged from before `oaire`
- * existed). Exported for tests.
+ * query string (`a=<slug>&s=<rorId>&f=<from>&u=<until>&m=<prefix>`, or `o=<offset>`
+ * in place of `a` for the older tokens). The consent-bearing `set` filter rides
+ * the token, so page 2 of `ListRecords&set=ror:X` is still page 2 OF THAT SET —
+ * a bare position would silently continue over every indexable CV, including
+ * researchers who never opted into the institution listing. The format rides
+ * it too (only when it is not the default, so an `oai_dc` token is unchanged
+ * from before `oaire` existed). Exported for tests.
  */
 export function encodeResumptionToken(state: ResumptionState): string {
   const p = new URLSearchParams();
-  p.set("o", String(state.offset));
+  if (state.after !== undefined) p.set("a", state.after);
+  if (state.offset !== undefined) p.set("o", String(state.offset));
+  if (state.deletedAfter !== undefined) p.set("t", state.deletedAfter);
   if (state.set) p.set("s", state.set);
   if (state.from) p.set("f", oaiSeconds(state.from));
   if (state.until) p.set("u", oaiSeconds(state.until));
@@ -432,7 +523,7 @@ export function identifyResponse(opts: BuildOpts): string {
     <protocolVersion>2.0</protocolVersion>
     <adminEmail>contact@sigmacv.org</adminEmail>
     <earliestDatestamp>${OAI_EARLIEST_DATESTAMP}</earliestDatestamp>
-    <deletedRecord>no</deletedRecord>
+    <deletedRecord>transient</deletedRecord>
     <granularity>YYYY-MM-DDThh:mm:ssZ</granularity>
     <description>
       <oai-identifier xmlns="http://www.openarchives.org/OAI/2.0/oai-identifier" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai-identifier http://www.openarchives.org/OAI/2.0/oai-identifier.xsd">
@@ -558,8 +649,14 @@ export type OaiPlan =
       kind: "list";
       verb: "ListRecords" | "ListIdentifiers";
       metadataPrefix: OaiMetadataPrefix;
-      offset: number;
+      /** Resume after this slug (a token issued by this provider). */
+      after?: string;
+      /** Resume at this position (a token issued before `after` existed). */
+      offset?: number;
+      /** Resume among the deleted records, after this row id ("" = from the first). */
+      deletedAfter?: string;
       from?: Date;
+      /** Inclusive, at one-second granularity (see {@link ListFilters}). */
       until?: Date;
       /** The bare ROR id of the requested `ror:<id>` set. */
       set?: string;
@@ -567,19 +664,41 @@ export type OaiPlan =
 
 const DATE_DAY = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_SECONDS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/;
+/** The last second of a day, added to a day-form `until` (the protocol:
+ *  `until=2026-10-15` selects what was stamped on that day too). */
+const LAST_SECOND_OF_DAY_MS = 86_399_000;
 
-function parseOaiDate(s: string): Date | null {
-  if (!DATE_DAY.test(s) && !DATE_SECONDS.test(s)) return null;
-  const d = new Date(s);
-  return Number.isNaN(d.getTime()) ? null : d;
+interface OaiDate {
+  date: Date;
+  /** Day granularity (`YYYY-MM-DD`) rather than seconds. */
+  day: boolean;
+}
+
+function parseOaiDate(s: string): OaiDate | null {
+  const day = DATE_DAY.test(s);
+  if (!day && !DATE_SECONDS.test(s)) return null;
+  const date = new Date(s);
+  // `new Date` rolls an impossible day over (2026-02-30 → 2026-03-02); a date
+  // that does not print back as itself is not a date.
+  if (Number.isNaN(date.getTime()) || !date.toISOString().startsWith(s.slice(0, 10))) return null;
+  return { date, day };
+}
+
+/** An `until` as the inclusive last second it allows. */
+function untilBound(d: OaiDate): Date {
+  return d.day ? new Date(d.date.getTime() + LAST_SECOND_OF_DAY_MS) : d.date;
 }
 
 /**
  * Decode a resumption token into its state, or null when malformed. Accepts the
  * pre-set-era bare integer (offset only, no filters — those tokens never had
- * any) and the encoded form; every carried field is re-validated exactly as the
- * original request argument would be (a tampered set or date is rejected, never
- * widened into an unfiltered list). Exported for tests.
+ * any) and the encoded form, which names where the next page starts by EXACTLY
+ * one of `a` (the id of the last row read — what this provider issues), `t`
+ * (among the deleted records, after the id of the last one read) or `o` (an
+ * offset — what it issued before); every carried field is re-validated exactly
+ * as the original request argument would be (a tampered set or date is
+ * rejected, never widened into an unfiltered list). The dates come back as the
+ * inclusive seconds they were encoded as. Exported for tests.
  */
 export function parseResumptionToken(token: string): ResumptionState | null {
   if (/^\d+$/.test(token)) return { offset: Number(token) };
@@ -592,9 +711,24 @@ export function parseResumptionToken(token: string): ResumptionState | null {
     return null;
   }
   const p = new URLSearchParams(decoded);
-  const o = p.get("o") ?? "";
-  if (!/^\d+$/.test(o)) return null;
-  const state: ResumptionState = { offset: Number(o) };
+  const a = p.get("a");
+  const o = p.get("o");
+  const t = p.get("t");
+  if ([a, o, t].filter((v) => v !== null).length !== 1) return null;
+  const state: ResumptionState = {};
+  if (t !== null) {
+    // "" = from the first deleted record; else the id of the last one read.
+    if (t !== "" && !TOKEN_ROW_ID.test(t)) return null;
+    state.deletedAfter = t;
+  }
+  if (a !== null) {
+    if (!TOKEN_ROW_ID.test(a)) return null;
+    state.after = a;
+  }
+  if (o !== null) {
+    if (!/^\d+$/.test(o)) return null;
+    state.offset = Number(o);
+  }
   const s = p.get("s");
   if (s !== null) {
     if (!ROR_ID.test(s)) return null;
@@ -604,13 +738,13 @@ export function parseResumptionToken(token: string): ResumptionState | null {
   if (f !== null) {
     const d = parseOaiDate(f);
     if (!d) return null;
-    state.from = d;
+    state.from = d.date;
   }
   const u = p.get("u");
   if (u !== null) {
     const d = parseOaiDate(u);
     if (!d) return null;
-    state.until = d;
+    state.until = d.date;
   }
   const m = p.get("m");
   if (m !== null) {
@@ -703,22 +837,29 @@ export function validateOaiRequest(args: OaiArgs): OaiPlan {
         if (!rorId) return error("badArgument", "Invalid set: expected ror:<id>");
         set = rorId;
       }
-      let from: Date | undefined;
-      let until: Date | undefined;
-      if (args.from != null && args.from !== "") {
-        const d = parseOaiDate(args.from);
-        if (!d) return error("badArgument", "Invalid 'from' datestamp");
-        from = d;
-      }
-      if (args.until != null && args.until !== "") {
-        const d = parseOaiDate(args.until);
-        if (!d) return error("badArgument", "Invalid 'until' datestamp");
-        until = d;
-      }
-      return { kind: "list", verb, metadataPrefix, offset: 0, from, until, set };
+      const dates = listDates(args);
+      if ("kind" in dates) return dates;
+      return { kind: "list", verb, metadataPrefix, ...dates, set };
     }
 
     default:
       return error("badVerb", `Illegal OAI verb: ${verb}`);
   }
+}
+
+/**
+ * A list request's `from` / `until`, or the error that refuses them. Each must
+ * be a real date in one of the two granularities; when both are given they
+ * must share one (the protocol makes it a `badArgument`); `until` comes
+ * back as the inclusive last second it allows.
+ */
+function listDates(args: OaiArgs): { from?: Date; until?: Date } | OaiPlan {
+  const present = (v: string | undefined): v is string => v != null && v !== "";
+  const from = present(args.from) ? parseOaiDate(args.from) : undefined;
+  if (from === null) return error("badArgument", "Invalid 'from' datestamp");
+  const until = present(args.until) ? parseOaiDate(args.until) : undefined;
+  if (until === null) return error("badArgument", "Invalid 'until' datestamp");
+  if (from && until && from.day !== until.day)
+    return error("badArgument", "'from' and 'until' must have the same granularity");
+  return { from: from?.date, until: until ? untilBound(until) : undefined };
 }

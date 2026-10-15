@@ -1,10 +1,12 @@
 import Link from "next/link";
+import { MIN_SET_MEMBERS } from "@/lib/cv/listed";
 import { asLocale } from "@/lib/i18n";
 import { FAQ_REQUEST_LINK_INDEX, faqItemAnchor } from "@/lib/i18n/faq";
 import { fillInstitutionString, institutionStrings } from "@/lib/i18n/institutions";
 import {
   institutionJsonLd,
   institutionOaiSetUrl,
+  isOaiSetOpen,
   reconciliationExportPath,
   type InstitutionSummary,
 } from "@/lib/institutions/institutions";
@@ -87,10 +89,16 @@ export default function InstitutionPage({
         />
 
         <h2>{s.oaiHeading}</h2>
-        <p>
-          {s.oaiBody}{" "}
-          <a href={setUrl}>{fillInstitutionString(s.oaiLink, { id: rorSetSpec(summary.rorId) })}</a>
-        </p>
+        {isOaiSetOpen(summary) ? (
+          <p>
+            {s.oaiBody}{" "}
+            <a href={setUrl}>
+              {fillInstitutionString(s.oaiLink, { id: rorSetSpec(summary.rorId) })}
+            </a>
+          </p>
+        ) : (
+          <p>{fillInstitutionString(s.oaiSetClosed, { k: String(MIN_SET_MEMBERS) })}</p>
+        )}
         {reconciliation ? (
           <p className="inst-reconciliation">
             {reconciliationSentence(s, summary.reconciliationCount)}{" "}

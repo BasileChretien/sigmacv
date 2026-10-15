@@ -57,6 +57,9 @@ const CV_ROW = {
   visibleCurrentRorIds: ["04chrp450"],
   institutionAggregates: { v: 1, worksTotal: 3, byYear: {}, byType: { publications: 3 } },
   resyncLockedAt: null,
+  publicChangedAt: new Date("2026-08-30T00:00:00Z"),
+  oaiFingerprint: "f".repeat(64),
+  oaiExposure: { ids: ["oai:sigmacv.org:a-researcher-abc123"], set: null },
   createdAt: new Date("2026-06-01T00:00:00Z"),
   updatedAt: new Date("2026-09-01T00:00:00Z"),
 };
@@ -129,6 +132,8 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
       // The counts-only aggregate the institution page sums: derived from the
       // owner's own document, so it is the owner's data too.
       institutionAggregates: { v: 1, worksTotal: 3, byYear: {}, byType: { publications: 3 } },
+      // When what its OAI-PMH records say last changed.
+      publicChangedAt: CV_ROW.publicChangedAt.toISOString(),
       schemaVersion: 2,
       lastSyncedAt: CV_ROW.lastSyncedAt.toISOString(),
       lastSyncReport: { added: 1 },
@@ -137,6 +142,8 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     });
     // Internal job bookkeeping and the document itself are not duplicated there.
     expect(body.cvRecord).not.toHaveProperty("resyncLockedAt");
+    expect(body.cvRecord).not.toHaveProperty("oaiFingerprint");
+    expect(body.cvRecord).not.toHaveProperty("oaiExposure");
     expect(body.cvRecord).not.toHaveProperty("document");
   });
 

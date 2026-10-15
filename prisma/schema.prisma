@@ -182,6 +182,21 @@ model Cv {
   institutionAggregates  Json?
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
   resyncLockedAt         DateTime?
+  // When what the OAI-PMH endpoint serves for this CV last changed: its
+  // records' datestamp, and the column `from`/`until` filter on. Moved only
+  // when `oaiFingerprint` changes (src/lib/cv/oaiState.ts), so neither the
+  // resync lock above nor a sync that changes nothing public re-sends the CV to
+  // every incremental harvester (`updatedAt` moves on every write).
+  publicChangedAt        DateTime  @default(now())
+  // A hash of every OAI record this CV serves (both formats, its works, its
+  // set), or "none" when it serves nothing; null until the row's first write
+  // after the column existed. Compared at every write. Derived, never edited.
+  oaiFingerprint         String?
+  // The OAI identifiers this CV served after its last write, and their set
+  // ({ ids, set }): the next write diffs against it to record what it stops
+  // serving in OaiDeletion. Null until the row's first write after the column
+  // existed (that write derives it from the previous document). Derived.
+  oaiExposure            Json?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
@@ -190,6 +205,7 @@ model Cv {
 
   @@index([published, lastSyncedAt])
   @@index([listUnderAffiliation, currentRorId])
+  @@index([publicChangedAt])
 }
 
 // A FROZEN copy of a CV at one moment — "freeze & cite this version". The
@@ -302,6 +318,28 @@ model Funder {
 
   @@index([fundrefDoi])
   @@index([rorId])
+}
+
+// An OAI-PMH record the endpoint no longer serves, answered as
+// `status="deleted"` until it expires (Identify says deletedRecord=transient):
+// harvesters running deltas learn that a CV or a work was withdrawn, or left
+// an institution set. `setSpec` "" = gone from the repository; "ror:<id>" =
+// gone from that set (the record may still be served without it). Written by
+// every CV write that stops serving something and by account deletion, which
+// is why there is no user FK; purged after 30 days by the resync cron
+// (src/lib/cv/oaiDeletions.ts). Holds the identifier, the set and the date —
+// the identifier carries the public slug, so the retention, and that a set
+// harvest names the set, are stated in the privacy notice.
+model OaiDeletion {
+  // The list's cursor: unique and short, where identifiers are neither short
+  // nor safe to cut (a slug may run to a thousand characters).
+  id         String   @id @default(cuid())
+  identifier String
+  setSpec    String   @default("")
+  deletedAt  DateTime @default(now())
+
+  @@unique([identifier, setSpec])
+  @@index([setSpec, deletedAt])
 }
 
 model DoiWithdrawal {

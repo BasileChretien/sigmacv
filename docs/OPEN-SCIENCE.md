@@ -55,7 +55,19 @@ This is a living document. Items marked _planned_ are tracked in the
   (one per institution) contain only CVs whose owner _separately_ opted into
   "list under my current affiliation" — each set is labelled as a
   self-declared current affiliation, never as an institution's record of its
-  output. The privacy notice names OAI-PMH harvesters as recipients.
+  output, and is published only once at least five researchers are listed in
+  it (a smaller set would name them; the same threshold as the institution
+  page's figures). The privacy notice names OAI-PMH harvesters as recipients.
+  Incremental harvesting works as the protocol intends: a record's datestamp
+  is when what the endpoint serves for that CV last changed (its CV record, a
+  per-work record or its set), not when the row was last written, so a
+  harvester asking `from=<last visit>` receives only the CVs that changed;
+  `from` and `until` are inclusive to the second (a day-form `until` covers
+  that whole day), and a long list resumes after the last CV read. What stops
+  being harvestable (a page unpublished or no longer indexable, a work taken
+  off it, a researcher who left an institution set, a deleted account) is
+  answered as a deleted record for 30 days (`deletedRecord=transient`), so a
+  harvester running deltas removes its copy.
 - **Institution pages and the comparison view** (`/i/<ror>`, `/i/compare`) show
   open-access counts and their stated shares — for one organisation, or for two
   or three a reader chooses, in alphabetical order, with denominators, refresh

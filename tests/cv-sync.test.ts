@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
   findMany: vi.fn(),
   count: vi.fn(),
+  groupBy: vi.fn(),
   upsert: vi.fn(),
   update: vi.fn(),
   institutionUpsert: vi.fn(),
@@ -54,7 +55,27 @@ const mocks = vi.hoisted(() => ({
   fetchOrcidPatents: vi.fn(),
   discoverOrcid: vi.fn(),
   fetchOrcidWorkTypes: vi.fn(),
+  applyOaiDeletions: vi.fn(),
+  readSetFloor: vi.fn(),
+  applySetCrossings: vi.fn(),
 }));
+
+// What a write stops serving is recorded by oaiDeletions.ts (its own tests);
+// here, only what each write hands it.
+vi.mock("@/lib/cv/oaiDeletions", () => ({ applyOaiDeletions: mocks.applyOaiDeletions }));
+// The set floor's counts and crossings are oaiSetFloor.ts's (its own tests);
+// here, what each write asks it and how its answer shapes the write.
+vi.mock("@/lib/cv/oaiSetFloor", () => ({
+  readSetFloor: mocks.readSetFloor,
+  applySetCrossings: mocks.applySetCrossings,
+}));
+const OPEN_FLOOR = {
+  openBefore: true,
+  openAfter: true,
+  opens: null,
+  closes: null,
+  servedBeforeIn: null,
+};
 
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -62,6 +83,7 @@ vi.mock("@/lib/db", () => ({
       findUnique: mocks.findUnique,
       findMany: mocks.findMany,
       count: mocks.count,
+      groupBy: mocks.groupBy,
       upsert: mocks.upsert,
       update: mocks.update,
     },
@@ -179,7 +201,15 @@ import {
   setPublishState,
   syncCvForUser,
 } from "@/lib/cv/sync";
-import { setItemIncluded } from "@/lib/canonical/curate";
+import { setItemIncluded, updateDisplay } from "@/lib/canonical/curate";
+import { harvestExposure, harvestRecord, harvestWrite } from "@/lib/cv/oaiState";
+import {
+  NOT_SERVED_FINGERPRINT,
+  encodeResumptionToken,
+  oaiFingerprint,
+  parseResumptionToken,
+} from "@/lib/oai/oai";
+import { cvSlug } from "@/lib/render/slug";
 import { InstitutionConsentError, visibleCurrentRorIds } from "@/lib/cv/institutionConsent";
 import { computeCvAggregates } from "@/lib/institutions/cvAggregates";
 import { Prisma } from "@/generated/prisma/client";
@@ -225,8 +255,20 @@ const AFFILIATED_DOC = buildCanonicalCv({
   now: "2026-06-02T00:00:00.000Z",
 });
 
+/** Member counts of the listed sets, as the set floor's grouped query returns them. */
+function setMembers(counts: Record<string, number>) {
+  mocks.groupBy.mockImplementation(async (q: { where: { currentRorId?: { in?: string[] } } }) =>
+    Object.entries(counts)
+      .filter(([id]) => !q.where.currentRorId?.in || q.where.currentRorId.in.includes(id))
+      .map(([currentRorId, n]) => ({ currentRorId, _count: { _all: n } })),
+  );
+}
+
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
+  // Nagoya's set is open unless a test says otherwise.
+  setMembers({ "04chrp450": 12 });
+  mocks.readSetFloor.mockResolvedValue(OPEN_FLOOR);
   mocks.update.mockResolvedValue({});
   mocks.upsert.mockResolvedValue({});
   mocks.logCvSave.mockResolvedValue(undefined);
@@ -1497,114 +1539,226 @@ describe("getPublicCv", () => {
 });
 
 describe("OAI harvest helpers", () => {
-  it("listPublicCvRecords pages indexable CVs into records + total (skips corrupt rows)", async () => {
-    mocks.count.mockResolvedValue(3);
+  /** A harvestable row as the reader selects it (the SQL already filtered it). */
+  const harvestable = (slug: string, extra: Record<string, unknown> = {}) => ({
+    id: `id-${slug}`,
+    published: true,
+    publicIndexable: true,
+    publicSlug: slug,
+    publicChangedAt: new Date("2026-06-09T00:00:00Z"),
+    document: DOC,
+    listUnderAffiliation: false,
+    currentRorId: null,
+    ...extra,
+  });
+
+  it("listPublicCvRecords pages indexable CVs into records (skips corrupt rows) and reads one row past the page", async () => {
     mocks.findMany.mockResolvedValue([
-      { publicSlug: "ada", updatedAt: new Date("2026-06-09T00:00:00Z"), document: DOC },
-      { publicSlug: "bad", updatedAt: new Date("2026-06-08T00:00:00Z"), document: { bad: 1 } },
+      harvestable("ada"),
+      harvestable("bad", { document: { bad: 1 } }),
+      harvestable("cy"),
     ]);
-    const { records, total } = await listPublicCvRecords({ limit: 100, offset: 0 });
-    expect(total).toBe(3);
+    const { records, next } = await listPublicCvRecords({ limit: 2 });
     expect(records).toHaveLength(1); // the corrupt row is skipped
     expect(records[0]).toMatchObject({ slug: "ada" });
     expect(records[0]!.cv.owner.displayName).toBe("Basile Chrétien");
+    // The page read two rows and a third follows: the next page starts after the
+    // last row READ, corrupt or not, so a corrupt row is never read twice.
+    expect(next).toEqual({ after: "id-bad" });
+    const query = mocks.findMany.mock.calls[0]![0];
+    expect(query.take).toBe(3);
+    expect(query.orderBy).toEqual({ id: "asc" });
+    expect(query.where.publicSlug).toEqual({ not: null });
+    expect(query.where).not.toHaveProperty("id");
+    expect(query).not.toHaveProperty("skip");
+    // No count query any more: whether a page follows is read, not computed.
+    expect(mocks.count).not.toHaveBeenCalled();
+  });
+
+  it("listPublicCvRecords says no page follows when it read no row past the page", async () => {
+    mocks.findMany.mockResolvedValue([harvestable("ada"), harvestable("cy")]);
+    expect((await listPublicCvRecords({ limit: 2 })).next).toBeNull();
+  });
+
+  it("no slug can stall a harvest: 101 CVs whose slugs share their first 250 characters still page forward", async () => {
+    // The owner's display name may be 1,000 characters and cvSlug never truncates,
+    // so anyone can mint many slugs with one long common start (review of #560).
+    const shared = cvSlug("a".repeat(250));
+    const rows = Array.from({ length: 101 }, (_, i) =>
+      harvestable(`${shared}-${String(i).padStart(20, "0")}`, {
+        id: `c${String(i).padStart(4, "0")}`,
+      }),
+    );
+    const byId = (after?: string) => rows.filter((r) => after === undefined || r.id > after);
+    mocks.findMany.mockImplementation(async (q: { where: { id?: { gt: string } }; take: number }) =>
+      byId(q.where.id?.gt).slice(0, q.take),
+    );
+    const first = await listPublicCvRecords({ limit: 100 });
+    // The endpoint accepts the token it issues ...
+    const token = encodeResumptionToken({ ...first.next! });
+    expect(parseResumptionToken(token)).toEqual(first.next);
+    // ... and the next page moves on: the 101st CV, then the end.
+    const second = await listPublicCvRecords({
+      limit: 100,
+      after: (first.next as { after: string }).after,
+    });
+    expect(second.records.map((r) => r.slug)).toEqual([rows[100]!.publicSlug]);
+    expect(second.next).toBeNull();
+  });
+
+  it("resumes AFTER the last row id read, so a CV leaving the list between pages skips nobody", async () => {
+    mocks.findMany.mockResolvedValue([harvestable("cy")]);
+    await listPublicCvRecords({ limit: 100, after: "id-bad" });
+    const query = mocks.findMany.mock.calls[0]![0];
+    expect(query.where.id).toEqual({ gt: "id-bad" });
+    expect(query.where.publicSlug).toEqual({ not: null });
+    expect(query.orderBy).toEqual({ id: "asc" });
+    expect(query).not.toHaveProperty("skip");
+  });
+
+  it("a harvest begun with an offset token keeps that token's slug order and offsets to its end", async () => {
+    mocks.findMany.mockResolvedValue([harvestable("ada"), harvestable("bad"), harvestable("cy")]);
+    const { next } = await listPublicCvRecords({ limit: 2, offset: 200 });
+    const query = mocks.findMany.mock.calls[0]![0];
+    expect(query.skip).toBe(200);
+    expect(query.orderBy).toEqual({ publicSlug: "asc" });
+    expect(next).toEqual({ offset: 202 });
+  });
+
+  it("stamps records with publicChangedAt and filters from/until on it, until inclusive to the second", async () => {
+    const changed = new Date("2026-06-09T10:00:00.700Z");
+    mocks.findMany.mockResolvedValue([harvestable("ada", { publicChangedAt: changed })]);
+    const from = new Date("2026-06-01T00:00:00Z");
+    const until = new Date("2026-06-09T10:00:00Z");
+    const { records } = await listPublicCvRecords({ limit: 100, from, until });
+    expect(records[0]!.datestamp).toEqual(changed);
+    const where = mocks.findMany.mock.calls[0]![0].where;
+    // The row's own write time is no longer the datestamp (the resync lock moves it).
+    expect(where).not.toHaveProperty("updatedAt");
+    // A row stamped 10:00:00.700 shows the datestamp 10:00:00Z, so until=10:00:00Z must select it.
+    expect(where.publicChangedAt).toEqual({ gte: from, lt: new Date("2026-06-09T10:00:01Z") });
+    mocks.findMany.mockClear();
+    await listPublicCvRecords({ limit: 100, from });
+    expect(mocks.findMany.mock.calls[0]![0].where.publicChangedAt).toEqual({ gte: from });
+    mocks.findMany.mockClear();
+    await listPublicCvRecords({ limit: 100, until });
+    expect(mocks.findMany.mock.calls[0]![0].where.publicChangedAt).toEqual({
+      lt: new Date("2026-06-09T10:00:01Z"),
+    });
   });
 
   it("filters a `set` harvest to CVs that OPTED INTO the affiliation listing", async () => {
-    mocks.count.mockResolvedValue(1);
     mocks.findMany.mockResolvedValue([
-      {
-        publicSlug: "ada",
-        updatedAt: new Date("2026-06-09T00:00:00Z"),
+      harvestable("ada", {
         document: AFFILIATED_DOC,
         listUnderAffiliation: true,
         currentRorId: "04chrp450",
-      },
+      }),
     ]);
-    const { records } = await listPublicCvRecords({ limit: 100, offset: 0, set: "04chrp450" });
+    const { records } = await listPublicCvRecords({ limit: 100, set: "04chrp450" });
     // The opt-in is the consent gate: a CV that merely HAS that affiliation but
-    // never opted in must not be selected. Both queries carry the filter.
-    const expectWhere = expect.objectContaining({
+    // never opted in must not be selected.
+    expect(mocks.findMany.mock.calls[0]![0].where).toEqual({
       published: true,
       publicIndexable: true,
+      publicSlug: { not: null },
       listUnderAffiliation: true,
       currentRorId: "04chrp450",
     });
-    expect(mocks.count).toHaveBeenCalledWith({ where: expectWhere });
-    expect(mocks.findMany.mock.calls[0]![0].where).toEqual(expectWhere);
     expect(records[0]!.setSpec).toBe("ror:04chrp450");
   });
 
   it("never filters on the opt-in without a set, and marks set membership per record", async () => {
-    mocks.count.mockResolvedValue(2);
     mocks.findMany.mockResolvedValue([
-      {
-        publicSlug: "in",
-        updatedAt: new Date("2026-06-09T00:00:00Z"),
+      harvestable("in", {
         document: AFFILIATED_DOC,
         listUnderAffiliation: true,
         currentRorId: "04chrp450",
-      },
-      {
-        publicSlug: "out",
-        updatedAt: new Date("2026-06-09T00:00:00Z"),
+      }),
+      harvestable("out", {
         document: AFFILIATED_DOC,
         listUnderAffiliation: false,
         currentRorId: "04chrp450",
-      },
+      }),
     ]);
-    const { records } = await listPublicCvRecords({ limit: 100, offset: 0 });
+    const { records } = await listPublicCvRecords({ limit: 100 });
     expect(mocks.findMany.mock.calls[0]![0].where).not.toHaveProperty("listUnderAffiliation");
     expect(mocks.findMany.mock.calls[0]![0].where).not.toHaveProperty("currentRorId");
     expect(records.map((r) => r.setSpec)).toEqual(["ror:04chrp450", undefined]);
   });
 
-  it("getPublicCvRecord carries the set membership only for an opted-in CV", async () => {
-    const base = {
-      published: true,
-      publicIndexable: true,
-      updatedAt: new Date("2026-06-09T00:00:00Z"),
-      document: AFFILIATED_DOC,
-      currentRorId: "04chrp450",
-    };
+  it("getPublicCvRecord carries the set membership only for an opted-in CV, stamped with publicChangedAt", async () => {
+    const base = harvestable("ada", { document: AFFILIATED_DOC, currentRorId: "04chrp450" });
     mocks.findUnique.mockResolvedValueOnce({ ...base, listUnderAffiliation: true });
-    expect((await getPublicCvRecord("ada"))?.setSpec).toBe("ror:04chrp450");
+    const record = await getPublicCvRecord("ada");
+    expect(record?.setSpec).toBe("ror:04chrp450");
+    expect(record?.datestamp).toEqual(base.publicChangedAt);
     mocks.findUnique.mockResolvedValueOnce({ ...base, listUnderAffiliation: false });
     expect((await getPublicCvRecord("ada"))?.setSpec).toBeUndefined();
   });
 
-  it("listAffiliationSets: one set per distinct ROR id among OPTED-IN indexable CVs, named by the TRUSTED record", async () => {
-    mocks.findMany.mockResolvedValue([
-      // The owner-controlled column carries hostile text; it is never selected.
-      { currentRorId: "04chrp450", currentAffiliationName: "Nagoya U (see example.evil)" },
-      { currentRorId: "00000000x", currentAffiliationName: "Also hostile" },
-    ]);
+  it("getPublicCvRecord is null for an unknown slug or an unparseable document", async () => {
+    mocks.findUnique.mockResolvedValueOnce(null);
+    expect(await getPublicCvRecord("nobody")).toBeNull();
+    mocks.findUnique.mockResolvedValueOnce(harvestable("ada", { document: { bad: 1 } }));
+    expect(await getPublicCvRecord("ada")).toBeNull();
+  });
+
+  it("listAffiliationSets: one set per ROR id with at least MIN_SET_MEMBERS opted-in CVs, named by the TRUSTED record", async () => {
+    setMembers({ "04chrp450": 7, "00000000x": 5, "02kpeqv85": 4, "03yrm5c26": 1 });
     mocks.institutionFindMany.mockResolvedValue([
       { rorId: "04chrp450", name: "Nagoya University" },
     ]);
     const sets = await listAffiliationSets();
-    // One small column only — never the documents, never the owner's name text.
-    expect(mocks.findMany.mock.calls[0]![0].select).toEqual({ currentRorId: true });
-    expect(mocks.findMany.mock.calls[0]![0].orderBy).toEqual({ currentRorId: "asc" });
-    const where = mocks.findMany.mock.calls[0]![0].where;
-    expect(where).toMatchObject({
+    // One grouped count over a small column, under the consent gate — never the
+    // documents, never the owner-controlled name text.
+    const q = mocks.groupBy.mock.calls[0]![0];
+    expect(q.by).toEqual(["currentRorId"]);
+    expect(q).not.toHaveProperty("select");
+    expect(q.where).toMatchObject({
       published: true,
       publicIndexable: true,
       listUnderAffiliation: true,
       currentRorId: { not: null },
     });
-    expect(mocks.findMany.mock.calls[0]![0].distinct).toEqual(["currentRorId"]);
-    // Names come from the Institution table (ROR's record), in one query.
+    // Names come from the Institution table (ROR's record), in one query, and
+    // only for the open sets: 4 and 1 members are below the floor (2026-09-08
+    // panel, defect 2: a small set names its members).
     expect(mocks.institutionFindMany).toHaveBeenCalledWith({
-      where: { rorId: { in: ["04chrp450", "00000000x"] } },
+      where: { rorId: { in: ["00000000x", "04chrp450"] } },
       select: { rorId: true, name: true },
     });
     expect(sets).toEqual([
-      { spec: "ror:04chrp450", rorId: "04chrp450", name: "Nagoya University" },
       { spec: "ror:00000000x", rorId: "00000000x", name: "ROR 00000000x" }, // no record → id-only
+      { spec: "ror:04chrp450", rorId: "04chrp450", name: "Nagoya University" },
     ]);
-    expect(JSON.stringify(sets)).not.toContain("hostile");
-    expect(JSON.stringify(sets)).not.toContain("example.evil");
+  });
+
+  it("a set below the floor lists no live record, and no header names it", async () => {
+    setMembers({ "04chrp450": 4 });
+    const listed = harvestable("ada", {
+      document: AFFILIATED_DOC,
+      listUnderAffiliation: true,
+      currentRorId: "04chrp450",
+    });
+    // Asked for by name: nothing, and the CVs are never even read.
+    expect(await listPublicCvRecords({ limit: 100, set: "04chrp450" })).toEqual({
+      records: [],
+      next: null,
+    });
+    expect(mocks.findMany).not.toHaveBeenCalled();
+    // In a plain list, the record is served without its set.
+    mocks.findMany.mockResolvedValue([listed]);
+    const { records } = await listPublicCvRecords({ limit: 100 });
+    expect(records[0]!.setSpec).toBeUndefined();
+    expect(mocks.groupBy.mock.calls.at(-1)![0].where.currentRorId).toEqual({ in: ["04chrp450"] });
+    // And one by one.
+    mocks.findUnique.mockResolvedValueOnce(listed);
+    expect((await getPublicCvRecord("ada"))?.setSpec).toBeUndefined();
+    // At the floor, the set is published again.
+    setMembers({ "04chrp450": 5 });
+    mocks.findUnique.mockResolvedValueOnce(listed);
+    expect((await getPublicCvRecord("ada"))?.setSpec).toBe("ror:04chrp450");
   });
 
   it("getPublicCvRecord requires published + indexable", async () => {
@@ -1617,9 +1771,334 @@ describe("OAI harvest helpers", () => {
     mocks.findUnique.mockResolvedValueOnce({
       published: true,
       publicIndexable: true,
-      updatedAt: new Date("2026-06-09T00:00:00Z"),
+      publicSlug: "ada",
+      publicChangedAt: new Date("2026-06-09T00:00:00Z"),
+      listUnderAffiliation: false,
+      currentRorId: null,
       document: DOC,
     });
     expect((await getPublicCvRecord("ada"))?.slug).toBe("ada");
+  });
+});
+
+describe("the OAI datestamp (publicChangedAt) moves only when what is harvested changes", () => {
+  /** A published, indexable row that opted into its affiliation set. */
+  const SERVED_ROW = {
+    ...BARE_ROW,
+    published: true,
+    publicIndexable: true,
+    publicSlug: "basile-chretien-abcd",
+    listUnderAffiliation: true,
+    currentRorId: "04chrp450",
+    shareReconciliationRows: false,
+    document: AFFILIATED_DOC,
+  };
+  const servedFingerprint = (doc: CanonicalCv) =>
+    oaiFingerprint(harvestRecord(SERVED_ROW, doc, new Date(0)));
+
+  it("a save that changes nothing harvested keeps the datestamp; one that hides a work moves it", async () => {
+    mocks.findUnique.mockResolvedValue({
+      ...SERVED_ROW,
+      oaiFingerprint: servedFingerprint(AFFILIATED_DOC),
+    });
+    // A display choice the records never show (the template).
+    await saveCvForUser("u1", updateDisplay(AFFILIATED_DOC, { template: "sidebar" }));
+    const quiet = mocks.update.mock.calls[0]![0].data;
+    expect(quiet.oaiFingerprint).toBe(servedFingerprint(AFFILIATED_DOC));
+    expect(quiet).not.toHaveProperty("publicChangedAt");
+
+    mocks.update.mockClear();
+    const pubs = AFFILIATED_DOC.sections.find((s) => s.type === "publications")!;
+    const listed = pubs.items.find((i) => i.included)!;
+    await saveCvForUser("u1", setItemIncluded(AFFILIATED_DOC, pubs.id, listed.id, false));
+    const moved = mocks.update.mock.calls[0]![0].data;
+    expect(moved.publicChangedAt).toBeInstanceOf(Date);
+    expect(moved.oaiFingerprint).not.toBe(servedFingerprint(AFFILIATED_DOC));
+  });
+
+  it("withdrawing the page is a change: the endpoint stops serving it", async () => {
+    mocks.findUnique.mockResolvedValue({
+      ...SERVED_ROW,
+      oaiFingerprint: servedFingerprint(AFFILIATED_DOC),
+    });
+    mocks.update.mockResolvedValue({ published: false, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", false);
+    const data = mocks.update.mock.calls[0]![0].data;
+    expect(data.oaiFingerprint).toBe(NOT_SERVED_FINGERPRINT);
+    expect(data.publicChangedAt).toBeInstanceOf(Date);
+  });
+
+  it("leaving the affiliation set is a change; re-posting the same choices is not", async () => {
+    const stored = servedFingerprint(AFFILIATED_DOC);
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiFingerprint: stored });
+    mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", true, true, true);
+    expect(mocks.update.mock.calls[0]![0].data).not.toHaveProperty("publicChangedAt");
+    mocks.update.mockClear();
+    await setPublishState("u1", true, true, false);
+    expect(mocks.update.mock.calls[0]![0].data.publicChangedAt).toBeInstanceOf(Date);
+  });
+
+  it("a sync reads the publish flags again just before writing (the owner may have withdrawn meanwhile)", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    // Published when the sync starts; withdrawn by the time it writes.
+    mocks.findUnique
+      .mockResolvedValueOnce({ ...SERVED_ROW, oaiFingerprint: "stale" })
+      .mockResolvedValueOnce({
+        published: false,
+        publicIndexable: false,
+        publicSlug: "basile-chretien-abcd",
+        listUnderAffiliation: false,
+        oaiFingerprint: "stale",
+      });
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.findUnique.mock.calls[1]![0]).toEqual({
+      where: { userId: "u1" },
+      select: {
+        published: true,
+        publicIndexable: true,
+        publicSlug: true,
+        listUnderAffiliation: true,
+        currentRorId: true,
+        oaiFingerprint: true,
+        oaiExposure: true,
+      },
+    });
+    const arg = mocks.upsert.mock.calls[0]![0];
+    expect(arg.update.oaiFingerprint).toBe(NOT_SERVED_FINGERPRINT);
+    expect(arg.update.publicChangedAt).toBeInstanceOf(Date);
+  });
+
+  it("a first sync creates a row that serves nothing and reads no flags", async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.findUnique).toHaveBeenCalledTimes(1);
+    expect(mocks.upsert.mock.calls[0]![0].create.oaiFingerprint).toBe(NOT_SERVED_FINGERPRINT);
+  });
+});
+
+describe("what a write stops serving becomes a deleted OAI record", () => {
+  const SERVED_ROW = {
+    ...BARE_ROW,
+    published: true,
+    publicIndexable: true,
+    publicSlug: "basile-chretien-abcd",
+    listUnderAffiliation: true,
+    currentRorId: "04chrp450",
+    shareReconciliationRows: false,
+    document: AFFILIATED_DOC,
+  };
+  const exposure = (doc: CanonicalCv) =>
+    harvestExposure(harvestRecord(SERVED_ROW, doc, new Date(0)));
+
+  it("unpublishing hands every served identifier over, in the repository and its set, after the write", async () => {
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiExposure: exposure(AFFILIATED_DOC) });
+    mocks.update.mockResolvedValue({ published: false, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", false);
+    const [change, at] = mocks.applyOaiDeletions.mock.calls[0]!;
+    const ids = exposure(AFFILIATED_DOC).ids;
+    expect(change.deletions).toHaveLength(2 * ids.length);
+    expect(change.served).toEqual({ ids: [], set: null });
+    expect(at).toBeInstanceOf(Date);
+    // After the CV write: until then the records were still served.
+    expect(mocks.update.mock.invocationCallOrder[0]!).toBeLessThan(
+      mocks.applyOaiDeletions.mock.invocationCallOrder[0]!,
+    );
+    // The stored exposure is now nothing.
+    expect(mocks.update.mock.calls[0]![0].data.oaiExposure).toEqual({ ids: [], set: null });
+  });
+
+  it("leaving the institution listing deletes the records from that set only", async () => {
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiExposure: exposure(AFFILIATED_DOC) });
+    mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", true, true, false);
+    const [change] = mocks.applyOaiDeletions.mock.calls[0]!;
+    expect(change.deletions.length).toBeGreaterThan(0);
+    expect(change.deletions.every((d: { setSpec: string }) => d.setSpec === "ror:04chrp450")).toBe(
+      true,
+    );
+    expect(change.served.set).toBeNull();
+  });
+
+  it("a save that hides a work deletes that work's record; one that changes nothing deletes nothing", async () => {
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiExposure: exposure(AFFILIATED_DOC) });
+    await saveCvForUser("u1", AFFILIATED_DOC);
+    expect(mocks.applyOaiDeletions.mock.calls[0]![0].deletions).toEqual([]);
+    mocks.applyOaiDeletions.mockClear();
+    const pubs = AFFILIATED_DOC.sections.find((s) => s.type === "publications")!;
+    const listed = pubs.items.find((i) => i.included)!;
+    await saveCvForUser("u1", setItemIncluded(AFFILIATED_DOC, pubs.id, listed.id, false));
+    const gone = mocks.applyOaiDeletions.mock.calls[0]![0].deletions as Array<{
+      identifier: string;
+      setSpec: string;
+    }>;
+    expect(gone.map((d) => d.setSpec).sort()).toEqual(["", "ror:04chrp450"]);
+    expect(new Set(gone.map((d) => d.identifier)).size).toBe(1);
+    expect(gone[0]!.identifier.startsWith("oai:sigmacv.org:basile-chretien-abcd/w/")).toBe(true);
+  });
+
+  it("a row written before the exposure column diffs against its previous document", async () => {
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiExposure: null });
+    mocks.update.mockResolvedValue({ published: false, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", false);
+    expect(mocks.applyOaiDeletions.mock.calls[0]![0].deletions).toHaveLength(
+      2 * exposure(AFFILIATED_DOC).ids.length,
+    );
+  });
+
+  it("a sync diffs against the exposure it re-reads just before writing", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    mocks.findUnique
+      .mockResolvedValueOnce({ ...SERVED_ROW, oaiExposure: null })
+      .mockResolvedValueOnce({
+        published: false,
+        publicIndexable: false,
+        publicSlug: "basile-chretien-abcd",
+        listUnderAffiliation: false,
+        currentRorId: "04chrp450",
+        oaiFingerprint: "x",
+        oaiExposure: { ids: ["oai:sigmacv.org:basile-chretien-abcd"], set: null },
+      });
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.applyOaiDeletions.mock.calls[0]![0].deletions).toEqual([
+      { identifier: "oai:sigmacv.org:basile-chretien-abcd", setSpec: "" },
+    ]);
+    // A first sync (no row before) has nothing to delete.
+    mocks.findUnique.mockReset();
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.applyOaiDeletions.mockClear();
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.applyOaiDeletions.mock.calls[0]![0].deletions).toEqual([]);
+  });
+});
+
+describe("each write places its CV against the set floor (review of #563)", () => {
+  const LISTED_ROW = {
+    ...BARE_ROW,
+    published: true,
+    publicIndexable: true,
+    publicSlug: "basile-chretien-abcd",
+    listUnderAffiliation: false,
+    currentRorId: "04chrp450",
+    shareReconciliationRows: false,
+    document: AFFILIATED_DOC,
+  };
+
+  it("joining a set below the floor moves no datestamp and exposes no set: nobody is served it", async () => {
+    // Stored while not listed; the set has two other members, so it stays closed.
+    const stored = harvestWrite(
+      LISTED_ROW,
+      AFFILIATED_DOC,
+      {},
+      () => null,
+      new Date(0),
+      false,
+    ).columns;
+    mocks.findUnique.mockResolvedValue({ ...LISTED_ROW, ...stored });
+    mocks.readSetFloor.mockResolvedValue({
+      openBefore: false,
+      openAfter: false,
+      opens: null,
+      closes: null,
+      servedBeforeIn: null,
+    });
+    mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", true, true, true);
+    // The floor was asked with the row as it stood and as it will stand.
+    expect(mocks.readSetFloor).toHaveBeenCalledWith(
+      "abcd1234ef",
+      expect.objectContaining({ listUnderAffiliation: false }),
+      expect.objectContaining({ listUnderAffiliation: true, currentRorId: "04chrp450" }),
+    );
+    const data = mocks.update.mock.calls[0]![0].data;
+    expect(data.listUnderAffiliation).toBe(true);
+    expect(data).not.toHaveProperty("publicChangedAt");
+    expect(data.oaiExposure.set).toBeNull();
+    // Whatever the floor says, the crossing step runs after the write.
+    expect(mocks.applySetCrossings).toHaveBeenCalledWith(
+      {
+        openBefore: false,
+        openAfter: false,
+        opens: null,
+        closes: null,
+        servedBeforeIn: null,
+      },
+      "abcd1234ef",
+      expect.any(Date),
+    );
+  });
+
+  it("joining an open set is a change, and the exposure names the set", async () => {
+    const stored = harvestWrite(
+      LISTED_ROW,
+      AFFILIATED_DOC,
+      {},
+      () => null,
+      new Date(0),
+      false,
+    ).columns;
+    mocks.findUnique.mockResolvedValue({ ...LISTED_ROW, ...stored });
+    mocks.readSetFloor.mockResolvedValue({
+      openBefore: false,
+      openAfter: true,
+      opens: "04chrp450",
+      closes: null,
+      servedBeforeIn: null,
+    });
+    mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", true, true, true);
+    const data = mocks.update.mock.calls[0]![0].data;
+    expect(data.publicChangedAt).toBeInstanceOf(Date);
+    expect(data.oaiExposure.set).toBe("ror:04chrp450");
+    expect(mocks.applySetCrossings.mock.calls[0]![0].opens).toBe("04chrp450");
+  });
+
+  it("leaving a set the live floor says served the CV deletes it from the set, whatever the stored exposure says", async () => {
+    // Stored while the set looked closed (two joins at the same moment); live, it is open.
+    const stale = harvestWrite(
+      { ...LISTED_ROW, listUnderAffiliation: true },
+      AFFILIATED_DOC,
+      {},
+      () => null,
+      new Date(0),
+      false,
+    ).columns;
+    mocks.findUnique.mockResolvedValue({ ...LISTED_ROW, listUnderAffiliation: true, ...stale });
+    mocks.readSetFloor.mockResolvedValue({
+      openBefore: true,
+      openAfter: false,
+      opens: null,
+      closes: null,
+      servedBeforeIn: "ror:04chrp450",
+    });
+    mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", true, true, false);
+    const gone = mocks.applyOaiDeletions.mock.calls[0]![0].deletions as Array<{ setSpec: string }>;
+    expect(gone.length).toBe(stale.oaiExposure.ids.length);
+    expect(gone.every((d) => d.setSpec === "ror:04chrp450")).toBe(true);
+  });
+
+  it("a save and a sync ask the floor too, and cross it after their write", async () => {
+    mocks.findUnique.mockResolvedValue({ ...LISTED_ROW, listUnderAffiliation: true });
+    await saveCvForUser("u1", AFFILIATED_DOC);
+    expect(mocks.readSetFloor.mock.calls[0]![0]).toBe("abcd1234ef");
+    expect(mocks.update.mock.invocationCallOrder[0]!).toBeLessThan(
+      mocks.applySetCrossings.mock.invocationCallOrder[0]!,
+    );
+    mocks.readSetFloor.mockClear();
+    mocks.applySetCrossings.mockClear();
+    mocks.findUnique.mockReset();
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    // A first sync: no row yet, so no id to leave out and no set before.
+    expect(mocks.readSetFloor.mock.calls[0]![0]).toBeNull();
+    expect(mocks.readSetFloor.mock.calls[0]![1]).toBeNull();
+    expect(mocks.applySetCrossings).toHaveBeenCalledTimes(1);
   });
 });

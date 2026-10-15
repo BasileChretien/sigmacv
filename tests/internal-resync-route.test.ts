@@ -16,11 +16,15 @@ const mocks = vi.hoisted(() => ({
   refreshInstitutionProfiles: vi.fn(),
   enforceRateLimit: vi.fn(),
   isAuthorizedInternalRequest: vi.fn(),
+  purgeExpiredOaiDeletions: vi.fn(),
 }));
 
 vi.mock("@/lib/cv/resync", () => ({ resyncDueCvs: mocks.resyncDueCvs }));
 vi.mock("@/lib/cv/doiWithdrawals", () => ({
   drainPendingDoiWithdrawals: mocks.drainPendingDoiWithdrawals,
+}));
+vi.mock("@/lib/cv/oaiDeletions", () => ({
+  purgeExpiredOaiDeletions: mocks.purgeExpiredOaiDeletions,
 }));
 vi.mock("@/lib/openalex/institutionRefresh", () => ({
   refreshInstitutionProfiles: mocks.refreshInstitutionProfiles,
@@ -41,6 +45,7 @@ beforeEach(() => {
   mocks.enforceRateLimit.mockResolvedValue({ ok: true });
   mocks.resyncDueCvs.mockResolvedValue({ scanned: 1, synced: 1, skipped: 0, locked: 0, failed: 0 });
   mocks.drainPendingDoiWithdrawals.mockResolvedValue({ attempted: 1, withdrawn: 1 });
+  mocks.purgeExpiredOaiDeletions.mockResolvedValue(3);
   mocks.refreshInstitutionProfiles.mockResolvedValue({
     candidates: 2,
     refreshed: 2,
@@ -75,8 +80,11 @@ describe("POST /api/internal/resync", () => {
       failed: 0,
       doiWithdrawals: { attempted: 1, withdrawn: 1 },
       institutionProfiles: PROFILES_SUMMARY,
+      oaiDeletionsPurged: 3,
     });
     expect(mocks.drainPendingDoiWithdrawals).toHaveBeenCalledTimes(1);
+    // The OAI deleted records past their 30 days go on the same tick.
+    expect(mocks.purgeExpiredOaiDeletions).toHaveBeenCalledWith(expect.any(Date));
     expect(mocks.refreshInstitutionProfiles).toHaveBeenCalledWith({ maxRows: 20, paceMs: 200 });
     // Its own 5-minute guard, after the resync's.
     expect(mocks.enforceRateLimit).toHaveBeenNthCalledWith(2, "institution-profiles", 1, 300_000);
@@ -109,6 +117,7 @@ describe("POST /api/internal/resync", () => {
     expect(res.status).toBe(500);
     expect(mocks.drainPendingDoiWithdrawals).toHaveBeenCalledTimes(1);
     expect(mocks.refreshInstitutionProfiles).toHaveBeenCalledTimes(1);
+    expect(mocks.purgeExpiredOaiDeletions).toHaveBeenCalledTimes(1);
   });
 
   it("does no work when unauthorized or when a scan ran too recently", async () => {
