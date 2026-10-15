@@ -37,6 +37,13 @@ import { creatorName, doiIri, escapeXml, oaiDatestamp, workYear } from "./shared
  * (whose consent copy names this endpoint), and nothing is in a set without
  * `listUnderAffiliation`.
  *
+ * Deleted records. What stops being served — a CV withdrawn (unpublished,
+ * indexing off, account deleted), a work taken off its page, a CV that left
+ * its set — is answered as a header with `status="deleted"` for 30 days
+ * (`deletedRecord=transient`; the rows are `OaiDeletion`, written by
+ * `cv/oaiDeletions.ts`), so a harvester running deltas removes its copy. A
+ * list hands on to them once every served CV has been listed.
+ *
  * Spec: https://www.openarchives.org/OAI/openarchivesprotocol.html
  */
 
@@ -100,9 +107,25 @@ export interface OaiSet {
   name: string;
 }
 
-/** A page of CV records for a list verb (resumption by slug over CVs). */
+/** A record the endpoint no longer serves — in the repository, or in the set
+ *  a list asked for — answered as a header with `status="deleted"` and the
+ *  date it went. */
+export interface OaiDeletedRecord {
+  identifier: string;
+  datestamp: Date;
+  /** The set it left, in a set-filtered list. */
+  setSpec?: string;
+  deleted: true;
+}
+
+/** Deleted records per page (one header each, no metadata). */
+export const OAI_DELETED_PAGE_SIZE = 1000;
+
+/** A page of a list verb: served CV records, then deleted records (resumption by row id). */
 export interface OaiListPage {
   records: OaiRecordInput[];
+  /** Deleted records, listed once every served CV has been (header only). */
+  deleted?: OaiDeletedRecord[];
   /** True when the request carried a resumption token: the last page of a
    *  list that paged at all closes with an empty token. */
   resumed: boolean;
@@ -117,9 +140,11 @@ export interface OaiListPage {
 }
 
 /** Where the next page of a list starts: after the id of the last row read
- *  (what this provider issues), or, for a harvest begun with a token issued
- *  before that existed, at an offset in the order that token was cut from. */
-export type ListPosition = { after: string } | { offset: number };
+ *  (what this provider issues); for a harvest begun with a token issued before
+ *  that existed, at an offset in the order that token was cut from; or, once
+ *  every served CV has been listed, among the deleted records after the id of
+ *  the last one read ("" = from the first). */
+export type ListPosition = { after: string } | { offset: number } | { deletedAfter: string };
 
 /** The filters of a list request (`set` = bare ROR id). Both dates are
  *  inclusive at the repository's one-second granularity: `until` is the last
@@ -341,31 +366,40 @@ export function findWorkRecord(record: OaiRecordInput, itemId: string): OaiWorkR
   return workRecords(record).find((w) => w.itemId === itemId) ?? null;
 }
 
-type OaiAnyRecord = OaiRecordInput | OaiWorkRecord;
+type OaiAnyRecord = OaiRecordInput | OaiWorkRecord | OaiDeletedRecord;
 
 function isWorkRecord(r: OaiAnyRecord): r is OaiWorkRecord {
   return "itemId" in r;
 }
 
+function isDeletedRecord(r: OaiAnyRecord): r is OaiDeletedRecord {
+  return "deleted" in r;
+}
+
+function identifierOf(r: OaiRecordInput | OaiWorkRecord): string {
+  return isWorkRecord(r) ? oaiWorkIdentifier(r.slug, r.itemId) : oaiIdentifier(r.slug);
+}
+
 function headerXml(record: OaiAnyRecord): string {
-  const identifier = isWorkRecord(record)
-    ? oaiWorkIdentifier(record.slug, record.itemId)
-    : oaiIdentifier(record.slug);
+  const deleted = isDeletedRecord(record);
+  const identifier = deleted ? record.identifier : identifierOf(record);
   const set = record.setSpec ? `\n        <setSpec>${escapeXml(record.setSpec)}</setSpec>` : "";
-  return `      <header>
+  return `      <header${deleted ? ' status="deleted"' : ""}>
         <identifier>${escapeXml(identifier)}</identifier>
         <datestamp>${oaiDatestamp(record.datestamp)}</datestamp>${set}
       </header>`;
 }
 
 /** The `<metadata>` payload of a record in the requested format. */
-function metadataXml(record: OaiAnyRecord, prefix: OaiMetadataPrefix): string {
+function metadataXml(record: OaiRecordInput | OaiWorkRecord, prefix: OaiMetadataPrefix): string {
   if (prefix === "oaire")
     return isWorkRecord(record) ? oaireWorkMetadata(record) : oaireCvMetadata(record);
   return isWorkRecord(record) ? workDcMetadata(record) : dcMetadata(record);
 }
 
 function recordXml(record: OaiAnyRecord, prefix: OaiMetadataPrefix): string {
+  // A deleted record is its header alone (protocol: no metadata).
+  if (isDeletedRecord(record)) return `    <record>\n${headerXml(record)}\n    </record>`;
   return `    <record>
 ${headerXml(record)}
       <metadata>
@@ -377,7 +411,10 @@ ${metadataXml(record, prefix)}
 /** A page's CV records expanded into the wire order: each CV record followed
  *  by its per-work records. */
 function expandPage(page: OaiListPage): OaiAnyRecord[] {
-  return page.records.flatMap((record) => [record, ...workRecords(record)]);
+  return [
+    ...page.records.flatMap((record) => [record, ...workRecords(record)]),
+    ...(page.deleted ?? []),
+  ];
 }
 
 /** The fingerprint of a CV the endpoint serves nothing for (unpublished, not
@@ -437,6 +474,8 @@ function resumptionTokenXml(page: OaiListPage): string {
 export interface ResumptionState extends ListFilters {
   after?: string;
   offset?: number;
+  /** Among the deleted records, after this row id ("" = from the first). */
+  deletedAfter?: string;
   metadataPrefix?: OaiMetadataPrefix;
 }
 
@@ -464,6 +503,7 @@ export function encodeResumptionToken(state: ResumptionState): string {
   const p = new URLSearchParams();
   if (state.after !== undefined) p.set("a", state.after);
   if (state.offset !== undefined) p.set("o", String(state.offset));
+  if (state.deletedAfter !== undefined) p.set("t", state.deletedAfter);
   if (state.set) p.set("s", state.set);
   if (state.from) p.set("f", oaiSeconds(state.from));
   if (state.until) p.set("u", oaiSeconds(state.until));
@@ -481,7 +521,7 @@ export function identifyResponse(opts: BuildOpts): string {
     <protocolVersion>2.0</protocolVersion>
     <adminEmail>contact@sigmacv.org</adminEmail>
     <earliestDatestamp>${OAI_EARLIEST_DATESTAMP}</earliestDatestamp>
-    <deletedRecord>no</deletedRecord>
+    <deletedRecord>transient</deletedRecord>
     <granularity>YYYY-MM-DDThh:mm:ssZ</granularity>
     <description>
       <oai-identifier xmlns="http://www.openarchives.org/OAI/2.0/oai-identifier" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.openarchives.org/OAI/2.0/oai-identifier http://www.openarchives.org/OAI/2.0/oai-identifier.xsd">
@@ -611,6 +651,8 @@ export type OaiPlan =
       after?: string;
       /** Resume at this position (a token issued before `after` existed). */
       offset?: number;
+      /** Resume among the deleted records, after this row id ("" = from the first). */
+      deletedAfter?: string;
       from?: Date;
       /** Inclusive, at one-second granularity (see {@link ListFilters}). */
       until?: Date;
@@ -649,7 +691,8 @@ function untilBound(d: OaiDate): Date {
  * Decode a resumption token into its state, or null when malformed. Accepts the
  * pre-set-era bare integer (offset only, no filters — those tokens never had
  * any) and the encoded form, which names where the next page starts by EXACTLY
- * one of `a` (the id of the last row read — what this provider issues) or `o` (an
+ * one of `a` (the id of the last row read — what this provider issues), `t`
+ * (among the deleted records, after the id of the last one read) or `o` (an
  * offset — what it issued before); every carried field is re-validated exactly
  * as the original request argument would be (a tampered set or date is
  * rejected, never widened into an unfiltered list). The dates come back as the
@@ -668,8 +711,14 @@ export function parseResumptionToken(token: string): ResumptionState | null {
   const p = new URLSearchParams(decoded);
   const a = p.get("a");
   const o = p.get("o");
-  if ((a === null) === (o === null)) return null;
+  const t = p.get("t");
+  if ([a, o, t].filter((v) => v !== null).length !== 1) return null;
   const state: ResumptionState = {};
+  if (t !== null) {
+    // "" = from the first deleted record; else the id of the last one read.
+    if (t !== "" && !TOKEN_ROW_ID.test(t)) return null;
+    state.deletedAfter = t;
+  }
   if (a !== null) {
     if (!TOKEN_ROW_ID.test(a)) return null;
     state.after = a;

@@ -845,3 +845,75 @@ describe("oaire metadata prefix", () => {
     ).toBe(EXPECTED_CV);
   });
 });
+
+describe("deleted records (deletedRecord=transient)", () => {
+  const GONE = new Date("2026-10-14T09:00:00.000Z");
+  const deleted = {
+    identifier: "oai:sigmacv.org:ada-x7/w/W1",
+    datestamp: GONE,
+    setSpec: "ror:04chrp450",
+    deleted: true as const,
+  };
+
+  it("Identify says deletions are kept for a limited time", () => {
+    const xml = identifyResponse(OPTS);
+    expect(xml).toContain("<deletedRecord>transient</deletedRecord>");
+    expect(xml).not.toContain("<deletedRecord>no</deletedRecord>");
+  });
+
+  it("GetRecord of a deleted record is its header alone, marked deleted", () => {
+    const xml = getRecordResponse(
+      { verb: "GetRecord", identifier: deleted.identifier, metadataPrefix: "oai_dc" },
+      deleted,
+      OPTS,
+    );
+    expect(xml).toContain('<header status="deleted">');
+    expect(xml).toContain("<identifier>oai:sigmacv.org:ada-x7/w/W1</identifier>");
+    expect(xml).toContain("<datestamp>2026-10-14T09:00:00Z</datestamp>");
+    expect(xml).toContain("<setSpec>ror:04chrp450</setSpec>");
+    expect(xml).not.toContain("<metadata>");
+  });
+
+  it("a list carries the served records, then the deleted ones, and hands on among them", () => {
+    const page: OaiListPage = {
+      records: [makeRecord()],
+      deleted: [{ ...deleted, setSpec: undefined }],
+      resumed: true,
+      next: { deletedAfter: "d7" },
+    };
+    const xml = listRecordsResponse({ verb: "ListRecords", resumptionToken: "x" }, page, OPTS);
+    expect((xml.match(/<record>/g) ?? []).length).toBe(2);
+    expect(xml.indexOf("<oai_dc:dc")).toBeLessThan(xml.indexOf('<header status="deleted">'));
+    const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(xml)![1]!;
+    expect(parseResumptionToken(token)).toEqual({ deletedAfter: "d7" });
+    const ids = listIdentifiersResponse(
+      { verb: "ListIdentifiers", resumptionToken: "x" },
+      { ...page, records: [], next: null },
+      OPTS,
+    );
+    expect(ids).toContain('<header status="deleted">');
+    expect(ids).toContain("<resumptionToken/>");
+  });
+
+  it("a token resumes among the deleted records from the first or after a row id, nothing else", () => {
+    const forged = (q: string) => Buffer.from(q, "utf8").toString("base64url");
+    expect(parseResumptionToken(encodeResumptionToken({ deletedAfter: "" }))).toEqual({
+      deletedAfter: "",
+    });
+    expect(parseResumptionToken(forged("t=cmg2x3y4z0000abcd&s=04chrp450"))).toEqual({
+      deletedAfter: "cmg2x3y4z0000abcd",
+      set: "04chrp450",
+    });
+    expect(parseResumptionToken(forged("t=oai:sigmacv.org:ada-x7"))).toBeNull();
+    expect(parseResumptionToken(forged("t=&a=c1"))).toBeNull();
+    expect(parseResumptionToken(forged("t=&o=1"))).toBeNull();
+    expect(
+      validateOaiRequest({ verb: "ListIdentifiers", resumptionToken: forged("t=c1&m=oaire") }),
+    ).toEqual({
+      kind: "list",
+      verb: "ListIdentifiers",
+      metadataPrefix: "oaire",
+      deletedAfter: "c1",
+    });
+  });
+});

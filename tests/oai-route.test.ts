@@ -14,12 +14,20 @@ const mocks = vi.hoisted(() => ({
   listPublicCvRecords: vi.fn(),
   listAffiliationSets: vi.fn(),
   enforceRateLimit: vi.fn(),
+  hasOaiDeletions: vi.fn(),
+  listOaiDeletions: vi.fn(),
+  findOaiDeletion: vi.fn(),
 }));
 
 vi.mock("@/lib/cv/sync", () => ({
   getPublicCvRecord: mocks.getPublicCvRecord,
   listPublicCvRecords: mocks.listPublicCvRecords,
   listAffiliationSets: mocks.listAffiliationSets,
+}));
+vi.mock("@/lib/cv/oaiDeletions", () => ({
+  hasOaiDeletions: mocks.hasOaiDeletions,
+  listOaiDeletions: mocks.listOaiDeletions,
+  findOaiDeletion: mocks.findOaiDeletion,
 }));
 vi.mock("@/lib/rateLimitStore", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
 vi.mock("@/lib/log", () => ({ logger: { info: vi.fn(), warn: vi.fn(), error: vi.fn() } }));
@@ -44,6 +52,9 @@ const get = (qs: string) => GET(new Request(`https://sigmacv.test/api/oai?${qs}`
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
   mocks.enforceRateLimit.mockResolvedValue({ ok: true });
+  mocks.hasOaiDeletions.mockResolvedValue(false);
+  mocks.listOaiDeletions.mockResolvedValue({ rows: [], next: null });
+  mocks.findOaiDeletion.mockResolvedValue(null);
 });
 
 const FORM = "application/x-www-form-urlencoded";
@@ -297,5 +308,71 @@ describe("OAI-PMH route: oaire metadata format", () => {
     ).text();
     expect(rec).toContain('<error code="cannotDisseminateFormat">');
     expect(mocks.getPublicCvRecord).not.toHaveBeenCalled();
+  });
+});
+
+describe("OAI-PMH route: deleted records", () => {
+  const GONE = new Date("2026-10-14T09:00:00.000Z");
+
+  it("a withdrawn CV answers GetRecord as a deleted record while it lasts, then idDoesNotExist", async () => {
+    mocks.getPublicCvRecord.mockResolvedValue(null);
+    mocks.findOaiDeletion.mockResolvedValueOnce(GONE);
+    const xml = await (
+      await get("verb=GetRecord&metadataPrefix=oai_dc&identifier=oai:sigmacv.org:ada-x7")
+    ).text();
+    expect(mocks.findOaiDeletion).toHaveBeenCalledWith("oai:sigmacv.org:ada-x7");
+    expect(xml).toContain('<header status="deleted">');
+    expect(xml).toContain("<datestamp>2026-10-14T09:00:00Z</datestamp>");
+    expect(xml).not.toContain("<metadata>");
+    // Past its 30 days (purged), the identifier is unknown again.
+    const later = await (
+      await get("verb=GetRecord&metadataPrefix=oai_dc&identifier=oai:sigmacv.org:ada-x7")
+    ).text();
+    expect(later).toContain('<error code="idDoesNotExist">');
+  });
+
+  it("a work taken off a page that is still served answers as deleted", async () => {
+    mocks.getPublicCvRecord.mockResolvedValue(RECORD); // the CV is served; W9 is not listed
+    mocks.findOaiDeletion.mockResolvedValueOnce(GONE);
+    const xml = await (
+      await get("verb=GetRecord&metadataPrefix=oai_dc&identifier=oai:sigmacv.org:ada-x7/w/W9")
+    ).text();
+    expect(mocks.findOaiDeletion).toHaveBeenCalledWith("oai:sigmacv.org:ada-x7/w/W9");
+    expect(xml).toContain('<header status="deleted">');
+  });
+
+  it("a delta that only has deletions lists them, rather than answering noRecordsMatch", async () => {
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [], next: null });
+    mocks.listOaiDeletions.mockResolvedValue({
+      rows: [{ identifier: "oai:sigmacv.org:ada-x7", deletedAt: GONE }],
+      next: null,
+    });
+    const xml = await (
+      await get("verb=ListIdentifiers&metadataPrefix=oai_dc&from=2026-10-14")
+    ).text();
+    expect(xml).toContain('<header status="deleted">');
+    expect(xml).toContain("<identifier>oai:sigmacv.org:ada-x7</identifier>");
+    expect(xml).not.toContain("<resumptionToken");
+  });
+
+  it("the last page of served CVs hands on to the deleted records with a token", async () => {
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: null });
+    mocks.hasOaiDeletions.mockResolvedValue(true);
+    const first = await (
+      await get("verb=ListRecords&metadataPrefix=oaire&set=ror:04chrp450")
+    ).text();
+    const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(first)![1]!;
+    expect(Buffer.from(token, "base64url").toString("utf8")).toBe("t=&s=04chrp450&m=oaire");
+    mocks.listOaiDeletions.mockResolvedValue({
+      rows: [{ identifier: "oai:sigmacv.org:bo-y8", deletedAt: GONE }],
+      next: null,
+    });
+    const second = await (await get(`verb=ListRecords&resumptionToken=${token}`)).text();
+    expect(mocks.listOaiDeletions).toHaveBeenCalledWith(
+      expect.objectContaining({ setSpec: "ror:04chrp450", after: "" }),
+    );
+    expect(second).toContain('<header status="deleted">');
+    expect(second).toContain("<setSpec>ror:04chrp450</setSpec>");
+    expect(second).toContain("<resumptionToken/>");
   });
 });
