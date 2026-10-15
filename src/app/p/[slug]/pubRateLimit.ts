@@ -29,13 +29,10 @@ export async function enforcePubPageRateLimit(req: Request): Promise<PubRateLimi
   return enforcePubPageRateLimitForIp(clientIp(req));
 }
 
-/**
- * The same limit for a caller that has the client IP but no `Request` — a
- * server-component page (the institution pages read it from `headers()`).
- * Shares the `pubpage:` buckets, so a flood across the public CV pages and the
- * institution pages counts against one ceiling.
- */
-export async function enforcePubPageRateLimitForIp(ip: string): Promise<PubRateLimitOutcome> {
+/** The same limit for a client IP. The institution surfaces have buckets of
+ *  their own (`app/i/institutionRateLimit.ts`), so a scan of ROR ids can
+ *  never spend this ceiling. */
+async function enforcePubPageRateLimitForIp(ip: string): Promise<PubRateLimitOutcome> {
   const rl = await enforceRateLimit(`pubpage:${ip}`, PUBPAGE_MAX, PUBPAGE_WINDOW_MS);
   if (!rl.ok) return { ok: false, retryAfterSec: rl.retryAfterSec };
   const grl = await enforceRateLimit(

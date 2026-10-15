@@ -1,4 +1,5 @@
-import { enforcePubPageRateLimit, tooManyRequests } from "@/app/p/[slug]/pubRateLimit";
+import { enforceInstitutionRateLimit } from "@/app/i/institutionRateLimit";
+import { tooManyRequests } from "@/app/p/[slug]/pubRateLimit";
 import { countListedCvs } from "@/lib/cv/listed";
 import {
   isKnownInstitutionMiss,
@@ -27,7 +28,7 @@ export async function loadReconciliationExport(
   req: Request,
   ror: string,
 ): Promise<ReconciliationLookup> {
-  const rl = await enforcePubPageRateLimit(req);
+  const rl = await enforceInstitutionRateLimit(req);
   if (!rl.ok) return { kind: "rate-limited", retryAfterSec: rl.retryAfterSec };
   if (!isRorId(ror) || isKnownInstitutionMiss(ror)) return { kind: "missing" };
   if ((await countListedCvs(ror)) < 1) {

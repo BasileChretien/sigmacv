@@ -368,12 +368,12 @@ describe("/i/[ror]/reconciliation.csv and .json", () => {
     expect(json.rows).toEqual([]);
   });
 
-  it("shares the public pages' rate limit and 429s with Retry-After before any read", async () => {
+  it("shares the institution pages' rate limit (never the CV pages') and 429s with Retry-After before any read", async () => {
     mocks.enforceRateLimit.mockResolvedValue({ ok: false, retryAfterSec: 30 });
     const res = await jsonGet(req(ROR, "json"), params(ROR));
     expect(res.status).toBe(429);
     expect(res.headers.get("Retry-After")).toBe("30");
-    expect(mocks.enforceRateLimit.mock.calls[0]![0]).toBe("pubpage:203.0.113.9");
+    expect(mocks.enforceRateLimit.mock.calls[0]![0]).toBe("instpage:203.0.113.9");
     expect(mocks.count).not.toHaveBeenCalled();
     expect(mocks.findMany).not.toHaveBeenCalled();
   });

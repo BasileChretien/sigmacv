@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { cache } from "react";
 import { headers } from "next/headers";
 import { chargeComparisonLimits } from "@/app/i/compareLimits";
-import { enforcePubPageRateLimitForIp } from "@/app/p/[slug]/pubRateLimit";
+import { enforceInstitutionRateLimitForIp } from "@/app/i/institutionRateLimit";
 import type { Locale } from "@/lib/i18n";
 import { institutionCompareStrings } from "@/lib/i18n/institutionsCompare";
 import {
@@ -31,7 +31,8 @@ import { localeInstitutionComparePath } from "@/lib/seo";
  * same request — share one rate-limit check and one database read.
  *
  * Order for a page: rate limit → id shape → negative cache → database. The
- * limit is the public CV pages' (`pubpage:` buckets, per IP + global), applied
+ * limit is the institution surfaces' own (`instpage:` buckets, per IP +
+ * global; `institutionRateLimit.ts`), never the public CV pages', applied
  * first so that even a flood of malformed ids costs no render; an id that is
  * not ROR-shaped, or one recently found to have no page, costs no `Cv` read
  * (the rate-limit check itself is a Postgres-backed window, so "no database"
@@ -49,7 +50,7 @@ export type InstitutionCompareLookup =
   | { kind: "rate-limited" };
 
 async function rateLimited(): Promise<boolean> {
-  const rl = await enforcePubPageRateLimitForIp(clientIpFromHeaders(await headers()));
+  const rl = await enforceInstitutionRateLimitForIp(clientIpFromHeaders(await headers()));
   return !rl.ok;
 }
 

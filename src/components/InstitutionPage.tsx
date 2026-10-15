@@ -136,8 +136,8 @@ function reconciliationSentence(s: ReturnType<typeof institutionStrings>, count:
   return count === 1 ? s.reconciliationOne : fillInstitutionString(s.reconciliationMany, { count });
 }
 
-/** The notice shown in place of either page when the public-page rate limit is
- *  exceeded: a server component cannot send a 429, so it says so in prose, and
+/** The notice shown in place of either page when the institution pages' rate
+ *  limit (`app/i/institutionRateLimit.ts`) is exceeded: a server component cannot send a 429, so it says so in prose, and
  *  the route's metadata marks it `noindex, nofollow` (`institutionRobots`). */
 export function InstitutionRateLimited({ locale }: { locale: string }) {
   const loc = asLocale(locale);

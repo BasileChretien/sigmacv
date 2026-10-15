@@ -267,19 +267,22 @@ describe("/i/compare", () => {
     expect(at("Nagoya University")).toBeLessThan(at("Université de Caen Normandie"));
   });
 
-  it("charges the public-page limit once per requested organisation and its own bucket once, and serves the noindex notice when either refuses", async () => {
+  it("charges the institution limit once per requested organisation and its own bucket once, never the CV pages', and serves the noindex notice when either refuses", async () => {
     db();
     await ComparePage(props([CAEN, NAGOYA, CHU]));
     const keys = mocks.enforceRateLimit.mock.calls.map((c) => c[0]);
-    expect(keys.filter((k) => k === "pubpage:203.0.113.9")).toHaveLength(3);
+    expect(keys.filter((k) => k === "instpage:203.0.113.9")).toHaveLength(3);
     expect(keys.filter((k) => k === "icompare:203.0.113.9")).toHaveLength(1);
-    expect(keys.filter((k) => k === "pubpage:global")).toHaveLength(3);
+    expect(keys.filter((k) => k === "instpage:global")).toHaveLength(3);
+    expect(keys.some((k) => k.startsWith("pubpage:"))).toBe(false);
 
-    // No usable id still costs one public-page token (the picker is a page too).
+    // No usable id still costs one institution token (the picker is a page too).
     mocks.enforceRateLimit.mockClear();
     await ComparePage(props(undefined));
     expect(
-      mocks.enforceRateLimit.mock.calls.map((c) => c[0]).filter((k) => k === "pubpage:203.0.113.9"),
+      mocks.enforceRateLimit.mock.calls
+        .map((c) => c[0])
+        .filter((k) => k === "instpage:203.0.113.9"),
     ).toHaveLength(1);
 
     mocks.enforceRateLimit.mockReset();
@@ -512,7 +515,7 @@ describe("/i/compare", () => {
     // The same rate limit as the page: own bucket, then one charge per organisation.
     const keys = mocks.enforceRateLimit.mock.calls.map((c) => c[0]);
     expect(keys[0]).toBe("icompare:203.0.113.9");
-    expect(keys.filter((k) => k === "pubpage:203.0.113.9")).toHaveLength(2);
+    expect(keys.filter((k) => k === "instpage:203.0.113.9")).toHaveLength(2);
 
     // Fewer than two: a 404 that says why, as the page does; never an echo of a bad id.
     db({ [NAGOYA]: 3 });
@@ -533,7 +536,7 @@ describe("/i/compare", () => {
     expect(((await limited.json()) as { error: string }).error).toBe("rate-limited");
     mocks.enforceRateLimit.mockReset();
     mocks.enforceRateLimit.mockImplementation(async (key: string) =>
-      key.startsWith("pubpage:") ? { ok: false, retryAfterSec: 45 } : { ok: true },
+      key.startsWith("instpage:") ? { ok: false, retryAfterSec: 45 } : { ok: true },
     );
     const pub = await jsonGet(req(`ror=${CAEN}&ror=${NAGOYA}`));
     expect(pub.status).toBe(429);
