@@ -72,6 +72,7 @@ describe("institution pages never call an external API", () => {
       "compare.ts",
       "compareExport.ts",
       "compareLimits.ts",
+      "institutionRateLimit.ts",
       "InstitutionCompare.tsx",
       "cvAggregates.ts",
       "aggregateSum.ts",
