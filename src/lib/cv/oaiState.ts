@@ -160,10 +160,13 @@ export interface HarvestWrite {
  * set is open once the write lands (the set floor, `oaiSetFloor.ts`); a closed
  * set enters neither the fingerprint nor the exposure, because nobody is
  * served it. `servedBeforeIn`: the set the live floor says the CV was served
- * in before this write (null when none). The record counts as served in a set
- * if its stored exposure OR the live floor says so, so a stale exposure (two
- * writes that crossed the floor at the same moment, or a crossing cut short)
- * never costs a harvester the deleted record that tells it to drop the CV.
+ * in before this write (null when none). A stored exposure that names no set
+ * takes it, so an exposure left without its set (two writes that crossed the
+ * floor at the same moment, or a crossing cut short) does not cost a harvester
+ * the deleted record that tells it to drop the CV. That is the one case it
+ * covers: a stored exposure naming another set is kept as it is, and without a
+ * per-institution lock a crossing that races a member's own write can still
+ * store a wrong one (a residual stated in #563).
  */
 export function harvestWrite(
   row: HarvestColumns,

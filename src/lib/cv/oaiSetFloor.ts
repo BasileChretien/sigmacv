@@ -58,7 +58,8 @@ export interface SetFloor {
   /** Bare ROR id of a set this write takes below the floor, or null. */
   closes: string | null;
   /** The set spec the CV was served in before the write, by the live count
-   *  (null when none): what `harvestWrite` unions with the stored exposure. */
+   *  (null when none): what `harvestWrite` gives a stored exposure that names
+   *  no set (`withServedSet`). */
   servedBeforeIn: string | null;
 }
 
