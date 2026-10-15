@@ -66,3 +66,31 @@ describe("privacyStrings", () => {
     }
   });
 });
+
+describe("the OAI-PMH deleted records in the retention notice", () => {
+  // A harvest of an institution set names that set on each deleted record, so
+  // the notice must say so, in every locale, and never claim "nothing else"
+  // (review of #561).
+  const NAMES_THE_SET: Record<string, string> = {
+    "en-US": "in a harvest of an institution set it has left, that set",
+    "zh-CN": "回应该集合",
+    "es-ES": "ese conjunto",
+    "fr-FR": "cet ensemble",
+    "de-DE": "diesem Set",
+    "ja-JP": "そのセットも返します",
+    "pt-BR": "esse conjunto",
+    "it-IT": "quel set",
+    "ko-KR": "그 세트도",
+    "ru-RU": "этим набором",
+  };
+
+  it("states the 30 days, and that a set harvest names the set, in every locale", () => {
+    for (const [loc, phrase] of Object.entries(NAMES_THE_SET)) {
+      const retention = privacyStrings(loc).retention;
+      expect(retention, loc).toContain("OAI-PMH");
+      expect(retention, loc).toMatch(/30/);
+      expect(retention, loc).toContain(phrase);
+    }
+    expect(privacyStrings("en-US").retention).not.toContain("nothing else");
+  });
+});

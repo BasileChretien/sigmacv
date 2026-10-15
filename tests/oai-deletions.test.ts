@@ -79,13 +79,17 @@ describe("applyOaiDeletions", () => {
     expect(mocks.deleteMany.mock.calls[0]![0]).toEqual({
       where: { identifier: { in: ["oai:sigmacv.org:a"] }, setSpec: { in: ["", "ror:04chrp450"] } },
     });
-    // A key deleted again moves to the new date: its old row goes first.
+    // A key deleted again moves to the new date: its old row goes first, set by
+    // set (exact keys, never a cross product), before anything is written.
     expect(mocks.deleteMany.mock.calls[1]![0]).toEqual({
-      where: {
-        identifier: { in: ["oai:sigmacv.org:a/w/1"] },
-        setSpec: { in: ["", "ror:04chrp450"] },
-      },
+      where: { identifier: { in: ["oai:sigmacv.org:a/w/1"] }, setSpec: "" },
     });
+    expect(mocks.deleteMany.mock.calls[2]![0]).toEqual({
+      where: { identifier: { in: ["oai:sigmacv.org:a/w/1"] }, setSpec: "ror:04chrp450" },
+    });
+    expect(mocks.deleteMany.mock.invocationCallOrder[2]!).toBeLessThan(
+      mocks.createMany.mock.invocationCallOrder[0]!,
+    );
     expect(mocks.createMany).toHaveBeenCalledWith({
       data: [
         { identifier: "oai:sigmacv.org:a/w/1", setSpec: "", deletedAt: NOW },
@@ -253,5 +257,94 @@ describe("purgeExpiredOaiDeletions", () => {
     mocks.deleteMany.mockRejectedValue(new Error("db down"));
     expect(await purgeExpiredOaiDeletions(NOW)).toBe(0);
     expect(mocks.warn).toHaveBeenCalledWith("oai.deletions_purge_failed", expect.anything());
+  });
+});
+
+describe("applyOaiDeletions against a table (review of #561)", () => {
+  /** An in-memory OaiDeletion table behind the mocked client. */
+  function table() {
+    const rows = new Map<string, { identifier: string; setSpec: string; deletedAt: Date }>();
+    // A set spec holds no space, so "<set> <identifier>" is unambiguous.
+    const key = (identifier: string, setSpec: string) => `${setSpec} ${identifier}`;
+    const inList = (v: string, f: string | { in: string[] }) =>
+      typeof f === "string" ? v === f : f.in.includes(v);
+    mocks.deleteMany.mockImplementation(
+      async ({
+        where,
+      }: {
+        where: { identifier: { in: string[] }; setSpec: string | { in: string[] } };
+      }) => {
+        let count = 0;
+        for (const [k, r] of rows) {
+          if (inList(r.identifier, where.identifier) && inList(r.setSpec, where.setSpec)) {
+            rows.delete(k);
+            count++;
+          }
+        }
+        return { count };
+      },
+    );
+    mocks.createMany.mockImplementation(
+      async ({
+        data,
+      }: {
+        data: Array<{ identifier: string; setSpec: string; deletedAt: Date }>;
+      }) => {
+        for (const r of data)
+          if (!rows.has(key(r.identifier, r.setSpec))) rows.set(key(r.identifier, r.setSpec), r);
+        return { count: data.length };
+      },
+    );
+    return {
+      has: (identifier: string, setSpec: string) => rows.has(key(identifier, setSpec)),
+      size: () => rows.size,
+    };
+  }
+
+  it("keeps every key when one record's two keys fall in different chunks", async () => {
+    const t = table();
+    // 999 works still served that left the set (one key each), then a work taken
+    // off (two keys) straddling the 1,000-key chunk boundary, then another.
+    const deletions = [
+      ...Array.from({ length: 999 }, (_, i) => ({
+        identifier: `oai:sigmacv.org:a/w/s${i}`,
+        setSpec: "ror:04chrp450",
+      })),
+      { identifier: "oai:sigmacv.org:a/w/X", setSpec: "" },
+      { identifier: "oai:sigmacv.org:a/w/X", setSpec: "ror:04chrp450" },
+      { identifier: "oai:sigmacv.org:a/w/Y", setSpec: "" },
+      { identifier: "oai:sigmacv.org:a/w/Y", setSpec: "ror:04chrp450" },
+    ];
+    await applyOaiDeletions({ served: { ids: [], set: null }, deletions }, NOW);
+    expect(t.has("oai:sigmacv.org:a/w/X", "")).toBe(true);
+    expect(t.has("oai:sigmacv.org:a/w/X", "ror:04chrp450")).toBe(true);
+    expect(t.has("oai:sigmacv.org:a/w/Y", "")).toBe(true);
+    expect(t.size()).toBe(deletions.length);
+  });
+
+  it("a key deleted again moves to the new date, and touches no other key", async () => {
+    const t = table();
+    const earlier = new Date("2026-10-01T00:00:00.000Z");
+    await applyOaiDeletions(
+      {
+        served: { ids: [], set: null },
+        deletions: [
+          { identifier: "oai:sigmacv.org:a", setSpec: "" },
+          { identifier: "oai:sigmacv.org:b", setSpec: "ror:04chrp450" },
+        ],
+      },
+      earlier,
+    );
+    await applyOaiDeletions(
+      {
+        served: { ids: [], set: null },
+        deletions: [{ identifier: "oai:sigmacv.org:a", setSpec: "" }],
+      },
+      NOW,
+    );
+    expect(t.has("oai:sigmacv.org:a", "")).toBe(true);
+    expect(t.has("oai:sigmacv.org:b", "ror:04chrp450")).toBe(true);
+    const created = mocks.createMany.mock.calls.at(-1)![0].data;
+    expect(created).toEqual([{ identifier: "oai:sigmacv.org:a", setSpec: "", deletedAt: NOW }]);
   });
 });

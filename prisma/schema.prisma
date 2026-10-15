@@ -327,9 +327,9 @@ model Funder {
 // gone from that set (the record may still be served without it). Written by
 // every CV write that stops serving something and by account deletion, which
 // is why there is no user FK; purged after 30 days by the resync cron
-// (src/lib/cv/oaiDeletions.ts). Holds the identifier and the date, nothing
-// else — the identifier carries the public slug, so the retention is stated
-// in the privacy notice.
+// (src/lib/cv/oaiDeletions.ts). Holds the identifier, the set and the date —
+// the identifier carries the public slug, so the retention, and that a set
+// harvest names the set, are stated in the privacy notice.
 model OaiDeletion {
   // The list's cursor: unique and short, where identifiers are neither short
   // nor safe to cut (a slug may run to a thousand characters).

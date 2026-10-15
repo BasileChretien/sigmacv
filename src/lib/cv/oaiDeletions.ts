@@ -68,13 +68,19 @@ export async function applyOaiDeletions(change: OaiDeletionChange, now: Date): P
         where: { identifier: { in: ids }, setSpec: { in: servedSets } },
       });
     }
+    // A key deleted again moves to the new date: its old row goes first. Set
+    // by set, so a delete matches exactly the keys it names (a cross product
+    // of identifiers and sets would reach other keys), and every delete runs
+    // before any write, so no chunk can remove a row another chunk wrote.
+    const bySet = new Map<string, string[]>();
+    for (const k of change.deletions)
+      bySet.set(k.setSpec, [...(bySet.get(k.setSpec) ?? []), k.identifier]);
+    for (const [setSpec, identifiers] of bySet) {
+      for (const ids of chunks(identifiers)) {
+        await prisma.oaiDeletion.deleteMany({ where: { identifier: { in: ids }, setSpec } });
+      }
+    }
     for (const keys of chunks(change.deletions)) {
-      await prisma.oaiDeletion.deleteMany({
-        where: {
-          identifier: { in: [...new Set(keys.map((k) => k.identifier))] },
-          setSpec: { in: [...new Set(keys.map((k) => k.setSpec))] },
-        },
-      });
       await prisma.oaiDeletion.createMany({
         data: keys.map((k) => ({ ...k, deletedAt: now })),
         skipDuplicates: true,
