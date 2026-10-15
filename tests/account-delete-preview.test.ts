@@ -19,12 +19,14 @@ const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
   isSameOrigin: vi.fn(),
   withdrawMintedSnapshotDois: vi.fn(),
+  withdrawOaiRecords: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/cv/snapshotStore", () => ({
   withdrawMintedSnapshotDois: mocks.withdrawMintedSnapshotDois,
 }));
+vi.mock("@/lib/cv/oaiDeletions", () => ({ withdrawOaiRecords: mocks.withdrawOaiRecords }));
 vi.mock("@/lib/db", () => ({
   prisma: {
     user: { findUnique: mocks.userFindUnique, delete: mocks.userDelete },
@@ -203,5 +205,22 @@ describe("deleting an account withdraws its minted snapshot DOIs first", () => {
     const res = await DELETE(req());
     expect(res.status).toBe(200);
     expect(mocks.userDelete).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("deleting an account tells OAI-PMH harvesters", () => {
+  it("records the CV's served identifiers as deleted BEFORE the cascade removes the row", async () => {
+    const order: string[] = [];
+    mocks.userFindUnique.mockResolvedValue({ orcid: ORCID });
+    mocks.withdrawOaiRecords.mockImplementation(async () => {
+      order.push("oai");
+    });
+    mocks.userDelete.mockImplementation(async () => {
+      order.push("delete");
+      return {};
+    });
+    expect((await DELETE(req())).status).toBe(200);
+    expect(mocks.withdrawOaiRecords).toHaveBeenCalledWith("u1", expect.any(Date));
+    expect(order).toEqual(["oai", "delete"]);
   });
 });

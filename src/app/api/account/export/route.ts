@@ -106,7 +106,9 @@ export async function GET() {
   // ids, whether it opted in a second time to share its reconciliation rows,
   // the counts-only aggregate of its listed works the institution page sums
   // (derived from the owner's own data), when it last synced and what that sync
-  // changed. Internal job bookkeeping (the resync lock) is not user data.
+  // changed, and when what its OAI-PMH records say last changed. Internal job
+  // bookkeeping (the resync lock, the OAI fingerprint and exposure, both
+  // derived from the document) is not user data.
   const cvRecord = cv
     ? {
         id: cv.id,
@@ -123,6 +125,7 @@ export async function GET() {
         shareReconciliationRows: cv.shareReconciliationRows,
         visibleCurrentRorIds: cv.visibleCurrentRorIds,
         institutionAggregates: cv.institutionAggregates,
+        publicChangedAt: cv.publicChangedAt,
         createdAt: cv.createdAt,
         updatedAt: cv.updatedAt,
       }

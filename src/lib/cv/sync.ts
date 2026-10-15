@@ -14,7 +14,8 @@ import {
   type InstitutionPageState,
 } from "@/lib/cv/institutionConsent";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
-import { harvestRecord, harvestStateColumns } from "@/lib/cv/oaiState";
+import { applyOaiDeletions } from "@/lib/cv/oaiDeletions";
+import { harvestRecord, harvestWrite } from "@/lib/cv/oaiState";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
 import { recordInstitutions, trustedInstitutionNames } from "@/lib/cv/listed";
@@ -127,13 +128,16 @@ function aggregatesColumn(cv: CanonicalCv | null): Prisma.InputJsonValue | typeo
 }
 
 /** The publish flags a write reads to decide what the OAI endpoint serves
- *  (`oaiState.ts`), with the fingerprint it compares against. */
+ *  (`oaiState.ts`), with the fingerprint and the exposure it compares
+ *  against. */
 const HARVEST_FLAGS = {
   published: true,
   publicIndexable: true,
   publicSlug: true,
   listUnderAffiliation: true,
+  currentRorId: true,
   oaiFingerprint: true,
+  oaiExposure: true,
 } as const;
 
 /** The flags of a row that does not exist yet: nothing is served. */
@@ -695,14 +699,16 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   // publish flags as they stand NOW: the build above took seconds and the
   // upsert leaves the flags alone, so the owner may have published or withdrawn
   // meanwhile. A new row is not published, so it serves nothing.
+  const now = new Date();
   const flags = existing
     ? await prisma.cv.findUnique({ where: { userId }, select: HARVEST_FLAGS })
     : null;
-  const harvest = harvestStateColumns(
+  const harvest = harvestWrite(
     { ...(flags ?? NOT_HARVESTABLE), currentRorId },
     cv,
-    flags?.oaiFingerprint,
-    new Date(),
+    flags ?? {},
+    () => (flags ? harvestRecord(flags, previous, now) : null),
+    now,
   );
   await prisma.cv.upsert({
     where: { userId },
@@ -717,7 +723,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       currentAffiliationName,
       visibleCurrentRorIds: visibleRorIds,
       institutionAggregates,
-      ...harvest,
+      ...harvest.columns,
     },
     update: {
       document: cv as unknown as Prisma.InputJsonValue,
@@ -728,9 +734,11 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       currentAffiliationName,
       visibleCurrentRorIds: visibleRorIds,
       institutionAggregates,
-      ...harvest,
+      ...harvest.columns,
     },
   });
+  // What the write stopped serving is now a deleted record (oaiDeletions.ts).
+  await applyOaiDeletions(harvest, now);
 
   // AFTER the write: the OpenAlex funder crosswalk for the funders printed on
   // the owner's works (the owner worklist's funder join reads it). Reference
@@ -784,6 +792,14 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
     : validated;
 
   const currentRorId = currentRorKey(reconciled);
+  const now = new Date();
+  const harvest = harvestWrite(
+    { ...existing, currentRorId },
+    reconciled,
+    existing,
+    () => harvestRecord(existing, previous, now),
+    now,
+  );
   await prisma.cv.update({
     where: { userId },
     data: {
@@ -793,14 +809,10 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
       currentAffiliationName: affiliationSetName(reconciled),
       visibleCurrentRorIds: visibleCurrentRorIds(reconciled),
       institutionAggregates: aggregatesColumn(reconciled),
-      ...harvestStateColumns(
-        { ...existing, currentRorId },
-        reconciled,
-        existing.oaiFingerprint,
-        new Date(),
-      ),
+      ...harvest.columns,
     },
   });
+  await applyOaiDeletions(harvest, now);
 
   // The anonymous /preview/[orcid] build applies this researcher's own
   // disambiguation corrections, so a cached preview is stale the moment they
@@ -934,6 +946,14 @@ export async function setPublishState(
     row.shareReconciliationRows,
     shareReconciliationRows,
   );
+  const now = new Date();
+  const harvest = harvestWrite(
+    { published, publicIndexable, publicSlug: slug, listUnderAffiliation: listed, currentRorId },
+    cv,
+    row,
+    () => harvestRecord(row, cv, now),
+    now,
+  );
   const updated = await prisma.cv.update({
     where: { userId },
     data: {
@@ -947,18 +967,7 @@ export async function setPublishState(
       institutionAggregates: aggregatesColumn(cv),
       ...consent,
       shareReconciliationRows: shareRows,
-      ...harvestStateColumns(
-        {
-          published,
-          publicIndexable,
-          publicSlug: slug,
-          listUnderAffiliation: listed,
-          currentRorId,
-        },
-        cv,
-        row.oaiFingerprint,
-        new Date(),
-      ),
+      ...harvest.columns,
     },
     select: {
       published: true,
@@ -971,6 +980,8 @@ export async function setPublishState(
   // Drop any cached render so unpublish/publish/index changes take effect at
   // once (the public route caches rendered pages for a short TTL).
   if (updated.publicSlug) invalidatePublicPage(updated.publicSlug);
+  // Withdrawn (or out of its set): harvesters running deltas are told.
+  await applyOaiDeletions(harvest, now);
   // Every institution page this CV was, or is now, consented to: a withdrawal
   // (explicit, or via indexing / unpublish) must be visible at once, not
   // within the TTL. Cheap — at most a handful of ids, usually none.

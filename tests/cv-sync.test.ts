@@ -54,7 +54,12 @@ const mocks = vi.hoisted(() => ({
   fetchOrcidPatents: vi.fn(),
   discoverOrcid: vi.fn(),
   fetchOrcidWorkTypes: vi.fn(),
+  applyOaiDeletions: vi.fn(),
 }));
+
+// What a write stops serving is recorded by oaiDeletions.ts (its own tests);
+// here, only what each write hands it.
+vi.mock("@/lib/cv/oaiDeletions", () => ({ applyOaiDeletions: mocks.applyOaiDeletions }));
 
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -180,7 +185,7 @@ import {
   syncCvForUser,
 } from "@/lib/cv/sync";
 import { setItemIncluded, updateDisplay } from "@/lib/canonical/curate";
-import { harvestRecord } from "@/lib/cv/oaiState";
+import { harvestExposure, harvestRecord } from "@/lib/cv/oaiState";
 import {
   NOT_SERVED_FINGERPRINT,
   encodeResumptionToken,
@@ -1803,7 +1808,9 @@ describe("the OAI datestamp (publicChangedAt) moves only when what is harvested 
         publicIndexable: true,
         publicSlug: true,
         listUnderAffiliation: true,
+        currentRorId: true,
         oaiFingerprint: true,
+        oaiExposure: true,
       },
     });
     const arg = mocks.upsert.mock.calls[0]![0];
@@ -1818,5 +1825,101 @@ describe("the OAI datestamp (publicChangedAt) moves only when what is harvested 
     await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
     expect(mocks.findUnique).toHaveBeenCalledTimes(1);
     expect(mocks.upsert.mock.calls[0]![0].create.oaiFingerprint).toBe(NOT_SERVED_FINGERPRINT);
+  });
+});
+
+describe("what a write stops serving becomes a deleted OAI record", () => {
+  const SERVED_ROW = {
+    ...BARE_ROW,
+    published: true,
+    publicIndexable: true,
+    publicSlug: "basile-chretien-abcd",
+    listUnderAffiliation: true,
+    currentRorId: "04chrp450",
+    shareReconciliationRows: false,
+    document: AFFILIATED_DOC,
+  };
+  const exposure = (doc: CanonicalCv) =>
+    harvestExposure(harvestRecord(SERVED_ROW, doc, new Date(0)));
+
+  it("unpublishing hands every served identifier over, in the repository and its set, after the write", async () => {
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiExposure: exposure(AFFILIATED_DOC) });
+    mocks.update.mockResolvedValue({ published: false, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", false);
+    const [change, at] = mocks.applyOaiDeletions.mock.calls[0]!;
+    const ids = exposure(AFFILIATED_DOC).ids;
+    expect(change.deletions).toHaveLength(2 * ids.length);
+    expect(change.served).toEqual({ ids: [], set: null });
+    expect(at).toBeInstanceOf(Date);
+    // After the CV write: until then the records were still served.
+    expect(mocks.update.mock.invocationCallOrder[0]!).toBeLessThan(
+      mocks.applyOaiDeletions.mock.invocationCallOrder[0]!,
+    );
+    // The stored exposure is now nothing.
+    expect(mocks.update.mock.calls[0]![0].data.oaiExposure).toEqual({ ids: [], set: null });
+  });
+
+  it("leaving the institution listing deletes the records from that set only", async () => {
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiExposure: exposure(AFFILIATED_DOC) });
+    mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", true, true, false);
+    const [change] = mocks.applyOaiDeletions.mock.calls[0]!;
+    expect(change.deletions.length).toBeGreaterThan(0);
+    expect(change.deletions.every((d: { setSpec: string }) => d.setSpec === "ror:04chrp450")).toBe(
+      true,
+    );
+    expect(change.served.set).toBeNull();
+  });
+
+  it("a save that hides a work deletes that work's record; one that changes nothing deletes nothing", async () => {
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiExposure: exposure(AFFILIATED_DOC) });
+    await saveCvForUser("u1", AFFILIATED_DOC);
+    expect(mocks.applyOaiDeletions.mock.calls[0]![0].deletions).toEqual([]);
+    mocks.applyOaiDeletions.mockClear();
+    const pubs = AFFILIATED_DOC.sections.find((s) => s.type === "publications")!;
+    const listed = pubs.items.find((i) => i.included)!;
+    await saveCvForUser("u1", setItemIncluded(AFFILIATED_DOC, pubs.id, listed.id, false));
+    const gone = mocks.applyOaiDeletions.mock.calls[0]![0].deletions as Array<{
+      identifier: string;
+      setSpec: string;
+    }>;
+    expect(gone.map((d) => d.setSpec).sort()).toEqual(["", "ror:04chrp450"]);
+    expect(new Set(gone.map((d) => d.identifier)).size).toBe(1);
+    expect(gone[0]!.identifier.startsWith("oai:sigmacv.org:basile-chretien-abcd/w/")).toBe(true);
+  });
+
+  it("a row written before the exposure column diffs against its previous document", async () => {
+    mocks.findUnique.mockResolvedValue({ ...SERVED_ROW, oaiExposure: null });
+    mocks.update.mockResolvedValue({ published: false, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", false);
+    expect(mocks.applyOaiDeletions.mock.calls[0]![0].deletions).toHaveLength(
+      2 * exposure(AFFILIATED_DOC).ids.length,
+    );
+  });
+
+  it("a sync diffs against the exposure it re-reads just before writing", async () => {
+    mocks.resolveAuthor.mockResolvedValue(RESOLVED);
+    mocks.fetchWorks.mockResolvedValue(works);
+    mocks.findUnique
+      .mockResolvedValueOnce({ ...SERVED_ROW, oaiExposure: null })
+      .mockResolvedValueOnce({
+        published: false,
+        publicIndexable: false,
+        publicSlug: "basile-chretien-abcd",
+        listUnderAffiliation: false,
+        currentRorId: "04chrp450",
+        oaiFingerprint: "x",
+        oaiExposure: { ids: ["oai:sigmacv.org:basile-chretien-abcd"], set: null },
+      });
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.applyOaiDeletions.mock.calls[0]![0].deletions).toEqual([
+      { identifier: "oai:sigmacv.org:basile-chretien-abcd", setSpec: "" },
+    ]);
+    // A first sync (no row before) has nothing to delete.
+    mocks.findUnique.mockReset();
+    mocks.findUnique.mockResolvedValue(null);
+    mocks.applyOaiDeletions.mockClear();
+    await syncCvForUser({ userId: "u1", orcid: RESOLVED.orcid });
+    expect(mocks.applyOaiDeletions.mock.calls[0]![0].deletions).toEqual([]);
   });
 });

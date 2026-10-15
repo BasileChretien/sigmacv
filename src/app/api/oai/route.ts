@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
-import { getPublicCvRecord, listAffiliationSets, listPublicCvRecords } from "@/lib/cv/sync";
+import { findDeletedRecord, readOaiListPage } from "@/lib/cv/oaiHarvest";
+import { getPublicCvRecord, listAffiliationSets } from "@/lib/cv/sync";
 import { logger } from "@/lib/log";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { readTextBodyWithLimit } from "@/lib/readBody";
 import {
-  OAI_PAGE_SIZE,
   findWorkRecord,
   getRecordResponse,
   identifyResponse,
@@ -13,6 +13,8 @@ import {
   listRecordsResponse,
   listSetsResponse,
   oaiError,
+  oaiIdentifier,
+  oaiWorkIdentifier,
   validateOaiRequest,
   type OaiArgs,
 } from "@/lib/oai/oai";
@@ -29,7 +31,8 @@ import { absoluteUrl } from "@/lib/siteUrl";
  * Consent gates (enforced in `cv/sync`, never here): every record requires the
  * owner's `publicIndexable` opt-in, whose consent copy names this endpoint;
  * the `ror:<id>` sets contain only CVs whose owner ALSO opted into "list under
- * my current affiliation".
+ * my current affiliation". What stops being served is answered as a deleted
+ * record for 30 days (`cv/oaiDeletions.ts`; Identify says `transient`).
  */
 
 export const runtime = "nodejs";
@@ -109,9 +112,15 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
       }
       case "getRecord": {
         // A per-work record resolves through its CV's own gate (published +
-        // indexable), then must be a work the public page lists.
+        // indexable), then must be a work the public page lists. One the
+        // endpoint no longer serves answers as a deleted record while it lasts.
         const cvRecord = await getPublicCvRecord(plan.slug);
-        const rec = cvRecord && plan.itemId ? findWorkRecord(cvRecord, plan.itemId) : cvRecord;
+        const served = cvRecord && plan.itemId ? findWorkRecord(cvRecord, plan.itemId) : cvRecord;
+        const rec =
+          served ??
+          (await findDeletedRecord(
+            plan.itemId ? oaiWorkIdentifier(plan.slug, plan.itemId) : oaiIdentifier(plan.slug),
+          ));
         return xmlResponse(
           rec
             ? getRecordResponse(args, rec, opts, plan.metadataPrefix)
@@ -124,32 +133,18 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
         );
       }
       case "list": {
-        const { records, next } = await listPublicCvRecords({
-          limit: OAI_PAGE_SIZE,
-          after: plan.after,
-          offset: plan.offset,
-          from: plan.from,
-          until: plan.until,
-          set: plan.set,
-        });
-        const resumed = plan.after !== undefined || plan.offset !== undefined;
-        if (records.length === 0) {
+        // The served CVs first, then what is no longer served (oaiHarvest.ts).
+        const page = await readOaiListPage(plan);
+        if (page.records.length === 0 && !page.deleted?.length) {
           return xmlResponse(
             oaiError(
               args,
-              resumed ? "badResumptionToken" : "noRecordsMatch",
-              resumed ? "Invalid or expired resumptionToken" : "No records match the request",
+              page.resumed ? "badResumptionToken" : "noRecordsMatch",
+              page.resumed ? "Invalid or expired resumptionToken" : "No records match the request",
               opts,
             ),
           );
         }
-        const page = {
-          records,
-          resumed,
-          next,
-          filters: { set: plan.set, from: plan.from, until: plan.until },
-          metadataPrefix: plan.metadataPrefix,
-        };
         return xmlResponse(
           plan.verb === "ListRecords"
             ? listRecordsResponse(args, page, opts)

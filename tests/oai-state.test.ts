@@ -2,12 +2,16 @@ import { describe, expect, it } from "vitest";
 import { buildCanonicalCv } from "@/lib/canonical/build";
 import { setItemIncluded, updateDisplay } from "@/lib/canonical/curate";
 import {
+  NOTHING_EXPOSED,
   affiliationSetSpec,
+  deletionsBetween,
+  harvestExposure,
   harvestRecord,
-  harvestStateColumns,
+  harvestWrite,
+  parseHarvestExposure,
   type HarvestColumns,
 } from "@/lib/cv/oaiState";
-import { NOT_SERVED_FINGERPRINT, oaiFingerprint } from "@/lib/oai/oai";
+import { NOT_SERVED_FINGERPRINT, oaiFingerprint, workRecords } from "@/lib/oai/oai";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
 
@@ -85,31 +89,129 @@ describe("oaiFingerprint", () => {
   });
 });
 
-describe("harvestStateColumns", () => {
-  it("keeps the datestamp when what is served did not change", () => {
-    const stored = oaiFingerprint(harvestRecord(SERVED, CV, T1));
-    expect(harvestStateColumns(SERVED, CV, stored, T2)).toEqual({ oaiFingerprint: stored });
+describe("harvestExposure", () => {
+  it("is the CV identifier and one per listed work, in the CV's set", () => {
+    const record = harvestRecord(SERVED, CV, T1)!;
+    const exposure = harvestExposure(record);
+    expect(exposure.set).toBe("ror:04chrp450");
+    expect(exposure.ids[0]).toBe("oai:sigmacv.org:ada-x7");
+    expect(exposure.ids).toHaveLength(1 + workRecords(record).length);
+    expect(exposure.ids.slice(1).every((id) => id.startsWith("oai:sigmacv.org:ada-x7/w/"))).toBe(
+      true,
+    );
+    expect(harvestExposure({ ...record, setSpec: undefined }).set).toBeNull();
   });
 
-  it("moves the datestamp to now when it changed, went dark, or was never computed", () => {
-    const stored = oaiFingerprint(harvestRecord(SERVED, CV, T1));
-    const moved = harvestStateColumns({ ...SERVED, listUnderAffiliation: false }, CV, stored, T2);
-    expect(moved.publicChangedAt).toEqual(T2);
-    expect(moved.oaiFingerprint).not.toBe(stored);
-    // Unpublishing is a change too: the endpoint stops serving the CV.
-    expect(harvestStateColumns({ ...SERVED, published: false }, CV, stored, T2)).toEqual({
+  it("is nothing for a CV that serves nothing", () => {
+    expect(harvestExposure(null)).toEqual(NOTHING_EXPOSED);
+  });
+
+  it("reads back what was stored, and nothing that is not that shape", () => {
+    expect(parseHarvestExposure({ ids: ["a"], set: null })).toEqual({ ids: ["a"], set: null });
+    expect(parseHarvestExposure(null)).toBeNull();
+    expect(parseHarvestExposure({ ids: "a", set: null })).toBeNull();
+    expect(parseHarvestExposure({ ids: [] })).toBeNull();
+  });
+});
+
+describe("deletionsBetween", () => {
+  const before = { ids: ["cv", "cv/w/1", "cv/w/2"], set: "ror:04chrp450" };
+
+  it("deletes what is gone from the repository AND from the set it was in", () => {
+    expect(deletionsBetween(before, { ids: ["cv", "cv/w/1"], set: "ror:04chrp450" })).toEqual([
+      { identifier: "cv/w/2", setSpec: "" },
+      { identifier: "cv/w/2", setSpec: "ror:04chrp450" },
+    ]);
+  });
+
+  it("deletes from its former set only what is still served elsewhere", () => {
+    // The owner left the listing: every record is still served, none in the set.
+    expect(deletionsBetween(before, { ids: before.ids, set: null })).toEqual(
+      before.ids.map((identifier) => ({ identifier, setSpec: "ror:04chrp450" })),
+    );
+    // The affiliation changed: the records left the old set for a new one.
+    expect(
+      deletionsBetween(before, { ids: ["cv"], set: "ror:00000000x" }).filter(
+        (d) => d.identifier === "cv",
+      ),
+    ).toEqual([{ identifier: "cv", setSpec: "ror:04chrp450" }]);
+  });
+
+  it("withdrawing everything deletes everything, everywhere it was", () => {
+    expect(deletionsBetween(before, NOTHING_EXPOSED)).toHaveLength(6);
+    expect(deletionsBetween({ ids: ["cv"], set: null }, NOTHING_EXPOSED)).toEqual([
+      { identifier: "cv", setSpec: "" },
+    ]);
+  });
+
+  it("deletes nothing when nothing stops being served", () => {
+    expect(deletionsBetween(before, before)).toEqual([]);
+    expect(deletionsBetween(NOTHING_EXPOSED, before)).toEqual([]);
+  });
+});
+
+describe("harvestWrite", () => {
+  const stored = () => ({
+    oaiFingerprint: oaiFingerprint(harvestRecord(SERVED, CV, T1)),
+    oaiExposure: harvestExposure(harvestRecord(SERVED, CV, T1)),
+  });
+  const unused = () => {
+    throw new Error("the stored exposure must be used");
+  };
+
+  it("keeps the datestamp and deletes nothing when what is served did not change", () => {
+    const w = harvestWrite(SERVED, CV, stored(), unused, T2);
+    expect(w.columns).toEqual({
+      oaiFingerprint: stored().oaiFingerprint,
+      oaiExposure: stored().oaiExposure,
+    });
+    expect(w.deletions).toEqual([]);
+    expect(w.served).toEqual(stored().oaiExposure);
+  });
+
+  it("moves the datestamp to now and deletes what went when it changed", () => {
+    const w = harvestWrite({ ...SERVED, listUnderAffiliation: false }, CV, stored(), unused, T2);
+    expect(w.columns.publicChangedAt).toEqual(T2);
+    expect(w.columns.oaiExposure.set).toBeNull();
+    expect(w.deletions.every((d) => d.setSpec === "ror:04chrp450")).toBe(true);
+    expect(w.deletions).toHaveLength(stored().oaiExposure.ids.length);
+  });
+
+  it("unpublishing serves nothing: everything is deleted, and the datestamp moves", () => {
+    const w = harvestWrite({ ...SERVED, published: false }, CV, stored(), unused, T2);
+    expect(w.columns).toEqual({
       oaiFingerprint: NOT_SERVED_FINGERPRINT,
+      oaiExposure: NOTHING_EXPOSED,
       publicChangedAt: T2,
     });
-    // A row written before the column existed: re-sent once rather than missed.
-    expect(harvestStateColumns(SERVED, CV, null, T2).publicChangedAt).toEqual(T2);
-    expect(harvestStateColumns(SERVED, CV, undefined, T2).publicChangedAt).toEqual(T2);
+    expect(w.deletions).toHaveLength(2 * stored().oaiExposure.ids.length);
+    expect(w.served).toEqual(NOTHING_EXPOSED);
   });
 
-  it("an unpublished CV that stays unpublished keeps its datestamp", () => {
+  it("a row with nothing stored (written before the columns) diffs against its previous state", () => {
+    const previous = () => harvestRecord(SERVED, CV, T1);
+    const w = harvestWrite({ ...SERVED, published: false }, CV, {}, previous, T2);
+    // Never fingerprinted: the datestamp moves; never exposed: derived from the previous record.
+    expect(w.columns.publicChangedAt).toEqual(T2);
+    expect(w.deletions).toHaveLength(2 * stored().oaiExposure.ids.length);
+    // A stored exposure that is not that shape is read as none.
+    const corrupt = harvestWrite(SERVED, CV, { oaiExposure: { ids: 1 } }, () => null, T2);
+    expect(corrupt.deletions).toEqual([]);
+  });
+
+  it("an unpublished CV that stays unpublished keeps its datestamp and deletes nothing", () => {
     const dark = { ...SERVED, published: false };
-    expect(harvestStateColumns(dark, CV, NOT_SERVED_FINGERPRINT, T2)).toEqual({
+    const w = harvestWrite(
+      dark,
+      CV,
+      { oaiFingerprint: NOT_SERVED_FINGERPRINT, oaiExposure: NOTHING_EXPOSED },
+      unused,
+      T2,
+    );
+    expect(w.columns).toEqual({
       oaiFingerprint: NOT_SERVED_FINGERPRINT,
+      oaiExposure: NOTHING_EXPOSED,
     });
+    expect(w.deletions).toEqual([]);
   });
 });

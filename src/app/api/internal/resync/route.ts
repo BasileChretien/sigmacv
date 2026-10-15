@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { drainPendingDoiWithdrawals } from "@/lib/cv/doiWithdrawals";
+import { purgeExpiredOaiDeletions } from "@/lib/cv/oaiDeletions";
 import { resyncDueCvs } from "@/lib/cv/resync";
 import { getEnv } from "@/lib/env";
 import { logger } from "@/lib/log";
@@ -84,11 +85,20 @@ export async function POST(req: Request) {
     const summary = await resyncDueCvs();
     const doiWithdrawals = await drainPendingDoiWithdrawals();
     const institutionProfiles = await refreshInstitutionProfilesGuarded();
-    return NextResponse.json({ ok: true, ...summary, doiWithdrawals, institutionProfiles });
+    // OAI deleted records past their 30 days (fail-soft, never throws).
+    const oaiDeletionsPurged = await purgeExpiredOaiDeletions(new Date());
+    return NextResponse.json({
+      ok: true,
+      ...summary,
+      doiWithdrawals,
+      institutionProfiles,
+      oaiDeletionsPurged,
+    });
   } catch (err) {
     logger.error("api.internal_resync_failed", { err });
     await drainPendingDoiWithdrawals();
     await refreshInstitutionProfilesGuarded();
+    await purgeExpiredOaiDeletions(new Date());
     return NextResponse.json({ error: "Resync failed" }, { status: 500 });
   }
 }
