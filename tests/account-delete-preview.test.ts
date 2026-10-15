@@ -19,14 +19,18 @@ const mocks = vi.hoisted(() => ({
   enforceRateLimit: vi.fn(),
   isSameOrigin: vi.fn(),
   withdrawMintedSnapshotDois: vi.fn(),
-  withdrawOaiRecords: vi.fn(),
+  readOaiWithdrawal: vi.fn(),
+  applyOaiDeletions: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/cv/snapshotStore", () => ({
   withdrawMintedSnapshotDois: mocks.withdrawMintedSnapshotDois,
 }));
-vi.mock("@/lib/cv/oaiDeletions", () => ({ withdrawOaiRecords: mocks.withdrawOaiRecords }));
+vi.mock("@/lib/cv/oaiDeletions", () => ({
+  readOaiWithdrawal: mocks.readOaiWithdrawal,
+  applyOaiDeletions: mocks.applyOaiDeletions,
+}));
 vi.mock("@/lib/db", () => ({
   prisma: {
     user: { findUnique: mocks.userFindUnique, delete: mocks.userDelete },
@@ -209,18 +213,36 @@ describe("deleting an account withdraws its minted snapshot DOIs first", () => {
 });
 
 describe("deleting an account tells OAI-PMH harvesters", () => {
-  it("records the CV's served identifiers as deleted BEFORE the cascade removes the row", async () => {
+  it("reads what the CV served BEFORE the cascade, and records it as deleted only AFTER it", async () => {
     const order: string[] = [];
+    const change = { deletions: [], served: { ids: [], set: null }, departed: null, joined: null };
     mocks.userFindUnique.mockResolvedValue({ orcid: ORCID });
-    mocks.withdrawOaiRecords.mockImplementation(async () => {
-      order.push("oai");
+    mocks.readOaiWithdrawal.mockImplementation(async () => {
+      order.push("read");
+      return change;
     });
     mocks.userDelete.mockImplementation(async () => {
       order.push("delete");
       return {};
     });
+    mocks.applyOaiDeletions.mockImplementation(async () => {
+      order.push("apply");
+    });
     expect((await DELETE(req())).status).toBe(200);
-    expect(mocks.withdrawOaiRecords).toHaveBeenCalledWith("u1", expect.any(Date));
-    expect(order).toEqual(["oai", "delete"]);
+    expect(mocks.readOaiWithdrawal).toHaveBeenCalledWith("u1", expect.any(Date));
+    expect(mocks.applyOaiDeletions).toHaveBeenCalledWith(change, expect.any(Date));
+    expect(order).toEqual(["read", "delete", "apply"]);
+  });
+
+  it("records nothing when the deletion fails (the CV is still served), or when there is no CV", async () => {
+    mocks.userFindUnique.mockResolvedValue({ orcid: ORCID });
+    mocks.readOaiWithdrawal.mockResolvedValue({ deletions: [], served: { ids: [], set: null } });
+    mocks.userDelete.mockRejectedValue(new Error("db down"));
+    expect((await DELETE(req())).status).toBe(500);
+    expect(mocks.applyOaiDeletions).not.toHaveBeenCalled();
+    mocks.userDelete.mockResolvedValue({});
+    mocks.readOaiWithdrawal.mockResolvedValue(null);
+    expect((await DELETE(req())).status).toBe(200);
+    expect(mocks.applyOaiDeletions).not.toHaveBeenCalled();
   });
 });

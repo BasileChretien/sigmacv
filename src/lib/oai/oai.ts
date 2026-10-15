@@ -31,7 +31,9 @@ import { creatorName, doiIri, escapeXml, oaiDatestamp, workYear } from "./shared
  * search indexing (an institution-keyed harvest is systematic processing the
  * indexing consent never covered). The set is named as a self-declared current
  * affiliation, never as institutional output: it is what each researcher wrote
- * on their own CV.
+ * on their own CV. It is published only from `MIN_SET_MEMBERS` listed
+ * researchers (`cv/listed.ts`): the readers apply that floor, this module
+ * renders what they hand it.
  *
  * Consent model, in one line: nothing is harvestable without `publicIndexable`
  * (whose consent copy names this endpoint), and nothing is in a set without
@@ -200,8 +202,9 @@ export function rorSetSpec(rorId: string): string {
   return `${ROR_SET_PREFIX}${rorId}`;
 }
 
-/** The bare ROR id of a well-formed `ror:<id>` set spec, or null. */
-function rorIdFromSetSpec(spec: string): string | null {
+/** The bare ROR id of a well-formed `ror:<id>` set spec, or null. Exported for
+ *  the deletion writer, which counts a set's members by its bare id. */
+export function rorIdFromSetSpec(spec: string): string | null {
   if (!spec.startsWith(ROR_SET_PREFIX)) return null;
   const id = spec.slice(ROR_SET_PREFIX.length);
   return ROR_ID.test(id) ? id : null;

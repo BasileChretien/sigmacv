@@ -31,6 +31,9 @@ export interface InstitutionStrings {
   oaiBody: string;
   /** `{id}`. */
   oaiLink: string;
+  /** In place of the set link while fewer than `{k}` researchers are listed
+   *  (the set floor, `MIN_SET_MEMBERS`). */
+  oaiSetClosed: string;
   aboutHeading: string;
   aboutController: string;
   aboutReader: string;
@@ -143,6 +146,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "The listed CVs can be harvested as an OAI-PMH set (Dublin Core, one record per CV and per work):",
     oaiLink: "OAI-PMH set {id}",
+    oaiSetClosed:
+      "The listed CVs become harvestable as an OAI-PMH set once at least {k} researchers are listed here: a smaller set would name them.",
     aboutHeading: "About this page",
     aboutController:
       "SigmaCV is operated by Basile Chrétien as an independent personal project — not by, or on behalf of, any university or employer — and he is the sole data controller for the personal data behind this page.",
@@ -243,6 +248,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiHeading: "机器访问",
     oaiBody: "已列出的简历可作为 OAI-PMH 集合采集（Dublin Core，每份简历及每项成果各一条记录）：",
     oaiLink: "OAI-PMH 集合 {id}",
+    oaiSetClosed:
+      "至少有 {k} 位研究者列于此处后，已列出的简历才可作为 OAI-PMH 集合采集：人数更少的集合会指明具体是谁。",
     aboutHeading: "关于本页面",
     aboutController:
       "SigmaCV 由 Basile Chrétien 作为独立的个人项目运营——不属于也不代表任何大学或雇主——他是本页面背后个人数据的唯一数据控制者。",
@@ -340,6 +347,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "Los CV listados pueden recolectarse como un conjunto OAI-PMH (Dublin Core, un registro por CV y por obra):",
     oaiLink: "Conjunto OAI-PMH {id}",
+    oaiSetClosed:
+      "Los CV listados podrán recolectarse como un conjunto OAI-PMH cuando figuren aquí al menos {k} investigadores: un conjunto más pequeño los nombraría.",
     aboutHeading: "Sobre esta página",
     aboutController:
       "SigmaCV lo opera Basile Chrétien como proyecto personal independiente —no por ni en nombre de ninguna universidad o empleador— y él es el único responsable del tratamiento de los datos personales que hay detrás de esta página.",
@@ -442,6 +451,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "Les CV listés peuvent être moissonnés comme un ensemble OAI-PMH (Dublin Core, une notice par CV et par travail) :",
     oaiLink: "Ensemble OAI-PMH {id}",
+    oaiSetClosed:
+      "Les CV listés pourront être moissonnés comme un ensemble OAI-PMH dès qu'au moins {k} chercheurs y figurent : un ensemble plus petit les nommerait.",
     aboutHeading: "À propos de cette page",
     aboutController:
       "SigmaCV est exploité par Basile Chrétien dans le cadre d'un projet personnel indépendant — ni par, ni pour le compte d'une université ou d'un employeur — et il est l'unique responsable du traitement des données personnelles derrière cette page.",
@@ -544,6 +555,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "Die gelisteten Lebensläufe können als OAI-PMH-Set geerntet werden (Dublin Core, ein Datensatz je Lebenslauf und je Arbeit):",
     oaiLink: "OAI-PMH-Set {id}",
+    oaiSetClosed:
+      "Die gelisteten Lebensläufe werden als OAI-PMH-Set erntebar, sobald hier mindestens {k} Forschende gelistet sind: ein kleineres Set würde sie namentlich nennen.",
     aboutHeading: "Über diese Seite",
     aboutController:
       "SigmaCV wird von Basile Chrétien als unabhängiges persönliches Projekt betrieben – nicht von oder im Auftrag einer Universität oder eines Arbeitgebers – und er ist der alleinige Verantwortliche für die personenbezogenen Daten hinter dieser Seite.",
@@ -646,6 +659,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "掲載された CV は OAI-PMH セットとして収集できます（Dublin Core、CV ごと・業績ごとに 1 レコード）：",
     oaiLink: "OAI-PMH セット {id}",
+    oaiSetClosed:
+      "ここに{k}人以上の研究者が掲載されると、掲載されたCVをOAI-PMHセットとして収集できるようになります。それより小さいセットでは、誰が掲載されているかが分かってしまうためです。",
     aboutHeading: "このページについて",
     aboutController:
       "SigmaCV は Basile Chrétien が独立した個人プロジェクトとして運営しており、いかなる大学や雇用主によるもの、またはその代理でもありません。このページの背後にある個人データの唯一の管理者は本人です。",
@@ -747,6 +762,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "Os CVs listados podem ser coletados como um conjunto OAI-PMH (Dublin Core, um registro por CV e por trabalho):",
     oaiLink: "Conjunto OAI-PMH {id}",
+    oaiSetClosed:
+      "Os CVs listados poderão ser coletados como um conjunto OAI-PMH quando houver aqui pelo menos {k} pesquisadores listados: um conjunto menor os nomearia.",
     aboutHeading: "Sobre esta página",
     aboutController:
       "O SigmaCV é operado por Basile Chrétien como um projeto pessoal independente — não por nenhuma universidade ou empregador, nem em nome deles — e ele é o único controlador dos dados pessoais por trás desta página.",
@@ -849,6 +866,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "I CV elencati possono essere raccolti come set OAI-PMH (Dublin Core, un record per CV e per lavoro):",
     oaiLink: "Set OAI-PMH {id}",
+    oaiSetClosed:
+      "I CV elencati potranno essere raccolti come set OAI-PMH quando qui saranno elencati almeno {k} ricercatori: un set più piccolo li nominerebbe.",
     aboutHeading: "Informazioni su questa pagina",
     aboutController:
       "SigmaCV è gestito da Basile Chrétien come progetto personale indipendente — non da né per conto di alcuna università o datore di lavoro — ed è l'unico titolare del trattamento dei dati personali dietro questa pagina.",
@@ -951,6 +970,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "등록된 CV는 OAI-PMH 세트로 수집할 수 있습니다(Dublin Core, CV별·연구 성과별 레코드 1건):",
     oaiLink: "OAI-PMH 세트 {id}",
+    oaiSetClosed:
+      "이곳에 연구자가 {k}명 이상 등록되면 등록된 CV를 OAI-PMH 세트로 수집할 수 있습니다. 그보다 작은 세트는 누가 등록되어 있는지 드러내기 때문입니다.",
     aboutHeading: "이 페이지에 대하여",
     aboutController:
       "SigmaCV는 Basile Chrétien이 독립적인 개인 프로젝트로 운영하며, 어떤 대학이나 고용주에 의해서도, 그를 대신해서도 운영되지 않습니다. 이 페이지 뒤에 있는 개인정보의 유일한 관리자는 본인입니다.",
@@ -1052,6 +1073,8 @@ const INSTITUTIONS_I18N: Record<Locale, InstitutionStrings> = {
     oaiBody:
       "Указанные резюме можно собирать как набор OAI-PMH (Dublin Core, по одной записи на резюме и на работу):",
     oaiLink: "Набор OAI-PMH {id}",
+    oaiSetClosed:
+      "Указанные резюме можно будет собирать как набор OAI-PMH, когда здесь будет указано не менее {k} исследователей: меньший набор назвал бы их поимённо.",
     aboutHeading: "Об этой странице",
     aboutController:
       "SigmaCV ведёт Basile Chrétien как независимый личный проект — не от имени и не по поручению какого-либо университета или работодателя — и он является единственным контролёром персональных данных, стоящих за этой страницей.",

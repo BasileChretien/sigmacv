@@ -135,11 +135,15 @@ export interface HarvestStateColumns {
 }
 
 /** Everything a write does to the harvest: the columns it stores, the
- *  records it stops serving, and what it serves (whose deletions it clears). */
+ *  records it stops serving, what it serves (whose deletions it clears), and
+ *  the set it left and the set it joined (each null when it did not), which
+ *  decide what the set floor lets through (`oaiDeletions.ts`). */
 export interface HarvestWrite {
   columns: HarvestStateColumns;
   deletions: OaiDeletionKey[];
   served: HarvestExposure;
+  departed: string | null;
+  joined: string | null;
 }
 
 /**
@@ -169,5 +173,7 @@ export function harvestWrite(
         : { oaiFingerprint: fingerprint, oaiExposure: served, publicChangedAt: now },
     deletions: deletionsBetween(before, served),
     served,
+    departed: before.set !== null && before.set !== served.set ? before.set : null,
+    joined: served.set !== null && served.set !== before.set ? served.set : null,
   };
 }

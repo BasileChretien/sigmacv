@@ -1,6 +1,7 @@
 import { isKnownMiss, rememberMiss } from "@/lib/cv/publicPageCache";
 import { rorIri } from "@/lib/ror/id";
 import {
+  MIN_SET_MEMBERS,
   countListedCvs,
   countListedCvsByRor,
   countReconciliationSources,
@@ -210,8 +211,16 @@ export async function institutionIndex(): Promise<InstitutionSummary[]> {
   return summaries.sort((a, b) => a.name.localeCompare(b.name, "en"));
 }
 
+/** True when the institution's OAI-PMH set is published: at least
+ *  `MIN_SET_MEMBERS` researchers listed (`listedCount` is the set's own
+ *  population). Below, the page links no set and its JSON-LD names none. */
+export function isOaiSetOpen(summary: Pick<InstitutionSummary, "listedCount">): boolean {
+  return summary.listedCount >= MIN_SET_MEMBERS;
+}
+
 /** The existing OAI-PMH `ror:<id>` set, as a Dublin Core `ListRecords` URL —
- *  the page's machine-access link and the JSON-LD `subjectOf`. */
+ *  the page's machine-access link and the JSON-LD `subjectOf`, while the set is
+ *  open ({@link isOaiSetOpen}). */
 export function institutionOaiSetUrl(rorId: string): string {
   return absoluteUrl(`api/oai?verb=ListRecords&metadataPrefix=oai_dc&set=${rorSetSpec(rorId)}`);
 }
@@ -236,11 +245,15 @@ export function institutionJsonLd(summary: InstitutionSummary): Record<string, u
     identifier: iri,
     name: summary.name,
     ...(summary.openalex ? { sameAs: openAlexInstitutionUrl(summary.openalex.openalexId) } : {}),
-    subjectOf: {
-      "@type": "DataFeed",
-      name: `SigmaCV OAI-PMH set ${rorSetSpec(summary.rorId)}`,
-      url: institutionOaiSetUrl(summary.rorId),
-    },
+    ...(isOaiSetOpen(summary)
+      ? {
+          subjectOf: {
+            "@type": "DataFeed",
+            name: `SigmaCV OAI-PMH set ${rorSetSpec(summary.rorId)}`,
+            url: institutionOaiSetUrl(summary.rorId),
+          },
+        }
+      : {}),
   };
 }
 

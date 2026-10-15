@@ -15,6 +15,7 @@ const mocks = vi.hoisted(() => ({
   findUnique: vi.fn(),
   findMany: vi.fn(),
   count: vi.fn(),
+  groupBy: vi.fn(),
   upsert: vi.fn(),
   update: vi.fn(),
   institutionUpsert: vi.fn(),
@@ -67,6 +68,7 @@ vi.mock("@/lib/db", () => ({
       findUnique: mocks.findUnique,
       findMany: mocks.findMany,
       count: mocks.count,
+      groupBy: mocks.groupBy,
       upsert: mocks.upsert,
       update: mocks.update,
     },
@@ -238,8 +240,19 @@ const AFFILIATED_DOC = buildCanonicalCv({
   now: "2026-06-02T00:00:00.000Z",
 });
 
+/** Member counts of the listed sets, as the set floor's grouped query returns them. */
+function setMembers(counts: Record<string, number>) {
+  mocks.groupBy.mockImplementation(async (q: { where: { currentRorId?: { in?: string[] } } }) =>
+    Object.entries(counts)
+      .filter(([id]) => !q.where.currentRorId?.in || q.where.currentRorId.in.includes(id))
+      .map(([currentRorId, n]) => ({ currentRorId, _count: { _all: n } })),
+  );
+}
+
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
+  // Nagoya's set is open unless a test says otherwise.
+  setMembers({ "04chrp450": 12 });
   mocks.update.mockResolvedValue({});
   mocks.upsert.mockResolvedValue({});
   mocks.logCvSave.mockResolvedValue(undefined);
@@ -1675,38 +1688,61 @@ describe("OAI harvest helpers", () => {
     expect(await getPublicCvRecord("ada")).toBeNull();
   });
 
-  it("listAffiliationSets: one set per distinct ROR id among OPTED-IN indexable CVs, named by the TRUSTED record", async () => {
-    mocks.findMany.mockResolvedValue([
-      // The owner-controlled column carries hostile text; it is never selected.
-      { currentRorId: "04chrp450", currentAffiliationName: "Nagoya U (see example.evil)" },
-      { currentRorId: "00000000x", currentAffiliationName: "Also hostile" },
-    ]);
+  it("listAffiliationSets: one set per ROR id with at least MIN_SET_MEMBERS opted-in CVs, named by the TRUSTED record", async () => {
+    setMembers({ "04chrp450": 7, "00000000x": 5, "02kpeqv85": 4, "03yrm5c26": 1 });
     mocks.institutionFindMany.mockResolvedValue([
       { rorId: "04chrp450", name: "Nagoya University" },
     ]);
     const sets = await listAffiliationSets();
-    // One small column only — never the documents, never the owner's name text.
-    expect(mocks.findMany.mock.calls[0]![0].select).toEqual({ currentRorId: true });
-    expect(mocks.findMany.mock.calls[0]![0].orderBy).toEqual({ currentRorId: "asc" });
-    const where = mocks.findMany.mock.calls[0]![0].where;
-    expect(where).toMatchObject({
+    // One grouped count over a small column, under the consent gate — never the
+    // documents, never the owner-controlled name text.
+    const q = mocks.groupBy.mock.calls[0]![0];
+    expect(q.by).toEqual(["currentRorId"]);
+    expect(q).not.toHaveProperty("select");
+    expect(q.where).toMatchObject({
       published: true,
       publicIndexable: true,
       listUnderAffiliation: true,
       currentRorId: { not: null },
     });
-    expect(mocks.findMany.mock.calls[0]![0].distinct).toEqual(["currentRorId"]);
-    // Names come from the Institution table (ROR's record), in one query.
+    // Names come from the Institution table (ROR's record), in one query, and
+    // only for the open sets: 4 and 1 members are below the floor (2026-09-08
+    // panel, defect 2: a small set names its members).
     expect(mocks.institutionFindMany).toHaveBeenCalledWith({
-      where: { rorId: { in: ["04chrp450", "00000000x"] } },
+      where: { rorId: { in: ["00000000x", "04chrp450"] } },
       select: { rorId: true, name: true },
     });
     expect(sets).toEqual([
-      { spec: "ror:04chrp450", rorId: "04chrp450", name: "Nagoya University" },
       { spec: "ror:00000000x", rorId: "00000000x", name: "ROR 00000000x" }, // no record → id-only
+      { spec: "ror:04chrp450", rorId: "04chrp450", name: "Nagoya University" },
     ]);
-    expect(JSON.stringify(sets)).not.toContain("hostile");
-    expect(JSON.stringify(sets)).not.toContain("example.evil");
+  });
+
+  it("a set below the floor lists no live record, and no header names it", async () => {
+    setMembers({ "04chrp450": 4 });
+    const listed = harvestable("ada", {
+      document: AFFILIATED_DOC,
+      listUnderAffiliation: true,
+      currentRorId: "04chrp450",
+    });
+    // Asked for by name: nothing, and the CVs are never even read.
+    expect(await listPublicCvRecords({ limit: 100, set: "04chrp450" })).toEqual({
+      records: [],
+      next: null,
+    });
+    expect(mocks.findMany).not.toHaveBeenCalled();
+    // In a plain list, the record is served without its set.
+    mocks.findMany.mockResolvedValue([listed]);
+    const { records } = await listPublicCvRecords({ limit: 100 });
+    expect(records[0]!.setSpec).toBeUndefined();
+    expect(mocks.groupBy.mock.calls.at(-1)![0].where.currentRorId).toEqual({ in: ["04chrp450"] });
+    // And one by one.
+    mocks.findUnique.mockResolvedValueOnce(listed);
+    expect((await getPublicCvRecord("ada"))?.setSpec).toBeUndefined();
+    // At the floor, the set is published again.
+    setMembers({ "04chrp450": 5 });
+    mocks.findUnique.mockResolvedValueOnce(listed);
+    expect((await getPublicCvRecord("ada"))?.setSpec).toBe("ror:04chrp450");
   });
 
   it("getPublicCvRecord requires published + indexable", async () => {
