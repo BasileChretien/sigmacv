@@ -47,6 +47,11 @@ jobs:
       ORCID_CLIENT_SECRET: "ci-e2e"
       ORCID_ENVIRONMENT: "sandbox"
       OPENALEX_MAILTO: "ci@example.com"
+      # The fixture OpenAlex server (e2e/fixtures/openalex-server.ts), started by
+      # global-setup only when this is set, as .env.e2e.example sets it locally.
+      # Without it the journeys reached the real api.openalex.org, which has
+      # answered GitHub's runners with 401 since 2026-10-14.
+      OPENALEX_API_BASE: "http://127.0.0.1:3201"
       # The preview-objection journey toggles the suppression table; without a key
       # the account route answers 503 (nothing could be hashed).
       PREVIEW_SUPPRESSION_KEY: "ci-e2e-preview-suppression-key"
