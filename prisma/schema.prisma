@@ -182,6 +182,16 @@ model Cv {
   institutionAggregates  Json?
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
   resyncLockedAt         DateTime?
+  // When what the OAI-PMH endpoint serves for this CV last changed: its
+  // records' datestamp, and the column `from`/`until` filter on. Moved only
+  // when `oaiFingerprint` changes (src/lib/cv/oaiState.ts), so neither the
+  // resync lock above nor a sync that changes nothing public re-sends the CV to
+  // every incremental harvester (`updatedAt` moves on every write).
+  publicChangedAt        DateTime  @default(now())
+  // A hash of every OAI record this CV serves (both formats, its works, its
+  // set), or "none" when it serves nothing; null until the row's first write
+  // after the column existed. Compared at every write. Derived, never edited.
+  oaiFingerprint         String?
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
@@ -190,6 +200,7 @@ model Cv {
 
   @@index([published, lastSyncedAt])
   @@index([listUnderAffiliation, currentRorId])
+  @@index([publicChangedAt])
 }
 
 // A FROZEN copy of a CV at one moment — "freeze & cite this version". The

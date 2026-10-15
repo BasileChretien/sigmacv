@@ -124,29 +124,29 @@ async function handle(args: OaiArgs, req: Request): Promise<NextResponse> {
         );
       }
       case "list": {
-        const { records, total } = await listPublicCvRecords({
+        const { records, next } = await listPublicCvRecords({
           limit: OAI_PAGE_SIZE,
+          after: plan.after,
           offset: plan.offset,
           from: plan.from,
           until: plan.until,
           set: plan.set,
         });
+        const resumed = plan.after !== undefined || plan.offset !== undefined;
         if (records.length === 0) {
-          const empty = plan.offset > 0;
           return xmlResponse(
             oaiError(
               args,
-              empty ? "badResumptionToken" : "noRecordsMatch",
-              empty ? "Invalid or expired resumptionToken" : "No records match the request",
+              resumed ? "badResumptionToken" : "noRecordsMatch",
+              resumed ? "Invalid or expired resumptionToken" : "No records match the request",
               opts,
             ),
           );
         }
-        const consumed = plan.offset + records.length;
         const page = {
           records,
-          cursor: plan.offset,
-          nextOffset: consumed < total ? consumed : null,
+          resumed,
+          next,
           filters: { set: plan.set, from: plan.from, until: plan.until },
           metadataPrefix: plan.metadataPrefix,
         };
