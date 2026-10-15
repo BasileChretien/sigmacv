@@ -4,7 +4,7 @@ const mocks = vi.hoisted(() => ({
   count: vi.fn(),
   findMany: vi.fn(),
   findUnique: vi.fn(),
-  update: vi.fn(),
+  updateMany: vi.fn(),
   deleteMany: vi.fn(),
   createMany: vi.fn(),
   warn: vi.fn(),
@@ -16,7 +16,7 @@ vi.mock("@/lib/db", () => ({
       count: mocks.count,
       findMany: mocks.findMany,
       findUnique: mocks.findUnique,
-      update: mocks.update,
+      updateMany: mocks.updateMany,
     },
     oaiDeletion: { deleteMany: mocks.deleteMany, createMany: mocks.createMany },
   },
@@ -100,7 +100,8 @@ const member = (id: string, extra: Record<string, unknown> = {}) => ({
 
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
-  mocks.update.mockResolvedValue({});
+  // A member written by a crossing is still listed in the set unless a test says otherwise.
+  mocks.updateMany.mockResolvedValue({ count: 1 });
   mocks.deleteMany.mockResolvedValue({ count: 0 });
   mocks.createMany.mockResolvedValue({ count: 0 });
 });
@@ -235,8 +236,8 @@ describe("applySetCrossings", () => {
       expect(t.has("", `oai:sigmacv.org:${id}-slug`)).toBe(false);
     }
     // Their stored exposure loses the set and their datestamp moves.
-    expect(mocks.update).toHaveBeenCalledTimes(4);
-    expect(mocks.update.mock.calls[0]![0]).toMatchObject({
+    expect(mocks.updateMany).toHaveBeenCalledTimes(4);
+    expect(mocks.updateMany.mock.calls[0]![0]).toMatchObject({
       where: { id: "b" },
       data: {
         oaiExposure: { ids: ["oai:sigmacv.org:b-slug", "oai:sigmacv.org:b-slug/w/1"], set: null },
@@ -280,7 +281,7 @@ describe("applySetCrossings", () => {
     );
     expect(t.has(SET, "oai:sigmacv.org:b-slug")).toBe(false);
     expect(t.has("", "oai:sigmacv.org:gone")).toBe(true);
-    expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
+    expect(mocks.updateMany.mock.calls[0]![0].data).toMatchObject({
       oaiExposure: { ids: ["oai:sigmacv.org:b-slug"], set: SET },
       publicChangedAt: NOW,
     });
@@ -301,7 +302,7 @@ describe("applySetCrossings", () => {
       NOW,
     );
     expect(mocks.findMany.mock.calls[0]![0].where).not.toHaveProperty("id");
-    expect(mocks.update.mock.calls[0]![0].data.oaiExposure.ids).toEqual(
+    expect(mocks.updateMany.mock.calls[0]![0].data.oaiExposure.ids).toEqual(
       harvestExposure(harvestRecord(LISTED, CV, NOW)).ids,
     );
   });
@@ -419,7 +420,7 @@ describe("round 2 of the review of #563", () => {
       "cv_a",
       NOW,
     );
-    const data = mocks.update.mock.calls[0]![0].data;
+    const data = mocks.updateMany.mock.calls[0]![0].data;
     expect(data.oaiFingerprint).toBe(oaiFingerprint(harvestRecord(b, CV, NOW, false)));
     // B's weekly resync, its document unchanged, its set still closed.
     const next = harvestWrite(b, CV, data, () => null, NOW, false);
@@ -459,5 +460,56 @@ describe("round 2 of the review of #563", () => {
     mocks.count.mockResolvedValue(9);
     const w = await readOaiWithdrawal("u1", NOW);
     expect(w!.change.deletions.some((d) => d.setSpec === SET)).toBe(true);
+  });
+});
+
+describe("a crossing writes a member only while it is still in the set (review round 3 of #563)", () => {
+  const OPENS = {
+    openBefore: false,
+    openAfter: true,
+    opens: "04chrp450",
+    closes: null,
+    servedBeforeIn: null,
+  };
+  const CLOSES = {
+    openBefore: true,
+    openAfter: false,
+    opens: null,
+    closes: "04chrp450",
+    servedBeforeIn: SET,
+  };
+
+  it("re-checks, in the write itself, that the member is still listed in that set", async () => {
+    table();
+    mocks.findMany.mockResolvedValue([member("b")]);
+    await applySetCrossings(CLOSES, "cv_a", NOW);
+    expect(mocks.updateMany.mock.calls[0]![0].where).toEqual({
+      id: "b",
+      published: true,
+      publicIndexable: true,
+      listUnderAffiliation: true,
+      currentRorId: "04chrp450",
+    });
+  });
+
+  it("an opening skips a member that left the set meanwhile: the deletions its departure wrote stay", async () => {
+    const t = table();
+    t.seed(SET, "oai:sigmacv.org:b-slug");
+    mocks.findMany.mockResolvedValue([member("b")]);
+    // Between the read and the write, b turned the listing off.
+    mocks.updateMany.mockResolvedValue({ count: 0 });
+    await applySetCrossings(OPENS, "cv_a", NOW);
+    expect(t.has(SET, "oai:sigmacv.org:b-slug")).toBe(true);
+    expect(mocks.deleteMany).not.toHaveBeenCalled();
+  });
+
+  it("a closing skips a member that moved to another set meanwhile: no set deletion is written for it", async () => {
+    const t = table();
+    mocks.findMany.mockResolvedValue([member("b"), member("c")]);
+    // b's own write moved it to another institution between the read and the write.
+    mocks.updateMany.mockResolvedValueOnce({ count: 0 }).mockResolvedValueOnce({ count: 1 });
+    await applySetCrossings(CLOSES, "cv_a", NOW);
+    expect(t.has(SET, "oai:sigmacv.org:b-slug")).toBe(false);
+    expect(t.has(SET, "oai:sigmacv.org:c-slug")).toBe(true);
   });
 });

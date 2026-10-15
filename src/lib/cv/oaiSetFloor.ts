@@ -118,14 +118,14 @@ async function moveMembers(
   opening: boolean,
 ): Promise<void> {
   const setSpec = rorSetSpec(rorId);
+  const listedInSet = {
+    published: true,
+    publicIndexable: true,
+    listUnderAffiliation: true,
+    currentRorId: rorId,
+  };
   const members = await prisma.cv.findMany({
-    where: {
-      published: true,
-      publicIndexable: true,
-      listUnderAffiliation: true,
-      currentRorId: rorId,
-      ...(cvId ? { id: { not: cvId } } : {}),
-    },
+    where: { ...listedInSet, ...(cvId ? { id: { not: cvId } } : {}) },
     select: {
       id: true,
       published: true,
@@ -147,14 +147,20 @@ async function moveMembers(
     const served: HarvestExposure = { ids, set: opening ? setSpec : null };
     // The fingerprint moves with what is served, or the member's next write,
     // changing nothing, would re-send it to every delta harvester once more.
-    await prisma.cv.update({
-      where: { id: member.id },
+    // Written only while the member is STILL listed in this set, re-checked in
+    // the write itself: one that left it, or moved to another set, since it was
+    // read has just written its own harvest, and moving it here would store
+    // the wrong set over it, or (on opening) clear the deletions its departure
+    // recorded. Such a member is skipped.
+    const written = await prisma.cv.updateMany({
+      where: { id: member.id, ...listedInSet },
       data: {
         oaiExposure: served,
         oaiFingerprint: oaiFingerprint(harvestRecord(member, cv, now, opening)),
         publicChangedAt: now,
       },
     });
+    if (written.count === 0) continue;
     // Opening: served in the set again, so its deletions from the set go.
     // Closing: no longer served in it, so each record is deleted from it.
     await applyOaiDeletions(

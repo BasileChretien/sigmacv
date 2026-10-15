@@ -164,9 +164,11 @@ export interface HarvestWrite {
  * takes it, so an exposure left without its set (two writes that crossed the
  * floor at the same moment, or a crossing cut short) does not cost a harvester
  * the deleted record that tells it to drop the CV. That is the one case it
- * covers: a stored exposure naming another set is kept as it is, and without a
- * per-institution lock a crossing that races a member's own write can still
- * store a wrong one (a residual stated in #563).
+ * covers: a stored exposure naming another set is kept as it is. A crossing
+ * writes a member only while it is still listed in the set (`oaiSetFloor.ts`),
+ * so it does not store a wrong set over a member's own move; what is left
+ * without a per-institution lock is the moment between that write and the
+ * member's own, two consecutive queries (a residual stated in #563).
  */
 export function harvestWrite(
   row: HarvestColumns,
