@@ -45,7 +45,7 @@ import {
   withRorProvenance,
 } from "@/lib/canonical/enrich";
 import { CanonicalCvSchema, safeParseCanonicalCv, type CanonicalCv } from "@/lib/canonical/schema";
-import { rorSetSpec, type OaiRecordInput, type OaiSet } from "@/lib/oai/oai";
+import { OAI_CURSOR_MAX, rorSetSpec, type OaiRecordInput, type OaiSet } from "@/lib/oai/oai";
 import { fetchJournalNamesByIssn, fetchWorksByAuthorIds } from "@/lib/openalex/client";
 import { recordWorkFunders } from "@/lib/openalex/funders";
 import { resolveAuthorByOrcid } from "@/lib/openalex/resolveAuthor";
@@ -1054,8 +1054,9 @@ const DATESTAMP_GRANULARITY_MS = 1000;
 /** A page of OAI CV records and where the next page starts. */
 export interface PublicCvRecordPage {
   records: OaiRecordInput[];
-  /** The slug of the last row this page read (corrupt rows included), or null
-   *  when no row follows it. */
+  /** Where the next page starts: the slug of the last row this page read
+   *  (corrupt rows included), cut to OAI_CURSOR_MAX characters, or null when
+   *  no row follows it. */
   next: string | null;
 }
 
@@ -1117,8 +1118,11 @@ export async function listPublicCvRecords(opts: {
     const record = harvestRecord(row, parsed.success ? parsed.data : null, row.publicChangedAt);
     if (record) records.push(record);
   }
-  // `limit` ≥ 1, so when a row follows the page the page has a last row.
-  const next = rows.length > opts.limit ? page[page.length - 1]!.publicSlug : null;
+  // The next page starts after (at most) the first OAI_CURSOR_MAX characters
+  // of the last slug read: a longer slug is resumed AT, so that CV is sent
+  // again rather than any CV skipped (see OAI_CURSOR_MAX).
+  const last = page[page.length - 1]?.publicSlug ?? null;
+  const next = rows.length > opts.limit && last !== null ? last.slice(0, OAI_CURSOR_MAX) : null;
   return { records, next };
 }
 

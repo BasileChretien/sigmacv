@@ -181,7 +181,13 @@ import {
 } from "@/lib/cv/sync";
 import { setItemIncluded, updateDisplay } from "@/lib/canonical/curate";
 import { harvestRecord } from "@/lib/cv/oaiState";
-import { NOT_SERVED_FINGERPRINT, oaiFingerprint } from "@/lib/oai/oai";
+import {
+  NOT_SERVED_FINGERPRINT,
+  encodeResumptionToken,
+  oaiFingerprint,
+  parseResumptionToken,
+} from "@/lib/oai/oai";
+import { cvSlug } from "@/lib/render/slug";
 import { InstitutionConsentError, visibleCurrentRorIds } from "@/lib/cv/institutionConsent";
 import { computeCvAggregates } from "@/lib/institutions/cvAggregates";
 import { Prisma } from "@/generated/prisma/client";
@@ -1536,6 +1542,18 @@ describe("OAI harvest helpers", () => {
   it("listPublicCvRecords says no page follows when it read no row past the page", async () => {
     mocks.findMany.mockResolvedValue([harvestable("ada"), harvestable("cy")]);
     expect((await listPublicCvRecords({ limit: 2 })).next).toBeNull();
+  });
+
+  it("a page ending on a slug longer than a token carries resumes at its prefix: that CV is sent again, none is skipped", async () => {
+    // The owner's display name may be 1,000 characters and cvSlug never truncates.
+    const long = `${cvSlug("a".repeat(250))}-0123456789abcdef0123`;
+    mocks.findMany.mockResolvedValue([harvestable("ada"), harvestable(long), harvestable("zed")]);
+    const { next } = await listPublicCvRecords({ limit: 2 });
+    // The endpoint accepts the token it issues ...
+    expect(parseResumptionToken(encodeResumptionToken({ after: next! }))).toEqual({ after: next });
+    // ... and resuming after it still reaches the long-slug CV (sent twice, never skipped).
+    expect(long > next!).toBe(true);
+    expect(long.startsWith(next!)).toBe(true);
   });
 
   it("resumes AFTER the last slug read, so a CV leaving the list between pages skips nobody", async () => {

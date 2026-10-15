@@ -434,10 +434,19 @@ export interface ResumptionState extends ListFilters {
   metadataPrefix?: OaiMetadataPrefix;
 }
 
-/** A public slug as the server mints it (`cvSlug(name)-<hex>`): the only shape
- *  a token's `after` may carry, so a token can never smuggle in a SQL-shaped or
+/**
+ * The longest slug prefix a resumption token carries. A slug can be longer —
+ * it is `cvSlug(displayName)` plus 20 hex characters, `cvSlug` never truncates,
+ * and a display name may run to 1,000 characters — so the reader hands on the
+ * first {@link OAI_CURSOR_MAX} characters of the last slug it read: the next
+ * page starts AT that CV, which is sent once more and never skipped.
+ */
+export const OAI_CURSOR_MAX = 200;
+
+/** A slug prefix in the shape the server mints slugs in: the only shape a
+ *  token's `after` may carry, so a token can never smuggle in a SQL-shaped or
  *  oversized comparison value. */
-const TOKEN_SLUG = /^[a-z0-9][a-z0-9-]{0,199}$/;
+const TOKEN_SLUG = new RegExp(`^[a-z0-9][a-z0-9-]{0,${OAI_CURSOR_MAX - 1}}$`);
 
 /** `YYYY-MM-DDThh:mm:ssZ` — the OAI seconds form `parseOaiDate` accepts. */
 function oaiSeconds(d: Date): string {
