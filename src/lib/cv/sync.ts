@@ -14,6 +14,7 @@ import {
   type InstitutionPageState,
 } from "@/lib/cv/institutionConsent";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
+import { harvestRecord, harvestStateColumns } from "@/lib/cv/oaiState";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
 import { recordInstitutions, trustedInstitutionNames } from "@/lib/cv/listed";
@@ -124,6 +125,24 @@ function affiliationSetName(cv: CanonicalCv): string | null {
 function aggregatesColumn(cv: CanonicalCv | null): Prisma.InputJsonValue | typeof Prisma.DbNull {
   return cv ? (computeCvAggregates(cv) as unknown as Prisma.InputJsonValue) : Prisma.DbNull;
 }
+
+/** The publish flags a write reads to decide what the OAI endpoint serves
+ *  (`oaiState.ts`), with the fingerprint it compares against. */
+const HARVEST_FLAGS = {
+  published: true,
+  publicIndexable: true,
+  publicSlug: true,
+  listUnderAffiliation: true,
+  oaiFingerprint: true,
+} as const;
+
+/** The flags of a row that does not exist yet: nothing is served. */
+const NOT_HARVESTABLE = {
+  published: false,
+  publicIndexable: false,
+  publicSlug: null,
+  listUnderAffiliation: false,
+};
 
 /**
  * Hard cap on the TOTAL number of items across all sections, enforced on SAVE
@@ -672,6 +691,19 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   const currentAffiliationName = affiliationSetName(cv);
   const visibleRorIds = visibleCurrentRorIds(cv);
   const institutionAggregates = aggregatesColumn(cv);
+  // What the OAI endpoint serves once this write lands, read against the
+  // publish flags as they stand NOW: the build above took seconds and the
+  // upsert leaves the flags alone, so the owner may have published or withdrawn
+  // meanwhile. A new row is not published, so it serves nothing.
+  const flags = existing
+    ? await prisma.cv.findUnique({ where: { userId }, select: HARVEST_FLAGS })
+    : null;
+  const harvest = harvestStateColumns(
+    { ...(flags ?? NOT_HARVESTABLE), currentRorId },
+    cv,
+    flags?.oaiFingerprint,
+    new Date(),
+  );
   await prisma.cv.upsert({
     where: { userId },
     create: {
@@ -685,6 +717,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       currentAffiliationName,
       visibleCurrentRorIds: visibleRorIds,
       institutionAggregates,
+      ...harvest,
     },
     update: {
       document: cv as unknown as Prisma.InputJsonValue,
@@ -695,6 +728,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       currentAffiliationName,
       visibleCurrentRorIds: visibleRorIds,
       institutionAggregates,
+      ...harvest,
     },
   });
 
@@ -749,15 +783,22 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
       }
     : validated;
 
+  const currentRorId = currentRorKey(reconciled);
   await prisma.cv.update({
     where: { userId },
     data: {
       document: reconciled as unknown as Prisma.InputJsonValue,
       schemaVersion: reconciled.schemaVersion,
-      currentRorId: currentRorKey(reconciled),
+      currentRorId,
       currentAffiliationName: affiliationSetName(reconciled),
       visibleCurrentRorIds: visibleCurrentRorIds(reconciled),
       institutionAggregates: aggregatesColumn(reconciled),
+      ...harvestStateColumns(
+        { ...existing, currentRorId },
+        reconciled,
+        existing.oaiFingerprint,
+        new Date(),
+      ),
     },
   });
 
@@ -906,6 +947,18 @@ export async function setPublishState(
       institutionAggregates: aggregatesColumn(cv),
       ...consent,
       shareReconciliationRows: shareRows,
+      ...harvestStateColumns(
+        {
+          published,
+          publicIndexable,
+          publicSlug: slug,
+          listUnderAffiliation: listed,
+          currentRorId,
+        },
+        cv,
+        row.oaiFingerprint,
+        new Date(),
+      ),
     },
     select: {
       published: true,
@@ -994,87 +1047,87 @@ export async function getPublicCvForPage(
   };
 }
 
-/** The OAI set an opted-in CV is listed under, or undefined. The opt-in is the
- *  consent gate; the key alone (a CV that merely HAS that affiliation) is not. */
-function affiliationSetSpec(row: {
-  listUnderAffiliation: boolean;
-  currentRorId: string | null;
-}): string | undefined {
-  return row.listUnderAffiliation && row.currentRorId ? rorSetSpec(row.currentRorId) : undefined;
+/** One second, the repository's datestamp granularity: an inclusive `until`
+ *  second selects every row stamped before the next one. */
+const DATESTAMP_GRANULARITY_MS = 1000;
+
+/** A page of OAI CV records and where the next page starts. */
+export interface PublicCvRecordPage {
+  records: OaiRecordInput[];
+  /** The slug of the last row this page read (corrupt rows included), or null
+   *  when no row follows it. */
+  next: string | null;
 }
 
 /**
- * Indexable published CVs for OAI-PMH harvesting — a page of {slug, datestamp
- * (row `updatedAt`), public-projected cv, set membership} plus the total
- * matching count (for resumption). Gated on `publicIndexable` (the same
+ * Indexable published CVs for OAI-PMH harvesting — a page of {slug, datestamp,
+ * public-projected cv, set membership}. Gated on `publicIndexable` (the same
  * discovery opt-in the sitemap uses). With `set` (a bare ROR id), ONLY the CVs
  * that opted into the affiliation listing under that id match — never a CV that
- * merely carries the affiliation. Stable order by slug so offset paging is
- * consistent; `from`/`until` filter on `updatedAt`. Unparseable rows are skipped.
+ * merely carries the affiliation. Ordered by slug and resumed AFTER the last
+ * slug read (`after`), so a CV that leaves or joins the list between two pages
+ * shifts nothing; `offset` serves the tokens issued before that. The datestamp
+ * is `publicChangedAt` — when what the endpoint serves for the CV last changed
+ * (`oaiState.ts`), not when the row was last written — and `from`/`until`
+ * (both inclusive, to the second) filter on it. One row past the page is read
+ * to tell whether another page follows. Unparseable rows are skipped.
  */
 export async function listPublicCvRecords(opts: {
   limit: number;
-  offset: number;
+  after?: string;
+  offset?: number;
   from?: Date;
   until?: Date;
   set?: string;
-}): Promise<{ records: OaiRecordInput[]; total: number }> {
+}): Promise<PublicCvRecordPage> {
   const where: Prisma.CvWhereInput = {
     published: true,
     publicIndexable: true,
-    publicSlug: { not: null },
+    publicSlug: opts.after === undefined ? { not: null } : { gt: opts.after },
   };
   if (opts.set) {
     where.listUnderAffiliation = true;
     where.currentRorId = opts.set;
   }
   if (opts.from || opts.until) {
-    where.updatedAt = {
+    where.publicChangedAt = {
       ...(opts.from ? { gte: opts.from } : {}),
-      ...(opts.until ? { lte: opts.until } : {}),
+      ...(opts.until ? { lt: new Date(opts.until.getTime() + DATESTAMP_GRANULARITY_MS) } : {}),
     };
   }
-  const total = await prisma.cv.count({ where });
   const rows = await prisma.cv.findMany({
     where,
     select: {
+      published: true,
+      publicIndexable: true,
       publicSlug: true,
-      updatedAt: true,
+      publicChangedAt: true,
       document: true,
       listUnderAffiliation: true,
       currentRorId: true,
     },
     orderBy: { publicSlug: "asc" },
-    take: opts.limit,
-    skip: opts.offset,
+    take: opts.limit + 1,
+    ...(opts.offset ? { skip: opts.offset } : {}),
   });
+  const page = rows.slice(0, opts.limit);
   const records: OaiRecordInput[] = [];
-  for (const row of rows) {
-    if (!row.publicSlug) continue;
+  for (const row of page) {
     const parsed = safeParseCanonicalCv(row.document);
-    if (!parsed.success) continue;
-    records.push({
-      slug: row.publicSlug,
-      datestamp: row.updatedAt,
-      cv: projectCvForPublic(parsed.data),
-      setSpec: affiliationSetSpec(row),
-    });
+    const record = harvestRecord(row, parsed.success ? parsed.data : null, row.publicChangedAt);
+    if (record) records.push(record);
   }
-  return { records, total };
+  // `limit` ≥ 1, so when a row follows the page the page has a last row.
+  const next = rows.length > opts.limit ? page[page.length - 1]!.publicSlug : null;
+  return { records, next };
 }
 
 /** A single OAI record by slug (published + indexable), or null. */
 export async function getPublicCvRecord(slug: string): Promise<OaiRecordInput | null> {
   const row = await prisma.cv.findUnique({ where: { publicSlug: slug } });
-  if (!row || !row.published || !row.publicIndexable) return null;
+  if (!row) return null;
   const parsed = safeParseCanonicalCv(row.document);
-  if (!parsed.success) return null;
-  return {
-    slug,
-    datestamp: row.updatedAt,
-    cv: projectCvForPublic(parsed.data),
-    setSpec: affiliationSetSpec(row),
-  };
+  return harvestRecord(row, parsed.success ? parsed.data : null, row.publicChangedAt);
 }
 
 /** Bound on the number of affiliation sets ListSets enumerates (one per

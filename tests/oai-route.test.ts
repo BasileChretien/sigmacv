@@ -124,7 +124,7 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
   it("ListRecords with set=ror:<id> passes the ROR id to the opt-in-filtered harvest", async () => {
     mocks.listPublicCvRecords.mockResolvedValue({
       records: [{ ...RECORD, setSpec: "ror:04chrp450" }],
-      total: 1,
+      next: null,
     });
     const xml = await (
       await get("verb=ListRecords&metadataPrefix=oai_dc&set=ror:04chrp450")
@@ -138,7 +138,7 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
   it("page 2 of a set-filtered harvest is still filtered by that set (the token carries it)", async () => {
     mocks.listPublicCvRecords.mockResolvedValue({
       records: [{ ...RECORD, setSpec: "ror:04chrp450" }],
-      total: 250,
+      next: "ada-x7",
     });
     const first = await (
       await get("verb=ListRecords&metadataPrefix=oai_dc&set=ror:04chrp450")
@@ -147,7 +147,7 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
     mocks.listPublicCvRecords.mockClear();
     await get(`verb=ListRecords&resumptionToken=${encodeURIComponent(token)}`);
     expect(mocks.listPublicCvRecords).toHaveBeenCalledWith(
-      expect.objectContaining({ set: "04chrp450", offset: 1 }),
+      expect.objectContaining({ set: "04chrp450", after: "ada-x7" }),
     );
     // A forged token naming another set, or none, is refused — never widened.
     const forged = Buffer.from("o=1&s=zz", "utf8").toString("base64url");
@@ -156,7 +156,7 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
   });
 
   it("record- and set-bearing answers are never shared-cacheable; repository verbs are", async () => {
-    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], total: 1 });
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: null });
     expect((await get("verb=ListRecords&metadataPrefix=oai_dc")).headers.get("cache-control")).toBe(
       "private, no-store",
     );
@@ -167,13 +167,58 @@ describe("OAI-PMH route: affiliation sets + per-work records", () => {
   });
 
   it("ListRecords without a set never asks for the opt-in filter", async () => {
-    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], total: 1 });
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: null });
     await get("verb=ListRecords&metadataPrefix=oai_dc");
     expect(mocks.listPublicCvRecords.mock.calls[0]![0].set).toBeUndefined();
   });
 
+  it("a day-form until reaches the end of that day, and from/until must share a granularity", async () => {
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: null });
+    await get("verb=ListRecords&metadataPrefix=oai_dc&from=2026-06-01&until=2026-06-09");
+    // RECORD is stamped 2026-06-09T10:00:00Z: an `until` of that day must select it.
+    expect(mocks.listPublicCvRecords).toHaveBeenCalledWith(
+      expect.objectContaining({
+        from: new Date("2026-06-01T00:00:00Z"),
+        until: new Date("2026-06-09T23:59:59Z"),
+      }),
+    );
+    mocks.listPublicCvRecords.mockClear();
+    const mixed = await (
+      await get("verb=ListRecords&metadataPrefix=oai_dc&from=2026-06-01&until=2026-06-09T10:00:00Z")
+    ).text();
+    expect(mixed).toContain('<error code="badArgument">');
+    expect(mocks.listPublicCvRecords).not.toHaveBeenCalled();
+    // An impossible day is refused, not rolled over into the next month.
+    const rolled = await (
+      await get("verb=ListRecords&metadataPrefix=oai_dc&until=2026-02-30")
+    ).text();
+    expect(rolled).toContain('<error code="badArgument">');
+  });
+
+  it("a token issued before resumption by slug still finishes its harvest, and closes it", async () => {
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: null });
+    const legacy = Buffer.from("o=100&s=04chrp450", "utf8").toString("base64url");
+    const xml = await (await get(`verb=ListRecords&resumptionToken=${legacy}`)).text();
+    expect(mocks.listPublicCvRecords).toHaveBeenCalledWith(
+      expect.objectContaining({ offset: 100, set: "04chrp450", after: undefined }),
+    );
+    // The last page of a list that paged at all ends with an empty token.
+    expect(xml).toContain("<resumptionToken/>");
+  });
+
+  it("a resumed page that finds nothing left is badResumptionToken, a first page noRecordsMatch", async () => {
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [], next: null });
+    const token = Buffer.from("a=ada-x7", "utf8").toString("base64url");
+    expect(await (await get(`verb=ListRecords&resumptionToken=${token}`)).text()).toContain(
+      '<error code="badResumptionToken">',
+    );
+    expect(await (await get("verb=ListIdentifiers&metadataPrefix=oai_dc")).text()).toContain(
+      '<error code="noRecordsMatch">',
+    );
+  });
+
   it("an unknown set is noRecordsMatch (the CV exists, but nobody opted into that set)", async () => {
-    mocks.listPublicCvRecords.mockResolvedValue({ records: [], total: 0 });
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [], next: null });
     const xml = await (
       await get("verb=ListRecords&metadataPrefix=oai_dc&set=ror:00000000x")
     ).text();
@@ -227,7 +272,7 @@ describe("OAI-PMH route: oaire metadata format", () => {
   });
 
   it("ListRecords with metadataPrefix=oaire keeps the format on page 2 via the token", async () => {
-    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], total: 250 });
+    mocks.listPublicCvRecords.mockResolvedValue({ records: [RECORD], next: "ada-x7" });
     const first = await (await get("verb=ListRecords&metadataPrefix=oaire")).text();
     expect(first).toContain("<oaire:resource");
     const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(first)![1]!;

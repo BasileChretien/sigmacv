@@ -125,7 +125,6 @@ describe("validateOaiRequest", () => {
       kind: "list",
       verb: "ListRecords",
       metadataPrefix: "oai_dc",
-      offset: 0,
       set: "04chrp450",
     });
     expect(
@@ -186,10 +185,11 @@ describe("validateOaiRequest", () => {
     expect(validateOaiRequest({ verb: "ListRecords", metadataPrefix: "x" })).toMatchObject({
       code: "cannotDisseminateFormat",
     });
-    expect(validateOaiRequest({ verb: "ListRecords", metadataPrefix: "oai_dc" })).toMatchObject({
+    // A first page starts at the beginning: neither a slug to resume after nor an offset.
+    expect(validateOaiRequest({ verb: "ListRecords", metadataPrefix: "oai_dc" })).toEqual({
       kind: "list",
       verb: "ListRecords",
-      offset: 0,
+      metadataPrefix: "oai_dc",
     });
     // from/until parsing.
     expect(
@@ -198,10 +198,10 @@ describe("validateOaiRequest", () => {
     const withDate = validateOaiRequest({
       verb: "ListIdentifiers",
       metadataPrefix: "oai_dc",
-      from: "2026-06-01",
+      from: "2026-06-01T00:00:00Z",
       until: "2026-06-30T23:59:59Z",
     });
-    expect(withDate).toMatchObject({ kind: "list", verb: "ListIdentifiers", offset: 0 });
+    expect(withDate).toMatchObject({ kind: "list", verb: "ListIdentifiers" });
     // resumption token: valid, invalid, and exclusivity.
     expect(validateOaiRequest({ verb: "ListRecords", resumptionToken: "100" })).toEqual({
       kind: "list",
@@ -288,8 +288,8 @@ describe("OAI response builders", () => {
     const until = new Date("2026-06-30T23:59:59Z");
     const page: OaiListPage = {
       records: recs,
-      cursor: 0,
-      nextOffset: 100,
+      resumed: false,
+      next: "a",
       filters: { set: "04chrp450", from, until },
     };
     const xml = listRecordsResponse(
@@ -299,18 +299,22 @@ describe("OAI response builders", () => {
     );
     const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(xml)![1]!;
     expect(token).toMatch(/^[A-Za-z0-9_-]+$/);
-    expect(parseResumptionToken(token)).toEqual({ offset: 100, set: "04chrp450", from, until });
+    expect(parseResumptionToken(token)).toEqual({ after: "a", set: "04chrp450", from, until });
     // Page 2 of a set-filtered list is still page 2 OF THAT SET.
     expect(validateOaiRequest({ verb: "ListRecords", resumptionToken: token })).toEqual({
       kind: "list",
       verb: "ListRecords",
       metadataPrefix: "oai_dc",
-      offset: 100,
+      after: "a",
       set: "04chrp450",
       from,
       until,
     });
-    // Round trip without filters, and the legacy bare offset.
+    // Round trip without filters, the offset tokens issued before `after`, and
+    // the legacy bare offset.
+    expect(parseResumptionToken(encodeResumptionToken({ after: "ada-x7" }))).toEqual({
+      after: "ada-x7",
+    });
     expect(parseResumptionToken(encodeResumptionToken({ offset: 7 }))).toEqual({ offset: 7 });
     expect(parseResumptionToken("42")).toEqual({ offset: 42 });
     // Tampering: a foreign set id, a bad date, junk, or a non-numeric offset → rejected,
@@ -320,6 +324,16 @@ describe("OAI response builders", () => {
     expect(parseResumptionToken(forged("o=100&s=04chrp450&f=2026-13-01"))).toBeNull();
     expect(parseResumptionToken(forged("o=abc"))).toBeNull();
     expect(parseResumptionToken(forged("s=04chrp450"))).toBeNull();
+    // Where the next page starts: exactly one of a slug or an offset, and a slug
+    // only in the shape the server mints (no SQL-ish or oversized comparison value).
+    expect(parseResumptionToken(forged("a=ada-x7&o=1"))).toBeNull();
+    expect(parseResumptionToken(forged("a=Ada"))).toBeNull();
+    expect(parseResumptionToken(forged("a=-ada"))).toBeNull();
+    expect(parseResumptionToken(forged("a=ada%27%20OR%201%3D1"))).toBeNull();
+    expect(parseResumptionToken(forged(`a=${"a".repeat(201)}`))).toBeNull();
+    expect(parseResumptionToken(forged(`a=${"a".repeat(200)}`))).toEqual({
+      after: "a".repeat(200),
+    });
     expect(parseResumptionToken("not*base64")).toBeNull();
     expect(
       validateOaiRequest({ verb: "ListRecords", resumptionToken: forged("o=1&s=!") }),
@@ -328,17 +342,17 @@ describe("OAI response builders", () => {
 
   it("ListRecords includes a resumptionToken only when more pages remain", () => {
     const recs = [makeRecord({ slug: "a" }), makeRecord({ slug: "b" })];
-    const more: OaiListPage = { records: recs, cursor: 0, nextOffset: 100 };
+    const more: OaiListPage = { records: recs, resumed: false, next: "b" };
     const xml = listRecordsResponse({ verb: "ListRecords", metadataPrefix: "oai_dc" }, more, OPTS);
     // Pages are cut at CV boundaries (a CV's per-work records ride with it), so
     // the size of the complete RECORD list is unknown: the optional
     // completeListSize / cursor attributes are omitted rather than misreported.
     const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(xml)![1]!;
-    expect(parseResumptionToken(token)).toEqual({ offset: 100 });
+    expect(parseResumptionToken(token)).toEqual({ after: "b" });
     expect(xml).not.toContain("completeListSize");
     expect((xml.match(/<record>/g) ?? []).length).toBe(2);
 
-    const last: OaiListPage = { records: recs, cursor: 0, nextOffset: null };
+    const last: OaiListPage = { records: recs, resumed: false, next: null };
     const xmlLast = listRecordsResponse(
       { verb: "ListRecords", metadataPrefix: "oai_dc" },
       last,
@@ -347,7 +361,7 @@ describe("OAI response builders", () => {
     expect(xmlLast).not.toContain("<resumptionToken");
 
     // The final page of a multi-page list emits an empty (closing) token.
-    const lastPaged: OaiListPage = { records: recs, cursor: 200, nextOffset: null };
+    const lastPaged: OaiListPage = { records: recs, resumed: true, next: null };
     const xmlClosing = listRecordsResponse(
       { verb: "ListRecords", resumptionToken: "200" },
       lastPaged,
@@ -357,7 +371,7 @@ describe("OAI response builders", () => {
   });
 
   it("ListIdentifiers emits headers without metadata", () => {
-    const page: OaiListPage = { records: [makeRecord()], cursor: 0, nextOffset: null };
+    const page: OaiListPage = { records: [makeRecord()], resumed: false, next: null };
     const xml = listIdentifiersResponse(
       { verb: "ListIdentifiers", metadataPrefix: "oai_dc" },
       page,
@@ -490,7 +504,7 @@ describe("per-work OAI records", () => {
     const rec = worksCv({ cvLicense: "CC-BY-4.0" });
     const xml = listRecordsResponse(
       { verb: "ListRecords", metadataPrefix: "oai_dc" },
-      { records: [rec], cursor: 0, nextOffset: null },
+      { records: [rec], resumed: false, next: null },
       OPTS,
     );
     // One CV record + two work records.
@@ -521,7 +535,7 @@ describe("per-work OAI records", () => {
     const cv = { ...rec.cv, owner: { ...rec.cv.owner, publicationName: { family: "Byron" } } };
     const xml = listRecordsResponse(
       { verb: "ListRecords", metadataPrefix: "oai_dc" },
-      { records: [{ ...rec, cv }], cursor: 0, nextOffset: null },
+      { records: [{ ...rec, cv }], resumed: false, next: null },
       OPTS,
     );
     expect(xml).toContain("<dc:creator>Byron, Ada</dc:creator>");
@@ -572,7 +586,7 @@ describe("per-work OAI records", () => {
     } as CanonicalCv;
     const xml = listRecordsResponse(
       { verb: "ListRecords", metadataPrefix: "oai_dc" },
-      { records: [{ ...rec, cv }], cursor: 0, nextOffset: null },
+      { records: [{ ...rec, cv }], resumed: false, next: null },
       OPTS,
     );
     expect(xml).toContain("<dc:creator>Mononym</dc:creator>");
@@ -597,7 +611,7 @@ describe("per-work OAI records", () => {
   it("ListIdentifiers lists the per-work headers too", () => {
     const xml = listIdentifiersResponse(
       { verb: "ListIdentifiers", metadataPrefix: "oai_dc" },
-      { records: [worksCv()], cursor: 0, nextOffset: null },
+      { records: [worksCv()], resumed: false, next: null },
       OPTS,
     );
     expect((xml.match(/<header>/g) ?? []).length).toBe(3);
@@ -629,7 +643,7 @@ describe("affiliation sets", () => {
     const inSet = worksCv({}, "ror:04chrp450");
     const xml = listRecordsResponse(
       { verb: "ListRecords", metadataPrefix: "oai_dc", set: "ror:04chrp450" },
-      { records: [inSet], cursor: 0, nextOffset: null },
+      { records: [inSet], resumed: false, next: null },
       OPTS,
     );
     expect((xml.match(/<setSpec>ror:04chrp450<\/setSpec>/g) ?? []).length).toBe(3);
@@ -637,7 +651,7 @@ describe("affiliation sets", () => {
 
     const outXml = listRecordsResponse(
       { verb: "ListRecords", metadataPrefix: "oai_dc" },
-      { records: [worksCv()], cursor: 0, nextOffset: null },
+      { records: [worksCv()], resumed: false, next: null },
       OPTS,
     );
     expect(outXml).not.toContain("<setSpec>");
@@ -659,7 +673,6 @@ describe("oaire metadata prefix", () => {
       kind: "list",
       verb: "ListRecords",
       metadataPrefix: "oaire",
-      offset: 0,
     });
     expect(validateOaiRequest({ verb: "ListIdentifiers", metadataPrefix: "oaire" })).toMatchObject({
       kind: "list",
@@ -678,8 +691,8 @@ describe("oaire metadata prefix", () => {
   it("a resumption token carries the format: page 2 of an oaire harvest is still oaire", () => {
     const page: OaiListPage = {
       records: [makeRecord({ slug: "a" })],
-      cursor: 0,
-      nextOffset: 100,
+      resumed: false,
+      next: "a",
       metadataPrefix: "oaire",
       filters: { set: "04chrp450" },
     };
@@ -690,7 +703,7 @@ describe("oaire metadata prefix", () => {
     );
     const token = /<resumptionToken>([^<]+)<\/resumptionToken>/.exec(xml)![1]!;
     expect(parseResumptionToken(token)).toEqual({
-      offset: 100,
+      after: "a",
       set: "04chrp450",
       metadataPrefix: "oaire",
     });
@@ -698,7 +711,7 @@ describe("oaire metadata prefix", () => {
       kind: "list",
       verb: "ListRecords",
       metadataPrefix: "oaire",
-      offset: 100,
+      after: "a",
       set: "04chrp450",
     });
     // An oai_dc token is byte-identical to before (no format field), and a
@@ -736,7 +749,7 @@ describe("oaire metadata prefix", () => {
 
     const list = listRecordsResponse(
       { verb: "ListRecords", metadataPrefix: "oaire" },
-      { records: [rec], cursor: 0, nextOffset: null, metadataPrefix: "oaire" },
+      { records: [rec], resumed: false, next: null, metadataPrefix: "oaire" },
       OPTS,
     );
     expect((list.match(/<oaire:resource /g) ?? []).length).toBe(3); // CV + W1 + W3
@@ -745,7 +758,7 @@ describe("oaire metadata prefix", () => {
     // ListIdentifiers has no metadata in either format.
     const ids = listIdentifiersResponse(
       { verb: "ListIdentifiers", metadataPrefix: "oaire" },
-      { records: [rec], cursor: 0, nextOffset: null, metadataPrefix: "oaire" },
+      { records: [rec], resumed: false, next: null, metadataPrefix: "oaire" },
       OPTS,
     );
     expect(ids).not.toContain("<metadata>");
