@@ -15,6 +15,7 @@ import {
 } from "@/lib/cv/institutionConsent";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { applyOaiDeletions } from "@/lib/cv/oaiDeletions";
+import { applySetCrossings, readSetFloor } from "@/lib/cv/oaiSetFloor";
 import { harvestRecord, harvestWrite } from "@/lib/cv/oaiState";
 import { projectCvForPublic } from "@/lib/cv/publicProjection";
 import { currentAffiliation } from "@/lib/cv/publicJsonLd";
@@ -709,12 +710,15 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
   const flags = existing
     ? await prisma.cv.findUnique({ where: { userId }, select: HARVEST_FLAGS })
     : null;
+  const nextFlags = { ...(flags ?? NOT_HARVESTABLE), currentRorId };
+  const floor = await readSetFloor(existing ? id : null, flags, nextFlags);
   const harvest = harvestWrite(
-    { ...(flags ?? NOT_HARVESTABLE), currentRorId },
+    nextFlags,
     cv,
     flags ?? {},
-    () => (flags ? harvestRecord(flags, previous, now) : null),
+    () => (flags ? harvestRecord(flags, previous, now, floor.openBefore) : null),
     now,
+    floor.openAfter,
   );
   await prisma.cv.upsert({
     where: { userId },
@@ -743,8 +747,10 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
       ...harvest.columns,
     },
   });
-  // What the write stopped serving is now a deleted record (oaiDeletions.ts).
+  // What the write stopped serving is now a deleted record (oaiDeletions.ts),
+  // and a set it took across the floor moves its other members (oaiSetFloor.ts).
   await applyOaiDeletions(harvest, now);
+  await applySetCrossings(floor, id, now);
 
   // AFTER the write: the OpenAlex funder crosswalk for the funders printed on
   // the owner's works (the owner worklist's funder join reads it). Reference
@@ -799,12 +805,14 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
 
   const currentRorId = currentRorKey(reconciled);
   const now = new Date();
+  const floor = await readSetFloor(existing.id, existing, { ...existing, currentRorId });
   const harvest = harvestWrite(
     { ...existing, currentRorId },
     reconciled,
     existing,
-    () => harvestRecord(existing, previous, now),
+    () => harvestRecord(existing, previous, now, floor.openBefore),
     now,
+    floor.openAfter,
   );
   await prisma.cv.update({
     where: { userId },
@@ -819,6 +827,7 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
     },
   });
   await applyOaiDeletions(harvest, now);
+  await applySetCrossings(floor, existing.id, now);
 
   // The anonymous /preview/[orcid] build applies this researcher's own
   // disambiguation corrections, so a cached preview is stale the moment they
@@ -953,12 +962,21 @@ export async function setPublishState(
     shareReconciliationRows,
   );
   const now = new Date();
+  const nextRow = {
+    published,
+    publicIndexable,
+    publicSlug: slug,
+    listUnderAffiliation: listed,
+    currentRorId,
+  };
+  const floor = await readSetFloor(row.id, row, nextRow);
   const harvest = harvestWrite(
-    { published, publicIndexable, publicSlug: slug, listUnderAffiliation: listed, currentRorId },
+    nextRow,
     cv,
     row,
-    () => harvestRecord(row, cv, now),
+    () => harvestRecord(row, cv, now, floor.openBefore),
     now,
+    floor.openAfter,
   );
   const updated = await prisma.cv.update({
     where: { userId },
@@ -988,6 +1006,7 @@ export async function setPublishState(
   if (updated.publicSlug) invalidatePublicPage(updated.publicSlug);
   // Withdrawn (or out of its set): harvesters running deltas are told.
   await applyOaiDeletions(harvest, now);
+  await applySetCrossings(floor, row.id, now);
   // Every institution page this CV was, or is now, consented to: a withdrawal
   // (explicit, or via indexing / unpublish) must be visible at once, not
   // within the TTL. Cheap — at most a handful of ids, usually none.

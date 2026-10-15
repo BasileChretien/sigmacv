@@ -1,18 +1,6 @@
 import { prisma } from "@/lib/db";
-import { MIN_SET_MEMBERS, countListedCvs } from "@/lib/cv/listed";
-import { rorIdFromSetSpec } from "@/lib/oai/oai";
 import { logger } from "@/lib/log";
-import { safeParseCanonicalCv } from "@/lib/canonical/schema";
-import {
-  NOTHING_EXPOSED,
-  WHOLE_REPOSITORY,
-  deletionsBetween,
-  harvestExposure,
-  harvestRecord,
-  parseHarvestExposure,
-  type HarvestExposure,
-  type OaiDeletionKey,
-} from "@/lib/cv/oaiState";
+import { WHOLE_REPOSITORY, type HarvestExposure, type OaiDeletionKey } from "@/lib/cv/oaiState";
 
 /**
  * The OAI-PMH endpoint's deleted records (`OaiDeletion`): what a write or an
@@ -48,61 +36,10 @@ function chunks<T>(items: readonly T[]): T[][] {
   return out;
 }
 
-/** What a write did to the harvest, as {@link applyOaiDeletions} needs it:
- *  `departed` / `joined` are the set the CV left / joined in that write (the
- *  write has landed, so the CV is no longer / now counted in it). */
+/** What a write did to the harvest, as {@link applyOaiDeletions} needs it. */
 export interface OaiDeletionChange {
   deletions: OaiDeletionKey[];
   served: HarvestExposure;
-  departed?: string | null;
-  joined?: string | null;
-}
-
-/** The listed researchers in a `ror:<id>` set now (after the write). */
-async function membersOf(setSpec: string): Promise<number> {
-  const rorId = rorIdFromSetSpec(setSpec);
-  /* v8 ignore next -- every set spec a write records is ror:<valid id> */
-  return rorId ? countListedCvs(rorId) : 0;
-}
-
-/**
- * The set floor (`MIN_SET_MEMBERS`, `listed.ts`) on the write side.
- *
- * - A record's departure from a set is a deleted record IN that set only if the
- *   set was open when it left (counting the CV that just left it): a set
- *   below the floor was never published, and its deleted records would name
- *   its members. Departures from the repository as a whole are never held back.
- * - A write that brings a set up to the floor, or takes it below, changes what
- *   every member's header says (the set appears or goes) without writing their
- *   rows; their datestamps move with it, so harvesters running deltas see it.
- */
-async function applySetFloor(change: OaiDeletionChange, now: Date): Promise<OaiDeletionKey[]> {
-  const sets = new Set(
-    change.deletions.map((d) => d.setSpec).filter((s) => s !== WHOLE_REPOSITORY),
-  );
-  if (change.departed) sets.add(change.departed);
-  if (change.joined) sets.add(change.joined);
-  const after = new Map<string, number>();
-  for (const setSpec of sets) after.set(setSpec, await membersOf(setSpec));
-  const wasOpen = (setSpec: string) =>
-    after.get(setSpec)! + (setSpec === change.departed ? 1 : 0) >= MIN_SET_MEMBERS;
-  const crossed = [
-    change.joined && after.get(change.joined) === MIN_SET_MEMBERS ? change.joined : null,
-    change.departed && after.get(change.departed) === MIN_SET_MEMBERS - 1 ? change.departed : null,
-  ];
-  for (const setSpec of crossed) {
-    if (!setSpec) continue;
-    await prisma.cv.updateMany({
-      where: {
-        published: true,
-        publicIndexable: true,
-        listUnderAffiliation: true,
-        currentRorId: rorIdFromSetSpec(setSpec),
-      },
-      data: { publicChangedAt: now },
-    });
-  }
-  return change.deletions.filter((d) => d.setSpec === WHOLE_REPOSITORY || wasOpen(d.setSpec));
 }
 
 /**
@@ -121,7 +58,7 @@ export async function applyOaiDeletions(change: OaiDeletionChange, now: Date): P
         where: { identifier: { in: ids }, setSpec: { in: servedSets } },
       });
     }
-    const deletions = await applySetFloor(change, now);
+    const { deletions } = change;
     // A key deleted again moves to the new date: its old row goes first. Set
     // by set, so a delete matches exactly the keys it names (a cross product
     // of identifiers and sets would reach other keys), and every delete runs
@@ -145,49 +82,6 @@ export async function applyOaiDeletions(change: OaiDeletionChange, now: Date): P
     }
   } catch (err) {
     logger.warn("oai.deletions_failed", { deletions: change.deletions.length, err });
-  }
-}
-
-/**
- * Before an account is deleted, what its CV serves — everything, all of it
- * about to be withdrawn — as a change for {@link applyOaiDeletions} to apply
- * AFTER the deletion (the cascade removes the row that knows it, and only
- * once the row is gone is the CV out of its set's count, and the deletion
- * certain). Reads the stored exposure, or derives it from the document for a
- * row that has none. Null when there is no CV. Fail-soft: the erasure itself
- * never waits on this.
- */
-export async function readOaiWithdrawal(
-  userId: string,
-  now: Date,
-): Promise<OaiDeletionChange | null> {
-  try {
-    const row = await prisma.cv.findUnique({
-      where: { userId },
-      select: {
-        published: true,
-        publicIndexable: true,
-        publicSlug: true,
-        listUnderAffiliation: true,
-        currentRorId: true,
-        oaiExposure: true,
-        document: true,
-      },
-    });
-    if (!row) return null;
-    const parsed = safeParseCanonicalCv(row.document);
-    const before =
-      parseHarvestExposure(row.oaiExposure) ??
-      harvestExposure(harvestRecord(row, parsed.success ? parsed.data : null, now));
-    return {
-      deletions: deletionsBetween(before, NOTHING_EXPOSED),
-      served: NOTHING_EXPOSED,
-      departed: before.set,
-      joined: null,
-    };
-  } catch (err) {
-    logger.warn("oai.withdraw_failed", { err });
-    return null;
   }
 }
 

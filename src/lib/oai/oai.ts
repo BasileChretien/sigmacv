@@ -202,9 +202,8 @@ export function rorSetSpec(rorId: string): string {
   return `${ROR_SET_PREFIX}${rorId}`;
 }
 
-/** The bare ROR id of a well-formed `ror:<id>` set spec, or null. Exported for
- *  the deletion writer, which counts a set's members by its bare id. */
-export function rorIdFromSetSpec(spec: string): string | null {
+/** The bare ROR id of a well-formed `ror:<id>` set spec, or null. */
+function rorIdFromSetSpec(spec: string): string | null {
   if (!spec.startsWith(ROR_SET_PREFIX)) return null;
   const id = spec.slice(ROR_SET_PREFIX.length);
   return ROR_ID.test(id) ? id : null;

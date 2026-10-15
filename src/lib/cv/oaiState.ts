@@ -38,19 +38,21 @@ export function affiliationSetSpec(
  * The CV record the endpoint serves for this row, or null when it serves none:
  * not published, not indexable (the consent whose copy names the endpoint),
  * no slug, or no parseable document. The document is the public projection,
- * as on the public page.
+ * as on the public page. `setOpen` false serves it without its set — the set
+ * floor (`oaiSetFloor.ts`): a set below `MIN_SET_MEMBERS` is served to nobody.
  */
 export function harvestRecord(
   row: HarvestColumns,
   cv: CanonicalCv | null,
   datestamp: Date,
+  setOpen = true,
 ): OaiRecordInput | null {
   if (!row.published || !row.publicIndexable || !row.publicSlug || !cv) return null;
   return {
     slug: row.publicSlug,
     datestamp,
     cv: projectCvForPublic(cv),
-    setSpec: affiliationSetSpec(row),
+    setSpec: setOpen ? affiliationSetSpec(row) : undefined,
   };
 }
 
@@ -135,15 +137,11 @@ export interface HarvestStateColumns {
 }
 
 /** Everything a write does to the harvest: the columns it stores, the
- *  records it stops serving, what it serves (whose deletions it clears), and
- *  the set it left and the set it joined (each null when it did not), which
- *  decide what the set floor lets through (`oaiDeletions.ts`). */
+ *  records it stops serving, and what it serves (whose deletions it clears). */
 export interface HarvestWrite {
   columns: HarvestStateColumns;
   deletions: OaiDeletionKey[];
   served: HarvestExposure;
-  departed: string | null;
-  joined: string | null;
 }
 
 /**
@@ -153,7 +151,10 @@ export interface HarvestWrite {
  * the column existed) counts as changed — one spurious re-harvest is better
  * than a missed change. The deletions are the stored exposure minus the new
  * one; a row with no stored exposure diffs against `previous()`, the record
- * its previous state served (called only then).
+ * its previous state served (called only then). `setOpen`: whether the CV's
+ * set is open once the write lands (the set floor, `oaiSetFloor.ts`); a closed
+ * set enters neither the fingerprint nor the exposure, because nobody is
+ * served it.
  */
 export function harvestWrite(
   row: HarvestColumns,
@@ -161,8 +162,9 @@ export function harvestWrite(
   stored: StoredHarvestState,
   previous: () => OaiRecordInput | null,
   now: Date,
+  setOpen = true,
 ): HarvestWrite {
-  const record = harvestRecord(row, cv, now);
+  const record = harvestRecord(row, cv, now, setOpen);
   const fingerprint = oaiFingerprint(record);
   const served = harvestExposure(record);
   const before = parseHarvestExposure(stored.oaiExposure) ?? harvestExposure(previous());
@@ -173,7 +175,5 @@ export function harvestWrite(
         : { oaiFingerprint: fingerprint, oaiExposure: served, publicChangedAt: now },
     deletions: deletionsBetween(before, served),
     served,
-    departed: before.set !== null && before.set !== served.set ? before.set : null,
-    joined: served.set !== null && served.set !== before.set ? served.set : null,
   };
 }

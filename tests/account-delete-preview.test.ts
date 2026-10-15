@@ -20,16 +20,16 @@ const mocks = vi.hoisted(() => ({
   isSameOrigin: vi.fn(),
   withdrawMintedSnapshotDois: vi.fn(),
   readOaiWithdrawal: vi.fn(),
-  applyOaiDeletions: vi.fn(),
+  applyOaiWithdrawal: vi.fn(),
 }));
 
 vi.mock("@/auth", () => ({ auth: mocks.auth }));
 vi.mock("@/lib/cv/snapshotStore", () => ({
   withdrawMintedSnapshotDois: mocks.withdrawMintedSnapshotDois,
 }));
-vi.mock("@/lib/cv/oaiDeletions", () => ({
+vi.mock("@/lib/cv/oaiSetFloor", () => ({
   readOaiWithdrawal: mocks.readOaiWithdrawal,
-  applyOaiDeletions: mocks.applyOaiDeletions,
+  applyOaiWithdrawal: mocks.applyOaiWithdrawal,
 }));
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -225,12 +225,12 @@ describe("deleting an account tells OAI-PMH harvesters", () => {
       order.push("delete");
       return {};
     });
-    mocks.applyOaiDeletions.mockImplementation(async () => {
+    mocks.applyOaiWithdrawal.mockImplementation(async () => {
       order.push("apply");
     });
     expect((await DELETE(req())).status).toBe(200);
     expect(mocks.readOaiWithdrawal).toHaveBeenCalledWith("u1", expect.any(Date));
-    expect(mocks.applyOaiDeletions).toHaveBeenCalledWith(change, expect.any(Date));
+    expect(mocks.applyOaiWithdrawal).toHaveBeenCalledWith(change, expect.any(Date));
     expect(order).toEqual(["read", "delete", "apply"]);
   });
 
@@ -239,10 +239,10 @@ describe("deleting an account tells OAI-PMH harvesters", () => {
     mocks.readOaiWithdrawal.mockResolvedValue({ deletions: [], served: { ids: [], set: null } });
     mocks.userDelete.mockRejectedValue(new Error("db down"));
     expect((await DELETE(req())).status).toBe(500);
-    expect(mocks.applyOaiDeletions).not.toHaveBeenCalled();
+    expect(mocks.applyOaiWithdrawal).not.toHaveBeenCalled();
     mocks.userDelete.mockResolvedValue({});
     mocks.readOaiWithdrawal.mockResolvedValue(null);
     expect((await DELETE(req())).status).toBe(200);
-    expect(mocks.applyOaiDeletions).not.toHaveBeenCalled();
+    expect(mocks.applyOaiWithdrawal).not.toHaveBeenCalled();
   });
 });

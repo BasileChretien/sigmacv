@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { applyOaiDeletions, readOaiWithdrawal } from "@/lib/cv/oaiDeletions";
+import { applyOaiWithdrawal, readOaiWithdrawal } from "@/lib/cv/oaiSetFloor";
 import { invalidateOrcidPreview } from "@/lib/cv/orcidPreviewCache";
 import { purgeInstitutionPages } from "@/lib/cv/publicPageCache";
 import { withdrawMintedSnapshotDois } from "@/lib/cv/snapshotStore";
@@ -92,7 +92,7 @@ export async function DELETE(req: Request) {
     const now = new Date();
     const oaiWithdrawal = await readOaiWithdrawal(session.user.id, now);
     await prisma.user.delete({ where: { id: session.user.id } });
-    if (oaiWithdrawal) await applyOaiDeletions(oaiWithdrawal, now);
+    if (oaiWithdrawal) await applyOaiWithdrawal(oaiWithdrawal, now);
     if (deleting?.orcid) invalidateOrcidPreview(deleting.orcid);
     purgeInstitutionListings(deleting?.cv?.consentedRorIds ?? []);
     await sweepRateLimitCounters(session.user.id);

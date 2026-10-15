@@ -6,9 +6,6 @@ const mocks = vi.hoisted(() => ({
   findFirst: vi.fn(),
   findMany: vi.fn(),
   findUnique: vi.fn(),
-  cvFindUnique: vi.fn(),
-  cvCount: vi.fn(),
-  cvUpdateMany: vi.fn(),
   warn: vi.fn(),
 }));
 
@@ -21,12 +18,10 @@ vi.mock("@/lib/db", () => ({
       findMany: mocks.findMany,
       findUnique: mocks.findUnique,
     },
-    cv: { findUnique: mocks.cvFindUnique, count: mocks.cvCount, updateMany: mocks.cvUpdateMany },
   },
 }));
 vi.mock("@/lib/log", () => ({ logger: { info: vi.fn(), warn: mocks.warn, error: vi.fn() } }));
 
-import { buildCanonicalCv } from "@/lib/canonical/build";
 import {
   OAI_DELETION_RETENTION_DAYS,
   applyOaiDeletions,
@@ -34,40 +29,14 @@ import {
   hasOaiDeletions,
   listOaiDeletions,
   purgeExpiredOaiDeletions,
-  readOaiWithdrawal,
 } from "@/lib/cv/oaiDeletions";
-import { MIN_SET_MEMBERS } from "@/lib/cv/listed";
-import { K_ANONYMITY } from "@/lib/institutions/aggregateSum";
-import { harvestExposure, harvestRecord } from "@/lib/cv/oaiState";
-import type { OpenAlexWork } from "@/lib/openalex/types";
-import worksFixture from "./fixtures/openalex-works.json";
 
 const NOW = new Date("2026-10-15T08:00:00.000Z");
-const CV = buildCanonicalCv({
-  id: "cv_1",
-  resolved: {
-    orcid: "0000-0002-7483-2489",
-    authorIds: ["A5001069481"],
-    displayName: "Ada",
-  },
-  works: worksFixture as unknown as OpenAlexWork[],
-  now: "2026-06-02T00:00:00.000Z",
-});
-const ROW = {
-  published: true,
-  publicIndexable: true,
-  publicSlug: "ada-x7",
-  listUnderAffiliation: true,
-  currentRorId: "04chrp450",
-};
 
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
   mocks.deleteMany.mockResolvedValue({ count: 0 });
   mocks.createMany.mockResolvedValue({ count: 0 });
-  // Every set touched is well above the floor unless a test says otherwise.
-  mocks.cvCount.mockResolvedValue(MIN_SET_MEMBERS + 5);
-  mocks.cvUpdateMany.mockResolvedValue({ count: 0 });
 });
 
 describe("applyOaiDeletions", () => {
@@ -135,156 +104,6 @@ describe("applyOaiDeletions", () => {
       applyOaiDeletions({ served: { ids: ["x"], set: null }, deletions: [] }, NOW),
     ).resolves.toBeUndefined();
     expect(mocks.warn).toHaveBeenCalledWith("oai.deletions_failed", expect.anything());
-  });
-});
-
-describe("readOaiWithdrawal (account deletion)", () => {
-  it("reads everything the stored exposure says the CV served, as a change to apply after the deletion", async () => {
-    const exposure = { ids: ["oai:sigmacv.org:a", "oai:sigmacv.org:a/w/1"], set: "ror:04chrp450" };
-    mocks.cvFindUnique.mockResolvedValue({ ...ROW, oaiExposure: exposure, document: CV });
-    const change = await readOaiWithdrawal("u1", NOW);
-    expect(mocks.cvFindUnique.mock.calls[0]![0].where).toEqual({ userId: "u1" });
-    // Nothing is written yet: the deletion has not happened.
-    expect(mocks.createMany).not.toHaveBeenCalled();
-    expect(change!.deletions).toHaveLength(4);
-    expect(change!.deletions).toContainEqual({ identifier: "oai:sigmacv.org:a", setSpec: "" });
-    expect(change!.deletions).toContainEqual({
-      identifier: "oai:sigmacv.org:a/w/1",
-      setSpec: "ror:04chrp450",
-    });
-    expect(change!.served).toEqual({ ids: [], set: null });
-    // Once the row is gone the CV is out of its set's count: it departed.
-    expect(change!.departed).toBe("ror:04chrp450");
-    expect(change!.joined).toBeNull();
-  });
-
-  it("derives it from the document for a row written before the column existed", async () => {
-    mocks.cvFindUnique.mockResolvedValue({ ...ROW, oaiExposure: null, document: CV });
-    const change = await readOaiWithdrawal("u1", NOW);
-    const expected = harvestExposure(harvestRecord(ROW, CV, NOW)).ids;
-    expect(new Set(change!.deletions.map((d) => d.identifier))).toEqual(new Set(expected));
-  });
-
-  it("is null for an account with no CV, and empty for a CV that served nothing", async () => {
-    mocks.cvFindUnique.mockResolvedValue(null);
-    expect(await readOaiWithdrawal("u1", NOW)).toBeNull();
-    mocks.cvFindUnique.mockResolvedValue({
-      ...ROW,
-      published: false,
-      oaiExposure: null,
-      document: { bad: 1 },
-    });
-    expect((await readOaiWithdrawal("u1", NOW))!.deletions).toEqual([]);
-  });
-
-  it("never throws: the erasure never waits on it", async () => {
-    mocks.cvFindUnique.mockRejectedValue(new Error("db down"));
-    expect(await readOaiWithdrawal("u1", NOW)).toBeNull();
-    expect(mocks.warn).toHaveBeenCalledWith("oai.withdraw_failed", expect.anything());
-  });
-});
-
-describe("the set floor on deleted records (2026-09-08 panel, defect 2)", () => {
-  const SET = "ror:04chrp450";
-  const left = (setSpec: string) => [
-    { identifier: "oai:sigmacv.org:a", setSpec: "" },
-    { identifier: "oai:sigmacv.org:a", setSpec },
-  ];
-  const written = () =>
-    mocks.createMany.mock.calls.flatMap((c) => c[0].data) as Array<{ setSpec: string }>;
-
-  it("is the same k as the institution page's figures", () => {
-    expect(MIN_SET_MEMBERS).toBe(K_ANONYMITY);
-  });
-
-  it("a departure from a set that was never published is no deleted record in it (it would name a member)", async () => {
-    // 3 left after the write, plus the CV that just left = 4: below the floor.
-    mocks.cvCount.mockResolvedValue(MIN_SET_MEMBERS - 2);
-    await applyOaiDeletions(
-      { deletions: left(SET), served: { ids: [], set: null }, departed: SET, joined: null },
-      NOW,
-    );
-    expect(mocks.cvCount.mock.calls[0]![0].where).toMatchObject({
-      listUnderAffiliation: true,
-      currentRorId: "04chrp450",
-    });
-    // The repository-level deletion is never held back.
-    expect(written().map((d) => d.setSpec)).toEqual([""]);
-  });
-
-  it("a departure from an open set is one, counting the CV that just left", async () => {
-    // 4 left after the write + the departed CV = 5: the set was open.
-    mocks.cvCount.mockResolvedValue(MIN_SET_MEMBERS - 1);
-    await applyOaiDeletions(
-      { deletions: left(SET), served: { ids: [], set: null }, departed: SET, joined: null },
-      NOW,
-    );
-    expect(
-      written()
-        .map((d) => d.setSpec)
-        .sort(),
-    ).toEqual(["", SET]);
-  });
-
-  it("a work taken off a CV that stays in its set counts the set as it stands", async () => {
-    mocks.cvCount.mockResolvedValue(MIN_SET_MEMBERS - 1);
-    await applyOaiDeletions(
-      { deletions: left(SET), served: { ids: ["oai:sigmacv.org:a"], set: SET } },
-      NOW,
-    );
-    expect(written().map((d) => d.setSpec)).toEqual([""]);
-  });
-
-  it("a write that brings a set up to the floor, or takes it below, moves every member's datestamp", async () => {
-    mocks.cvCount.mockResolvedValue(MIN_SET_MEMBERS);
-    await applyOaiDeletions(
-      {
-        deletions: [],
-        served: { ids: ["oai:sigmacv.org:a"], set: SET },
-        departed: null,
-        joined: SET,
-      },
-      NOW,
-    );
-    expect(mocks.cvUpdateMany).toHaveBeenCalledWith({
-      where: {
-        published: true,
-        publicIndexable: true,
-        listUnderAffiliation: true,
-        currentRorId: "04chrp450",
-      },
-      data: { publicChangedAt: NOW },
-    });
-    mocks.cvUpdateMany.mockClear();
-    mocks.cvCount.mockResolvedValue(MIN_SET_MEMBERS - 1);
-    await applyOaiDeletions(
-      { deletions: left(SET), served: { ids: [], set: null }, departed: SET, joined: null },
-      NOW,
-    );
-    expect(mocks.cvUpdateMany).toHaveBeenCalledTimes(1);
-    // A write that leaves the set on the same side of the floor stamps nobody.
-    mocks.cvUpdateMany.mockClear();
-    mocks.cvCount.mockResolvedValue(MIN_SET_MEMBERS + 3);
-    await applyOaiDeletions(
-      { deletions: left(SET), served: { ids: [], set: null }, departed: SET, joined: null },
-      NOW,
-    );
-    await applyOaiDeletions(
-      { deletions: [], served: { ids: ["x"], set: SET }, departed: null, joined: SET },
-      NOW,
-    );
-    expect(mocks.cvUpdateMany).not.toHaveBeenCalled();
-  });
-
-  it("a change with no set touches no count", async () => {
-    await applyOaiDeletions(
-      {
-        deletions: [{ identifier: "oai:sigmacv.org:a", setSpec: "" }],
-        served: { ids: [], set: null },
-      },
-      NOW,
-    );
-    expect(mocks.cvCount).not.toHaveBeenCalled();
   });
 });
 

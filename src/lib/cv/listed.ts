@@ -230,6 +230,15 @@ export async function countReconciliationSources(rorId: string): Promise<number>
  */
 export const MIN_SET_MEMBERS = 5;
 
+/** How many OTHER CVs than `cvId` are listed under a bare ROR id: what a
+ *  write reads to place its own CV against the set floor (`oaiSetFloor.ts`),
+ *  whether or not its own row has been written yet. */
+export async function countListedCvsExcept(rorId: string, cvId: string | null): Promise<number> {
+  return prisma.cv.count({
+    where: { ...listedUnderRorWhere(rorId), ...(cvId ? { id: { not: cvId } } : {}) },
+  });
+}
+
 /** Which of these bare ROR ids are open sets — at least
  *  {@link MIN_SET_MEMBERS} listed CVs under the listing's consent gate. One
  *  grouped query; no id in, no query. */
