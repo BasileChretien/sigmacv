@@ -69,7 +69,13 @@ vi.mock("@/lib/cv/oaiSetFloor", () => ({
   readSetFloor: mocks.readSetFloor,
   applySetCrossings: mocks.applySetCrossings,
 }));
-const OPEN_FLOOR = { openBefore: true, openAfter: true, opens: null, closes: null };
+const OPEN_FLOOR = {
+  openBefore: true,
+  openAfter: true,
+  opens: null,
+  closes: null,
+  servedBeforeIn: null,
+};
 
 vi.mock("@/lib/db", () => ({
   prisma: {
@@ -1998,6 +2004,7 @@ describe("each write places its CV against the set floor (review of #563)", () =
       openAfter: false,
       opens: null,
       closes: null,
+      servedBeforeIn: null,
     });
     mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
     await setPublishState("u1", true, true, true);
@@ -2013,7 +2020,13 @@ describe("each write places its CV against the set floor (review of #563)", () =
     expect(data.oaiExposure.set).toBeNull();
     // Whatever the floor says, the crossing step runs after the write.
     expect(mocks.applySetCrossings).toHaveBeenCalledWith(
-      { openBefore: false, openAfter: false, opens: null, closes: null },
+      {
+        openBefore: false,
+        openAfter: false,
+        opens: null,
+        closes: null,
+        servedBeforeIn: null,
+      },
       "abcd1234ef",
       expect.any(Date),
     );
@@ -2034,6 +2047,7 @@ describe("each write places its CV against the set floor (review of #563)", () =
       openAfter: true,
       opens: "04chrp450",
       closes: null,
+      servedBeforeIn: null,
     });
     mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
     await setPublishState("u1", true, true, true);
@@ -2041,6 +2055,31 @@ describe("each write places its CV against the set floor (review of #563)", () =
     expect(data.publicChangedAt).toBeInstanceOf(Date);
     expect(data.oaiExposure.set).toBe("ror:04chrp450");
     expect(mocks.applySetCrossings.mock.calls[0]![0].opens).toBe("04chrp450");
+  });
+
+  it("leaving a set the live floor says served the CV deletes it from the set, whatever the stored exposure says", async () => {
+    // Stored while the set looked closed (two joins at the same moment); live, it is open.
+    const stale = harvestWrite(
+      { ...LISTED_ROW, listUnderAffiliation: true },
+      AFFILIATED_DOC,
+      {},
+      () => null,
+      new Date(0),
+      false,
+    ).columns;
+    mocks.findUnique.mockResolvedValue({ ...LISTED_ROW, listUnderAffiliation: true, ...stale });
+    mocks.readSetFloor.mockResolvedValue({
+      openBefore: true,
+      openAfter: false,
+      opens: null,
+      closes: null,
+      servedBeforeIn: "ror:04chrp450",
+    });
+    mocks.update.mockResolvedValue({ published: true, publicSlug: "basile-chretien-abcd" });
+    await setPublishState("u1", true, true, false);
+    const gone = mocks.applyOaiDeletions.mock.calls[0]![0].deletions as Array<{ setSpec: string }>;
+    expect(gone.length).toBe(stale.oaiExposure.ids.length);
+    expect(gone.every((d) => d.setSpec === "ror:04chrp450")).toBe(true);
   });
 
   it("a save and a sync ask the floor too, and cross it after their write", async () => {

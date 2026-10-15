@@ -719,6 +719,7 @@ export async function syncCvForUser(opts: SyncOptions): Promise<SyncResult> {
     () => (flags ? harvestRecord(flags, previous, now, floor.openBefore) : null),
     now,
     floor.openAfter,
+    floor.servedBeforeIn,
   );
   await prisma.cv.upsert({
     where: { userId },
@@ -813,6 +814,7 @@ export async function saveCvForUser(userId: string, doc: CanonicalCv): Promise<C
     () => harvestRecord(existing, previous, now, floor.openBefore),
     now,
     floor.openAfter,
+    floor.servedBeforeIn,
   );
   await prisma.cv.update({
     where: { userId },
@@ -977,6 +979,7 @@ export async function setPublishState(
     () => harvestRecord(row, cv, now, floor.openBefore),
     now,
     floor.openAfter,
+    floor.servedBeforeIn,
   );
   const updated = await prisma.cv.update({
     where: { userId },

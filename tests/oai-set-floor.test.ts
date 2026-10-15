@@ -34,6 +34,7 @@ import {
 } from "@/lib/cv/oaiSetFloor";
 import { harvestExposure, harvestRecord, harvestWrite } from "@/lib/cv/oaiState";
 import { K_ANONYMITY } from "@/lib/institutions/aggregateSum";
+import { oaiFingerprint } from "@/lib/oai/oai";
 import type { OpenAlexWork } from "@/lib/openalex/types";
 import worksFixture from "./fixtures/openalex-works.json";
 
@@ -131,7 +132,13 @@ describe("readSetFloor", () => {
       id: { not: "cv_a" },
     });
     // 4 others + this one = 5: joining opens the set.
-    expect(floor).toEqual({ openBefore: false, openAfter: true, opens: "04chrp450", closes: null });
+    expect(floor).toEqual({
+      openBefore: false,
+      openAfter: true,
+      opens: "04chrp450",
+      closes: null,
+      servedBeforeIn: null,
+    });
   });
 
   it("leaving a set of five closes it; leaving a smaller or larger one closes nothing", async () => {
@@ -141,6 +148,7 @@ describe("readSetFloor", () => {
       openAfter: false,
       opens: null,
       closes: "04chrp450",
+      servedBeforeIn: SET,
     });
     mocks.count.mockResolvedValue(2);
     expect((await readSetFloor("cv_a", LISTED, OUT)).closes).toBeNull();
@@ -155,6 +163,7 @@ describe("readSetFloor", () => {
       openAfter: true,
       opens: null,
       closes: null,
+      servedBeforeIn: SET,
     });
     mocks.count.mockClear();
     await readSetFloor(null, null, LISTED);
@@ -166,6 +175,7 @@ describe("readSetFloor", () => {
       openAfter: false,
       opens: null,
       closes: null,
+      servedBeforeIn: null,
     });
     expect(mocks.count).not.toHaveBeenCalled();
   });
@@ -203,7 +213,13 @@ describe("applySetCrossings", () => {
     const t = table();
     mocks.findMany.mockResolvedValue([member("b"), member("c"), member("d"), member("e")]);
     await applySetCrossings(
-      { openBefore: true, openAfter: false, opens: null, closes: "04chrp450" },
+      {
+        openBefore: true,
+        openAfter: false,
+        opens: null,
+        closes: "04chrp450",
+        servedBeforeIn: SET,
+      },
       "cv_a",
       NOW,
     );
@@ -220,7 +236,7 @@ describe("applySetCrossings", () => {
     }
     // Their stored exposure loses the set and their datestamp moves.
     expect(mocks.update).toHaveBeenCalledTimes(4);
-    expect(mocks.update.mock.calls[0]![0]).toEqual({
+    expect(mocks.update.mock.calls[0]![0]).toMatchObject({
       where: { id: "b" },
       data: {
         oaiExposure: { ids: ["oai:sigmacv.org:b-slug", "oai:sigmacv.org:b-slug/w/1"], set: null },
@@ -252,13 +268,19 @@ describe("applySetCrossings", () => {
       member("b", { oaiExposure: { ids: ["oai:sigmacv.org:b-slug"], set: null } }),
     ]);
     await applySetCrossings(
-      { openBefore: false, openAfter: true, opens: "04chrp450", closes: null },
+      {
+        openBefore: false,
+        openAfter: true,
+        opens: "04chrp450",
+        closes: null,
+        servedBeforeIn: null,
+      },
       "cv_a",
       NOW,
     );
     expect(t.has(SET, "oai:sigmacv.org:b-slug")).toBe(false);
     expect(t.has("", "oai:sigmacv.org:gone")).toBe(true);
-    expect(mocks.update.mock.calls[0]![0].data).toEqual({
+    expect(mocks.update.mock.calls[0]![0].data).toMatchObject({
       oaiExposure: { ids: ["oai:sigmacv.org:b-slug"], set: SET },
       publicChangedAt: NOW,
     });
@@ -268,7 +290,13 @@ describe("applySetCrossings", () => {
     table();
     mocks.findMany.mockResolvedValue([member("b", { oaiExposure: null, publicSlug: "ada-x7" })]);
     await applySetCrossings(
-      { openBefore: true, openAfter: false, opens: null, closes: "04chrp450" },
+      {
+        openBefore: true,
+        openAfter: false,
+        opens: null,
+        closes: "04chrp450",
+        servedBeforeIn: SET,
+      },
       null,
       NOW,
     );
@@ -280,7 +308,13 @@ describe("applySetCrossings", () => {
 
   it("does nothing without a crossing, and never throws", async () => {
     await applySetCrossings(
-      { openBefore: true, openAfter: true, opens: null, closes: null },
+      {
+        openBefore: true,
+        openAfter: true,
+        opens: null,
+        closes: null,
+        servedBeforeIn: SET,
+      },
       "cv_a",
       NOW,
     );
@@ -288,7 +322,13 @@ describe("applySetCrossings", () => {
     mocks.findMany.mockRejectedValue(new Error("db down"));
     await expect(
       applySetCrossings(
-        { openBefore: true, openAfter: false, opens: null, closes: "04chrp450" },
+        {
+          openBefore: true,
+          openAfter: false,
+          opens: null,
+          closes: "04chrp450",
+          servedBeforeIn: SET,
+        },
         "cv_a",
         NOW,
       ),
@@ -345,11 +385,79 @@ describe("account deletion (readOaiWithdrawal, then applyOaiWithdrawal)", () => 
           deletions: [{ identifier: "oai:sigmacv.org:a", setSpec: "" }],
           served: { ids: [], set: null },
         },
-        floor: { openBefore: true, openAfter: false, opens: null, closes: "04chrp450" },
+        floor: {
+          openBefore: true,
+          openAfter: false,
+          opens: null,
+          closes: "04chrp450",
+          servedBeforeIn: SET,
+        },
       },
       NOW,
     );
     expect(t.has("", "oai:sigmacv.org:a")).toBe(true);
     expect(t.has(SET, "oai:sigmacv.org:b-slug")).toBe(true);
+  });
+});
+
+describe("round 2 of the review of #563", () => {
+  it("a crossing stores the members' fingerprint too, so their next unchanged write re-sends nothing", async () => {
+    table();
+    const b = { ...LISTED, publicSlug: "b-slug" };
+    const before = harvestWrite(b, CV, {}, () => null, NOW, true).columns;
+    mocks.findMany.mockResolvedValue([
+      member("b", { publicSlug: "b-slug", oaiExposure: before.oaiExposure }),
+    ]);
+    await applySetCrossings(
+      {
+        openBefore: true,
+        openAfter: false,
+        opens: null,
+        closes: "04chrp450",
+        servedBeforeIn: null,
+      },
+      "cv_a",
+      NOW,
+    );
+    const data = mocks.update.mock.calls[0]![0].data;
+    expect(data.oaiFingerprint).toBe(oaiFingerprint(harvestRecord(b, CV, NOW, false)));
+    // B's weekly resync, its document unchanged, its set still closed.
+    const next = harvestWrite(b, CV, data, () => null, NOW, false);
+    expect(next.columns.publicChangedAt).toBeUndefined();
+  });
+
+  it("at departure, a record counts as served in its set if its exposure OR the live count says so", async () => {
+    // Joined at the same moment as another CV, both counted 3 others: its stored
+    // exposure says no set, yet the set is open now and served it.
+    mocks.count.mockResolvedValue(MIN_SET_MEMBERS - 1);
+    const floor = await readSetFloor("cv_x", LISTED, OUT);
+    expect(floor.servedBeforeIn).toBe(SET);
+    const stale = harvestExposure(harvestRecord(LISTED, CV, NOW, false));
+    const left = harvestWrite(
+      OUT,
+      CV,
+      { oaiExposure: stale },
+      () => null,
+      NOW,
+      false,
+      floor.servedBeforeIn,
+    );
+    expect(left.deletions.length).toBe(stale.ids.length);
+    expect(left.deletions.every((d) => d.setSpec === SET)).toBe(true);
+    // A set closed now, but whose stored exposure says it was served: still deleted from it.
+    mocks.count.mockResolvedValue(2);
+    expect((await readSetFloor("cv_x", LISTED, OUT)).servedBeforeIn).toBeNull();
+    const served = harvestExposure(harvestRecord(LISTED, CV, NOW, true));
+    const fromStored = harvestWrite(OUT, CV, { oaiExposure: served }, () => null, NOW, false, null);
+    expect(fromStored.deletions.every((d) => d.setSpec === SET)).toBe(true);
+    expect(fromStored.deletions).toHaveLength(served.ids.length);
+  });
+
+  it("the account withdrawal unions them the same way", async () => {
+    const stale = harvestExposure(harvestRecord(LISTED, CV, NOW, false));
+    mocks.findUnique.mockResolvedValue({ id: "cv_a", ...LISTED, oaiExposure: stale, document: CV });
+    mocks.count.mockResolvedValue(9);
+    const w = await readOaiWithdrawal("u1", NOW);
+    expect(w!.change.deletions.some((d) => d.setSpec === SET)).toBe(true);
   });
 });

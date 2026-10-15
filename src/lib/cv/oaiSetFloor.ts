@@ -9,10 +9,11 @@ import {
   harvestExposure,
   harvestRecord,
   parseHarvestExposure,
+  withServedSet,
   type HarvestColumns,
   type HarvestExposure,
 } from "@/lib/cv/oaiState";
-import { rorSetSpec } from "@/lib/oai/oai";
+import { oaiFingerprint, rorSetSpec } from "@/lib/oai/oai";
 
 /**
  * The OAI-PMH set floor on the write side (`MIN_SET_MEMBERS`, `listed.ts`).
@@ -56,6 +57,9 @@ export interface SetFloor {
   opens: string | null;
   /** Bare ROR id of a set this write takes below the floor, or null. */
   closes: string | null;
+  /** The set spec the CV was served in before the write, by the live count
+   *  (null when none): what `harvestWrite` unions with the stored exposure. */
+  servedBeforeIn: string | null;
 }
 
 /**
@@ -82,6 +86,7 @@ export async function readSetFloor(
     opens: next !== null && next !== prev && withThisCv(next) === MIN_SET_MEMBERS ? next : null,
     closes:
       prev !== null && prev !== next && others.get(prev) === MIN_SET_MEMBERS - 1 ? prev : null,
+    servedBeforeIn: prev !== null && withThisCv(prev) >= MIN_SET_MEMBERS ? rorSetSpec(prev) : null,
   };
 }
 
@@ -133,14 +138,21 @@ async function moveMembers(
   });
   for (const member of members) {
     const parsed = safeParseCanonicalCv(member.document);
+    const cv = parsed.success ? parsed.data : null;
     const ids = (
       parseHarvestExposure(member.oaiExposure) ??
-      harvestExposure(harvestRecord(member, parsed.success ? parsed.data : null, now, !opening))
+      harvestExposure(harvestRecord(member, cv, now, !opening))
     ).ids;
     const served: HarvestExposure = { ids, set: opening ? setSpec : null };
+    // The fingerprint moves with what is served, or the member's next write,
+    // changing nothing, would re-send it to every delta harvester once more.
     await prisma.cv.update({
       where: { id: member.id },
-      data: { oaiExposure: served, publicChangedAt: now },
+      data: {
+        oaiExposure: served,
+        oaiFingerprint: oaiFingerprint(harvestRecord(member, cv, now, opening)),
+        publicChangedAt: now,
+      },
     });
     // Opening: served in the set again, so its deletions from the set go.
     // Closing: no longer served in it, so each record is deleted from it.
@@ -187,11 +199,13 @@ export async function readOaiWithdrawal(userId: string, now: Date): Promise<OaiW
     if (!row) return null;
     const floor = await readSetFloor(row.id, row, null);
     const parsed = safeParseCanonicalCv(row.document);
-    const before =
+    const before = withServedSet(
       parseHarvestExposure(row.oaiExposure) ??
-      harvestExposure(
-        harvestRecord(row, parsed.success ? parsed.data : null, now, floor.openBefore),
-      );
+        harvestExposure(
+          harvestRecord(row, parsed.success ? parsed.data : null, now, floor.openBefore),
+        ),
+      floor.servedBeforeIn,
+    );
     return {
       change: { deletions: deletionsBetween(before, NOTHING_EXPOSED), served: NOTHING_EXPOSED },
       floor,

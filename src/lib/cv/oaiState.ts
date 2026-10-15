@@ -122,6 +122,11 @@ export function deletionsBetween(
   return out;
 }
 
+/** An exposure that also counts as served in `set` (when it names none). */
+export function withServedSet(exposure: HarvestExposure, set: string | null): HarvestExposure {
+  return exposure.set === null && set !== null ? { ...exposure, set } : exposure;
+}
+
 /** What a writer read from the row before writing. */
 export interface StoredHarvestState {
   oaiFingerprint?: string | null;
@@ -154,7 +159,11 @@ export interface HarvestWrite {
  * its previous state served (called only then). `setOpen`: whether the CV's
  * set is open once the write lands (the set floor, `oaiSetFloor.ts`); a closed
  * set enters neither the fingerprint nor the exposure, because nobody is
- * served it.
+ * served it. `servedBeforeIn`: the set the live floor says the CV was served
+ * in before this write (null when none). The record counts as served in a set
+ * if its stored exposure OR the live floor says so, so a stale exposure (two
+ * writes that crossed the floor at the same moment, or a crossing cut short)
+ * never costs a harvester the deleted record that tells it to drop the CV.
  */
 export function harvestWrite(
   row: HarvestColumns,
@@ -163,11 +172,15 @@ export function harvestWrite(
   previous: () => OaiRecordInput | null,
   now: Date,
   setOpen = true,
+  servedBeforeIn: string | null = null,
 ): HarvestWrite {
   const record = harvestRecord(row, cv, now, setOpen);
   const fingerprint = oaiFingerprint(record);
   const served = harvestExposure(record);
-  const before = parseHarvestExposure(stored.oaiExposure) ?? harvestExposure(previous());
+  const before = withServedSet(
+    parseHarvestExposure(stored.oaiExposure) ?? harvestExposure(previous()),
+    servedBeforeIn,
+  );
   return {
     columns:
       fingerprint === stored.oaiFingerprint
