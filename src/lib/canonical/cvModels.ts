@@ -282,15 +282,16 @@ const CV_MODELS_SOURCE = [
   // appels à projets"), in the form's order; no file is accepted. Funding goes
   // under its "Distinctions", career interruptions have a heading of their own
   // (left to the form: an empty prose section would get the background draft),
-  // the ANR bans the impact factor and h-index, and its evaluators ask for "the
-  // contribution of the five main publications", in English.
+  // and the ANR bans the impact factor and h-index. The guide asks for the CV
+  // "de manière exhaustive", in English, so no publication is cut; "the
+  // contribution of the five main publications" is its evaluators' advice.
   {
     id: "anr",
     category: "grant",
     region: "FR",
     name: "ANR — CV appels à projets (France)",
     description:
-      "Drafting aid for the ANR's 'CV appels à projets', filled in on appelsprojetsrecherche.fr (no file is accepted; AAPG 2027): positions, teaching and administrative responsibilities, higher education, distinctions and funding, then the five main publications, preprints, datasets, software and other outputs, in English. No metric: the ANR bans the impact factor and h-index. Career interruptions have their own heading on the form.",
+      "Drafting aid for the ANR's 'CV appels à projets', filled in on appelsprojetsrecherche.fr (no file is accepted; AAPG 2027): positions, teaching and administrative responsibilities, higher education, distinctions and funding, then publications, preprints, datasets, software and other outputs, in English and in full. Evaluators look for the contribution of the five main publications. No metric: the ANR bans the impact factor and h-index. Career interruptions have their own heading on the form.",
     sections: [
       "positions",
       "teaching",
@@ -305,7 +306,6 @@ const CV_MODELS_SOURCE = [
       "other",
     ],
     display: {
-      publicationsLimit: 5,
       publicationOrder: "year-desc",
       hideHeaderSummary: true,
       summaryBlockPosition: "hidden",
@@ -324,15 +324,17 @@ const CV_MODELS_SOURCE = [
   },
   // FRM: the "Principal Investigator (PI) & Co-PI" CV is a form in its Synto
   // portal, in English, which states "Journal Impact factor, H index and other
-  // metrics must not be included". The form's fields are not public; the calls
-  // ask for the ten major publications and patents of the last ten years.
+  // metrics must not be included" (Équipes FRM 2027 notice). The form's fields
+  // are not public. Its thematic calls ask each applicant, beside the CV, for
+  // "la liste des 10 publications et brevets majeurs de ces 10 dernières années"
+  // (Environnement et Santé 2026 notice).
   {
     id: "frm",
     category: "grant",
     region: "FR",
     name: "FRM — PI & Co-PI CV (France, biomedical)",
     description:
-      "Drafting aid for the Fondation pour la Recherche Médicale's 'Principal Investigator (PI) & Co-PI' CV, filled in English in its Synto portal (Équipes FRM 2027): positions, education, funding, supervision and distinctions, then ten major publications and patents of the last ten years. No metric: the FRM forbids impact factors and the h-index.",
+      "Drafting aid for the Fondation pour la Recherche Médicale's 'Principal Investigator (PI) & Co-PI' CV, filled in English in its Synto portal (Équipes FRM 2027 notice): positions, education, funding, supervision and distinctions, then the ten major publications and patents of the last ten years that its calls ask each applicant to list (Environnement et Santé 2026). No metric: the CV form forbids impact factors and the h-index.",
     sections: [
       "positions",
       "education",
@@ -351,29 +353,32 @@ const CV_MODELS_SOURCE = [
     },
     titleOverrides: { publications: "Major publications (last 10 years)" },
   },
-  // Fondation ARC: a free-format PDF CV (no structure is prescribed) plus a short
-  // CV and up to ten peer-reviewed publications, most recent first, which its
-  // form also asks for by PMID. It says nothing about metrics either way.
+  // Fondation ARC: a free-format PDF CV (no structure is prescribed), an
+  // optional short CV, and up to ten peer-reviewed publications, most recent
+  // first (of the last five years, for projects), which its form asks for by
+  // PMID. It says nothing about metrics either way.
   {
     id: "fondation-arc",
     category: "grant",
     region: "FR",
     name: "Fondation ARC (France, cancer research)",
     description:
-      "PDF CV for the Fondation ARC application platform (Projets Fondation ARC 2026, Post-doctorants 2026), which prescribes no structure: career, funding and distinctions, then up to ten peer-reviewed publications, most recent first. The form also asks for those publications by PMID, and for a short CV of 3,000 to 5,000 characters.",
+      "PDF CV for the Fondation ARC application platform (Projets Fondation ARC 2026, Post-doctorants 2026), which prescribes no structure: career, funding and distinctions, then up to ten peer-reviewed publications, most recent first (from the last five years, for projects). The form asks for those publications again by PMID and offers an optional short CV.",
     sections: ["positions", "education", "grants", "awards", "supervision", "publications"],
     display: { ...TR10, pageFormat: "a4" },
   },
   // ATIP-Avenir: a CV template (in English) whose headings the Guide for
-  // applicants lists, each with a character limit; the five main publications
-  // go in the online form, in Vancouver style.
+  // applicants also lists, each with a character limit. One heading, "Teaching
+  // and supervision experience", holds two sub-items, "University teaching
+  // responsibilities" and "Supervision": they title the two sections. The five
+  // main publications go in the online form, with no stated restriction.
   {
     id: "atip-avenir",
     category: "grant",
     region: "FR",
     name: "ATIP-Avenir (Inserm / CNRS, France)",
     description:
-      "Inserm–CNRS Atip-Avenir young group leader CV, in English, under the headings of the 2027 Guide for applicants: cursus, professional experience, grants as principal investigator, teaching and supervision, awards and learned societies, then the five main publications the online form asks for. The guide limits each heading's length and asks for Vancouver-style references.",
+      "Inserm–CNRS Atip-Avenir young group leader CV, in English, under the headings of the 2027 CV template: cursus, professional experience, grants as principal investigator, teaching and supervision experience, awards and learned societies, then the five main publications the online form asks for. The Guide for applicants limits each heading's length.",
     sections: [
       "education",
       "positions",
@@ -387,7 +392,6 @@ const CV_MODELS_SOURCE = [
     display: {
       publicationsLimit: 5,
       publicationOrder: "year-desc",
-      peerReviewedOnly: true,
       hideHeaderSummary: true,
       summaryBlockPosition: "hidden",
       pageFormat: "a4",
@@ -395,9 +399,9 @@ const CV_MODELS_SOURCE = [
     titleOverrides: {
       education: "Cursus",
       positions: "Professional experience",
-      grants: "Grants as principal investigator",
-      teaching: "Teaching experience",
-      supervision: "Supervision experience",
+      grants: "Grants",
+      teaching: "University teaching responsibilities",
+      supervision: "Supervision",
       awards: "Awards and scientific prizes",
       service: "Learned societies",
       publications: "5 main publications",

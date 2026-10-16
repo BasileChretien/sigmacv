@@ -118,8 +118,9 @@ describe("CV-model catalog", () => {
       ]);
       // Supervision has no heading on the form; the old model showed it.
       expect(m.sections).not.toContain("supervision");
-      // The evaluators ask for "the contribution of the five main publications".
-      expect(m.display?.publicationsLimit).toBe(5);
+      // The guide asks for the CV "de manière exhaustive": no publication is cut
+      // ("the five main publications" is the evaluators' advice, not a cap).
+      expect(m.display?.publicationsLimit).toBeUndefined();
       // The form has no personal summary, and is a form: no file is accepted.
       expect(m.display?.hideHeaderSummary).toBe(true);
       expect(m.description).toContain("appelsprojetsrecherche.fr");
@@ -138,22 +139,27 @@ describe("CV-model catalog", () => {
       expect(model("fondation-arc").description).toContain("prescribes no structure");
       // Fondation ARC states no position on metrics, so the owner's choice stands.
       expect(model("fondation-arc").display?.summaryBlockPosition).toBeUndefined();
+      // "Publications ... dans les revues à comité de lecture", 1 to 10.
       expect(model("fondation-arc").display?.peerReviewedOnly).toBe(true);
+      expect(model("fondation-arc").display?.publicationsLimit).toBe(10);
     });
 
-    it("ATIP-Avenir uses the headings of its CV template, in the template's order", () => {
+    it("ATIP-Avenir follows its CV template's headings and sub-headings, then the form's five publications", () => {
       const m = model("atip-avenir");
       expect(m.sections.map((t) => m.titleOverrides?.[t])).toEqual([
         "Cursus",
         "Professional experience",
-        "Grants as principal investigator",
-        "Teaching experience",
-        "Supervision experience",
+        "Grants",
+        // The two sub-items of "Teaching and supervision experience".
+        "University teaching responsibilities",
+        "Supervision",
         "Awards and scientific prizes",
         "Learned societies",
         "5 main publications",
       ]);
       expect(m.display?.publicationsLimit).toBe(5);
+      // The guide puts no restriction on those five (a preprint may be one).
+      expect(m.display?.peerReviewedOnly).toBeUndefined();
     });
 
     it("every French model is A4", () => {

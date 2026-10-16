@@ -48,9 +48,14 @@ describe("CV-model description i18n", () => {
       shokumu: ["職務経歴書", "JREC-IN"],
       // The French funders' own names and forms, never "French National Research Agency".
       anr: ["ANR", "CV appels à projets", "appelsprojetsrecherche.fr", "AAPG 2027"],
-      frm: ["Fondation pour la Recherche Médicale", "Principal Investigator (PI) & Co-PI", "Synto"],
+      frm: [
+        "Fondation pour la Recherche Médicale",
+        "Principal Investigator (PI) & Co-PI",
+        "Synto",
+        "Environnement et Santé 2026",
+      ],
       "fondation-arc": ["Fondation ARC", "PMID"],
-      "atip-avenir": ["Atip-Avenir", "Guide for applicants", "Vancouver"],
+      "atip-avenir": ["Atip-Avenir", "Guide for applicants"],
     };
     for (const [id, needles] of Object.entries(KEEP)) {
       for (const loc of SUPPORTED_LOCALES) {

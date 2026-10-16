@@ -33,12 +33,12 @@ describe("CvModelSourceLine", () => {
     );
   });
 
-  it("follows the locale's word order and date format", () => {
+  it("follows the locale's word order, list joining and date format", () => {
     vi.useFakeTimers({ now: READ_ON });
     render(<CvModelSourceLine modelId="frm" locale="fr-FR" strings={editorUi("fr-FR")} />);
-    const [doc] = cvModelSources("frm");
+    const [first, second] = cvModelSources("frm");
     expect(screen.getByText(/Vérifié d’après/).textContent).toBe(
-      `Vérifié d’après ${doc!.document} le 16 octobre 2026.`,
+      `Vérifié d’après ${first!.document} et ${second!.document} le 16 octobre 2026.`,
     );
   });
 

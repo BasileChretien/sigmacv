@@ -59,11 +59,17 @@ const CV_MODEL_SOURCES: Partial<Record<CvModelId, readonly CvModelSource[]>> = {
       recheckBy: "2027-07-15",
     },
   ],
-  // The CV form itself is behind the Synto login; the call's notice shows it.
+  // The CV form itself is behind the Synto login; the Équipes notice shows it and
+  // its metrics rule, a thematic call's notice the publications-and-patents list.
   frm: [
     {
       document: "Équipes FRM 2027 — notice explicative pré-demande",
       url: "https://www.frm.org/uploads/2027_Equipes_FRM_Notice_1518785290.pdf",
+      lastVerified: "2026-10-16",
+    },
+    {
+      document: "Environnement et Santé 2026 — notice de demande",
+      url: "https://www.frm.org/uploads/frm_notice_demande_ENV_2026_0ddd18f359.pdf",
       lastVerified: "2026-10-16",
     },
   ],

@@ -45,12 +45,29 @@ funder document, and the line never claims otherwise.
 
 ## The French funders, read on 2026-10-16
 
-| Model           | What the funder says                                                                                                                                                                                                                                                             |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `anr`           | The CV is the "CV appels à projets" form on appelsprojetsrecherche.fr; "Il n'est pas possible de déposer un modèle libre". Impact factor and h-index "proscrit". Funding goes under "Distinctions". Evaluators ask for "l'apport des cinq publications principales", in English. |
-| `frm`           | "Principal Investigator (PI) & Co-PI" CV in the Synto portal, in English: "Journal Impact factor, H index and other metrics must not be included." Calls ask for the ten major publications and patents of the last ten years.                                                   |
-| `fondation-arc` | A PDF CV with no prescribed structure, a short CV (3,000 or 5,000 characters), and up to ten peer-reviewed publications entered by PMID. No position on metrics.                                                                                                                 |
-| `atip-avenir`   | A CV template in English with the headings Cursus, Professional experience, Grants, Teaching and supervision experience, Awards and scientific prizes, Learned societies, each with a character limit; the five main publications go in the online form, Vancouver style.        |
+- **`anr`** — The CV is the "CV appels à projets" form on
+  appelsprojetsrecherche.fr: "Il n'est pas possible de déposer un modèle
+  libre" (CV completion guide). The impact factor and h-index are "proscrit",
+  funding goes under "Distinctions", and the CV is to be filled "de manière
+  exhaustive", preferably in English (Guide de l'AAPG 2027). "L'apport des
+  cinq publications principales" is advice from the evaluators' survey quoted
+  in the guide, not a rule, so the model cuts no publication.
+- **`frm`** — The "Principal Investigator (PI) & Co-PI" CV is a form in the
+  Synto portal, in English, which says "Journal Impact factor, H index and
+  other metrics must not be included" (Équipes FRM 2027 notice). The thematic
+  calls ask each applicant for "la liste des 10 publications et brevets
+  majeurs de ces 10 dernières années" (Environnement et Santé 2026 notice);
+  the Équipes call asks for the team's ten major publications instead.
+- **`fondation-arc`** — A PDF CV with no prescribed structure, an optional
+  short CV (5,000 or 3,000 characters), and up to ten peer-reviewed
+  publications entered by PMID, from the last five years for projects. No
+  position on metrics.
+- **`atip-avenir`** — A CV template in English with the headings Cursus,
+  Professional experience, Grant, Teaching and supervision experience (sub-items
+  "University teaching responsibilities" and "Supervision"), Awards and
+  scientific prizes, Learned societies, each with a character limit. The five
+  main publications go in the online form. The guide's Vancouver style is for
+  the scientific file, not the CV.
 
 Not verified, and why:
 
