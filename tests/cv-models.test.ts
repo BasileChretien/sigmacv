@@ -149,7 +149,7 @@ describe("CV-model catalog", () => {
       expect(m.sections.map((t) => m.titleOverrides?.[t])).toEqual([
         "Cursus",
         "Professional experience",
-        "Grants",
+        "Grants", // the guide's heading (the template prints "Grant:")
         // The two sub-items of "Teaching and supervision experience".
         "University teaching responsibilities",
         "Supervision",

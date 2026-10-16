@@ -65,7 +65,7 @@ funder document, and the line never claims otherwise.
 - **`atip-avenir`** — A CV template in English with the headings Cursus,
   Professional experience, Grant, Teaching and supervision experience (sub-items
   "University teaching responsibilities" and "Supervision"), Awards and
-  scientific prizes, Learned societies, each with a character limit. The five
+  scientific prizes, Learned societies, all but Cursus with a character limit. The five
   main publications go in the online form. The guide's Vancouver style is for
   the scientific file, not the CV.
 
