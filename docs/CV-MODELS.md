@@ -43,6 +43,36 @@ record, and from `recheckBy` on adds that the funder may have changed its rules
 since. A model without a record prints nothing: it has not been read against a
 funder document, and the line never claims otherwise.
 
+## The monthly check
+
+`.github/workflows/cv-model-sources.yml` runs on the 1st of each month (and by
+hand from the Actions tab); `npm run models:sources` runs the same check
+locally. The job summary lists every finding, and each problem is cleared by
+a different field:
+
+- **`due`** (fails): `recheckBy` has come, so the funder's next rules are
+  expected. Read the funder's new documents and update the model. Then set
+  `url` (and `listedOn`) to the new documents, `lastVerified` to today and
+  `recheckBy` to the call after.
+- **`unreachable`** (fails): the document or its listing page answers that it
+  is gone (a 4xx such as 404). A redirect is not judged: a file moved to
+  `www.` or a CDN redirects too, and the due date catches a withdrawn one. Find
+  where the funder moved it: a withdrawn document usually means a new edition,
+  so read that one. Then update `url` or `listedOn`, and `lastVerified`.
+- **`unlisted`** (fails): the listing page answers but no longer links to the
+  document, so a revised version or a new edition has probably replaced it
+  there. Read the version the page now links to, update the model if it
+  changed, then `url` and `lastVerified`.
+- **`unreadable`** (reported only): no usable answer this time. The site
+  refused a robot (401, 403, 429), failed (5xx) or did not answer. Re-run the
+  workflow first. If one address refuses robots month after month, open it by
+  hand; for a listing page, drop `listedOn` and rely on the due date.
+
+`listedOn` catches a document replaced on the page that lists it. For the ANR
+that page is the year's call page, so it catches a revised guide (v1.0 to
+v2.0) within the year, once the page stops linking the old version. The next year's call gets a page of its own, and the
+due date is what catches it.
+
 ## The French funders, read on 2026-10-16
 
 - **`anr`** — The CV is the "CV appels à projets" form on
