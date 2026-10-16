@@ -23,6 +23,7 @@ jobs:
   analyze:
     name: Analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # slowest healthy run ~3.5 min
     permissions:
       security-events: write # upload SARIF to the code-scanning dashboard
       actions: read # required for workflow run context (private repos)
