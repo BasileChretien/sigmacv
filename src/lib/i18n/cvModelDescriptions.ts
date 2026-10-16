@@ -154,21 +154,84 @@ const CV_MODEL_DESCRIPTIONS: Record<CvModelId, TranslatedDescriptions> = {
       "Резюме Dutch Research Council с нарративными свидетельствами признания + академический профиль.",
   },
   anr: {
-    "zh-CN": "French National Research Agency 简历：近期职业经历、精选论文、经费。",
+    "zh-CN":
+      "ANR「CV appels à projets」的撰写辅助，该简历在 appelsprojetsrecherche.fr 上在线填写（不接受上传文件；AAPG 2027）：职位、教学与行政职责、高等教育、荣誉与经费，然后是五篇主要论文、预印本、数据集、软件及其他成果，以英文填写。不含指标：ANR 禁止使用影响因子和 h 指数。职业中断在表格中有单独栏目。",
     "es-ES":
-      "CV de la French National Research Agency: trayectoria reciente, publicaciones seleccionadas, financiación.",
+      "Ayuda para redactar el «CV appels à projets» de la ANR, que se rellena en appelsprojetsrecherche.fr (no se admite ningún archivo; AAPG 2027): puestos, responsabilidades docentes y administrativas, formación superior, distinciones y financiación, y después las cinco publicaciones principales, preprints, conjuntos de datos, software y otras producciones, en inglés. Sin métricas: la ANR prohíbe el factor de impacto y el índice h. Las interrupciones de la carrera tienen su propio apartado en el formulario.",
     "fr-FR":
-      "CV de la French National Research Agency : parcours récent, publications sélectionnées, financements.",
+      "Aide à la rédaction du « CV appels à projets » de l’ANR, rempli sur appelsprojetsrecherche.fr (aucun fichier n’est accepté ; AAPG 2027) : postes, responsabilités pédagogiques et administratives, formations supérieures, distinctions et financements, puis les cinq publications principales, préprints, jeux de données, logiciels et autres productions, en anglais. Aucun indicateur : l’ANR proscrit le facteur d’impact et le h-index. Les interruptions de carrière ont leur propre rubrique dans le formulaire.",
     "de-DE":
-      "Lebenslauf der French National Research Agency: jüngster Werdegang, ausgewählte Publikationen, Förderung.",
-    "ja-JP": "French National Research Agency の CV：最近の経歴、精選した論文、研究費。",
+      "Formulierhilfe für den „CV appels à projets“ der ANR, der auf appelsprojetsrecherche.fr ausgefüllt wird (Dateien werden nicht angenommen; AAPG 2027): Stellen, Lehr- und Verwaltungsaufgaben, Hochschulbildung, Auszeichnungen und Förderung, dann die fünf wichtigsten Publikationen, Preprints, Datensätze, Software und weitere Ergebnisse, auf Englisch. Keine Kennzahlen: Die ANR untersagt Impact-Faktor und h-Index. Karriereunterbrechungen haben im Formular eine eigene Rubrik.",
+    "ja-JP":
+      "ANR の「CV appels à projets」を下書きするための様式です。この CV は appelsprojetsrecherche.fr 上で入力し、ファイルの提出はできません（AAPG 2027）。職歴、教育・管理の責務、高等教育、受賞と研究費のあとに、主要論文 5 本、プレプリント、データセット、ソフトウェア、その他の成果を英語で記載します。ANR はインパクトファクターと h 指数の使用を禁じているため、指標は表示しません。キャリアの中断はフォームの専用欄に記入します。",
     "pt-BR":
-      "CV da French National Research Agency: carreira recente, publicações selecionadas, financiamento.",
+      "Apoio à redação do «CV appels à projets» da ANR, preenchido em appelsprojetsrecherche.fr (nenhum arquivo é aceito; AAPG 2027): cargos, responsabilidades de ensino e administrativas, formação superior, distinções e financiamentos, depois as cinco publicações principais, preprints, conjuntos de dados, software e outras produções, em inglês. Sem métricas: a ANR proíbe o fator de impacto e o índice h. As interrupções de carreira têm um campo próprio no formulário.",
     "it-IT":
-      "CV della French National Research Agency: carriera recente, pubblicazioni selezionate, finanziamenti.",
-    "ko-KR": "French National Research Agency CV: 최근 경력, 선별 논문, 연구비.",
+      "Supporto alla stesura del «CV appels à projets» dell’ANR, da compilare su appelsprojetsrecherche.fr (non si accettano file; AAPG 2027): posizioni, responsabilità didattiche e amministrative, formazione superiore, riconoscimenti e finanziamenti, poi le cinque pubblicazioni principali, preprint, dataset, software e altri prodotti, in inglese. Nessuna metrica: l’ANR vieta l’impact factor e l’h-index. Le interruzioni di carriera hanno una sezione propria nel modulo.",
+    "ko-KR":
+      "ANR의 'CV appels à projets' 작성 도우미로, appelsprojetsrecherche.fr에서 직접 입력합니다(파일은 받지 않음; AAPG 2027): 직위, 교육·행정 책임, 고등교육, 수상 및 연구비, 이어서 주요 논문 5편, 프리프린트, 데이터셋, 소프트웨어 및 기타 성과를 영어로 작성합니다. 지표 없음: ANR은 영향력 지수와 h-지수 사용을 금지합니다. 경력 단절은 양식에 별도 항목이 있습니다.",
     "ru-RU":
-      "Резюме French National Research Agency: недавняя карьера, избранные публикации, финансирование.",
+      "Помощь в подготовке «CV appels à projets» ANR, который заполняется на appelsprojetsrecherche.fr (файлы не принимаются; AAPG 2027): должности, преподавательские и административные обязанности, высшее образование, награды и финансирование, затем пять основных публикаций, препринты, наборы данных, программное обеспечение и другие результаты, на английском языке. Без метрик: ANR запрещает импакт-фактор и индекс Хирша. Для перерывов в карьере в форме есть отдельный раздел.",
+  },
+  frm: {
+    "zh-CN":
+      "Fondation pour la Recherche Médicale「Principal Investigator (PI) & Co-PI」简历的撰写辅助，在其 Synto 门户以英文在线填写（Équipes FRM 2027）：职位、教育、经费、指导与荣誉，然后是近十年的十项主要论文和专利。不含指标：FRM 禁止使用影响因子和 h 指数。",
+    "es-ES":
+      "Ayuda para redactar el CV «Principal Investigator (PI) & Co-PI» de la Fondation pour la Recherche Médicale, que se rellena en inglés en su portal Synto (Équipes FRM 2027): puestos, formación, financiación, supervisión y distinciones, y después diez publicaciones y patentes principales de los últimos diez años. Sin métricas: la FRM prohíbe los factores de impacto y el índice h.",
+    "fr-FR":
+      "Aide à la rédaction du CV « Principal Investigator (PI) & Co-PI » de la Fondation pour la Recherche Médicale, rempli en anglais sur son portail Synto (Équipes FRM 2027) : postes, formation, financements, encadrement et distinctions, puis dix publications et brevets majeurs des dix dernières années. Aucun indicateur : la FRM interdit les facteurs d’impact et le h-index.",
+    "de-DE":
+      "Formulierhilfe für den CV „Principal Investigator (PI) & Co-PI“ der Fondation pour la Recherche Médicale, der auf Englisch in ihrem Portal Synto ausgefüllt wird (Équipes FRM 2027): Stellen, Ausbildung, Förderung, Betreuung und Auszeichnungen, dann zehn wichtige Publikationen und Patente der letzten zehn Jahre. Keine Kennzahlen: Die FRM untersagt Impact-Faktoren und den h-Index.",
+    "ja-JP":
+      "Fondation pour la Recherche Médicale の「Principal Investigator (PI) & Co-PI」CV を下書きするための様式です。この CV は同財団の Synto ポータルで英語で入力します（Équipes FRM 2027）。職歴、学歴、研究費、指導経験、受賞のあとに、過去 10 年の主要な論文と特許 10 件を記載します。FRM はインパクトファクターと h 指数を禁じているため、指標は表示しません。",
+    "pt-BR":
+      "Apoio à redação do CV «Principal Investigator (PI) & Co-PI» da Fondation pour la Recherche Médicale, preenchido em inglês no seu portal Synto (Équipes FRM 2027): cargos, formação, financiamentos, orientação e distinções, depois dez publicações e patentes principais dos últimos dez anos. Sem métricas: a FRM proíbe fatores de impacto e o índice h.",
+    "it-IT":
+      "Supporto alla stesura del CV «Principal Investigator (PI) & Co-PI» della Fondation pour la Recherche Médicale, da compilare in inglese sul suo portale Synto (Équipes FRM 2027): posizioni, formazione, finanziamenti, supervisione e riconoscimenti, poi dieci pubblicazioni e brevetti principali degli ultimi dieci anni. Nessuna metrica: la FRM vieta gli impact factor e l’h-index.",
+    "ko-KR":
+      "Fondation pour la Recherche Médicale의 'Principal Investigator (PI) & Co-PI' CV 작성 도우미로, 재단의 Synto 포털에서 영어로 입력합니다(Équipes FRM 2027): 직위, 학력, 연구비, 지도 경력 및 수상, 이어서 최근 10년간의 주요 논문 및 특허 10건. 지표 없음: FRM은 영향력 지수와 h-지수를 금지합니다.",
+    "ru-RU":
+      "Помощь в подготовке CV «Principal Investigator (PI) & Co-PI» Fondation pour la Recherche Médicale, которое заполняется на английском языке на её портале Synto (Équipes FRM 2027): должности, образование, финансирование, научное руководство и награды, затем десять основных публикаций и патентов за последние десять лет. Без метрик: FRM запрещает импакт-факторы и индекс Хирша.",
+  },
+  "fondation-arc": {
+    "zh-CN":
+      "Fondation ARC 申请平台所需的 PDF 简历（Projets Fondation ARC 2026、Post-doctorants 2026），该机构不规定简历结构：经历、经费与荣誉，然后是最多十篇同行评审论文，按时间由近及远排列。表格还要求按 PMID 填写这些论文，并提供 3000 至 5000 字符的简短简历。",
+    "es-ES":
+      "CV en PDF para la plataforma de solicitud de la Fondation ARC (Projets Fondation ARC 2026, Post-doctorants 2026), que no prescribe ninguna estructura: trayectoria, financiación y distinciones, y después hasta diez publicaciones revisadas por pares, de la más reciente a la más antigua. El formulario pide también esas publicaciones por PMID y un CV breve de 3.000 a 5.000 caracteres.",
+    "fr-FR":
+      "CV au format PDF pour la plateforme de candidature de la Fondation ARC (Projets Fondation ARC 2026, Post-doctorants 2026), qui n’en prescrit pas la structure : parcours, financements et distinctions, puis jusqu’à dix publications dans des revues à comité de lecture, des plus récentes aux plus anciennes. Le formulaire demande aussi ces publications par PMID, ainsi qu’un CV court de 3 000 à 5 000 caractères.",
+    "de-DE":
+      "PDF-Lebenslauf für die Bewerbungsplattform der Fondation ARC (Projets Fondation ARC 2026, Post-doctorants 2026), die keine Struktur vorgibt: Werdegang, Förderung und Auszeichnungen, dann bis zu zehn begutachtete Publikationen, die neuesten zuerst. Das Formular verlangt diese Publikationen zusätzlich per PMID sowie einen Kurz-CV von 3.000 bis 5.000 Zeichen.",
+    "ja-JP":
+      "Fondation ARC の応募プラットフォームに提出する PDF 形式の CV です（Projets Fondation ARC 2026、Post-doctorants 2026）。構成の指定はありません。経歴、研究費、受賞のあとに、査読付き論文を新しい順に最大 10 本記載します。フォームではこれらの論文を PMID でも入力し、3,000～5,000 字の短い CV も求められます。",
+    "pt-BR":
+      "CV em PDF para a plataforma de candidatura da Fondation ARC (Projets Fondation ARC 2026, Post-doctorants 2026), que não prescreve nenhuma estrutura: carreira, financiamentos e distinções, depois até dez publicações revisadas por pares, das mais recentes às mais antigas. O formulário também pede essas publicações por PMID e um CV curto de 3.000 a 5.000 caracteres.",
+    "it-IT":
+      "CV in PDF per la piattaforma di candidatura della Fondation ARC (Projets Fondation ARC 2026, Post-doctorants 2026), che non ne prescrive la struttura: carriera, finanziamenti e riconoscimenti, poi fino a dieci pubblicazioni con revisione paritaria, dalla più recente. Il modulo chiede anche queste pubblicazioni tramite PMID e un CV breve da 3.000 a 5.000 caratteri.",
+    "ko-KR":
+      "Fondation ARC 지원 플랫폼용 PDF CV(Projets Fondation ARC 2026, Post-doctorants 2026)로, 재단은 구성을 정하지 않습니다: 경력, 연구비 및 수상, 이어서 최신순으로 최대 10편의 동료 심사 논문. 양식은 이 논문들을 PMID로도 받으며, 3,000~5,000자 분량의 짧은 CV도 요구합니다.",
+    "ru-RU":
+      "Резюме в формате PDF для платформы заявок Fondation ARC (Projets Fondation ARC 2026, Post-doctorants 2026), которая не задаёт его структуру: карьера, финансирование и награды, затем до десяти рецензируемых публикаций, начиная с последних. Форма также запрашивает эти публикации по PMID и краткое резюме объёмом от 3000 до 5000 знаков.",
+  },
+  "atip-avenir": {
+    "zh-CN":
+      "Atip-Avenir（Inserm–CNRS）青年团队负责人简历，以英文撰写，按 2027 年 Guide for applicants 的栏目：学历、职业经历、作为项目负责人获得的经费、教学与指导、奖项与学会，然后是在线表格要求的五篇主要论文。指南限制每个栏目的篇幅，并要求采用 Vancouver 格式的参考文献。",
+    "es-ES":
+      "CV de jefe de grupo joven Atip-Avenir (Inserm–CNRS), en inglés, con los apartados de la Guide for applicants 2027: cursus, experiencia profesional, financiación obtenida como investigador principal, docencia y supervisión, premios y sociedades científicas, y después las cinco publicaciones principales que pide el formulario en línea. La guía limita la extensión de cada apartado y pide referencias en estilo Vancouver.",
+    "fr-FR":
+      "CV de jeune chef d’équipe Atip-Avenir (Inserm–CNRS), en anglais, selon les rubriques du Guide for applicants 2027 : cursus, expérience professionnelle, financements obtenus comme porteur, enseignement et encadrement, prix et sociétés savantes, puis les cinq publications principales demandées dans le formulaire en ligne. Le guide limite la longueur de chaque rubrique et demande des références au style Vancouver.",
+    "de-DE":
+      "Lebenslauf für junge Gruppenleitungen im Programm Atip-Avenir (Inserm–CNRS), auf Englisch, nach den Rubriken des Guide for applicants 2027: Werdegang, Berufserfahrung, als Projektleitung eingeworbene Mittel, Lehre und Betreuung, Preise und Fachgesellschaften, dann die fünf wichtigsten Publikationen, die das Online-Formular abfragt. Der Leitfaden begrenzt die Länge jeder Rubrik und verlangt Literaturangaben im Vancouver-Stil.",
+    "ja-JP":
+      "Atip-Avenir（Inserm–CNRS）の若手グループリーダー向け CV です。2027 年版 Guide for applicants の見出しに沿って英語で作成します。学歴、職歴、研究代表者として獲得した研究費、教育と指導、受賞と学会のあとに、オンラインフォームで求められる主要論文 5 本を記載します。ガイドは見出しごとに字数を制限し、参考文献には Vancouver 形式を求めています。",
+    "pt-BR":
+      "CV de jovem líder de grupo Atip-Avenir (Inserm–CNRS), em inglês, segundo as seções do Guide for applicants 2027: cursus, experiência profissional, financiamentos obtidos como pesquisador principal, ensino e orientação, prêmios e sociedades científicas, depois as cinco publicações principais pedidas no formulário on-line. O guia limita a extensão de cada seção e pede referências no estilo Vancouver.",
+    "it-IT":
+      "CV per giovani responsabili di gruppo Atip-Avenir (Inserm–CNRS), in inglese, secondo le sezioni della Guide for applicants 2027: cursus, esperienza professionale, finanziamenti ottenuti come responsabile scientifico, didattica e supervisione, premi e società scientifiche, poi le cinque pubblicazioni principali richieste dal modulo online. La guida limita la lunghezza di ogni sezione e chiede riferimenti in stile Vancouver.",
+    "ko-KR":
+      "Atip-Avenir(Inserm–CNRS) 신진 그룹 리더 CV로, 2027년 Guide for applicants의 항목에 따라 영어로 작성합니다: 학력, 경력, 책임연구자로 받은 연구비, 교육 및 지도, 수상 및 학회, 이어서 온라인 양식이 요구하는 주요 논문 5편. 가이드는 항목별 분량을 제한하고 Vancouver 형식의 참고문헌을 요구합니다.",
+    "ru-RU":
+      "Резюме молодого руководителя группы по программе Atip-Avenir (Inserm–CNRS), на английском языке, по разделам Guide for applicants 2027: образование, профессиональный опыт, гранты в качестве руководителя, преподавание и научное руководство, премии и научные общества, затем пять основных публикаций, которые запрашивает онлайн-форма. Руководство ограничивает объём каждого раздела и требует ссылок в стиле Vancouver.",
   },
   fwf: {
     "zh-CN": "Austrian Science Fund 简历 + 论文清单。",
@@ -569,19 +632,6 @@ const CV_MODEL_DESCRIPTIONS: Record<CvModelId, TranslatedDescriptions> = {
     "it-IT": "CV per fellowship Cancer Research UK.",
     "ko-KR": "Cancer Research UK 펠로우십 CV.",
     "ru-RU": "Резюме для стипендии Cancer Research UK.",
-  },
-  "frm-arc": {
-    "zh-CN": "Fondation pour la Recherche Médicale／Fondation ARC（法国生物医学）简历。",
-    "es-ES": "CV de la Fondation pour la Recherche Médicale / Fondation ARC (biomédico francés).",
-    "fr-FR": "CV de la Fondation pour la Recherche Médicale / Fondation ARC (biomédical français).",
-    "de-DE":
-      "Lebenslauf der Fondation pour la Recherche Médicale / Fondation ARC (französisch, biomedizinisch).",
-    "ja-JP": "Fondation pour la Recherche Médicale／Fondation ARC（フランスの生物医学）の CV。",
-    "pt-BR": "CV da Fondation pour la Recherche Médicale / Fondation ARC (biomédico francês).",
-    "it-IT": "CV della Fondation pour la Recherche Médicale / Fondation ARC (biomedico francese).",
-    "ko-KR": "Fondation pour la Recherche Médicale / Fondation ARC(프랑스 생물의학) CV.",
-    "ru-RU":
-      "Резюме Fondation pour la Recherche Médicale / Fondation ARC (французская биомедицина).",
   },
   hhmi: {
     "zh-CN": "美国私立生物医学资助机构（HHMI、Simons Foundation、Chan Zuckerberg Initiative）。",

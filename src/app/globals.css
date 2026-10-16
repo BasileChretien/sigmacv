@@ -2001,7 +2001,8 @@ textarea.narrative-ai-draft {
   letter-spacing: 0.04em;
   color: var(--muted);
 }
-.grant-presets-note {
+.grant-presets-note,
+.grant-presets-source {
   flex-basis: 100%;
   margin: 0;
   font-size: var(--text-xs);

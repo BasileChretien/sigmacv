@@ -6,9 +6,9 @@ import { cvModelDescription } from "@/lib/i18n/cvModelDescriptions";
 describe("CV-model description i18n", () => {
   const models = cvModelList();
 
-  it("covers all 61 models × 10 locales with a non-empty description", () => {
+  it("covers all 63 models × 10 locales with a non-empty description", () => {
     expect(SUPPORTED_LOCALES).toHaveLength(10);
-    expect(models).toHaveLength(61);
+    expect(models).toHaveLength(63);
     for (const m of models) {
       for (const loc of SUPPORTED_LOCALES) {
         expect(cvModelDescription(m.id, loc).length, `${loc}/${m.id}`).toBeGreaterThan(0);
@@ -46,6 +46,11 @@ describe("CV-model description i18n", () => {
       "gcp-investigator": ["ICH-GCP", "FDA Form 1572"],
       rirekisho: ["履歴書"],
       shokumu: ["職務経歴書", "JREC-IN"],
+      // The French funders' own names and forms, never "French National Research Agency".
+      anr: ["ANR", "CV appels à projets", "appelsprojetsrecherche.fr", "AAPG 2027"],
+      frm: ["Fondation pour la Recherche Médicale", "Principal Investigator (PI) & Co-PI", "Synto"],
+      "fondation-arc": ["Fondation ARC", "PMID"],
+      "atip-avenir": ["Atip-Avenir", "Guide for applicants", "Vancouver"],
     };
     for (const [id, needles] of Object.entries(KEEP)) {
       for (const loc of SUPPORTED_LOCALES) {
@@ -54,6 +59,12 @@ describe("CV-model description i18n", () => {
           expect(d, `${loc}/${id} keeps “${needle}”`).toContain(needle);
         }
       }
+    }
+  });
+
+  it("names the ANR by its own name in every locale, never by an English rendering", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      expect(cvModelDescription("anr", loc), loc).not.toContain("French National Research Agency");
     }
   });
 
