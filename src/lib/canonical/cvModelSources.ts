@@ -12,8 +12,11 @@ import type { CvModelId } from "./cvModels";
  * Funders reissue their rules with each call, so a reading goes stale by
  * itself. Each entry says when it is due again (`recheckBy`: when the funder's
  * next rules are expected, twelve months after the reading unless set), and the
- * editor says so under a due model. `listedOn` is the funder's own page that
- * links to the document. How to re-read a model: `docs/CV-MODELS.md`.
+ * editor says so under a due model. The monthly `CV model sources` workflow
+ * (`cvModelSourceCheck.ts`, run by `npm run models:sources`) turns red for a due
+ * reading, for a document that no longer answers, and for one the funder's own
+ * page (`listedOn`) stopped linking to. How to re-read a model:
+ * `docs/CV-MODELS.md`.
  *
  * A model with no entry has not been read against a funder document, and the
  * editor prints nothing for it rather than a date it never had.
@@ -109,9 +112,12 @@ const CV_MODEL_SOURCES: Partial<Record<CvModelId, readonly CvModelSource[]>> = {
   ],
 };
 
+/** Keyed by any string, so an id the editor holds (or "constructor") reads nothing inherited. */
+const SOURCES_BY_ID = new Map(Object.entries(CV_MODEL_SOURCES));
+
 /** The documents model `id` was read against; empty for an unread model or an unknown id. */
 export function cvModelSources(id: string): readonly CvModelSource[] {
-  return Object.hasOwn(CV_MODEL_SOURCES, id) ? (CV_MODEL_SOURCES[id as CvModelId] ?? []) : [];
+  return SOURCES_BY_ID.get(id) ?? [];
 }
 
 /** What the editor prints under a model's description. */
@@ -126,14 +132,11 @@ export interface CvModelSourceNote {
 /** The note for model `id` at `now`; undefined for a model never read against a document. */
 export function cvModelSourceNote(id: string, now: Date): CvModelSourceNote | undefined {
   const sources = cvModelSources(id);
-  const [first, ...rest] = sources;
-  if (!first) return undefined;
+  if (sources.length === 0) return undefined;
+  const earliest = Math.min(...sources.map((s) => Date.parse(`${s.lastVerified}T00:00:00Z`)));
   return {
     documents: sources.map(({ document, url }) => ({ document, url })),
-    lastVerified: rest.reduce(
-      (earliest, s) => (s.lastVerified < earliest ? s.lastVerified : earliest),
-      first.lastVerified,
-    ),
+    lastVerified: new Date(earliest).toISOString().slice(0, 10),
     due: sources.some((s) => isCvModelSourceDue(s, now)),
   };
 }

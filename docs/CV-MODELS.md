@@ -43,6 +43,22 @@ record, and from `recheckBy` on adds that the funder may have changed its rules
 since. A model without a record prints nothing: it has not been read against a
 funder document, and the line never claims otherwise.
 
+## The monthly check
+
+`.github/workflows/cv-model-sources.yml` runs on the 1st of each month (and by
+hand from the Actions tab); `npm run models:sources` runs the same check
+locally. It turns red when, for any recorded document:
+
+| Problem       | Meaning                                                            | What to do                                                                                                   |
+| ------------- | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `due`         | `recheckBy` has come: the funder's next rules are expected.        | Read the funder's new documents, update the model, record the new reading with a new `recheckBy`.            |
+| `unreachable` | The document, or the page listing it, no longer answers.           | Find where the funder moved it. A withdrawn document usually means a new edition: read that one.             |
+| `unlisted`    | The funder's page answers but no longer links to the document.     | A new edition has probably replaced it: read the new one and record it.                                      |
+| `unreadable`  | The site refused an automated read (401, 403, 429). Never failing. | Open the address by hand. If the site always refuses robots, drop `listedOn` and rely on the due date alone. |
+
+The job summary of the run lists every finding. Re-reading a model and moving
+`recheckBy` forward is what turns the run green again; nothing else should.
+
 ## The French funders, read on 2026-10-16
 
 - **`anr`** — The CV is the "CV appels à projets" form on

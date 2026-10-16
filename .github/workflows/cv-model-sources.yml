@@ -1,0 +1,44 @@
+# Monthly check that each CV model's funder documents are still current.
+#
+# A CV model is read against the funder's own rules (src/lib/canonical/
+# cvModelSources.ts), and funders reissue those rules with each call. This run
+# turns red when a reading is due again, when a document no longer answers, or
+# when the funder's page stopped linking to it (a new edition has probably
+# replaced it). A red run is the to-do: re-read the model, then record the new
+# reading as docs/CV-MODELS.md says. A site that refuses robots is reported in
+# the job summary without failing the run.
+#
+# Deliberately NOT wired into ci.yml, for the same reason as audit.yml: a
+# funder's website would otherwise turn every unrelated PR red.
+name: CV model sources
+
+on:
+  schedule:
+    - cron: "23 5 1 * *" # the 1st of each month, 05:23 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cv-model-sources
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Funder documents
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      # `npm ci` runs `postinstall: prisma generate`, which needs no database.
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Check the documents each model was read against
+        run: npm run models:sources
