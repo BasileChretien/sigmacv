@@ -2,11 +2,12 @@
 #
 # A CV model is read against the funder's own rules (src/lib/canonical/
 # cvModelSources.ts), and funders reissue those rules with each call. This run
-# turns red when a reading is due again, when a document no longer answers, or
-# when the funder's page stopped linking to it (a new edition has probably
-# replaced it). A red run is the to-do: re-read the model, then record the new
-# reading as docs/CV-MODELS.md says. A site that refuses robots is reported in
-# the job summary without failing the run.
+# turns red when a reading is due again, when a document says it is gone (or
+# now redirects elsewhere), or when the funder's page stopped linking to it (a
+# revised version or a new edition has probably replaced it). A red run is the
+# to-do: docs/CV-MODELS.md says what to update for each problem. A site that
+# refuses robots, fails (5xx) or does not answer is reported in the job summary
+# without failing the run.
 #
 # Deliberately NOT wired into ci.yml, for the same reason as audit.yml: a
 # funder's website would otherwise turn every unrelated PR red.
@@ -28,6 +29,7 @@ jobs:
   check:
     name: Funder documents
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 

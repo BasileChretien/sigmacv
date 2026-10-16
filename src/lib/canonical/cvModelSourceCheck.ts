@@ -12,21 +12,26 @@ import {
  * holds. Four things can be wrong with one source:
  *  - `due`        — its `recheckBy` day has come: the funder's next rules are
  *                   expected, so the model must be read again;
- *  - `unreachable`— the document no longer answers at its address (moved or
- *                   withdrawn, which usually comes with a new edition), or the
- *                   funder's page that listed it is gone;
+ *  - `unreachable`— the document, or the funder's page that listed it, answers
+ *                   that it is gone (a 4xx such as 404 or 410), or the document
+ *                   now redirects to another address;
  *  - `unlisted`   — the funder's page (`listedOn`) answers but no longer links
- *                   to the document: a new edition has probably replaced it;
- *  - `unreadable` — the site refused an automated read (401/403/429). Reported,
- *                   never failing: a site that blocks robots would otherwise
- *                   turn every run red and teach everyone to ignore it.
+ *                   to the document: a revised version or a new edition has
+ *                   probably replaced it there;
+ *  - `unreadable` — no usable answer this time: the site refused a robot
+ *                   (401, 403, 429), failed (5xx), or did not answer. Reported,
+ *                   never failing: a maintenance window or a robot-shy site
+ *                   would otherwise turn runs red for nothing, and the due date
+ *                   still catches a reading that has gone stale.
  * The fetch is the caller's (the script passes a polite resilient one; tests a
  * fake), so this module makes no network call of its own.
  */
 
-/** What one GET answered: its status, and its body when the caller asked for it. */
+/** What one GET answered: its status, its final address, and its body when asked for. */
 export interface FetchedPage {
   status: number;
+  /** The address the answer came from, after redirects (absent: the one asked). */
+  url?: string;
   body?: string;
 }
 
@@ -54,25 +59,66 @@ export const FAILING_PROBLEMS: ReadonlySet<SourceProblem> = new Set([
 /** Statuses a site uses to refuse a robot rather than to say the page is gone. */
 const REFUSED_STATUSES = new Set([401, 403, 429]);
 
-/** Whether `html` links to `url`, written absolute, root-relative, or with `&amp;`. */
-export function pageLinksTo(html: string, url: string): boolean {
-  const { pathname, search } = new URL(url);
-  const relative = pathname + search;
-  return [url, relative, relative.replaceAll("&", "&amp;")].some((form) => html.includes(form));
+/** Host, path and query, decoded, so two spellings of one address compare equal. */
+function addressKey(url: URL): string {
+  const decode = (s: string): string => {
+    try {
+      return decodeURIComponent(s);
+    } catch {
+      return s;
+    }
+  };
+  return `${url.host}${decode(url.pathname)}${decode(url.search)}`;
 }
 
-type Answer = { kind: "ok"; body?: string } | { kind: "refused" | "gone"; detail: string };
+/** Whether two addresses name the same document (the scheme and fragment aside). */
+function sameDocument(a: string, b: string): boolean {
+  return addressKey(new URL(a)) === addressKey(new URL(b));
+}
+
+const HREF = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/gi;
+
+/**
+ * Whether the page at `base`, whose HTML is `html`, links to `url`: any href,
+ * absolute or relative to the page, that resolves to the same host, path and
+ * query, however its characters are escaped.
+ */
+export function pageLinksTo(html: string, url: string, base: string): boolean {
+  for (const m of html.matchAll(HREF)) {
+    const href = (m[1] ?? m[2] ?? m[3] ?? "").replaceAll("&amp;", "&");
+    let resolved: string;
+    try {
+      resolved = new URL(href, base).href;
+    } catch {
+      continue;
+    }
+    if (sameDocument(resolved, url)) return true;
+  }
+  return false;
+}
+
+type Answer =
+  { kind: "ok"; url?: string; body?: string } | { kind: "unreadable" | "gone"; detail: string };
 
 async function ask(fetchPage: PageFetcher, url: string, withBody: boolean): Promise<Answer> {
   let page: FetchedPage;
   try {
     page = await fetchPage(url, withBody);
   } catch (err) {
-    return { kind: "gone", detail: `no answer (${err instanceof Error ? err.message : "error"})` };
+    const why = err instanceof Error ? err.message : "error";
+    return { kind: "unreadable", detail: `no answer (${why})` };
   }
-  if (page.status >= 200 && page.status < 300) return { kind: "ok", body: page.body };
+  if (page.status >= 200 && page.status < 300) {
+    return { kind: "ok", url: page.url, body: page.body };
+  }
   if (REFUSED_STATUSES.has(page.status)) {
-    return { kind: "refused", detail: `HTTP ${page.status}: the site refused an automated read` };
+    return {
+      kind: "unreadable",
+      detail: `HTTP ${page.status}: the site refused an automated read`,
+    };
+  }
+  if (page.status >= 500) {
+    return { kind: "unreadable", detail: `HTTP ${page.status}: the site failed to answer` };
   }
   return { kind: "gone", detail: `HTTP ${page.status}` };
 }
@@ -97,14 +143,22 @@ async function checkOne(
   }
 
   const document = await ask(fetchPage, source.url, false);
-  if (document.kind === "refused") finding(source.url, "unreadable", document.detail);
-  if (document.kind === "gone") finding(source.url, "unreachable", document.detail);
+  if (document.kind === "ok" && document.url && !sameDocument(document.url, source.url)) {
+    // A withdrawn file often redirects to the funder's home page, which answers 200.
+    finding(source.url, "unreachable", `now redirects to ${document.url}`);
+  } else if (document.kind !== "ok") {
+    finding(source.url, document.kind === "gone" ? "unreachable" : "unreadable", document.detail);
+  }
 
   if (source.listedOn) {
     const listing = await ask(fetchPage, source.listedOn, true);
-    if (listing.kind === "refused") finding(source.listedOn, "unreadable", listing.detail);
-    if (listing.kind === "gone") finding(source.listedOn, "unreachable", listing.detail);
-    if (listing.kind === "ok" && !pageLinksTo(listing.body ?? "", source.url)) {
+    if (listing.kind !== "ok") {
+      finding(
+        source.listedOn,
+        listing.kind === "gone" ? "unreachable" : "unreadable",
+        listing.detail,
+      );
+    } else if (!pageLinksTo(listing.body ?? "", source.url, listing.url ?? source.listedOn)) {
       finding(source.listedOn, "unlisted", "the funder's page no longer links to the document");
     }
   }
@@ -140,7 +194,7 @@ export function formatSourceReport(findings: readonly SourceFinding[], checked: 
     "| --- | --- | --- | --- | --- |",
     ...rows,
     "",
-    "To re-read a model and record the new reading, see docs/CV-MODELS.md.",
+    "What to do with each problem: docs/CV-MODELS.md.",
     "",
   ].join("\n");
 }

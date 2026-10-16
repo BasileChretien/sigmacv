@@ -16,7 +16,7 @@ import type { CvModelId } from "@/lib/canonical/cvModels";
  */
 
 const DOC = "https://funder.example/files/2027/guide.pdf";
-const PAGE = "https://funder.example/calls/2027";
+const PAGE = "https://funder.example/calls/2027/";
 const BEFORE_DUE = new Date("2026-11-01T00:00:00Z");
 
 const source = (over: Partial<CvModelSource> = {}): CvModelSource => ({
@@ -42,23 +42,45 @@ function fetcher(answers: Record<string, FetchedPage | Error | string>): PageFet
 }
 
 const linkingPage = { status: 200, body: `<a href="/files/2027/guide.pdf">Guide</a>` };
+const run = (answers: Record<string, FetchedPage | Error | string>, doc = source()) =>
+  checkCvModelSources(fetcher(answers), BEFORE_DUE, table(doc));
 
 describe("pageLinksTo", () => {
-  it("finds a link written absolute, root-relative, or with &amp; in its query", () => {
-    expect(pageLinksTo(`<a href="${DOC}">`, DOC)).toBe(true);
-    expect(pageLinksTo(`<a href="/files/2027/guide.pdf">`, DOC)).toBe(true);
-    const withQuery = "https://funder.example/get?id=7&lang=fr";
-    expect(pageLinksTo(`<a href="/get?id=7&amp;lang=fr">`, withQuery)).toBe(true);
+  it("finds a link however the page writes it", () => {
+    const forms = [
+      `<a href="${DOC}">`, // absolute
+      `<a href="/files/2027/guide.pdf">`, // root-relative
+      `<a href="../../files/2027/guide.pdf">`, // relative to the page
+      `<a href='/files/2027/guide.pdf'>`, // single quotes
+      `<a href=/files/2027/guide.pdf>`, // unquoted
+      `<a HREF = "http://funder.example/files/2027/guide.pdf#p2">`, // other scheme, fragment
+    ];
+    for (const html of forms) expect(pageLinksTo(html, DOC, PAGE), html).toBe(true);
   });
 
-  it("does not find a document the page no longer links to", () => {
-    expect(pageLinksTo(`<a href="/files/2028/guide.pdf">`, DOC)).toBe(false);
+  it("compares addresses whatever their escaping, and decodes &amp; in a query", () => {
+    const spaced = "https://funder.example/files/Guide%20for%20applicants%202027.pdf";
+    expect(pageLinksTo(`<a href="/files/Guide for applicants 2027.pdf">`, spaced, PAGE)).toBe(true);
+    const query = "https://funder.example/get?id=7&lang=fr";
+    expect(pageLinksTo(`<a href="/get?id=7&amp;lang=fr">`, query, PAGE)).toBe(true);
+    // A malformed escape is compared as written rather than thrown on.
+    const odd = "https://funder.example/files/100%.pdf";
+    expect(pageLinksTo(`<a href="/files/100%.pdf">`, odd, PAGE)).toBe(true);
+  });
+
+  it("does not find a document the page no longer links to, and skips hrefs that are not addresses", () => {
+    expect(pageLinksTo(`<a href="/files/2028/guide.pdf">`, DOC, PAGE)).toBe(false);
+    expect(pageLinksTo(`<a href="https://other.example/files/2027/guide.pdf">`, DOC, PAGE)).toBe(
+      false,
+    );
+    expect(pageLinksTo(`<a href="http://[broken">`, DOC, PAGE)).toBe(false);
+    expect(pageLinksTo(`<p>no links</p>`, DOC, PAGE)).toBe(false);
   });
 });
 
 describe("checkCvModelSources", () => {
   it("reports nothing when the reading is current, the document answers and is still listed", async () => {
-    const fetchPage = fetcher({ [DOC]: { status: 200 }, [PAGE]: linkingPage });
+    const fetchPage = fetcher({ [DOC]: { status: 200, url: DOC }, [PAGE]: linkingPage });
     expect(await checkCvModelSources(fetchPage, BEFORE_DUE, table(source()))).toEqual([]);
     // The document is only asked whether it answers; the listing page is read.
     expect(fetchPage).toHaveBeenCalledWith(DOC, false);
@@ -83,41 +105,41 @@ describe("checkCvModelSources", () => {
     ]);
   });
 
-  it("reports a document that is gone, and one that does not answer", async () => {
-    const gone = await checkCvModelSources(
-      fetcher({ [DOC]: { status: 404 }, [PAGE]: linkingPage }),
-      BEFORE_DUE,
-      table(source()),
-    );
-    expect(gone.map((f) => [f.problem, f.url, f.detail])).toEqual([
-      ["unreachable", DOC, "HTTP 404"],
-    ]);
-
-    const silent = await checkCvModelSources(
-      fetcher({ [DOC]: new Error("timeout"), [PAGE]: linkingPage }),
-      BEFORE_DUE,
-      table(source()),
-    );
-    expect(silent.map((f) => f.detail)).toEqual(["no answer (timeout)"]);
-
-    const odd = await checkCvModelSources(
-      fetcher({ [DOC]: "boom", [PAGE]: linkingPage }),
-      BEFORE_DUE,
-      table(source()),
-    );
-    expect(odd.map((f) => f.detail)).toEqual(["no answer (error)"]);
+  it("reports a document that says it is gone", async () => {
+    for (const status of [404, 410]) {
+      const findings = await run({ [DOC]: { status }, [PAGE]: linkingPage });
+      expect(findings.map((f) => [f.problem, f.url, f.detail])).toEqual([
+        ["unreachable", DOC, `HTTP ${status}`],
+      ]);
+    }
   });
 
-  it("reports a refused read as unreadable, which never fails the run", async () => {
-    for (const status of [401, 403, 429]) {
-      const findings = await checkCvModelSources(
-        fetcher({ [DOC]: { status }, [PAGE]: { status } }),
-        BEFORE_DUE,
-        table(source()),
-      );
-      expect(findings.map((f) => [f.problem, f.url])).toEqual([
-        ["unreadable", DOC],
-        ["unreadable", PAGE],
+  it("reports a document that now redirects to another address, not one that only changed scheme", async () => {
+    const home = "https://funder.example/";
+    const moved = await run({ [DOC]: { status: 200, url: home }, [PAGE]: linkingPage });
+    expect(moved.map((f) => [f.problem, f.detail])).toEqual([
+      ["unreachable", `now redirects to ${home}`],
+    ]);
+    const https = await run({
+      [DOC]: { status: 200, url: DOC.replace("https:", "http:") },
+      [PAGE]: linkingPage,
+    });
+    expect(https).toEqual([]);
+  });
+
+  it("reports a refused, failed or silent read as unreadable, which never fails the run", async () => {
+    const cases: Array<[FetchedPage | Error | string, string]> = [
+      [{ status: 403 }, "HTTP 403: the site refused an automated read"],
+      [{ status: 429 }, "HTTP 429: the site refused an automated read"],
+      [{ status: 503 }, "HTTP 503: the site failed to answer"],
+      [new Error("timeout"), "no answer (timeout)"],
+      ["boom", "no answer (error)"],
+    ];
+    for (const [answer, detail] of cases) {
+      const findings = await run({ [DOC]: answer, [PAGE]: answer });
+      expect(findings.map((f) => [f.problem, f.url, f.detail])).toEqual([
+        ["unreadable", DOC, detail],
+        ["unreadable", PAGE, detail],
       ]);
     }
     expect(FAILING_PROBLEMS.has("unreadable")).toBe(false);
@@ -127,28 +149,28 @@ describe("checkCvModelSources", () => {
   });
 
   it("reports a document the funder's page stopped linking to, or a page that is gone", async () => {
-    const unlisted = await checkCvModelSources(
-      fetcher({ [DOC]: { status: 200 }, [PAGE]: { status: 200, body: "<p>2028 call</p>" } }),
-      BEFORE_DUE,
-      table(source()),
-    );
+    const unlisted = await run({
+      [DOC]: { status: 200 },
+      [PAGE]: { status: 200, body: `<a href="/files/2028/guide.pdf">` },
+    });
     expect(unlisted.map((f) => [f.problem, f.url])).toEqual([["unlisted", PAGE]]);
 
-    const empty = await checkCvModelSources(
-      fetcher({ [DOC]: { status: 200 }, [PAGE]: { status: 200 } }),
-      BEFORE_DUE,
-      table(source()),
-    );
+    const empty = await run({ [DOC]: { status: 200 }, [PAGE]: { status: 200 } });
     expect(empty.map((f) => f.problem)).toEqual(["unlisted"]);
 
-    const pageGone = await checkCvModelSources(
-      fetcher({ [DOC]: { status: 200 }, [PAGE]: { status: 410 } }),
-      BEFORE_DUE,
-      table(source()),
-    );
+    const pageGone = await run({ [DOC]: { status: 200 }, [PAGE]: { status: 410 } });
     expect(pageGone.map((f) => [f.problem, f.url, f.detail])).toEqual([
       ["unreachable", PAGE, "HTTP 410"],
     ]);
+  });
+
+  it("resolves the listing page's relative links against the address it was served from", async () => {
+    const served = "https://funder.example/calls/2027/details/";
+    const findings = await run({
+      [DOC]: { status: 200 },
+      [PAGE]: { status: 200, url: served, body: `<a href="../../../files/2027/guide.pdf">` },
+    });
+    expect(findings).toEqual([]);
   });
 
   it("asks no listing page for a document that has none", async () => {
@@ -187,7 +209,7 @@ describe("formatSourceReport", () => {
     );
   });
 
-  it("lists each finding in a table and says where to read how to fix it", () => {
+  it("lists each finding in a table and says where to read what to do", () => {
     const report = formatSourceReport(
       [
         {

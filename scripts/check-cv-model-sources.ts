@@ -17,21 +17,27 @@ import {
   type FetchedPage,
 } from "@/lib/canonical/cvModelSourceCheck";
 import { verifiedCvModelSources } from "@/lib/canonical/cvModelSources";
-import { resilientFetch } from "@/lib/http";
+import { readBodyWithin, resilientFetch } from "@/lib/http";
 
 const USER_AGENT = "SigmaCV CV-model source check (+https://github.com/BasileChretien/sigmacv)";
+/** Headers and body alike: `resilientFetch`'s own timeout stops at the headers. */
+const TIMEOUT_MS = 30_000;
+/** A funder's call page is a few hundred kilobytes; anything far larger is not one. */
+const MAX_PAGE_BYTES = 5_000_000;
 
 async function fetchPage(url: string, withBody: boolean): Promise<FetchedPage> {
   const res = await resilientFetch(url, {
-    timeoutMs: 30_000,
+    timeoutMs: TIMEOUT_MS,
     retries: 2,
     headers: { "User-Agent": USER_AGENT },
   });
   if (!withBody || !res.ok) {
     await res.body?.cancel();
-    return { status: res.status };
+    return { status: res.status, url: res.url };
   }
-  return { status: res.status, body: await res.text() };
+  const body = await readBodyWithin(res, Date.now() + TIMEOUT_MS, MAX_PAGE_BYTES);
+  if (body === undefined) throw new Error("the page did not finish loading");
+  return { status: res.status, url: res.url, body };
 }
 
 async function main(): Promise<void> {
