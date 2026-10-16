@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **An ATIP-Avenir CV model.** The Inserm–CNRS young group leader programme publishes its CV template, so the model follows it: cursus, professional experience, grants as principal investigator, teaching, supervision, awards, learned societies, then the five main publications the online form asks for, in English (Atip-Avenir 2027 Guide for applicants and CV template).
+- **The editor names what a CV model was checked against.** Under a model's description, the editor now links the funder's own documents the model was read against and gives the day. Once the funder's next rules are expected, it adds that they may have changed since. A model that has not been read against a funder's documents shows no such line. The four French funder models are the first to carry one.
+
+### Changed
+
+- **The ANR model follows the 2027 "CV appels à projets".** Since the AAPG 2027 the ANR takes the CV only as a form on appelsprojetsrecherche.fr, and accepts no file. The model now drafts that form in its order: positions, teaching and administrative responsibilities, higher education, distinctions and funding, then publications, preprints, datasets, software and other outputs, all of them, since the ANR asks for the CV to be complete. It shows no metric, because the ANR bans the impact factor and the h-index, and it no longer shows supervision, which the form has no heading for. The French description now names the agency by its own name rather than "French National Research Agency".
+- **FRM and Fondation ARC are two models.** One model covered both, but they collect CVs differently. The FRM's "Principal Investigator (PI) & Co-PI" CV is a form in its Synto portal, in English, which forbids impact factors, the h-index and other metrics: its model hides every metric and shows ten major publications and patents. Fondation ARC takes a PDF CV with no prescribed structure and asks for up to ten peer-reviewed publications separately: its model keeps the owner's own choice of metrics. A freeze request link that names the old model (`frm-arc`) now opens on the Fondation ARC model, whose layout it kept.
+
 ### Fixed
 
 - **A scan of institution pages can no longer take researchers' own pages down.** The institution pages (`/i`, `/i/<ROR id>`, their reconciliation export and the organisation comparison) shared the public CV pages' rate limit, global ceiling included. ROR ids are a public list anyone can walk, so a scan of them spread over enough addresses could spend that ceiling and make every researcher's public page answer "Too many requests". The institution surfaces now have limits of their own (120 requests a minute per address, as before, and 1,000 a minute in all), so a flood on one cannot starve the other. (2026-09-08 panel, defect 7.)

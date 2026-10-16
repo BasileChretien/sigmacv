@@ -45,16 +45,29 @@ function loose(s: string): string {
 }
 
 /**
+ * Freeze links already given out may name a model the catalog has since split
+ * or renamed; each resolves to its successor (loose keys, ids and names alike).
+ * `frm-arc` covered FRM and Fondation ARC until 2026-10: its layout (a PDF CV,
+ * ten peer-reviewed publications) lives on as `fondation-arc`.
+ */
+const RETIRED: ReadonlyArray<readonly [old: string, id: string]> = [
+  ["frm-arc", "fondation-arc"],
+  ["FRM / Fondation ARC (France, biomedical)", "fondation-arc"],
+  ["ANR (France)", "anr"],
+];
+const RETIRED_MODELS = new Map(RETIRED.map(([old, id]) => [loose(old), id]));
+
+/**
  * Resolve a `freeze=` value to a catalog model id: the id itself, or the
  * model's catalog NAME (case- and punctuation-insensitive) — a requester who
  * copied "ERC (Starting / Consolidator / Advanced)" from the picker need not
- * know the id. Undefined when nothing matches.
+ * know the id — or a retired id or name. Undefined when nothing matches.
  */
 export function resolveFreezeModelId(value: string): string | undefined {
   if (isCvModelId(value)) return value;
   const key = loose(value);
   if (!key) return undefined;
-  return CV_MODELS.find((m) => loose(m.name) === key)?.id;
+  return CV_MODELS.find((m) => loose(m.name) === key)?.id ?? RETIRED_MODELS.get(key);
 }
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 

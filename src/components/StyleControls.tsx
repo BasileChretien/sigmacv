@@ -31,6 +31,7 @@ import {
 } from "@/lib/canonical/cvModels";
 import { prefillEmptyProse } from "@/lib/canonical/proseStarter";
 import { cvModelDescription } from "@/lib/i18n/cvModelDescriptions";
+import CvModelSourceLine from "./CvModelSourceLine";
 import { METRIC_DEFS, curatedMetrics, formatMetricValue } from "@/lib/render/metrics";
 import { READER_MODE_KEYS, type ReaderModeKey } from "@/lib/render/readerMode";
 import { authorshipRoleLabel, metricLabel, renderStrings } from "@/lib/i18n/render";
@@ -578,6 +579,9 @@ export default function StyleControls({
           <p className="muted metric-preset-note grant-presets-note">
             {selectedModel ? cvModelDescription(selectedModel.id, locale) : eu.grantIntro}
           </p>
+          {selectedModel ? (
+            <CvModelSourceLine modelId={selectedModel.id} locale={locale} strings={eu} />
+          ) : null}
         </div>
       </StyleGroup>
 

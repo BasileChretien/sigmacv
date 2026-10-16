@@ -41,6 +41,11 @@ describe("parseFreezeRequest (the stateless request link)", () => {
     });
     expect(resolveFreezeModelId("ERC (Starting / Consolidator / Advanced)")).toBe("erc");
     expect(resolveFreezeModelId("   ")).toBeUndefined();
+    // A link given out before a model was split or renamed still opens, on its successor.
+    expect(parseFreezeRequest(q("freeze=frm-arc"))).toEqual({ modelId: "fondation-arc" });
+    expect(resolveFreezeModelId("FRM / Fondation ARC (France, biomedical)")).toBe("fondation-arc");
+    expect(resolveFreezeModelId("ANR (France)")).toBe("anr");
+    expect(resolveFreezeModelId("ANR — CV appels à projets (France)")).toBe("anr");
     expect(parseFreezeRequest(q("freeze=erc"))).toEqual({ modelId: "erc" });
     expect(parseFreezeRequest(q("freeze=1&preset=hiring"))).toEqual({ preset: "hiring" });
     expect(
