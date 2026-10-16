@@ -58,11 +58,34 @@ describe("pageLinksTo", () => {
     for (const html of forms) expect(pageLinksTo(html, DOC, PAGE), html).toBe(true);
   });
 
-  it("compares addresses whatever their escaping, and decodes &amp; in a query", () => {
+  it("finds the document's path anywhere in the page, with or without a query after it", () => {
+    const forms = [
+      `<a href="/files/2027/guide.pdf?1690000000">`, // a cache-buster
+      `<a href="/files/2027/guide.pdf?download=1&amp;v=2">`, // a download flag
+      `<embed src="/files/2027/guide.pdf">`, // not an href
+      `<div data-url="https://funder.example/files/2027/guide.pdf"></div>`, // a data attribute
+      `<script>{"file":"/files/2027/guide.pdf"}</script>`, // inline JSON
+      // The path alone is enough: the same file on a mirror or CDN counts.
+      `<a href="https://cdn.example/files/2027/guide.pdf">`,
+    ];
+    for (const html of forms) expect(pageLinksTo(html, DOC, PAGE), html).toBe(true);
+  });
+
+  it("resolves relative links against the page's <base href> when it declares one", () => {
+    const html = `<base href="https://funder.example/"><a href="files/2027/guide.pdf">`;
+    expect(pageLinksTo(html, DOC, PAGE)).toBe(true);
+    // Without the <base>, the same link resolves under the page's own folder.
+    expect(pageLinksTo(`<a href="files/2027/guide.pdf">`, DOC, PAGE)).toBe(false);
+    // A malformed <base> is ignored, as a browser ignores it.
+    const broken = `<base href="http://[bad"><a href="../../files/2027/guide.pdf">`;
+    expect(pageLinksTo(broken, DOC, PAGE)).toBe(true);
+  });
+
+  it("compares paths whatever their escaping", () => {
     const spaced = "https://funder.example/files/Guide%20for%20applicants%202027.pdf";
     expect(pageLinksTo(`<a href="/files/Guide for applicants 2027.pdf">`, spaced, PAGE)).toBe(true);
-    const query = "https://funder.example/get?id=7&lang=fr";
-    expect(pageLinksTo(`<a href="/get?id=7&amp;lang=fr">`, query, PAGE)).toBe(true);
+    const relative = `<a href="../../files/Guide%20for%20applicants%202027.pdf">`;
+    expect(pageLinksTo(relative, spaced, PAGE)).toBe(true);
     // A malformed escape is compared as written rather than thrown on.
     const odd = "https://funder.example/files/100%.pdf";
     expect(pageLinksTo(`<a href="/files/100%.pdf">`, odd, PAGE)).toBe(true);
@@ -70,9 +93,6 @@ describe("pageLinksTo", () => {
 
   it("does not find a document the page no longer links to, and skips hrefs that are not addresses", () => {
     expect(pageLinksTo(`<a href="/files/2028/guide.pdf">`, DOC, PAGE)).toBe(false);
-    expect(pageLinksTo(`<a href="https://other.example/files/2027/guide.pdf">`, DOC, PAGE)).toBe(
-      false,
-    );
     expect(pageLinksTo(`<a href="http://[broken">`, DOC, PAGE)).toBe(false);
     expect(pageLinksTo(`<p>no links</p>`, DOC, PAGE)).toBe(false);
   });
@@ -114,17 +134,14 @@ describe("checkCvModelSources", () => {
     }
   });
 
-  it("reports a document that now redirects to another address, not one that only changed scheme", async () => {
-    const home = "https://funder.example/";
-    const moved = await run({ [DOC]: { status: 200, url: home }, [PAGE]: linkingPage });
-    expect(moved.map((f) => [f.problem, f.detail])).toEqual([
-      ["unreachable", `now redirects to ${home}`],
-    ]);
-    const https = await run({
-      [DOC]: { status: 200, url: DOC.replace("https:", "http:") },
-      [PAGE]: linkingPage,
-    });
-    expect(https).toEqual([]);
+  it("does not judge a redirect: a file moved to www. or a CDN still answers", async () => {
+    const moved = DOC.replace("funder.example", "www.funder.example");
+    expect(await run({ [DOC]: { status: 200, url: moved }, [PAGE]: linkingPage })).toEqual([]);
+  });
+
+  it("keeps a document listed while the page links both it and its revision (the due date then catches it)", async () => {
+    const both = `<a href="/files/2027/guide.pdf"><a href="/files/2027/guide-v2.pdf">`;
+    expect(await run({ [DOC]: { status: 200 }, [PAGE]: { status: 200, body: both } })).toEqual([]);
   });
 
   it("reports a refused, failed or silent read as unreadable, which never fails the run", async () => {

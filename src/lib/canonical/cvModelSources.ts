@@ -14,8 +14,8 @@ import type { CvModelId } from "./cvModels";
  * next rules are expected, twelve months after the reading unless set), and the
  * editor says so under a due model. The monthly `CV model sources` workflow
  * (`cvModelSourceCheck.ts`, run by `npm run models:sources`) turns red for a due
- * reading, for a document that is gone or now redirects elsewhere, and for one
- * the funder's own page (`listedOn`) stopped linking to. How to re-read a
+ * reading, for a document that says it is gone, and for one the funder's own
+ * page (`listedOn`) stopped linking to. How to re-read a
  * model: `docs/CV-MODELS.md`.
  *
  * A model with no entry has not been read against a funder document, and the
@@ -46,8 +46,8 @@ export interface CvModelSource {
 
 const CV_MODEL_SOURCES: Partial<Record<CvModelId, readonly CvModelSource[]>> = {
   // The ANR publishes each AAPG in July, on a call page of its own: this year's
-  // page catches a revised version (the 2026 guide went to v2.0); the due date
-  // catches the 2028 call.
+  // page catches a revised version once it drops v1.0 (the 2026 guide went to
+  // v2.0); the due date catches the 2028 call.
   anr: [
     {
       document: "AAPG 2027 — CV completion guide (v1.0)",

@@ -13,11 +13,11 @@ import {
  *  - `due`        — its `recheckBy` day has come: the funder's next rules are
  *                   expected, so the model must be read again;
  *  - `unreachable`— the document, or the funder's page that listed it, answers
- *                   that it is gone (a 4xx such as 404 or 410), or the document
- *                   now redirects to another address;
+ *                   that it is gone (a 4xx such as 404 or 410);
  *  - `unlisted`   — the funder's page (`listedOn`) answers but no longer links
  *                   to the document: a revised version or a new edition has
- *                   probably replaced it there;
+ *                   probably replaced it there (a page listing both does not
+ *                   count, and the due date still catches it);
  *  - `unreadable` — no usable answer this time: the site refused a robot
  *                   (401, 403, 429), failed (5xx), or did not answer. Reported,
  *                   never failing: a maintenance window or a robot-shy site
@@ -59,40 +59,55 @@ export const FAILING_PROBLEMS: ReadonlySet<SourceProblem> = new Set([
 /** Statuses a site uses to refuse a robot rather than to say the page is gone. */
 const REFUSED_STATUSES = new Set([401, 403, 429]);
 
-/** Host, path and query, decoded, so two spellings of one address compare equal. */
-function addressKey(url: URL): string {
-  const decode = (s: string): string => {
-    try {
-      return decodeURIComponent(s);
-    } catch {
-      return s;
-    }
-  };
-  return `${url.host}${decode(url.pathname)}${decode(url.search)}`;
-}
-
-/** Whether two addresses name the same document (the scheme and fragment aside). */
-function sameDocument(a: string, b: string): boolean {
-  return addressKey(new URL(a)) === addressKey(new URL(b));
+/** Percent-decoded, or as written when it holds a malformed escape. */
+function decoded(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
 }
 
 const HREF = /\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/gi;
+const BASE = /<base\b[^>]*?\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'>]+))/i;
+
+/** An href or base value as the browser reads it. */
+const attribute = (m: RegExpMatchArray): string =>
+  (m[1] ?? m[2] ?? m[3] ?? "").replaceAll("&amp;", "&");
 
 /**
- * Whether the page at `base`, whose HTML is `html`, links to `url`: any href,
- * absolute or relative to the page, that resolves to the same host, path and
- * query, however its characters are escaped.
+ * Whether the page served from `pageUrl`, whose HTML is `html`, links to the
+ * document at `url`. Either reading is enough:
+ *  - the document's path appears in the page as written or percent-decoded:
+ *    an absolute or root-relative link, a `src`, a data attribute or inline
+ *    JSON, with or without a query after it (a cache-buster, `?download=1`);
+ *  - an href resolves, against the page's `<base href>` or else its own
+ *    address, to the document's host and path.
+ * The query is never compared: funders add cache-busters and download flags.
  */
-export function pageLinksTo(html: string, url: string, base: string): boolean {
-  for (const m of html.matchAll(HREF)) {
-    const href = (m[1] ?? m[2] ?? m[3] ?? "").replaceAll("&amp;", "&");
-    let resolved: string;
+export function pageLinksTo(html: string, url: string, pageUrl: string): boolean {
+  const target = new URL(url);
+  const page = html.replaceAll("&amp;", "&");
+  const path = decoded(target.pathname);
+  if (page.includes(target.pathname) || decoded(page).includes(path)) return true;
+
+  let base = pageUrl;
+  const declared = BASE.exec(html);
+  if (declared) {
     try {
-      resolved = new URL(href, base).href;
+      base = new URL(attribute(declared), pageUrl).href;
+    } catch {
+      // A malformed <base> is ignored, as a browser ignores it.
+    }
+  }
+  for (const m of html.matchAll(HREF)) {
+    let resolved: URL;
+    try {
+      resolved = new URL(attribute(m), base);
     } catch {
       continue;
     }
-    if (sameDocument(resolved, url)) return true;
+    if (resolved.host === target.host && decoded(resolved.pathname) === path) return true;
   }
   return false;
 }
@@ -142,11 +157,10 @@ async function checkOne(
     );
   }
 
+  // A redirect is not judged: a funder moving a file to `www.` or a CDN redirects
+  // too, and the due date catches a withdrawn file sent to a home page.
   const document = await ask(fetchPage, source.url, false);
-  if (document.kind === "ok" && document.url && !sameDocument(document.url, source.url)) {
-    // A withdrawn file often redirects to the funder's home page, which answers 200.
-    finding(source.url, "unreachable", `now redirects to ${document.url}`);
-  } else if (document.kind !== "ok") {
+  if (document.kind !== "ok") {
     finding(source.url, document.kind === "gone" ? "unreachable" : "unreadable", document.detail);
   }
 
