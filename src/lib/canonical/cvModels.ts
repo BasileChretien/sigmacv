@@ -276,15 +276,136 @@ const CV_MODELS_SOURCE = [
     ],
     display: NAR,
   },
+  // The French funders, each read against its own call documents
+  // (`cvModelSources.ts` names them and the day they were read).
+  // ANR: since the AAPG 2027 the CV is a form on appelsprojetsrecherche.fr ("CV
+  // appels à projets"), in the form's order; no file is accepted. Funding goes
+  // under its "Distinctions", career interruptions have a heading of their own
+  // (left to the form: an empty prose section would get the background draft),
+  // and the ANR bans the impact factor and h-index. The guide asks for the CV
+  // "de manière exhaustive", in English, so no publication is cut; "the
+  // contribution of the five main publications" is its evaluators' advice.
   {
     id: "anr",
     category: "grant",
     region: "FR",
-    name: "ANR (France)",
+    name: "ANR — CV appels à projets (France)",
     description:
-      "French National Research Agency CV: recent career, selected publications, funding.",
-    sections: ["positions", "education", "supervision", "publications", "grants", "awards"],
-    display: { publicationsLimit: 8, publicationOrder: "year-desc" },
+      "Drafting aid for the ANR's 'CV appels à projets', filled in on appelsprojetsrecherche.fr (no file is accepted; AAPG 2027): positions, teaching and administrative responsibilities, higher education, distinctions and funding, then publications, preprints, datasets, software and other outputs, in full and preferably in English. Evaluators look for the contribution of the five main publications. No metric: the ANR bans the impact factor and h-index. Career interruptions have their own heading on the form.",
+    sections: [
+      "positions",
+      "teaching",
+      "service",
+      "education",
+      "awards",
+      "grants",
+      "publications",
+      "preprints",
+      "datasets",
+      "software",
+      "other",
+    ],
+    display: {
+      publicationOrder: "year-desc",
+      hideHeaderSummary: true,
+      summaryBlockPosition: "hidden",
+      pageFormat: "a4",
+    },
+    titleOverrides: {
+      positions: "Current and previous positions",
+      teaching: "Teaching responsibilities",
+      service: "Administrative responsibilities",
+      education: "Higher education",
+      awards: "Distinctions",
+      grants: "Funding and project coordination",
+      software: "Source code and software",
+      other: "Other outputs",
+    },
+  },
+  // FRM: the "Principal Investigator (PI) & Co-PI" CV is a form in its Synto
+  // portal, in English, which states "Journal Impact factor, H index and other
+  // metrics must not be included" (Équipes FRM 2027 notice). The form's fields
+  // are not public. Its thematic calls ask each applicant, beside the CV, for
+  // "la liste des 10 publications et brevets majeurs de ces 10 dernières années"
+  // (Environnement et Santé 2026 notice).
+  {
+    id: "frm",
+    category: "grant",
+    region: "FR",
+    name: "FRM — PI & Co-PI CV (France, biomedical)",
+    description:
+      "Drafting aid for the Fondation pour la Recherche Médicale's 'Principal Investigator (PI) & Co-PI' CV, filled in English in its Synto portal (Équipes FRM 2027 notice), whose fields are not public: this layout shows positions, education, funding, supervision and distinctions, then the ten major publications and patents of the last ten years that its thematic calls ask each applicant to list (Environnement et Santé 2026). No metric: the CV form forbids impact factors and the h-index.",
+    sections: [
+      "positions",
+      "education",
+      "grants",
+      "supervision",
+      "awards",
+      "publications",
+      "patents",
+    ],
+    display: {
+      publicationsLimit: 10,
+      publicationOrder: "year-desc",
+      hideHeaderSummary: true,
+      summaryBlockPosition: "hidden",
+      pageFormat: "a4",
+    },
+    titleOverrides: { publications: "Major publications (last 10 years)" },
+  },
+  // Fondation ARC: a free-format PDF CV (no structure is prescribed), an
+  // optional short CV, and up to ten peer-reviewed publications, most recent
+  // first (of the last five years, for projects), which its form asks for by
+  // PMID. It says nothing about metrics either way.
+  {
+    id: "fondation-arc",
+    category: "grant",
+    region: "FR",
+    name: "Fondation ARC (France, cancer research)",
+    description:
+      "PDF CV for the Fondation ARC application platform (Projets Fondation ARC 2026, Post-doctorants 2026), which prescribes no structure: career, funding and distinctions, then up to ten peer-reviewed publications, most recent first; for projects, only those of the last five years count, so check the dates. The form asks for those publications again by PMID and offers an optional short CV.",
+    sections: ["positions", "education", "grants", "awards", "supervision", "publications"],
+    display: { ...TR10, pageFormat: "a4" },
+  },
+  // ATIP-Avenir: a CV template (in English) whose headings the Guide for
+  // applicants also lists, most with a character limit. One heading, "Teaching
+  // and supervision experience", holds two sub-items, "University teaching
+  // responsibilities" and "Supervision": they title the two sections. The five
+  // main publications go in the online form, with no stated restriction.
+  {
+    id: "atip-avenir",
+    category: "grant",
+    region: "FR",
+    name: "ATIP-Avenir (Inserm / CNRS, France)",
+    description:
+      "Inserm–CNRS Atip-Avenir young group leader CV, in English, under the headings of the 2027 CV template: cursus, professional experience, grants as principal investigator, teaching and supervision experience, awards and learned societies, then the five main publications the online form asks for. The Guide for applicants limits the length of most headings.",
+    sections: [
+      "education",
+      "positions",
+      "grants",
+      "teaching",
+      "supervision",
+      "awards",
+      "service",
+      "publications",
+    ],
+    display: {
+      publicationsLimit: 5,
+      publicationOrder: "year-desc",
+      hideHeaderSummary: true,
+      summaryBlockPosition: "hidden",
+      pageFormat: "a4",
+    },
+    titleOverrides: {
+      education: "Cursus",
+      positions: "Professional experience",
+      grants: "Grants",
+      teaching: "University teaching responsibilities",
+      supervision: "Supervision",
+      awards: "Awards and scientific prizes",
+      service: "Learned societies",
+      publications: "5 main publications",
+    },
   },
   {
     id: "fwf",
@@ -681,15 +802,6 @@ const CV_MODELS_SOURCE = [
     name: "Cancer Research UK",
     description: "Cancer Research UK fellowship CV.",
     sections: ["positions", "education", "publications", "grants", "awards", "supervision"],
-    display: TR10,
-  },
-  {
-    id: "frm-arc",
-    category: "grant",
-    region: "FR",
-    name: "FRM / Fondation ARC (France, biomedical)",
-    description: "Fondation pour la Recherche Médicale / Fondation ARC (French biomedical) CV.",
-    sections: ["positions", "education", "publications", "grants", "awards"],
     display: TR10,
   },
   {

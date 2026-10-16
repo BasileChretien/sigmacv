@@ -90,10 +90,83 @@ describe("CV-model catalog", () => {
 
   it("counts: grant + institution + industry models", () => {
     const byCat = (c: CvModelCategory) => CV_MODELS.filter((m) => m.category === c).length;
-    expect(byCat("grant")).toBe(40);
+    expect(byCat("grant")).toBe(42);
     expect(byCat("institution")).toBe(11);
     expect(byCat("industry")).toBe(10);
-    expect(CV_MODELS.length).toBe(61);
+    expect(CV_MODELS.length).toBe(63);
+  });
+
+  // The French funders, read against their 2026–27 call documents
+  // (`cvModelSources.ts`). Each assertion is a rule the funder states.
+  describe("French funder models", () => {
+    const model = (id: string) => CV_MODELS.find((m) => m.id === id)!;
+
+    it("ANR follows the 'CV appels à projets' form, in its order, with funding beside distinctions", () => {
+      const m = model("anr");
+      expect(m.sections).toEqual([
+        "positions",
+        "teaching",
+        "service",
+        "education",
+        "awards",
+        "grants",
+        "publications",
+        "preprints",
+        "datasets",
+        "software",
+        "other",
+      ]);
+      // Supervision has no heading on the form; the old model showed it.
+      expect(m.sections).not.toContain("supervision");
+      // The guide asks for the CV "de manière exhaustive": no publication is cut
+      // ("the five main publications" is the evaluators' advice, not a cap).
+      expect(m.display?.publicationsLimit).toBeUndefined();
+      // The form has no personal summary, and is a form: no file is accepted.
+      expect(m.display?.hideHeaderSummary).toBe(true);
+      expect(m.description).toContain("appelsprojetsrecherche.fr");
+      expect(m.description).toContain("no file is accepted");
+    });
+
+    it("hides every metric where the funder bans them (ANR, FRM)", () => {
+      for (const id of ["anr", "frm"]) {
+        expect(model(id).display?.summaryBlockPosition, id).toBe("hidden");
+      }
+    });
+
+    it("FRM and Fondation ARC are two models: their CVs are collected differently", () => {
+      expect(CV_MODELS.some((m) => m.id === "frm-arc")).toBe(false);
+      expect(model("frm").description).toContain("Synto");
+      expect(model("fondation-arc").description).toContain("prescribes no structure");
+      // Fondation ARC states no position on metrics, so the owner's choice stands.
+      expect(model("fondation-arc").display?.summaryBlockPosition).toBeUndefined();
+      // "Publications ... dans les revues à comité de lecture", 1 to 10.
+      expect(model("fondation-arc").display?.peerReviewedOnly).toBe(true);
+      expect(model("fondation-arc").display?.publicationsLimit).toBe(10);
+    });
+
+    it("ATIP-Avenir follows its CV template's headings and sub-headings, then the form's five publications", () => {
+      const m = model("atip-avenir");
+      expect(m.sections.map((t) => m.titleOverrides?.[t])).toEqual([
+        "Cursus",
+        "Professional experience",
+        "Grants", // the guide's heading (the template prints "Grant:")
+        // The two sub-items of "Teaching and supervision experience".
+        "University teaching responsibilities",
+        "Supervision",
+        "Awards and scientific prizes",
+        "Learned societies",
+        "5 main publications",
+      ]);
+      expect(m.display?.publicationsLimit).toBe(5);
+      // The guide puts no restriction on those five (a preprint may be one).
+      expect(m.display?.peerReviewedOnly).toBeUndefined();
+    });
+
+    it("every French model is A4", () => {
+      for (const m of CV_MODELS.filter((x) => x.region === "FR")) {
+        expect(m.display?.pageFormat, m.id).toBe("a4");
+      }
+    });
   });
 
   // The Fonds de recherche du Québec "CV descriptif": three prose sections under
@@ -245,7 +318,8 @@ describe("applyCvModel", () => {
     "gcp-investigator", // industry, statement override + skills
     "pharma-rd", // industry, CONCISE, titleOverrides
     "medical-affairs", // industry, no overrides
-    "frm-arc", // grant (biomedical), TR10, no overrides
+    "fondation-arc", // grant (biomedical), TR10 + A4, no overrides
+    "anr", // grant, form-shaped, metrics hidden, titleOverrides
     "hdr", // institution, FULL, large section set
     "pharmacovigilance", // industry, CONCISE10, skills + publications overrides
   ];

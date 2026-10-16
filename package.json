@@ -22,6 +22,7 @@
     "deadcode": "npx --yes knip@6 --no-progress",
     "sbom": "npx --yes @cyclonedx/cyclonedx-npm@4 --output-format JSON --output-file sbom.cdx.json --omit dev --mc-type application",
     "gen:schema": "tsx scripts/gen-cv-schema.ts",
+    "models:sources": "tsx scripts/check-cv-model-sources.ts",
     "fetch-csl": "node scripts/fetch-csl.mjs",
     "fetch-fonts": "node scripts/fetch-fonts.mjs",
     "resync": "node scripts/resync.mjs",

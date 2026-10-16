@@ -128,6 +128,11 @@ export interface EditorExtraStrings {
   modelNone: string;
   /** Helper line under the picker stressing it's optional. */
   modelHelp: string;
+  /** Under a model's description: {docs} = links to the funder documents it was
+   *  read against, {date} = the day they were read. Each placeholder once. */
+  modelSourceChecked: string;
+  /** Follows it once that reading is due again (the funder's next rules are expected). */
+  modelSourceDue: string;
   // Subdivided "regions" editor layout (opt-in CvEditor variant).
   /** Collapsible "Presets & models" group head (Design region). */
   grpPresets: string;
@@ -290,6 +295,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— None (default sections) —",
     modelHelp:
       "Optional. Pick a funder or institution layout to auto-arrange your sections — or just build your CV freely.",
+    modelSourceChecked: "Checked against {docs} on {date}.",
+    modelSourceDue: "The funder may have changed its rules since.",
     grpPresets: "Presets & models",
     regionContent: "Content",
     regionDesign: "Design",
@@ -435,6 +442,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelGrpIndustry: "产业与临床",
     modelNone: "— 无（默认栏目）—",
     modelHelp: "可选。选择一个资助方或机构版式以自动排列你的栏目——或直接自由编排你的简历。",
+    modelSourceChecked: "已于 {date} 对照 {docs} 核对。",
+    modelSourceDue: "资助方此后可能已更改规则。",
     grpPresets: "预设与模型",
     regionContent: "内容",
     regionDesign: "外观",
@@ -587,6 +596,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Ninguno (secciones predeterminadas) —",
     modelHelp:
       "Opcional. Elige un diseño de financiador o institución para ordenar tus secciones automáticamente, o crea tu CV libremente.",
+    modelSourceChecked: "Comprobado con {docs} el {date}.",
+    modelSourceDue: "Puede que el financiador haya cambiado sus normas desde entonces.",
     grpPresets: "Ajustes guardados y modelos",
     regionContent: "Contenido",
     regionDesign: "Diseño",
@@ -741,6 +752,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Aucun (sections par défaut) —",
     modelHelp:
       "Facultatif. Choisissez une mise en page de financeur ou d’institution pour organiser automatiquement vos sections — ou composez votre CV librement.",
+    modelSourceChecked: "Vérifié d’après {docs} le {date}.",
+    modelSourceDue: "Le financeur a peut-être changé ses règles depuis.",
     grpPresets: "Préréglages et modèles",
     regionContent: "Contenu",
     regionDesign: "Apparence",
@@ -894,6 +907,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Keine (Standardabschnitte) —",
     modelHelp:
       "Optional. Wählen Sie ein Förderer- oder Institutionslayout, um Ihre Abschnitte automatisch anzuordnen — oder erstellen Sie Ihren Lebenslauf frei.",
+    modelSourceChecked: "Am {date} mit {docs} abgeglichen.",
+    modelSourceDue: "Der Förderer hat seine Regeln seitdem womöglich geändert.",
     grpPresets: "Voreinstellungen & Modelle",
     regionContent: "Inhalt",
     regionDesign: "Design",
@@ -1044,6 +1059,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— なし（既定のセクション）—",
     modelHelp:
       "任意です。助成機関や機関のレイアウトを選ぶとセクションが自動で並びます。自由に CV を作成することもできます。",
+    modelSourceChecked: "{docs} と照らし合わせて {date} に確認しました。",
+    modelSourceDue: "その後、助成機関が規則を変えている可能性があります。",
     grpPresets: "プリセットとモデル",
     regionContent: "内容",
     regionDesign: "デザイン",
@@ -1196,6 +1213,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Nenhum (seções padrão) —",
     modelHelp:
       "Opcional. Escolha um layout de financiador ou instituição para organizar suas seções automaticamente — ou monte seu currículo livremente.",
+    modelSourceChecked: "Conferido com {docs} em {date}.",
+    modelSourceDue: "O financiador pode ter mudado as regras desde então.",
     grpPresets: "Predefinições e modelos",
     regionContent: "Conteúdo",
     regionDesign: "Aparência",
@@ -1350,6 +1369,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Nessuno (sezioni predefinite) —",
     modelHelp:
       "Facoltativo. Scegli un layout di un ente finanziatore o di un’istituzione per disporre automaticamente le tue sezioni — oppure crea il tuo CV liberamente.",
+    modelSourceChecked: "Verificato su {docs} il {date}.",
+    modelSourceDue: "Da allora l’ente finanziatore potrebbe aver cambiato le sue regole.",
     grpPresets: "Preimpostazioni e modelli",
     regionContent: "Contenuto",
     regionDesign: "Aspetto",
@@ -1500,6 +1521,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— 없음 (기본 섹션) —",
     modelHelp:
       "선택 사항입니다. 지원기관이나 기관 레이아웃을 고르면 섹션이 자동으로 배치됩니다 — 또는 자유롭게 CV를 작성하세요.",
+    modelSourceChecked: "{date}에 {docs}에 비추어 확인했습니다.",
+    modelSourceDue: "그 뒤 지원기관이 규정을 바꾸었을 수 있습니다.",
     grpPresets: "프리셋 및 모델",
     regionContent: "콘텐츠",
     regionDesign: "디자인",
@@ -1650,6 +1673,8 @@ const EDITOR_UI: Record<Locale, EditorExtraStrings> = {
     modelNone: "— Нет (разделы по умолчанию) —",
     modelHelp:
       "Необязательно. Выберите макет грантодателя или учреждения, чтобы автоматически расставить разделы, — или составьте резюме свободно.",
+    modelSourceChecked: "Сверено с {docs} {date}.",
+    modelSourceDue: "С тех пор грантодатель мог изменить свои правила.",
     grpPresets: "Пресеты и модели",
     regionContent: "Содержание",
     regionDesign: "Оформление",
