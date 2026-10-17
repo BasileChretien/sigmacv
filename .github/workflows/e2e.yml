@@ -25,6 +25,7 @@ jobs:
   e2e:
     name: Playwright journeys
     runs-on: ubuntu-latest
+    timeout-minutes: 10 # slowest healthy run ~2.6 min
     services:
       postgres:
         image: postgres:16
