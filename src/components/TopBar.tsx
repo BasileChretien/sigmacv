@@ -80,7 +80,8 @@ export interface TopBarProps {
   /** Deep-link from the Publish menu to the editor's public-page-style picker. */
   onEditPublicStyle?: () => void;
   // ── Account (hosted in the Account menu) ──
-  researchConsent: boolean;
+  /** Opens the research panel; absent while the study is closed. */
+  onOpenResearch?: () => void;
   digestOptIn?: boolean;
   digestContactEmail?: string | null;
   digestContactEmailVerified?: boolean;
@@ -123,7 +124,7 @@ export default function TopBar({
   readerViewEnabled = false,
   onPublishStateChange,
   onEditPublicStyle,
-  researchConsent,
+  onOpenResearch,
   digestOptIn,
   digestContactEmail,
   digestContactEmailVerified,
@@ -268,7 +269,7 @@ export default function TopBar({
         <AccountMenu
           userName={userName}
           locale={locale}
-          researchConsent={researchConsent}
+          onOpenResearch={onOpenResearch}
           digestOptIn={digestOptIn}
           digestContactEmail={digestContactEmail}
           digestContactEmailVerified={digestContactEmailVerified}

@@ -27,7 +27,15 @@ export async function GET() {
   // a GDPR/APPI export is never SILENTLY incomplete (the cap is far above any
   // realistic consent history; if it's ever hit the payload says so).
   const RESEARCH_EVENT_CAP = 50_000;
-  const [user, accounts, sessions, cv, researchEvents, researchEventsTotal] = await Promise.all([
+  const [
+    user,
+    accounts,
+    sessions,
+    cv,
+    researchEvents,
+    researchEventsTotal,
+    researchConsentRecords,
+  ] = await Promise.all([
     prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -66,6 +74,13 @@ export async function GET() {
       take: RESEARCH_EVENT_CAP,
     }),
     prisma.researchEvent.count({ where: { userId } }),
+    // The electronic consent record of study 2026-0310: every grant and
+    // withdrawal, kept through a withdrawal (a few rows; no cap needed).
+    prisma.researchConsentRecord.findMany({
+      where: { userId },
+      orderBy: { at: "asc" },
+      select: { id: true, action: true, at: true, version: true, locale: true, secondaryUse: true },
+    }),
   ]);
 
   // Frozen CV versions (snapshots) are the user's data too: the frozen document
@@ -151,6 +166,7 @@ export async function GET() {
     // True only in the (unrealistic) event the cap was reached — tells the user
     // the export is partial rather than leaving them to assume it is complete.
     researchEventsTruncated: researchEventsTotal > researchEvents.length,
+    researchConsentRecords,
   };
 
   return new NextResponse(JSON.stringify(payload, null, 2), {

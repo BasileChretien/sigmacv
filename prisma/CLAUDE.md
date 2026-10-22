@@ -7,6 +7,7 @@ Database schema + migrations (PostgreSQL). The Prisma **client** is generated in
 - Auth.js standard models: `User`, `Account`, `Session`, `VerificationToken`. `User` adds `orcid` (`@unique`) and the research-consent fields (`researchConsent` default `false`, `researchConsentAt`, `researchConsentVersion`).
 - **`Cv`** — one row per user; `document Json` holds the entire `CanonicalCv` (the single source of truth). Migrations of that JSON shape are handled in code via `schemaVersion`, not SQL.
 - **`ResearchEvent`** — append-only research log. **Nothing is written here unless `User.researchConsent` is true**, and it cascade-deletes with the user (GDPR/APPI).
+- **`ResearchConsentRecord`** — the electronic consent record of study 2026-0310: one row per grant or withdrawal (action, time, consent version, language of the text shown, checkbox ②), written in the same transaction as the `User` consent fields, never edited, kept through a withdrawal, cascade-deleted with the user. No name, email or ORCID iD in it.
 - `RateLimitWindow` — backs the Postgres rate limiter.
 
 ## Workflow

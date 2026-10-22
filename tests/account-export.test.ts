@@ -18,6 +18,7 @@ const mocks = vi.hoisted(() => ({
   eventFindMany: vi.fn(),
   eventCount: vi.fn(),
   snapshotFindMany: vi.fn(),
+  consentRecordFindMany: vi.fn(),
   enforceRateLimit: vi.fn(),
 }));
 
@@ -30,6 +31,7 @@ vi.mock("@/lib/db", () => ({
     cv: { findUnique: mocks.cvFindUnique },
     researchEvent: { findMany: mocks.eventFindMany, count: mocks.eventCount },
     cvSnapshot: { findMany: mocks.snapshotFindMany },
+    researchConsentRecord: { findMany: mocks.consentRecordFindMany },
   },
 }));
 vi.mock("@/lib/rateLimitStore", () => ({ enforceRateLimit: mocks.enforceRateLimit }));
@@ -77,6 +79,7 @@ beforeEach(() => {
   mocks.eventFindMany.mockResolvedValue([]);
   mocks.eventCount.mockResolvedValue(0);
   mocks.snapshotFindMany.mockResolvedValue([]);
+  mocks.consentRecordFindMany.mockResolvedValue([]);
 });
 
 describe("GET /api/account/export (GDPR / APPI data export)", () => {
@@ -104,6 +107,43 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     ]) {
       expect(body.user, key).toHaveProperty(key);
     }
+  });
+
+  it("includes the electronic consent record of study 2026-0310, minimal and oldest first", async () => {
+    const records = [
+      {
+        id: "r1",
+        action: "grant",
+        at: new Date("2026-10-22T07:00:00Z"),
+        version: 2,
+        locale: "ja-JP",
+        secondaryUse: true,
+      },
+      {
+        id: "r2",
+        action: "withdraw",
+        at: new Date("2026-10-23T07:00:00Z"),
+        version: 2,
+        locale: "en-US",
+        secondaryUse: null,
+      },
+    ];
+    mocks.consentRecordFindMany.mockResolvedValue(records);
+    const body = (await (await GET()).json()) as { researchConsentRecords: unknown[] };
+    expect(body.researchConsentRecords).toEqual(
+      records.map((r) => ({ ...r, at: r.at.toISOString() })),
+    );
+    const query = mocks.consentRecordFindMany.mock.calls[0]![0] as {
+      where: unknown;
+      orderBy: unknown;
+      select: Record<string, true>;
+    };
+    expect(query.where).toEqual({ userId: "u1" });
+    expect(query.orderBy).toEqual({ at: "asc" });
+    // The record names no one: no user id, name, email or ORCID iD in it.
+    expect(Object.keys(query.select).sort()).toEqual(
+      ["action", "at", "id", "locale", "secondaryUse", "version"].sort(),
+    );
   });
 
   it("includes the CV row's public state, not only the document", async () => {

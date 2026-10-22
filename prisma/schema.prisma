@@ -24,11 +24,13 @@ model User {
   image                  String?
   // Bare ORCID iD (e.g. 0000-0002-7483-2489), set from the OIDC `sub` claim.
   orcid                  String?   @unique
-  // Structural research-consent hook. NO logging happens unless/until built.
+  // Whether the user takes part in research study 2026-0310 (Nagoya
+  // University). NO logging happens unless this is true, the version below is
+  // the current one and the RESEARCH_LOGGING_ENABLED switch is on.
   researchConsent        Boolean   @default(false)
-  // When consent was last granted, and the version of the consent notice the
-  // user agreed to — needed for an IRB-defensible audit trail (what each user
-  // agreed to, and when). Null until they first opt in.
+  // When consent was last granted, and the version of the consent the user
+  // agreed to. Null until they first opt in, and again after a withdrawal; the
+  // full history is in ResearchConsentRecord.
   researchConsentAt      DateTime?
   researchConsentVersion Int?
   // Opt-IN re-sync digest email ("your last sync changed N items"). Default
@@ -51,6 +53,7 @@ model User {
   sessions       Session[]
   cv             Cv?
   researchEvents ResearchEvent[]
+  researchConsentRecords ResearchConsentRecord[]
 }
 
 // Consent-gated research log (author-disambiguation + self-presentation studies).
@@ -68,6 +71,29 @@ model ResearchEvent {
 
   @@index([userId])
   @@index([type])
+}
+
+// The electronic consent record of study 2026-0310 (別添1 §4-5): one row per
+// grant or withdrawal, written in the same transaction as the User fields it
+// accompanies, never edited, and kept through a withdrawal (the withdrawal is
+// itself a row). Deleted only with the account. It holds no name, email or
+// ORCID iD: the user id is the only link.
+model ResearchConsentRecord {
+  id           String   @id @default(cuid())
+  userId       String
+  // "grant" | "withdraw"
+  action       String
+  at           DateTime @default(now())
+  // The RESEARCH_CONSENT_VERSION agreed to (a grant) or withdrawn from.
+  version      Int
+  // The language of the consent text shown (an approved consent locale).
+  locale       String?
+  // Checkbox ②, future related research; null on a withdrawal.
+  secondaryUse Boolean?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, at])
 }
 
 model Account {

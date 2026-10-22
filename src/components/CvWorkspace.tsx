@@ -8,6 +8,7 @@ import type { FunderRow } from "@/lib/funders/join";
 import { updateDisplay } from "@/lib/canonical/curate";
 import { asLocale, t, type Locale } from "@/lib/i18n";
 import { editorUi } from "@/lib/i18n/editorUi";
+import { researchPanelStrings } from "@/lib/i18n/researchPanel";
 import { trackEvent } from "@/lib/analytics/track";
 
 const UI_LOCALE_KEY = "sigmacv:uiLocale";
@@ -29,7 +30,7 @@ import InstitutionListingPrompt from "./InstitutionListingPrompt";
 import IndexingPrompt from "./IndexingPrompt";
 import PublishNudge from "./PublishNudge";
 import PopoverGroup from "./PopoverGroup";
-import ResearchConsentPrompt from "./ResearchConsentPrompt";
+import ResearchParticipationPanel from "./ResearchParticipationPanel";
 import SyncReportBanner, { SYNC_REPORT_DISMISS_KEY } from "./SyncReportBanner";
 import TopBar, { type ExportFormat } from "./TopBar";
 
@@ -68,7 +69,6 @@ interface CvWorkspaceProps {
   autoSyncOnLoad?: boolean;
   availableStyles: string[];
   userName: string;
-  researchConsent: boolean;
   /** Re-sync digest email opt-in (account toggle). */
   digestOptIn?: boolean;
   /** User-set digest notification address (pending or confirmed), if any. */
@@ -77,7 +77,8 @@ interface CvWorkspaceProps {
   digestContactEmailVerified?: boolean;
   /** Auth.js login email (fallback digest delivery; often null for ORCID). */
   accountEmail?: string | null;
-  /** Whether the research-logging programme is active (off until IRB approval). */
+  /** Whether study 2026-0310 takes participants (RESEARCH_LOGGING_ENABLED). While
+   *  false the research panel and both of its entry points do not exist. */
   researchEnabled: boolean;
   published: boolean;
   publicSlug: string | null;
@@ -138,7 +139,6 @@ export default function CvWorkspace({
   autoSyncOnLoad = false,
   availableStyles,
   userName,
-  researchConsent,
   digestOptIn = false,
   digestContactEmail = null,
   digestContactEmailVerified = false,
@@ -433,10 +433,12 @@ export default function CvWorkspace({
   const [onboardingTick, setOnboardingTick] = useState(0);
   const [activeOnboarding, setActiveOnboarding] = useState<OnboardingStep | null>(null);
   const advanceOnboarding = useCallback(() => setOnboardingTick((n) => n + 1), []);
-  // Two prompts that are NOT sequencer steps (each is answered on its own
-  // terms) but must not be stacked on: the research-consent modal/banner and a
-  // freeze request carried in the URL. They report their own visibility.
-  const [researchPromptOpen, setResearchPromptOpen] = useState(false);
+  // Two things that are NOT sequencer steps but must not be stacked on: the
+  // research panel, which only the person opens (it never opens by itself),
+  // and a freeze request carried in the URL, which reports its own visibility.
+  const [researchOpen, setResearchOpen] = useState(false);
+  const openResearch = useCallback(() => setResearchOpen(true), []);
+  const closeResearch = useCallback(() => setResearchOpen(false), []);
   const [freezeRequestOpen, setFreezeRequestOpen] = useState(false);
   useEffect(() => {
     const read = (key: string): string | null => {
@@ -454,11 +456,11 @@ export default function CvWorkspace({
           read(SYNC_REPORT_DISMISS_KEY) !== syncReport.syncedAt,
         coachmark: hasPublications && read(COACHMARK_DISMISS_KEY) !== "1",
         indexing:
-          !researchPromptOpen &&
+          !researchOpen &&
           !freezeRequestOpen &&
           shouldOfferIndexingPrompt(publishState, isIndexingPromptDismissed(publishState.slug)),
         institution:
-          !researchPromptOpen &&
+          !researchOpen &&
           !freezeRequestOpen &&
           shouldOfferInstitutionPrompt(
             publishState,
@@ -467,14 +469,7 @@ export default function CvWorkspace({
       }),
     );
     // onboardingTick re-reads localStorage after a dismissal advances the queue.
-  }, [
-    syncReport,
-    hasPublications,
-    onboardingTick,
-    publishState,
-    researchPromptOpen,
-    freezeRequestOpen,
-  ]);
+  }, [syncReport, hasPublications, onboardingTick, publishState, researchOpen, freezeRequestOpen]);
 
   const handleExport = useCallback(async () => {
     // Export uses the SAVED document — don't download a stale file if the
@@ -531,12 +526,8 @@ export default function CvWorkspace({
       <a href="#cv-main" className="skip-link">
         {t(uiLocale, "skipToContent")}
       </a>
-      {researchEnabled ? (
-        <ResearchConsentPrompt
-          initialConsent={researchConsent}
-          locale={uiLocale}
-          onVisibilityChange={setResearchPromptOpen}
-        />
+      {researchEnabled && researchOpen ? (
+        <ResearchParticipationPanel uiLocale={uiLocale} onClose={closeResearch} />
       ) : null}
       {/* PopoverGroup keeps one menu open at a time and renders the shared
           dismiss scrim as a sibling of the bar (so the bar stays clickable
@@ -573,7 +564,7 @@ export default function CvWorkspace({
           readerViewEnabled={cv?.display.allowReaderMode ?? false}
           onPublishStateChange={setPublishState}
           onEditPublicStyle={handleEditPublicStyle}
-          researchConsent={researchConsent}
+          onOpenResearch={researchEnabled ? openResearch : undefined}
           digestOptIn={digestOptIn}
           digestContactEmail={digestContactEmail}
           digestContactEmailVerified={digestContactEmailVerified}
@@ -620,14 +611,14 @@ export default function CvWorkspace({
               and indexable and a current position is linked to a ROR record the
               CV is not yet listed under; nothing pre-ticked, nothing decided by
               silence. It is the LAST step of the onboarding sequencer, whose
-              condition also covers the research-consent prompt and a freeze
+              condition also covers the open research panel and a freeze
               request — so it never stacks with any of them. */}
           <IndexingPrompt
             locale={uiLocale}
             state={publishState}
             suppressed={
               activeOnboarding !== "indexing" &&
-              (activeOnboarding !== null || researchPromptOpen || freezeRequestOpen)
+              (activeOnboarding !== null || researchOpen || freezeRequestOpen)
             }
             onDismissed={advanceOnboarding}
             onPublishStateChange={setPublishState}
@@ -701,6 +692,15 @@ export default function CvWorkspace({
                 funderCrosswalk={funderCrosswalk}
                 currentAffiliationCountry={currentAffiliationCountry}
               />
+              {/* The study's entry in the editor: one small static link at the
+                  foot of the pane, the same every visit (no badge, no prompt). */}
+              {researchEnabled ? (
+                <p className="research-entry">
+                  <button type="button" className="link-btn" onClick={openResearch}>
+                    {researchPanelStrings(uiLocale).entry}
+                  </button>
+                </p>
+              ) : null}
             </section>
             <section className="cv-workspace-pane" data-pane="preview">
               {/* Toggle the preview between the document (export) render and the
