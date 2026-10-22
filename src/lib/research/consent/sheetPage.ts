@@ -50,7 +50,13 @@ export function sheetPageModel(
   const rows = records.map((r) => ({
     at: utc(r.at),
     action: r.action === "grant" ? s.recordGrant : s.recordWithdraw,
-    document: documentLabelFor(r.version, r.locale) ?? "",
+    // The document of the language recorded; a row recording none (a
+    // withdrawal made without one) takes the reader's approved language; a
+    // version with no approved document (1, the notice before approval) says so.
+    document:
+      documentLabelFor(r.version, r.locale) ??
+      documentLabelFor(r.version, consentLocaleFor(uiLocale)) ??
+      s.recordEarlier.replace("{version}", String(r.version)),
     language: isConsentLocale(r.locale) ? consentText(r.locale).languageName : "",
     secondaryUse: r.secondaryUse === null ? "" : r.secondaryUse ? s.yes : s.no,
   }));

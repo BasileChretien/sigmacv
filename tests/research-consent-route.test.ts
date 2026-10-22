@@ -92,6 +92,7 @@ describe("POST /api/account/consent — grant", () => {
   it("stamps the user and writes a grant record in ONE transaction (checkbox ② unticked)", async () => {
     mocks.userFindUnique.mockResolvedValue(NOT_CONSENTING);
     const order: string[] = [];
+    mocks.eventDeleteMany.mockImplementation(async () => order.push("events.deleteMany"));
     mocks.userUpdate.mockImplementation(async () => order.push("user.update"));
     mocks.recordCreate.mockImplementation(async () => order.push("record.create"));
     const res = await post(GRANT);
@@ -100,9 +101,8 @@ describe("POST /api/account/consent — grant", () => {
 
     expect(mocks.transaction).toHaveBeenCalledTimes(1);
     expect(typeof mocks.transaction.mock.calls[0]![0]).toBe("function");
-    expect(order).toEqual(["user.update", "record.create"]);
-    // A first consent has nothing collected before it to delete.
-    expect(mocks.eventDeleteMany).not.toHaveBeenCalled();
+    // Only a consent already current keeps its events; anything else starts clean.
+    expect(order).toEqual(["events.deleteMany", "user.update", "record.create"]);
     const update = mocks.userUpdate.mock.calls[0]![0] as {
       where: unknown;
       data: { researchConsentAt: Date };
@@ -135,6 +135,12 @@ describe("POST /api/account/consent — grant", () => {
     expect((await post(GRANT)).status).toBe(200);
     expect(mocks.transaction).toHaveBeenCalledTimes(1);
     expect(order).toEqual(["events.deleteMany", "user.update", "record.create"]);
+    expect(mocks.eventDeleteMany).toHaveBeenCalledWith({ where: { userId: "u1" } });
+  });
+
+  it("deletes stray events of a user holding no consent but an older version on record", async () => {
+    mocks.userFindUnique.mockResolvedValue({ researchConsent: false, researchConsentVersion: 1 });
+    expect((await post(GRANT)).status).toBe(200);
     expect(mocks.eventDeleteMany).toHaveBeenCalledWith({ where: { userId: "u1" } });
   });
 

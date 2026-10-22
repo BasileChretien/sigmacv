@@ -399,14 +399,18 @@ function ParticipationStatus({
     ? new Intl.DateTimeFormat(uiLocale, { dateStyle: "long" }).format(new Date(status.since))
     : "";
   // The document as its own language names it (kept on one line: its date has
-  // hyphens); the version integer stays in the record.
-  const [before, after = ""] = s.since.replace("{date}", since).split("{document}");
+  // hyphens); the version integer stays in the record. With no document known,
+  // the line without it, so no separator or particle is left hanging.
+  const label = status.documentLabel;
+  const [before, after = ""] = (label ? s.since : s.sinceOnly)
+    .replace("{date}", since)
+    .split("{document}");
   const sheetUrl = `/cv/research-sheet?lang=${encodeURIComponent(textLocale)}&ui=${encodeURIComponent(uiLocale)}`;
   return (
     <>
       <p className="research-panel-status" data-testid="research-status">
         {before}
-        <span className="research-panel-doc">{status.documentLabel ?? ""}</span>
+        {label ? <span className="research-panel-doc">{label}</span> : null}
         {after}
       </p>
       <p className="muted">{status.secondaryUse ? s.secondaryYes : s.secondaryNo}</p>

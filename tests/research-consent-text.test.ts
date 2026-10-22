@@ -163,6 +163,9 @@ describe("the consent text", () => {
         expect(researchPanelStrings(locale).since).toContain(slot);
       }
       expect(researchPanelStrings(locale).since).not.toContain("{version}");
+      expect(researchPanelStrings(locale).sinceOnly).toContain("{date}");
+      expect(researchPanelStrings(locale).sinceOnly).not.toContain("{document}");
+      expect(researchPanelStrings(locale).recordEarlier).toContain("{version}");
     }
     expect(researchPanelStrings("xx-XX")).toBe(researchPanelStrings("en-US"));
     expect(researchPanelStrings("en-US").since).toBe(
@@ -331,11 +334,29 @@ describe("sheetPageModel", () => {
       {
         at: "2026-10-23 09:05 UTC",
         action: "Retiré",
-        document: "",
+        // Version 1 had no approved document: its rows still say what they were.
+        document: "Notice antérieure (version du consentement 1)",
         language: "",
         secondaryUse: "",
       },
     ]);
+  });
+
+  it("names a current-version row that records no language in the reader's approved language", () => {
+    const row = {
+      action: "withdraw",
+      at: new Date("2026-10-23T09:05:00Z"),
+      version: 2,
+      locale: null,
+      agreeRequired: null,
+      secondaryUse: null,
+    };
+    expect(sheetPageModel({ ui: "ja-JP" }, [row]).rows[0]!.document).toBe(
+      "説明文書 第1.1版（2026-07-08）",
+    );
+    expect(sheetPageModel({ ui: "fr-FR" }, [row]).rows[0]!.document).toBe(
+      "Information sheet Version 1.0 (2026-06-05)",
+    );
   });
 
   it("falls back to the UI's own approved language, else English; takes the first of repeated params", () => {

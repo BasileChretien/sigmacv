@@ -311,6 +311,15 @@ describe("the panel while taking part", () => {
     );
   });
 
+  it.each([
+    ["en-US", "You have been taking part since October 22, 2026"],
+    ["ja-JP", "2026年10月22日から参加しています。"],
+  ])("drops the document, separator included, when none is known (%s)", async (ui, line) => {
+    server.status = { ...CURRENT, documentLabel: null };
+    renderPanel(ui);
+    expect((await screen.findByTestId("research-status")).textContent).toBe(line);
+  });
+
   it("keeps the confirmation open and reports a failed withdrawal", async () => {
     server.status = CURRENT;
     renderPanel();

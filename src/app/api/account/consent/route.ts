@@ -131,12 +131,13 @@ async function grant(userId: string, body: Extract<ConsentRequest, { consent: tr
       where: { id: userId },
       select: { researchConsent: true, researchConsentVersion: true },
     });
-    // A consent under an older version (the notice shown before approval) does
-    // not cover what was logged under it: those events go, rather than travel
-    // on under the approved consent given now.
-    if (user?.researchConsent && user.researchConsentVersion !== RESEARCH_CONSENT_VERSION) {
-      await tx.researchEvent.deleteMany({ where: { userId } });
-    }
+    // Only a consent already current keeps the events logged under it. Anything
+    // else (a consent under an older version, the notice shown before approval,
+    // or no consent at all) covers nothing logged so far: those events go,
+    // rather than travel on under the approved consent given now.
+    const alreadyCurrent =
+      user?.researchConsent === true && user.researchConsentVersion === RESEARCH_CONSENT_VERSION;
+    if (!alreadyCurrent) await tx.researchEvent.deleteMany({ where: { userId } });
     await tx.user.update({
       where: { id: userId },
       data: {
