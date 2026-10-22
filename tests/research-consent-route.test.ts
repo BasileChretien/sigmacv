@@ -60,7 +60,16 @@ function post(body: unknown, origin = ORIGIN) {
   );
 }
 
-const GRANT = { consent: true, version: RESEARCH_CONSENT_VERSION, locale: "en-US" };
+const GRANT = {
+  consent: true,
+  version: RESEARCH_CONSENT_VERSION,
+  locale: "en-US",
+  agreeRequired: true,
+};
+/** The user row the transactions read first. */
+const NOT_CONSENTING = { researchConsent: false, researchConsentVersion: null };
+const CONSENTING = { researchConsent: true, researchConsentVersion: RESEARCH_CONSENT_VERSION };
+const STALE = { researchConsent: true, researchConsentVersion: 1 };
 
 beforeEach(() => {
   for (const m of Object.values(mocks)) m.mockReset();
@@ -81,12 +90,19 @@ afterEach(() => {
 
 describe("POST /api/account/consent — grant", () => {
   it("stamps the user and writes a grant record in ONE transaction (checkbox ② unticked)", async () => {
+    mocks.userFindUnique.mockResolvedValue(NOT_CONSENTING);
+    const order: string[] = [];
+    mocks.userUpdate.mockImplementation(async () => order.push("user.update"));
+    mocks.recordCreate.mockImplementation(async () => order.push("record.create"));
     const res = await post(GRANT);
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, consent: true });
 
     expect(mocks.transaction).toHaveBeenCalledTimes(1);
-    expect(mocks.transaction.mock.calls[0]![0]).toEqual(["user.update", "record.create"]);
+    expect(typeof mocks.transaction.mock.calls[0]![0]).toBe("function");
+    expect(order).toEqual(["user.update", "record.create"]);
+    // A first consent has nothing collected before it to delete.
+    expect(mocks.eventDeleteMany).not.toHaveBeenCalled();
     const update = mocks.userUpdate.mock.calls[0]![0] as {
       where: unknown;
       data: { researchConsentAt: Date };
@@ -103,11 +119,34 @@ describe("POST /api/account/consent — grant", () => {
       at: update.data.researchConsentAt,
       version: RESEARCH_CONSENT_VERSION,
       locale: "en-US",
+      agreeRequired: true,
       secondaryUse: false,
     });
   });
 
+  it("deletes the events collected under an older consent when the approved one is given", async () => {
+    // A version-1 consent was the notice shown before approval: its events must
+    // not travel on under the version-2 consent the person now gives.
+    mocks.userFindUnique.mockResolvedValue(STALE);
+    const order: string[] = [];
+    mocks.eventDeleteMany.mockImplementation(async () => order.push("events.deleteMany"));
+    mocks.userUpdate.mockImplementation(async () => order.push("user.update"));
+    mocks.recordCreate.mockImplementation(async () => order.push("record.create"));
+    expect((await post(GRANT)).status).toBe(200);
+    expect(mocks.transaction).toHaveBeenCalledTimes(1);
+    expect(order).toEqual(["events.deleteMany", "user.update", "record.create"]);
+    expect(mocks.eventDeleteMany).toHaveBeenCalledWith({ where: { userId: "u1" } });
+  });
+
+  it("keeps the events of a current consent given again (a second tab)", async () => {
+    mocks.userFindUnique.mockResolvedValue(CONSENTING);
+    expect((await post(GRANT)).status).toBe(200);
+    expect(mocks.eventDeleteMany).not.toHaveBeenCalled();
+    expect(mocks.recordCreate).toHaveBeenCalledTimes(1);
+  });
+
   it("records checkbox ② and the Japanese text when that is what was shown", async () => {
+    mocks.userFindUnique.mockResolvedValue(NOT_CONSENTING);
     expect((await post({ ...GRANT, locale: "ja-JP", secondaryUse: true })).status).toBe(200);
     const record = mocks.recordCreate.mock.calls[0]![0] as { data: Record<string, unknown> };
     expect(record.data).toMatchObject({ locale: "ja-JP", secondaryUse: true });
@@ -131,7 +170,7 @@ describe("POST /api/account/consent — grant", () => {
 
 describe("POST /api/account/consent — withdrawal", () => {
   it("deletes the events, clears the user and writes the withdraw record in the same transaction", async () => {
-    mocks.userFindUnique.mockResolvedValue({ researchConsentVersion: RESEARCH_CONSENT_VERSION });
+    mocks.userFindUnique.mockResolvedValue(CONSENTING);
     const order: string[] = [];
     mocks.eventDeleteMany.mockImplementation(async () => order.push("events.deleteMany"));
     mocks.userUpdate.mockImplementation(async () => order.push("user.update"));
@@ -139,7 +178,7 @@ describe("POST /api/account/consent — withdrawal", () => {
 
     const res = await post({ consent: false, locale: "ja-JP" });
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, consent: false });
+    expect(await res.json()).toEqual({ ok: true, consent: false, withdrawn: true });
     expect(mocks.transaction).toHaveBeenCalledTimes(1);
     expect(typeof mocks.transaction.mock.calls[0]![0]).toBe("function");
     expect(order).toEqual(["events.deleteMany", "user.update", "record.create"]);
@@ -154,13 +193,14 @@ describe("POST /api/account/consent — withdrawal", () => {
         action: "withdraw",
         version: RESEARCH_CONSENT_VERSION,
         locale: "ja-JP",
+        agreeRequired: null,
         secondaryUse: null,
       },
     });
   });
 
   it("names the version withdrawn from: an older consent stays an older consent", async () => {
-    mocks.userFindUnique.mockResolvedValue({ researchConsentVersion: 1 });
+    mocks.userFindUnique.mockResolvedValue(STALE);
     expect((await post({ consent: false })).status).toBe(200);
     expect(mocks.recordCreate.mock.calls[0]![0]).toMatchObject({
       data: { action: "withdraw", version: 1, locale: null },
@@ -169,11 +209,26 @@ describe("POST /api/account/consent — withdrawal", () => {
 
   it("stays possible while the study is closed", async () => {
     delete process.env.RESEARCH_LOGGING_ENABLED;
-    mocks.userFindUnique.mockResolvedValue(null);
+    mocks.userFindUnique.mockResolvedValue(CONSENTING);
     expect((await post({ consent: false })).status).toBe(200);
     expect(mocks.recordCreate.mock.calls[0]![0]).toMatchObject({
       data: { action: "withdraw", version: RESEARCH_CONSENT_VERSION },
     });
+  });
+
+  it.each([
+    ["a user who never consented", NOT_CONSENTING],
+    ["an account that is gone", null],
+  ])("is a no-op for %s: no record, no user write, the events still swept", async (_l, row) => {
+    // E.g. a second tab confirming "Stop" again: nothing was granted, so no
+    // withdrawal is recorded.
+    mocks.userFindUnique.mockResolvedValue(row);
+    const res = await post({ consent: false });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, consent: false, withdrawn: false });
+    expect(mocks.eventDeleteMany).toHaveBeenCalledWith({ where: { userId: "u1" } });
+    expect(mocks.userUpdate).not.toHaveBeenCalled();
+    expect(mocks.recordCreate).not.toHaveBeenCalled();
   });
 });
 
@@ -200,8 +255,17 @@ describe("POST /api/account/consent — refusals", () => {
   it.each([
     ["no consent field", {}],
     ["a non-boolean consent", { consent: "yes" }],
-    ["a grant without a version", { consent: true, locale: "en-US" }],
-    ["a grant without the language shown", { consent: true, version: RESEARCH_CONSENT_VERSION }],
+    ["a grant without a version", { consent: true, locale: "en-US", agreeRequired: true }],
+    [
+      "a grant without the language shown",
+      { consent: true, version: RESEARCH_CONSENT_VERSION, agreeRequired: true },
+    ],
+    [
+      "a grant without checkbox ①",
+      { consent: true, version: RESEARCH_CONSENT_VERSION, locale: "en-US" },
+    ],
+    ["a grant with checkbox ① unticked", { ...GRANT, agreeRequired: false }],
+    ["checkbox ① on a withdrawal", { consent: false, agreeRequired: true }],
     ["a language the committee has not approved", { ...GRANT, locale: "fr-FR" }],
     ["a non-boolean checkbox ②", { ...GRANT, secondaryUse: "true" }],
     ["an unknown key", { ...GRANT, name: "Ada" }],
@@ -246,6 +310,7 @@ describe("GET /api/account/consent", () => {
       version: RESEARCH_CONSENT_VERSION,
       locale: "ja-JP",
       documentVersion: "第1.1版, 2026-07-08",
+      documentLabel: "説明文書 第1.1版（2026-07-08）",
       secondaryUse: true,
       hasRecords: true,
     });
@@ -271,6 +336,7 @@ describe("GET /api/account/consent", () => {
       state: "stale",
       version: 1,
       documentVersion: null,
+      documentLabel: null,
       hasRecords: false,
     });
   });
@@ -292,6 +358,7 @@ describe("GET /api/account/consent/record", () => {
         at: new Date("2026-10-22T07:31:00Z"),
         version: 2,
         locale: "en-US",
+        agreeRequired: true,
         secondaryUse: false,
       },
       {
@@ -299,6 +366,7 @@ describe("GET /api/account/consent/record", () => {
         at: new Date("2026-10-23T08:00:00Z"),
         version: 2,
         locale: null,
+        agreeRequired: null,
         secondaryUse: null,
       },
     ]);
@@ -315,6 +383,7 @@ describe("GET /api/account/consent/record", () => {
         consentVersion: 2,
         language: "en-US",
         document: "Version 1.0, 2026-06-05",
+        agreeRequired: true,
         secondaryUse: false,
       },
       {
@@ -323,6 +392,7 @@ describe("GET /api/account/consent/record", () => {
         consentVersion: 2,
         language: null,
         document: null,
+        agreeRequired: null,
         secondaryUse: null,
       },
     ]);

@@ -78,8 +78,13 @@ interface CvWorkspaceProps {
   /** Auth.js login email (fallback digest delivery; often null for ORCID). */
   accountEmail?: string | null;
   /** Whether study 2026-0310 takes participants (RESEARCH_LOGGING_ENABLED). While
-   *  false the research panel and both of its entry points do not exist. */
+   *  false the editor link does not exist, and the panel is reachable only by
+   *  someone holding a consent (below). */
   researchEnabled: boolean;
+  /** The account holds a research consent (current or earlier version). Keeps
+   *  the account-menu entry, and with it the way to stop, while the study is
+   *  closed: withdrawing must stay as easy as consenting (GDPR Art. 7(3)). */
+  researchConsent?: boolean;
   published: boolean;
   publicSlug: string | null;
   publicIndexable: boolean;
@@ -144,6 +149,7 @@ export default function CvWorkspace({
   digestContactEmailVerified = false,
   accountEmail = null,
   researchEnabled,
+  researchConsent = false,
   published,
   publicSlug,
   publicIndexable,
@@ -439,6 +445,8 @@ export default function CvWorkspace({
   const [researchOpen, setResearchOpen] = useState(false);
   const openResearch = useCallback(() => setResearchOpen(true), []);
   const closeResearch = useCallback(() => setResearchOpen(false), []);
+  // The open study is reachable by all; a closed one only by those who can stop.
+  const researchReachable = researchEnabled || researchConsent;
   const [freezeRequestOpen, setFreezeRequestOpen] = useState(false);
   useEffect(() => {
     const read = (key: string): string | null => {
@@ -526,7 +534,7 @@ export default function CvWorkspace({
       <a href="#cv-main" className="skip-link">
         {t(uiLocale, "skipToContent")}
       </a>
-      {researchEnabled && researchOpen ? (
+      {researchReachable && researchOpen ? (
         <ResearchParticipationPanel uiLocale={uiLocale} onClose={closeResearch} />
       ) : null}
       {/* PopoverGroup keeps one menu open at a time and renders the shared
@@ -564,7 +572,7 @@ export default function CvWorkspace({
           readerViewEnabled={cv?.display.allowReaderMode ?? false}
           onPublishStateChange={setPublishState}
           onEditPublicStyle={handleEditPublicStyle}
-          onOpenResearch={researchEnabled ? openResearch : undefined}
+          onOpenResearch={researchReachable ? openResearch : undefined}
           digestOptIn={digestOptIn}
           digestContactEmail={digestContactEmail}
           digestContactEmailVerified={digestContactEmailVerified}
@@ -693,7 +701,8 @@ export default function CvWorkspace({
                 currentAffiliationCountry={currentAffiliationCountry}
               />
               {/* The study's entry in the editor: one small static link at the
-                  foot of the pane, the same every visit (no badge, no prompt). */}
+                  foot of the pane, the same every visit (no badge, no prompt).
+                  It invites taking part, so it goes when the study closes. */}
               {researchEnabled ? (
                 <p className="research-entry">
                   <button type="button" className="link-btn" onClick={openResearch}>

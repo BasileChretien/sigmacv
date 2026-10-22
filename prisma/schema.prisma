@@ -49,10 +49,10 @@ model User {
   createdAt              DateTime  @default(now())
   updatedAt              DateTime  @updatedAt
 
-  accounts       Account[]
-  sessions       Session[]
-  cv             Cv?
-  researchEvents ResearchEvent[]
+  accounts               Account[]
+  sessions               Session[]
+  cv                     Cv?
+  researchEvents         ResearchEvent[]
   researchConsentRecords ResearchConsentRecord[]
 }
 
@@ -79,17 +79,20 @@ model ResearchEvent {
 // itself a row). Deleted only with the account. It holds no name, email or
 // ORCID iD: the user id is the only link.
 model ResearchConsentRecord {
-  id           String   @id @default(cuid())
-  userId       String
+  id            String   @id @default(cuid())
+  userId        String
   // "grant" | "withdraw"
-  action       String
-  at           DateTime @default(now())
+  action        String
+  at            DateTime @default(now())
   // The RESEARCH_CONSENT_VERSION agreed to (a grant) or withdrawn from.
-  version      Int
+  version       Int
   // The language of the consent text shown (an approved consent locale).
-  locale       String?
+  locale        String?
+  // Checkbox ① (18 or older, read and understood, agree to take part): true on
+  // every grant, as the server refuses one without it; null on a withdrawal.
+  agreeRequired Boolean?
   // Checkbox ②, future related research; null on a withdrawal.
-  secondaryUse Boolean?
+  secondaryUse  Boolean?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -141,36 +144,36 @@ model VerificationToken {
 
 // One canonical CV document per user (the single source of truth).
 model Cv {
-  id                     String    @id @default(cuid())
-  userId                 String    @unique
-  document               Json
-  schemaVersion          Int       @default(1)
-  lastSyncedAt           DateTime?
+  id                      String    @id @default(cuid())
+  userId                  String    @unique
+  document                Json
+  schemaVersion           Int       @default(1)
+  lastSyncedAt            DateTime?
   // "What changed" report of the last sync (added/removed items, review
   // candidates, per-source counts + timings) — shown in the editor. Validated
   // on read by SyncReportSchema; a corrupt value degrades to "no report".
-  lastSyncReport         Json?
+  lastSyncReport          Json?
   // Living public page: published flag + a stable public slug.
-  published              Boolean   @default(false)
-  publicSlug             String?   @unique
+  published               Boolean   @default(false)
+  publicSlug              String?   @unique
   // Separate, explicit opt-in to let search engines index the public page.
   // Default false: publishing shares a capability URL; INDEXING (names/ORCID/
   // publications into Google) requires this distinct consent (GDPR/APPI).
-  publicIndexable        Boolean   @default(false)
+  publicIndexable         Boolean   @default(false)
   // Separate, explicit opt-in to be LISTED under the owner's self-declared
   // current affiliation in the OAI-PMH `ror:<id>` set (an institution-keyed
   // harvest is systematic processing the indexing consent does not cover).
   // Requires publicIndexable (turning indexing off clears it); default false.
-  listUnderAffiliation   Boolean   @default(false)
+  listUnderAffiliation    Boolean   @default(false)
   // Denormalised bare ROR id of the first VISIBLE current position (the set key),
   // rewritten on every save / sync / publish change; null when no visible
   // position resolves to a ROR record. Derived from the document, never edited.
-  currentRorId           String?
+  currentRorId            String?
   // The institution's name as the owner's document carries it for that key,
   // written with it. NOT trusted for any public surface: `meta.institution` is
   // owner-editable text, so a public name for a ROR comes from `Institution`
   // (ROR's own record) — ListSets and the institution pages never read this.
-  currentAffiliationName String?
+  currentAffiliationName  String?
   // Separate, explicit opt-in to appear on the PUBLIC institution page(s)
   // (/i/<ror-id>): name, ORCID iD, current position and the works the public
   // page lists, counted in that page's figures. PINNED to the ROR ids the owner
@@ -178,8 +181,8 @@ model Cv {
   // consent given at one institution must not migrate to the next). A consented
   // id no longer among the visible current positions is LAPSED - not shown,
   // re-asked in the editor. Requires publicIndexable (cleared with it).
-  showOnInstitutionPage  Boolean   @default(false)
-  consentedRorIds        String[]  @default([])
+  showOnInstitutionPage   Boolean   @default(false)
+  consentedRorIds         String[]  @default([])
   // The bare ROR ids of ALL visible current positions, rewritten from the
   // document on every save / sync / publish change beside currentRorId (the
   // OAI key is the FIRST of these). A consented id (above) is ACTIVE only while
@@ -189,7 +192,7 @@ model Cv {
   // (src/lib/cv/institutionConsent.ts). Rows written before this column exists
   // carry [] until their next write - not listed until then, like the null
   // aggregates below. Derived, never edited; carried in the GDPR export.
-  visibleCurrentRorIds   String[]  @default([])
+  visibleCurrentRorIds    String[]  @default([])
   // SECOND institution opt-in: share per-work reconciliation rows (ORCID iD,
   // the works the public page lists with DOI / year / type / licence / open-
   // access state, the consented ROR ids) in the public CSV/JSON export under
@@ -197,7 +200,7 @@ model Cv {
   // designates (CvSnapshot.forReconciliation), never from the live document.
   // Offered only while showOnInstitutionPage is on and cleared with it (and so
   // with indexing / unpublish); default false; carried in the GDPR export.
-  shareReconciliationRows Boolean  @default(false)
+  shareReconciliationRows Boolean   @default(false)
   // COUNTS of the works the public page lists (by year x open-access state, and
   // by section), computed from the document at every write beside currentRorId
   // (src/lib/institutions/cvAggregates.ts) and summed under k-anonymity on the
@@ -205,26 +208,26 @@ model Cv {
   // Null until the row's next save / sync / publish change (no backfill: the
   // weekly resync covers everyone); the page counts such rows as pending.
   // Derived, never edited; carried in the GDPR export; dropped with the row.
-  institutionAggregates  Json?
+  institutionAggregates   Json?
   // Compare-and-set lock for the scheduled re-sync job (null = unlocked).
-  resyncLockedAt         DateTime?
+  resyncLockedAt          DateTime?
   // When what the OAI-PMH endpoint serves for this CV last changed: its
   // records' datestamp, and the column `from`/`until` filter on. Moved only
   // when `oaiFingerprint` changes (src/lib/cv/oaiState.ts), so neither the
   // resync lock above nor a sync that changes nothing public re-sends the CV to
   // every incremental harvester (`updatedAt` moves on every write).
-  publicChangedAt        DateTime  @default(now())
+  publicChangedAt         DateTime  @default(now())
   // A hash of every OAI record this CV serves (both formats, its works, its
   // set), or "none" when it serves nothing; null until the row's first write
   // after the column existed. Compared at every write. Derived, never edited.
-  oaiFingerprint         String?
+  oaiFingerprint          String?
   // The OAI identifiers this CV served after its last write, and their set
   // ({ ids, set }): the next write diffs against it to record what it stops
   // serving in OaiDeletion. Null until the row's first write after the column
   // existed (that write derives it from the previous document). Derived.
-  oaiExposure            Json?
-  createdAt              DateTime  @default(now())
-  updatedAt              DateTime  @updatedAt
+  oaiExposure             Json?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
 
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   snapshots CvSnapshot[]
@@ -247,16 +250,16 @@ model Cv {
 // (`none` | `pending` | `minted` | `failed`) — dormant without DATACITE_* creds.
 // Personal data: included in the account export, cascade-deleted with the CV.
 model CvSnapshot {
-  id          String   @id @default(cuid())
-  cvId        String
-  version     Int
-  label       String
-  canonical   Json
-  token       String   @unique
-  isPublic    Boolean  @default(false)
-  doi         String?
-  doiState    String   @default("none")
-  createdAt   DateTime @default(now())
+  id                 String   @id @default(cuid())
+  cvId               String
+  version            Int
+  label              String
+  canonical          Json
+  token              String   @unique
+  isPublic           Boolean  @default(false)
+  doi                String?
+  doiState           String   @default("none")
+  createdAt          DateTime @default(now())
   // Assessment-grade freeze: the provenance ledger computed on the OWNER's stored
   // document BEFORE the frozen copy is stripped of its attribution signals (a
   // ledger derived from the stripped copy misreports and can never be recomputed),
@@ -264,14 +267,14 @@ model CvSnapshot {
   // (what the page serves — a version fingerprint a reader can record), and
   // whether the owner froze it as the
   // assessor's reader view — an explicit choice at freeze time, immutable after.
-  ledger      Json?
-  contentHash String?
-  readerMode  Boolean  @default(false)
+  ledger             Json?
+  contentHash        String?
+  readerMode         Boolean  @default(false)
   // The ONE frozen version (per CV) the owner designated as the source of the
   // institution reconciliation export (Cv.shareReconciliationRows). Only a
   // public version can be designated; designating another clears this one in
   // the same transaction; making it private clears it; deleting it drops it.
-  forReconciliation Boolean @default(false)
+  forReconciliation  Boolean  @default(false)
   // The export's per-work rows for THAT version, computed once at designation
   // from the frozen document (reconciliationRows.ts) and cleared with the
   // designation, so a public request reads this column and never parses the
@@ -312,11 +315,11 @@ model Institution {
   // researcher, and read by the /i/[ror] page from this row only. The trusted
   // ROR name above stays the page's name; OpenAlex's display_name lives inside
   // the aggregates as "counted entity" context. Counts only, never a share.
-  openalexId            String?
-  openalexAggregates    Json?
-  openalexFetchedAt     DateTime?
-  openalexLastError     String?
-  openalexNextRefreshAt DateTime?
+  openalexId                 String?
+  openalexAggregates         Json?
+  openalexFetchedAt          DateTime?
+  openalexLastError          String?
+  openalexNextRefreshAt      DateTime?
   // The reading before the current one (the outgoing aggregates and their
   // fetch time, moved here by the refresh): the page prints what the last full
   // year's share stood at one reading earlier. Cleared with the snapshot.

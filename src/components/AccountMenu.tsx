@@ -8,7 +8,8 @@ import AccountControls from "./AccountControls";
 interface AccountMenuProps {
   userName: string;
   locale: string;
-  /** Opens the research panel; absent while the study is closed (no item). */
+  /** Opens the research panel; absent (no item) while the study is closed and
+   *  the account holds no consent to stop. */
   onOpenResearch?: () => void;
   digestOptIn?: boolean;
   digestContactEmail?: string | null;
@@ -74,8 +75,9 @@ export default function AccountMenu({
             </form>
           </div>
           <div className="menu-divider" role="separator" />
-          {/* The research study's only entry besides the editor's link: a plain
-              item, no badge, shown only while the study takes participants. */}
+          {/* The research study's entry besides the editor's link: a plain item,
+              no badge, shown while the study takes participants or while the
+              account holds a consent it may withdraw. */}
           {onOpenResearch ? (
             <div className="menu-section">
               <button

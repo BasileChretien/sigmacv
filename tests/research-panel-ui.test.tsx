@@ -26,6 +26,7 @@ const NONE: ConsentStatus = {
   version: null,
   locale: null,
   documentVersion: null,
+  documentLabel: null,
   secondaryUse: null,
   hasRecords: false,
 };
@@ -36,6 +37,7 @@ const CURRENT: ConsentStatus = {
   version: RESEARCH_CONSENT_VERSION,
   locale: "en-US",
   documentVersion: "Version 1.0, 2026-06-05",
+  documentLabel: "Information sheet Version 1.0 (2026-06-05)",
   secondaryUse: true,
   hasRecords: true,
 };
@@ -122,7 +124,13 @@ describe("the panel before consent", () => {
     fireEvent.click(takePart());
     await screen.findByTestId("research-status");
     expect(server.posts).toEqual([
-      { consent: true, version: RESEARCH_CONSENT_VERSION, locale: "en-US", secondaryUse: false },
+      {
+        consent: true,
+        version: RESEARCH_CONSENT_VERSION,
+        locale: "en-US",
+        agreeRequired: true,
+        secondaryUse: false,
+      },
     ]);
   });
 
@@ -145,7 +153,13 @@ describe("the panel before consent", () => {
     fireEvent.click(takePart(JA.takePart));
     await screen.findByTestId("research-status");
     expect(server.posts).toEqual([
-      { consent: true, version: RESEARCH_CONSENT_VERSION, locale: "ja-JP", secondaryUse: true },
+      {
+        consent: true,
+        version: RESEARCH_CONSENT_VERSION,
+        locale: "ja-JP",
+        agreeRequired: true,
+        secondaryUse: true,
+      },
     ]);
   });
 
@@ -179,15 +193,55 @@ describe("the panel before consent", () => {
   });
 
   it("asks a stale consent to agree again, and lets it be withdrawn", async () => {
-    server.status = { ...CURRENT, state: "stale", version: 1, documentVersion: null };
+    server.status = {
+      ...CURRENT,
+      state: "stale",
+      version: 1,
+      documentVersion: null,
+      documentLabel: null,
+    };
     renderPanel();
     expect(await screen.findByText(rp.staleConsent)).toBeTruthy();
+    expect(screen.getByText(rp.agreeAgain)).toBeTruthy();
     expect(screen.getByRole("checkbox", { name: EN.agreeRequired })).toBeTruthy();
     expect(screen.getByRole("link", { name: rp.recordLink }).getAttribute("href")).toBe(
       "/api/account/consent/record",
     );
     fireEvent.click(screen.getByRole("button", { name: rp.stopStale }));
     fireEvent.click(await screen.findByRole("button", { name: rp.stop }));
+    expect(await screen.findByText(rp.stopped)).toBeTruthy();
+    expect(server.posts).toEqual([{ consent: false, locale: "en-US" }]);
+  });
+
+  it("while the study is closed, shows no consent form: only the notice, and the record", async () => {
+    server.status = { ...NONE, open: false, hasRecords: true };
+    renderPanel();
+    expect(await screen.findByText(rp.closed)).toBeTruthy();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    expect(screen.queryByRole("button", { name: EN.takePart })).toBeNull();
+    expect(screen.getByRole("link", { name: rp.recordLink })).toBeTruthy();
+  });
+
+  it("while the study is closed, an earlier consent can still be withdrawn (GDPR Art. 7(3))", async () => {
+    server.status = {
+      ...CURRENT,
+      open: false,
+      state: "stale",
+      version: 1,
+      documentVersion: null,
+      documentLabel: null,
+    };
+    renderPanel();
+    expect(await screen.findByText(rp.staleConsent)).toBeTruthy();
+    // Nothing to agree to again while closed.
+    expect(screen.queryByText(rp.agreeAgain)).toBeNull();
+    expect(screen.queryByRole("checkbox")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: rp.stopStale }));
+    fireEvent.click(
+      within(screen.getByRole("group", { name: rp.stopTitle })).getByRole("button", {
+        name: rp.stop,
+      }),
+    );
     expect(await screen.findByText(rp.stopped)).toBeTruthy();
     expect(server.posts).toEqual([{ consent: false, locale: "en-US" }]);
   });
@@ -208,8 +262,10 @@ describe("the panel while taking part", () => {
     renderPanel("fr-FR");
     const fr = researchPanelStrings("fr-FR");
     const status = await screen.findByTestId("research-status");
-    expect(status.textContent).toContain("Version 1.0, 2026-06-05");
-    expect(status.textContent).toContain(`${RESEARCH_CONSENT_VERSION}`);
+    // The document the person read, as its own language names it; no internal integer.
+    expect(status.textContent).toBe(
+      "Vous participez depuis le 22 octobre 2026 · Information sheet Version 1.0 (2026-06-05)",
+    );
     expect(screen.getByText(fr.secondaryYes)).toBeTruthy();
     expect(screen.getByRole("link", { name: fr.sheetLink }).getAttribute("href")).toBe(
       "/cv/research-sheet?lang=en-US&ui=fr-FR",
@@ -244,8 +300,11 @@ describe("the panel while taking part", () => {
 
   it("opens on the language consented in, and says when checkbox ② was not ticked", async () => {
     server.status = { ...CURRENT, locale: "ja-JP", secondaryUse: false };
+    server.status = { ...server.status, documentLabel: "説明文書 第1.1版（2026-07-08）" };
     renderPanel("en-US");
-    await screen.findByTestId("research-status");
+    expect((await screen.findByTestId("research-status")).textContent).toBe(
+      "You have been taking part since October 22, 2026 · 説明文書 第1.1版（2026-07-08）",
+    );
     expect(screen.getByText(rp.secondaryNo)).toBeTruthy();
     expect(screen.getByRole("link", { name: rp.sheetLink }).getAttribute("href")).toBe(
       "/cv/research-sheet?lang=ja-JP&ui=en-US",
@@ -296,6 +355,24 @@ describe("the entry points in the editor", () => {
     expect(screen.queryByText(rp.entry)).toBeNull();
     expect(screen.queryByTestId("research-panel")).toBeNull();
     expect(global.fetch).not.toHaveBeenCalledWith("/api/account/consent", expect.anything());
+  });
+
+  it("while closed, a consenting user still reaches the panel from the menu to stop (no editor link)", async () => {
+    server.status = { ...CURRENT, open: false };
+    const { container } = render(
+      <CvWorkspace {...props} researchEnabled={false} researchConsent />,
+    );
+    // The editor's foot link invites taking part: it stays with the open study.
+    expect(container.querySelector(".research-entry")).toBeNull();
+    openAccountMenu(container);
+    fireEvent.click(
+      within(container.querySelector<HTMLElement>(".account-panel")!).getByRole("button", {
+        name: rp.entry,
+      }),
+    );
+    const panel = await screen.findByTestId("research-panel");
+    await within(panel).findByTestId("research-status");
+    expect(within(panel).getByRole("button", { name: rp.stop })).toBeTruthy();
   });
 
   it("while open: a static link and a menu item, and the panel only once one is clicked", async () => {

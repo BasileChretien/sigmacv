@@ -30,6 +30,7 @@ const RECORD_SELECT = {
   at: true,
   version: true,
   locale: true,
+  agreeRequired: true,
   secondaryUse: true,
 } as const;
 
@@ -125,41 +126,55 @@ async function grant(userId: string, body: Extract<ConsentRequest, { consent: tr
     );
   }
   const at = new Date();
-  await prisma.$transaction([
-    prisma.user.update({
+  await prisma.$transaction(async (tx) => {
+    const user = await tx.user.findUnique({
+      where: { id: userId },
+      select: { researchConsent: true, researchConsentVersion: true },
+    });
+    // A consent under an older version (the notice shown before approval) does
+    // not cover what was logged under it: those events go, rather than travel
+    // on under the approved consent given now.
+    if (user?.researchConsent && user.researchConsentVersion !== RESEARCH_CONSENT_VERSION) {
+      await tx.researchEvent.deleteMany({ where: { userId } });
+    }
+    await tx.user.update({
       where: { id: userId },
       data: {
         researchConsent: true,
         researchConsentAt: at,
         researchConsentVersion: RESEARCH_CONSENT_VERSION,
       },
-    }),
-    prisma.researchConsentRecord.create({
+    });
+    await tx.researchConsentRecord.create({
       data: {
         userId,
         action: "grant",
         at,
         version: RESEARCH_CONSENT_VERSION,
         locale: body.locale,
+        agreeRequired: body.agreeRequired,
         secondaryUse: body.secondaryUse ?? false,
       },
-    }),
-  ]);
+    });
+  });
   return NextResponse.json({ ok: true, consent: true });
 }
 
 /**
  * Withdrawal (GDPR Art. 7(3) / 17; 別添1 §5): stop future logging, erase
  * everything collected under the consent, and write the withdrawal record,
- * atomically. The record names the version withdrawn from.
+ * atomically. The record names the version withdrawn from. With no consent to
+ * withdraw (a second tab confirming again, or never consented) nothing is
+ * recorded and nothing changes but the sweep of research events.
  */
 async function withdraw(userId: string, locale: string | null) {
-  await prisma.$transaction(async (tx) => {
+  const withdrawn = await prisma.$transaction(async (tx) => {
     const user = await tx.user.findUnique({
       where: { id: userId },
-      select: { researchConsentVersion: true },
+      select: { researchConsent: true, researchConsentVersion: true },
     });
     await tx.researchEvent.deleteMany({ where: { userId } });
+    if (!user?.researchConsent) return false;
     await tx.user.update({
       where: { id: userId },
       data: { researchConsent: false, researchConsentAt: null, researchConsentVersion: null },
@@ -168,11 +183,13 @@ async function withdraw(userId: string, locale: string | null) {
       data: {
         userId,
         action: "withdraw",
-        version: user?.researchConsentVersion ?? RESEARCH_CONSENT_VERSION,
+        version: user.researchConsentVersion ?? RESEARCH_CONSENT_VERSION,
         locale,
+        agreeRequired: null,
         secondaryUse: null,
       },
     });
+    return true;
   });
-  return NextResponse.json({ ok: true, consent: false });
+  return NextResponse.json({ ok: true, consent: false, withdrawn });
 }

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
 import InformationSheet from "@/components/InformationSheet";
 import PrintButton from "@/components/PrintButton";
 import { prisma } from "@/lib/db";
 import { researchPanelStrings } from "@/lib/i18n/researchPanel";
 import { consentText } from "@/lib/research/consent";
+import { isResearchLoggingEnabled } from "@/lib/research/enabled";
 import { sheetPageModel } from "@/lib/research/consent/sheetPage";
 
 export const runtime = "nodejs";
@@ -22,6 +23,8 @@ type Props = { searchParams: Promise<{ lang?: string | string[]; ui?: string | s
  * The approved information sheet of study 2026-0310 with the signed-in
  * user's consent record beneath it, laid out for printing or saving as PDF
  * (別添1 §5). Opened from the research panel; owner-only, never indexed.
+ * While the study is closed it exists only for someone with a record, who can
+ * still re-read and print what they agreed to.
  */
 export default async function ResearchSheetPage({ searchParams }: Props) {
   const session = await auth();
@@ -30,8 +33,16 @@ export default async function ResearchSheetPage({ searchParams }: Props) {
     where: { userId: session.user.id },
     orderBy: { at: "asc" },
     take: 1_000,
-    select: { action: true, at: true, version: true, locale: true, secondaryUse: true },
+    select: {
+      action: true,
+      at: true,
+      version: true,
+      locale: true,
+      agreeRequired: true,
+      secondaryUse: true,
+    },
   });
+  if (records.length === 0 && !isResearchLoggingEnabled()) notFound();
   const model = sheetPageModel(await searchParams, records);
   const s = researchPanelStrings(model.uiLocale);
   return (
@@ -52,7 +63,7 @@ export default async function ResearchSheetPage({ searchParams }: Props) {
               <tr>
                 <th scope="col">{s.recordDate}</th>
                 <th scope="col">{s.recordAction}</th>
-                <th scope="col">{s.recordVersion}</th>
+                <th scope="col">{s.recordDocument}</th>
                 <th scope="col">{s.recordLanguage}</th>
                 <th scope="col">{s.recordSecondary}</th>
               </tr>
@@ -62,7 +73,7 @@ export default async function ResearchSheetPage({ searchParams }: Props) {
                 <tr key={i}>
                   <td>{row.at}</td>
                   <td>{row.action}</td>
-                  <td>{row.version}</td>
+                  <td>{row.document}</td>
                   <td>{row.language}</td>
                   <td>{row.secondaryUse}</td>
                 </tr>

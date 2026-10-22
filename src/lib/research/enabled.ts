@@ -5,8 +5,10 @@
  * under Nagoya University's observational study 2026-0310, approved by the
  * Bioethics Review Committee on 2026-10-21 (see research/CLAUDE.md). While off:
  *   • `logCvSave` writes nothing (no ResearchEvent rows are ever created),
- *   • the research panel and both of its entry points do not exist, and
- *   • the consent route refuses a grant (a withdrawal always works).
+ *   • the editor link and the consent form do not exist, and
+ *   • the consent route refuses a grant.
+ * Withdrawal never depends on it: an account holding a consent keeps the
+ * account-menu entry and "Stop taking part", and the route accepts it.
  *
  * RESEARCH_CONSENT_VERSION is already 2, the approved terms, so turning the
  * study on is `RESEARCH_LOGGING_ENABLED=true` alone, once the research panel

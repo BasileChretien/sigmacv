@@ -1,4 +1,5 @@
 import {
+  documentLabelFor,
   documentVersionFor,
   isConsentLocale,
   RESEARCH_CONSENT_VERSION,
@@ -12,6 +13,8 @@ export interface ConsentRecordRow {
   at: Date;
   version: number;
   locale: string | null;
+  /** Checkbox ① on a grant (always true: the server refuses a grant without it); null on a withdrawal. */
+  agreeRequired: boolean | null;
   secondaryUse: boolean | null;
 }
 
@@ -33,9 +36,11 @@ export interface ConsentStatus {
   state: "none" | "current" | "stale";
   since: string | null;
   version: number | null;
-  /** The language of the text agreed to, and its approved document. */
+  /** The language of the text agreed to, its approved document, and that
+   *  document's on-screen name (what the panel shows). */
   locale: ConsentLocale | null;
   documentVersion: string | null;
+  documentLabel: string | null;
   /** Checkbox ②, future related research. */
   secondaryUse: boolean | null;
   /** Whether a record exists to download (a past grant or withdrawal). */
@@ -65,6 +70,7 @@ export function consentStatus({
       version: null,
       locale: null,
       documentVersion: null,
+      documentLabel: null,
       secondaryUse: null,
       hasRecords,
     };
@@ -79,6 +85,7 @@ export function consentStatus({
     version,
     locale,
     documentVersion: version === null ? null : documentVersionFor(version, locale),
+    documentLabel: version === null ? null : documentLabelFor(version, locale),
     secondaryUse: latestGrant?.secondaryUse ?? null,
     hasRecords,
   };
@@ -100,6 +107,7 @@ export function consentRecordDocument(records: readonly ConsentRecordRow[], expo
       consentVersion: r.version,
       language: r.locale,
       document: documentVersionFor(r.version, r.locale),
+      agreeRequired: r.agreeRequired,
       secondaryUse: r.secondaryUse,
     })),
   };

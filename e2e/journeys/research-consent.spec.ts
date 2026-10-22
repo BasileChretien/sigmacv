@@ -38,9 +38,10 @@ test("open the research panel → take part → stop taking part", async ({ page
   await expect(takePart).toBeEnabled();
   await takePart.click();
 
-  await expect(panel.getByTestId("research-status")).toContainText("You are taking part since", {
-    timeout: 15_000,
-  });
+  const status = panel.getByTestId("research-status");
+  await expect(status).toContainText("You have been taking part since", { timeout: 15_000 });
+  // The document read, never the internal version integer.
+  await expect(status).toContainText("Information sheet Version 1.0 (2026-06-05)");
   let user = await db.user.findUnique({ where: { id: authedUserId } });
   expect(user?.researchConsent).toBe(true);
   expect(user?.researchConsentVersion).toBe(2);
@@ -48,9 +49,9 @@ test("open the research panel → take part → stop taking part", async ({ page
     where: { userId: authedUserId },
     orderBy: { at: "asc" },
   });
-  expect(records.map((r) => [r.action, r.version, r.locale, r.secondaryUse])).toEqual([
-    ["grant", 2, "en-US", false],
-  ]);
+  expect(
+    records.map((r) => [r.action, r.version, r.locale, r.agreeRequired, r.secondaryUse]),
+  ).toEqual([["grant", 2, "en-US", true, false]]);
 
   // A research event collected under the consent, which stopping must delete.
   await db.researchEvent.create({

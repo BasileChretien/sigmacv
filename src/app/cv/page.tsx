@@ -82,6 +82,7 @@ export default async function CvPage() {
       autoSyncOnLoad={autoSync}
       availableStyles={availableStyles}
       userName={session.user.name ?? session.user.orcid ?? "Researcher"}
+      researchConsent={session.user.researchConsent ?? false}
       digestOptIn={digestPrefs.optIn}
       digestContactEmail={digestPrefs.contactEmail}
       digestContactEmailVerified={digestPrefs.contactEmailVerified}

@@ -42,6 +42,20 @@ export const CONSENT_DOCUMENT_VERSIONS: Readonly<
   2: { "en-US": "Version 1.0, 2026-06-05", "ja-JP": "第1.1版, 2026-07-08" },
 };
 
+/**
+ * The same documents as the person sees them named on screen, in their own
+ * language. The internal consent version (the integer) is never shown: it
+ * stays in the record and the downloads.
+ */
+export const CONSENT_DOCUMENT_LABELS: Readonly<
+  Record<number, Readonly<Partial<Record<ConsentLocale, string>>>>
+> = {
+  2: {
+    "en-US": "Information sheet Version 1.0 (2026-06-05)",
+    "ja-JP": "説明文書 第1.1版（2026-07-08）",
+  },
+};
+
 /** The study, as the downloaded consent record names it. */
 export const STUDY = {
   approvalNumber: "2026-0310",
@@ -73,4 +87,10 @@ export function consentText(locale: ConsentLocale): ConsentText {
 export function documentVersionFor(version: number, locale: string | null): string | null {
   if (!isConsentLocale(locale)) return null;
   return CONSENT_DOCUMENT_VERSIONS[version]?.[locale] ?? null;
+}
+
+/** That document's on-screen name, if known. */
+export function documentLabelFor(version: number, locale: string | null): string | null {
+  if (!isConsentLocale(locale)) return null;
+  return CONSENT_DOCUMENT_LABELS[version]?.[locale] ?? null;
 }

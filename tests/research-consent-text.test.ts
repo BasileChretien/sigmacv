@@ -7,9 +7,11 @@ import { SUPPORTED_LOCALES } from "@/lib/i18n";
 import { researchPanelStrings } from "@/lib/i18n/researchPanel";
 import {
   APPROVED_CONSENT_LOCALES,
+  CONSENT_DOCUMENT_LABELS,
   CONSENT_DOCUMENT_VERSIONS,
   consentLocaleFor,
   consentText,
+  documentLabelFor,
   documentVersionFor,
   isConsentLocale,
   RESEARCH_CONSENT_VERSION,
@@ -58,6 +60,17 @@ describe("consent languages and versions", () => {
         CONSENT_DOCUMENT_VERSIONS[RESEARCH_CONSENT_VERSION]![locale],
       );
     }
+  });
+
+  it("labels each document for the screen, without the internal version number", () => {
+    expect(CONSENT_DOCUMENT_LABELS[2]).toEqual({
+      "en-US": "Information sheet Version 1.0 (2026-06-05)",
+      "ja-JP": "説明文書 第1.1版（2026-07-08）",
+    });
+    expect(Object.keys(CONSENT_DOCUMENT_LABELS)).toEqual(Object.keys(CONSENT_DOCUMENT_VERSIONS));
+    expect(documentLabelFor(2, "en-US")).toBe("Information sheet Version 1.0 (2026-06-05)");
+    expect(documentLabelFor(1, "en-US")).toBeNull();
+    expect(documentLabelFor(2, null)).toBeNull();
   });
 
   it("names the document of a record, or nothing for an unknown version or language", () => {
@@ -145,11 +158,16 @@ describe("the consent text", () => {
       for (const value of Object.values(researchPanelStrings(locale))) {
         expect(value.length).toBeGreaterThan(0);
       }
-      for (const slot of ["{date}", "{version}", "{document}"]) {
+      // The person sees the document they read, never the internal version integer.
+      for (const slot of ["{date}", "{document}"]) {
         expect(researchPanelStrings(locale).since).toContain(slot);
       }
+      expect(researchPanelStrings(locale).since).not.toContain("{version}");
     }
     expect(researchPanelStrings("xx-XX")).toBe(researchPanelStrings("en-US"));
+    expect(researchPanelStrings("en-US").since).toBe(
+      "You have been taking part since {date} · {document}",
+    );
   });
 });
 
@@ -160,7 +178,14 @@ describe("consentStatus", () => {
     researchConsentAt: AT,
     researchConsentVersion: version,
   });
-  const grant = { action: "grant", at: AT, version: 2, locale: "en-US", secondaryUse: false };
+  const grant = {
+    action: "grant",
+    at: AT,
+    version: 2,
+    locale: "en-US",
+    agreeRequired: true,
+    secondaryUse: false,
+  };
 
   it("none: no consent (or no user), whatever the records say", () => {
     for (const u of [null, { ...user(2), researchConsent: false }]) {
@@ -171,6 +196,7 @@ describe("consentStatus", () => {
         version: null,
         locale: null,
         documentVersion: null,
+        documentLabel: null,
         secondaryUse: null,
         hasRecords: true,
       });
@@ -185,6 +211,7 @@ describe("consentStatus", () => {
       since: AT.toISOString(),
       locale: "en-US",
       documentVersion: "Version 1.0, 2026-06-05",
+      documentLabel: "Information sheet Version 1.0 (2026-06-05)",
       secondaryUse: false,
     });
   });
@@ -205,6 +232,7 @@ describe("consentStatus", () => {
         version,
         locale: null,
         documentVersion: null,
+        documentLabel: null,
         secondaryUse: null,
         hasRecords: false,
       });
@@ -215,7 +243,7 @@ describe("consentStatus", () => {
     const odd = { ...grant, locale: "fr-FR" };
     expect(
       consentStatus({ open: true, user: user(2), latestGrant: odd, recordCount: 1 }),
-    ).toMatchObject({ locale: null, documentVersion: null });
+    ).toMatchObject({ locale: null, documentVersion: null, documentLabel: null });
   });
 });
 
@@ -228,6 +256,7 @@ describe("consentRecordDocument", () => {
           at: new Date("2026-10-22T07:31:00Z"),
           version: 2,
           locale: "ja-JP",
+          agreeRequired: true,
           secondaryUse: true,
         },
       ],
@@ -244,6 +273,7 @@ describe("consentRecordDocument", () => {
           consentVersion: 2,
           language: "ja-JP",
           document: "第1.1版, 2026-07-08",
+          agreeRequired: true,
           secondaryUse: true,
         },
       ],
@@ -258,6 +288,7 @@ describe("sheetPageModel", () => {
       at: new Date("2026-10-22T07:31:59Z"),
       version: 2,
       locale: "ja-JP",
+      agreeRequired: true,
       secondaryUse: true,
     },
     {
@@ -265,6 +296,7 @@ describe("sheetPageModel", () => {
       at: new Date("2026-10-22T08:00:00Z"),
       version: 2,
       locale: "en-US",
+      agreeRequired: true,
       secondaryUse: false,
     },
     {
@@ -272,6 +304,7 @@ describe("sheetPageModel", () => {
       at: new Date("2026-10-23T09:05:00Z"),
       version: 1,
       locale: null,
+      agreeRequired: null,
       secondaryUse: null,
     },
   ];
@@ -284,21 +317,21 @@ describe("sheetPageModel", () => {
       {
         at: "2026-10-22 07:31 UTC",
         action: "Accepté",
-        version: "2 · 第1.1版, 2026-07-08",
+        document: "説明文書 第1.1版（2026-07-08）",
         language: "日本語",
         secondaryUse: "Oui",
       },
       {
         at: "2026-10-22 08:00 UTC",
         action: "Accepté",
-        version: "2 · Version 1.0, 2026-06-05",
+        document: "Information sheet Version 1.0 (2026-06-05)",
         language: "English",
         secondaryUse: "Non",
       },
       {
         at: "2026-10-23 09:05 UTC",
         action: "Retiré",
-        version: "1",
+        document: "",
         language: "",
         secondaryUse: "",
       },
@@ -316,14 +349,23 @@ describe("sheetPageModel", () => {
 describe("ConsentRequestSchema", () => {
   it("accepts a grant and a withdrawal, nothing else", () => {
     expect(
-      ConsentRequestSchema.safeParse({ consent: true, version: 2, locale: "ja-JP" }).success,
+      ConsentRequestSchema.safeParse({
+        consent: true,
+        version: 2,
+        locale: "ja-JP",
+        agreeRequired: true,
+      }).success,
     ).toBe(true);
     expect(ConsentRequestSchema.safeParse({ consent: false }).success).toBe(true);
-    expect(
-      ConsentRequestSchema.safeParse({ consent: true, version: 0, locale: "en-US" }).success,
-    ).toBe(false);
-    expect(
-      ConsentRequestSchema.safeParse({ consent: true, version: 2.5, locale: "en-US" }).success,
-    ).toBe(false);
+    const grant = { consent: true, version: 2, locale: "en-US", agreeRequired: true };
+    for (const bad of [
+      { ...grant, version: 0 },
+      { ...grant, version: 2.5 },
+      // Checkbox ① is part of the grant itself, not only of the page.
+      { consent: true, version: 2, locale: "en-US" },
+      { ...grant, agreeRequired: false },
+    ]) {
+      expect(ConsentRequestSchema.safeParse(bad).success, JSON.stringify(bad)).toBe(false);
+    }
   });
 });

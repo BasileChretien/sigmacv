@@ -8,7 +8,7 @@ import { asLocale, type Locale } from "./index";
  * NOT here: it exists only in the languages the ethics committee approved,
  * in `src/lib/research/consent/`. None of these strings may call the research
  * data anonymous: the approved sheet says it is pseudonymised, not anonymised.
- * `{date}`, `{version}` and `{document}` are substituted at the call site.
+ * `{date}` and `{document}` are substituted at the call site.
  */
 export interface ResearchPanelStrings {
   /** The account-menu item and the editor link that open the panel. */
@@ -30,7 +30,10 @@ export interface ResearchPanelStrings {
   closed: string;
   /** Consent on record under an older version, which no longer counts. */
   staleConsent: string;
-  /** The status line while taking part. */
+  /** Added to `staleConsent` while the study is open: agree again below. */
+  agreeAgain: string;
+  /** The status line while taking part: `{date}` and the document read
+   *  (`{document}`, named in its own language). Never the internal version. */
   since: string;
   secondaryYes: string;
   secondaryNo: string;
@@ -49,7 +52,7 @@ export interface ResearchPanelStrings {
   recordHeading: string;
   recordDate: string;
   recordAction: string;
-  recordVersion: string;
+  recordDocument: string;
   recordLanguage: string;
   recordSecondary: string;
   recordGrant: string;
@@ -74,9 +77,9 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "The study information has changed since this page was opened. Reload the page and read it again.",
     closed: "The study is not taking participants at the moment.",
-    staleConsent:
-      "You agreed to an earlier version of this study’s terms. To keep taking part, read the information below and agree again.",
-    since: "You are taking part since {date} · consent version {version} ({document})",
+    staleConsent: "You agreed to an earlier version of this study’s terms.",
+    agreeAgain: "To keep taking part, read the information below and agree again.",
+    since: "You have been taking part since {date} · {document}",
     secondaryYes: "Future related research: you agreed",
     secondaryNo: "Future related research: you did not agree",
     sheetLink: "Information sheet (print or save as PDF)",
@@ -92,7 +95,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "Your consent record",
     recordDate: "Date (UTC)",
     recordAction: "Act",
-    recordVersion: "Consent version",
+    recordDocument: "Document",
     recordLanguage: "Language",
     recordSecondary: "Future related research",
     recordGrant: "Agreed",
@@ -113,8 +116,9 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     saveError: "无法保存您的选择，请重试。",
     staleText: "自您打开此页面后，研究说明已更新。请重新加载页面并再次阅读。",
     closed: "本研究目前不接受参与者。",
-    staleConsent: "您同意的是本研究条款的早期版本。如要继续参与，请阅读下方说明并重新同意。",
-    since: "您自 {date} 起参与本研究 · 同意版本 {version}（{document}）",
+    staleConsent: "您同意的是本研究条款的早期版本。",
+    agreeAgain: "如要继续参与，请阅读下方说明并重新同意。",
+    since: "您自 {date} 起参与本研究 · {document}",
     secondaryYes: "未来相关研究：您已同意",
     secondaryNo: "未来相关研究：您未同意",
     sheetLink: "说明文件（打印或另存为 PDF）",
@@ -129,7 +133,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "您的同意记录",
     recordDate: "日期（UTC）",
     recordAction: "操作",
-    recordVersion: "同意版本",
+    recordDocument: "文件",
     recordLanguage: "语言",
     recordSecondary: "未来相关研究",
     recordGrant: "同意",
@@ -152,9 +156,9 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "La información del estudio ha cambiado desde que abriste esta página. Recarga la página y léela de nuevo.",
     closed: "El estudio no admite participantes en este momento.",
-    staleConsent:
-      "Aceptaste una versión anterior de las condiciones de este estudio. Para seguir participando, lee la información de abajo y vuelve a aceptar.",
-    since: "Participas desde el {date} · versión del consentimiento {version} ({document})",
+    staleConsent: "Aceptaste una versión anterior de las condiciones de este estudio.",
+    agreeAgain: "Para seguir participando, lee la información de abajo y vuelve a aceptar.",
+    since: "Participas desde el {date} · {document}",
     secondaryYes: "Investigación futura relacionada: aceptaste",
     secondaryNo: "Investigación futura relacionada: no aceptaste",
     sheetLink: "Hoja de información (imprimir o guardar como PDF)",
@@ -170,7 +174,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "Tu registro de consentimiento",
     recordDate: "Fecha (UTC)",
     recordAction: "Acción",
-    recordVersion: "Versión del consentimiento",
+    recordDocument: "Documento",
     recordLanguage: "Idioma",
     recordSecondary: "Investigación futura relacionada",
     recordGrant: "Aceptado",
@@ -193,9 +197,10 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "Les informations sur l’étude ont changé depuis l’ouverture de cette page. Rechargez la page et relisez-les.",
     closed: "L’étude n’accueille pas de participants pour le moment.",
-    staleConsent:
-      "Vous avez accepté une version antérieure des conditions de cette étude. Pour continuer à participer, lisez les informations ci-dessous et acceptez à nouveau.",
-    since: "Vous participez depuis le {date} · version du consentement {version} ({document})",
+    staleConsent: "Vous avez accepté une version antérieure des conditions de cette étude.",
+    agreeAgain:
+      "Pour continuer à participer, lisez les informations ci-dessous et acceptez à nouveau.",
+    since: "Vous participez depuis le {date} · {document}",
     secondaryYes: "Recherches futures liées : vous avez accepté",
     secondaryNo: "Recherches futures liées : vous n’avez pas accepté",
     sheetLink: "Notice d’information (imprimer ou enregistrer en PDF)",
@@ -211,7 +216,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "Votre enregistrement de consentement",
     recordDate: "Date (UTC)",
     recordAction: "Acte",
-    recordVersion: "Version du consentement",
+    recordDocument: "Document",
     recordLanguage: "Langue",
     recordSecondary: "Recherches futures liées",
     recordGrant: "Accepté",
@@ -234,9 +239,10 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "Die Studieninformation hat sich geändert, seit diese Seite geöffnet wurde. Laden Sie die Seite neu und lesen Sie sie erneut.",
     closed: "Die Studie nimmt derzeit keine Teilnehmenden auf.",
-    staleConsent:
-      "Sie haben einer früheren Fassung der Bedingungen dieser Studie zugestimmt. Um weiter teilzunehmen, lesen Sie die Informationen unten und stimmen Sie erneut zu.",
-    since: "Sie nehmen seit {date} teil · Einwilligungsversion {version} ({document})",
+    staleConsent: "Sie haben einer früheren Fassung der Bedingungen dieser Studie zugestimmt.",
+    agreeAgain:
+      "Um weiter teilzunehmen, lesen Sie die Informationen unten und stimmen Sie erneut zu.",
+    since: "Sie nehmen seit {date} teil · {document}",
     secondaryYes: "Künftige verwandte Forschung: Sie haben zugestimmt",
     secondaryNo: "Künftige verwandte Forschung: Sie haben nicht zugestimmt",
     sheetLink: "Informationsblatt (drucken oder als PDF speichern)",
@@ -252,7 +258,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "Ihr Einwilligungsnachweis",
     recordDate: "Datum (UTC)",
     recordAction: "Vorgang",
-    recordVersion: "Einwilligungsversion",
+    recordDocument: "Dokument",
     recordLanguage: "Sprache",
     recordSecondary: "Künftige verwandte Forschung",
     recordGrant: "Zugestimmt",
@@ -274,9 +280,9 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "このページを開いた後に研究の説明が更新されました。ページを再読み込みして、もう一度お読みください。",
     closed: "現在、この研究は参加者を受け付けていません。",
-    staleConsent:
-      "以前の版の説明に同意されています。参加を続ける場合は、下の説明を読み、改めて同意してください。",
-    since: "{date}から参加しています。同意の版は{version}（{document}）です。",
+    staleConsent: "以前の版の説明に同意されています。",
+    agreeAgain: "参加を続ける場合は、下の説明を読み、改めて同意してください。",
+    since: "{document}に同意し、{date}から参加しています。",
     secondaryYes: "将来の関連研究への利用に同意しています",
     secondaryNo: "将来の関連研究への利用には同意していません",
     sheetLink: "説明文書（印刷・PDF保存）",
@@ -292,7 +298,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "あなたの同意記録",
     recordDate: "日時（UTC）",
     recordAction: "操作",
-    recordVersion: "同意の版",
+    recordDocument: "説明文書",
     recordLanguage: "言語",
     recordSecondary: "将来の関連研究",
     recordGrant: "同意",
@@ -315,9 +321,9 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "As informações do estudo mudaram desde que esta página foi aberta. Recarregue a página e leia-as novamente.",
     closed: "O estudo não está aceitando participantes no momento.",
-    staleConsent:
-      "Você concordou com uma versão anterior dos termos deste estudo. Para continuar participando, leia as informações abaixo e concorde novamente.",
-    since: "Você participa desde {date} · versão do consentimento {version} ({document})",
+    staleConsent: "Você concordou com uma versão anterior dos termos deste estudo.",
+    agreeAgain: "Para continuar participando, leia as informações abaixo e concorde novamente.",
+    since: "Você participa desde {date} · {document}",
     secondaryYes: "Pesquisas futuras relacionadas: você concordou",
     secondaryNo: "Pesquisas futuras relacionadas: você não concordou",
     sheetLink: "Folha de informações (imprimir ou salvar como PDF)",
@@ -333,7 +339,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "Seu registro de consentimento",
     recordDate: "Data (UTC)",
     recordAction: "Ação",
-    recordVersion: "Versão do consentimento",
+    recordDocument: "Documento",
     recordLanguage: "Idioma",
     recordSecondary: "Pesquisas futuras relacionadas",
     recordGrant: "Concordou",
@@ -356,9 +362,9 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "Le informazioni sullo studio sono cambiate da quando hai aperto questa pagina. Ricarica la pagina e rileggile.",
     closed: "Al momento lo studio non accoglie partecipanti.",
-    staleConsent:
-      "Hai accettato una versione precedente delle condizioni di questo studio. Per continuare a partecipare, leggi le informazioni qui sotto e accetta di nuovo.",
-    since: "Partecipi dal {date} · versione del consenso {version} ({document})",
+    staleConsent: "Hai accettato una versione precedente delle condizioni di questo studio.",
+    agreeAgain: "Per continuare a partecipare, leggi le informazioni qui sotto e accetta di nuovo.",
+    since: "Partecipi dal {date} · {document}",
     secondaryYes: "Ricerche future correlate: hai accettato",
     secondaryNo: "Ricerche future correlate: non hai accettato",
     sheetLink: "Foglio informativo (stampa o salva in PDF)",
@@ -374,7 +380,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "La tua registrazione del consenso",
     recordDate: "Data (UTC)",
     recordAction: "Atto",
-    recordVersion: "Versione del consenso",
+    recordDocument: "Documento",
     recordLanguage: "Lingua",
     recordSecondary: "Ricerche future correlate",
     recordGrant: "Accettato",
@@ -396,9 +402,9 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "이 페이지를 연 뒤 연구 안내가 변경되었습니다. 페이지를 새로 고친 뒤 다시 읽어 주세요.",
     closed: "현재 이 연구는 참여자를 받지 않습니다.",
-    staleConsent:
-      "이 연구 조건의 이전 버전에 동의하셨습니다. 계속 참여하시려면 아래 안내를 읽고 다시 동의해 주세요.",
-    since: "{date}부터 참여 중 · 동의 버전 {version} ({document})",
+    staleConsent: "이 연구 조건의 이전 버전에 동의하셨습니다.",
+    agreeAgain: "계속 참여하시려면 아래 안내를 읽고 다시 동의해 주세요.",
+    since: "{date}부터 참여 중 · {document}",
     secondaryYes: "향후 관련 연구: 동의함",
     secondaryNo: "향후 관련 연구: 동의하지 않음",
     sheetLink: "설명문 (인쇄 또는 PDF로 저장)",
@@ -414,7 +420,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "내 동의 기록",
     recordDate: "일시 (UTC)",
     recordAction: "구분",
-    recordVersion: "동의 버전",
+    recordDocument: "문서",
     recordLanguage: "언어",
     recordSecondary: "향후 관련 연구",
     recordGrant: "동의",
@@ -437,9 +443,9 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     staleText:
       "Сведения об исследовании изменились после открытия этой страницы. Перезагрузите страницу и прочитайте их снова.",
     closed: "Сейчас исследование не принимает участников.",
-    staleConsent:
-      "Вы согласились с предыдущей версией условий этого исследования. Чтобы продолжить участие, прочитайте сведения ниже и дайте согласие снова.",
-    since: "Вы участвуете с {date} · версия согласия {version} ({document})",
+    staleConsent: "Вы согласились с предыдущей версией условий этого исследования.",
+    agreeAgain: "Чтобы продолжить участие, прочитайте сведения ниже и дайте согласие снова.",
+    since: "Вы участвуете с {date} · {document}",
     secondaryYes: "Будущие связанные исследования: вы согласились",
     secondaryNo: "Будущие связанные исследования: вы не согласились",
     sheetLink: "Информационный лист (печать или сохранение в PDF)",
@@ -455,7 +461,7 @@ const RESEARCH_PANEL: Record<Locale, ResearchPanelStrings> = {
     recordHeading: "Ваша запись о согласии",
     recordDate: "Дата (UTC)",
     recordAction: "Действие",
-    recordVersion: "Версия согласия",
+    recordDocument: "Документ",
     recordLanguage: "Язык",
     recordSecondary: "Будущие связанные исследования",
     recordGrant: "Согласие",

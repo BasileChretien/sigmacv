@@ -32,7 +32,14 @@ export async function GET() {
     where: { userId },
     orderBy: { at: "asc" },
     take: RECORD_CAP,
-    select: { action: true, at: true, version: true, locale: true, secondaryUse: true },
+    select: {
+      action: true,
+      at: true,
+      version: true,
+      locale: true,
+      agreeRequired: true,
+      secondaryUse: true,
+    },
   });
   const body = JSON.stringify(consentRecordDocument(records, new Date()), null, 2);
   return new NextResponse(body, {

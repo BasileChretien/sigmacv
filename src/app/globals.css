@@ -1742,6 +1742,9 @@ input[type="radio"] {
   margin: 0 0 var(--space-1);
   font-weight: 600;
 }
+.research-panel-doc {
+  white-space: nowrap;
+}
 .research-panel-links {
   display: flex;
   flex-wrap: wrap;

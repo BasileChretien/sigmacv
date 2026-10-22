@@ -3,7 +3,7 @@ import { researchPanelStrings } from "@/lib/i18n/researchPanel";
 import {
   consentLocaleFor,
   consentText,
-  documentVersionFor,
+  documentLabelFor,
   isConsentLocale,
   type ConsentLocale,
 } from "./index";
@@ -13,7 +13,8 @@ import type { ConsentRecordRow } from "./status";
 export interface SheetRecordRow {
   at: string;
   action: string;
-  version: string;
+  /** The document as the screen names it; the internal version stays off screen. */
+  document: string;
   language: string;
   secondaryUse: string;
 }
@@ -49,9 +50,7 @@ export function sheetPageModel(
   const rows = records.map((r) => ({
     at: utc(r.at),
     action: r.action === "grant" ? s.recordGrant : s.recordWithdraw,
-    version: [String(r.version), documentVersionFor(r.version, r.locale)]
-      .filter(Boolean)
-      .join(" · "),
+    document: documentLabelFor(r.version, r.locale) ?? "",
     language: isConsentLocale(r.locale) ? consentText(r.locale).languageName : "",
     secondaryUse: r.secondaryUse === null ? "" : r.secondaryUse ? s.yes : s.no,
   }));

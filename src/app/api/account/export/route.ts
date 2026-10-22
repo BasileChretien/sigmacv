@@ -79,7 +79,15 @@ export async function GET() {
     prisma.researchConsentRecord.findMany({
       where: { userId },
       orderBy: { at: "asc" },
-      select: { id: true, action: true, at: true, version: true, locale: true, secondaryUse: true },
+      select: {
+        id: true,
+        action: true,
+        at: true,
+        version: true,
+        locale: true,
+        agreeRequired: true,
+        secondaryUse: true,
+      },
     }),
   ]);
 

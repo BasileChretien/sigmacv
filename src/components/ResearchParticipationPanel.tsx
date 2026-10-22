@@ -34,6 +34,8 @@ type Load = "loading" | "error" | "ready";
  * protocol forbids soliciting. Nothing is pre-ticked; checkbox ① alone enables
  * the button. The consent text shows in an approved language (the UI's own,
  * else English, with a switch); the panel's own text follows the UI locale.
+ * While the study is closed only the consent form goes: a person holding a
+ * consent still sees it and can stop (GDPR Art. 7(3)).
  */
 export default function ResearchParticipationPanel({
   uiLocale,
@@ -99,6 +101,7 @@ export default function ResearchParticipationPanel({
       consent: true,
       version: RESEARCH_CONSENT_VERSION,
       locale: textLocale,
+      agreeRequired: true,
       secondaryUse,
     });
     if (failed) setError(failed);
@@ -162,6 +165,13 @@ export default function ResearchParticipationPanel({
               busy={busy}
               onStop={() => setConfirmStop(true)}
               onClose={onClose}
+            />
+          ) : !status.open ? (
+            <ClosedStudy
+              s={s}
+              status={status}
+              stopped={stopped}
+              onStopStale={() => setConfirmStop(true)}
             />
           ) : (
             <ConsentForm
@@ -245,8 +255,11 @@ function ConsentForm(props: ConsentFormProps) {
           {s.stopped}
         </p>
       ) : null}
-      {stale ? <p className="research-panel-notice">{s.staleConsent}</p> : null}
-      {status.open ? null : <p className="research-panel-notice">{s.closed}</p>}
+      {stale ? (
+        <p className="research-panel-notice">
+          <span>{s.staleConsent}</span> <span>{s.agreeAgain}</span>
+        </p>
+      ) : null}
       <div lang={textLocale} className="research-panel-consent">
         <ul className="research-panel-summary">
           {text.summary.map((line, i) => (
@@ -280,7 +293,7 @@ function ConsentForm(props: ConsentFormProps) {
           <button
             type="button"
             className="btn btn-primary"
-            disabled={!agree || busy || !status.open}
+            disabled={!agree || busy}
             onClick={() => props.onTakePart(secondary)}
           >
             {text.takePart}
@@ -290,18 +303,62 @@ function ConsentForm(props: ConsentFormProps) {
           </button>
         </div>
       </div>
-      <p className="research-panel-links">
-        {stale ? (
-          <button type="button" className="link-btn" onClick={props.onStopStale}>
-            {s.stopStale}
-          </button>
-        ) : null}
-        {status.hasRecords ? (
-          <a className="link-btn" href={RECORD_URL}>
-            {s.recordLink}
-          </a>
-        ) : null}
-      </p>
+      <AfterLinks s={s} status={status} onStopStale={props.onStopStale} />
+    </>
+  );
+}
+
+/** Withdrawing an earlier consent, and the record, under the form or alone. */
+function AfterLinks({
+  s,
+  status,
+  onStopStale,
+}: {
+  s: ResearchPanelStrings;
+  status: ConsentStatus;
+  onStopStale: () => void;
+}) {
+  return (
+    <p className="research-panel-links">
+      {status.state === "stale" ? (
+        <button type="button" className="link-btn" onClick={onStopStale}>
+          {s.stopStale}
+        </button>
+      ) : null}
+      {status.hasRecords ? (
+        <a className="link-btn" href={RECORD_URL}>
+          {s.recordLink}
+        </a>
+      ) : null}
+    </p>
+  );
+}
+
+/**
+ * The study takes no participants: no consent form, nothing to tick. Someone
+ * holding an earlier consent can still withdraw it, and read their record.
+ */
+function ClosedStudy({
+  s,
+  status,
+  stopped,
+  onStopStale,
+}: {
+  s: ResearchPanelStrings;
+  status: ConsentStatus;
+  stopped: boolean;
+  onStopStale: () => void;
+}) {
+  return (
+    <>
+      {stopped ? (
+        <p className="research-panel-notice" role="status">
+          {s.stopped}
+        </p>
+      ) : null}
+      <p className="research-panel-notice">{s.closed}</p>
+      {status.state === "stale" ? <p>{s.staleConsent}</p> : null}
+      <AfterLinks s={s} status={status} onStopStale={onStopStale} />
     </>
   );
 }
@@ -341,15 +398,16 @@ function ParticipationStatus({
   const since = status.since
     ? new Intl.DateTimeFormat(uiLocale, { dateStyle: "long" }).format(new Date(status.since))
     : "";
-  const line = s.since
-    .replace("{date}", since)
-    .replace("{version}", String(status.version))
-    .replace("{document}", status.documentVersion ?? "");
+  // The document as its own language names it (kept on one line: its date has
+  // hyphens); the version integer stays in the record.
+  const [before, after = ""] = s.since.replace("{date}", since).split("{document}");
   const sheetUrl = `/cv/research-sheet?lang=${encodeURIComponent(textLocale)}&ui=${encodeURIComponent(uiLocale)}`;
   return (
     <>
       <p className="research-panel-status" data-testid="research-status">
-        {line}
+        {before}
+        <span className="research-panel-doc">{status.documentLabel ?? ""}</span>
+        {after}
       </p>
       <p className="muted">{status.secondaryUse ? s.secondaryYes : s.secondaryNo}</p>
       <ul className="research-panel-links research-panel-link-list">

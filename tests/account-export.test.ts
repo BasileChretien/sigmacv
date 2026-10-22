@@ -117,6 +117,7 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
         at: new Date("2026-10-22T07:00:00Z"),
         version: 2,
         locale: "ja-JP",
+        agreeRequired: true,
         secondaryUse: true,
       },
       {
@@ -125,6 +126,7 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
         at: new Date("2026-10-23T07:00:00Z"),
         version: 2,
         locale: "en-US",
+        agreeRequired: null,
         secondaryUse: null,
       },
     ];
@@ -142,7 +144,7 @@ describe("GET /api/account/export (GDPR / APPI data export)", () => {
     expect(query.orderBy).toEqual({ at: "asc" });
     // The record names no one: no user id, name, email or ORCID iD in it.
     expect(Object.keys(query.select).sort()).toEqual(
-      ["action", "at", "id", "locale", "secondaryUse", "version"].sort(),
+      ["action", "agreeRequired", "at", "id", "locale", "secondaryUse", "version"].sort(),
     );
   });
 
