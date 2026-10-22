@@ -9,14 +9,11 @@ const FOCUSABLE =
   'button:not([disabled]), [href], input:not([disabled]), select, textarea, [tabindex]:not([tabindex="-1"])';
 
 /**
- * GDPR/APPI self-service: withdraw research consent + data export + account
- * deletion. Opt-IN is handled by the onboarding prompt (ResearchConsentPrompt);
- * here we only surface a withdrawal control, and only when the user is currently
- * contributing — so withdrawal stays as easy as consent, without an always-on
- * topbar toggle.
+ * GDPR/APPI self-service: the preview objection, the digest settings, data
+ * export and account deletion. Research participation (taking part and
+ * stopping) has its own panel, opened from the account menu.
  */
 interface AccountControlsProps {
-  researchConsent: boolean;
   /** Re-sync digest email opt-in (default false; toggled here). */
   digestOptIn?: boolean;
   /** User-set notification address (pending or confirmed), if any. */
@@ -29,7 +26,6 @@ interface AccountControlsProps {
 }
 
 export default function AccountControls({
-  researchConsent,
   digestOptIn = false,
   digestContactEmail = null,
   digestContactEmailVerified = false,
@@ -39,7 +35,6 @@ export default function AccountControls({
   const u = ui(locale);
   const wu = workspaceUi(locale);
   const os = objectionStrings(locale);
-  const [consenting, setConsenting] = useState(researchConsent);
   const [digest, setDigest] = useState(digestOptIn);
   // The no-login preview objection (same table as /object). Loaded on mount
   // rather than threaded through four components; null until known, and the
@@ -128,24 +123,6 @@ export default function AccountControls({
       restoreFocusRef.current?.focus?.();
     };
   }, [confirmOpen, busy]);
-
-  async function stopContributing() {
-    setConsenting(false); // optimistic
-    setError("");
-    try {
-      const res = await fetch("/api/account/consent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ consent: false }),
-      });
-      if (!res.ok) throw new Error("consent update failed");
-    } catch {
-      // Surface the failure: a silently-reverted toggle would leave the user
-      // believing consent was withdrawn when the account flag is still set.
-      setConsenting(true); // revert on failure
-      setError(u.consentWithdrawFailed);
-    }
-  }
 
   async function toggleDigest(optIn: boolean) {
     setDigest(optIn); // optimistic
@@ -247,16 +224,6 @@ export default function AccountControls({
           </button>
           <span className="muted digest-email-status">{emailStatus}</span>
         </span>
-      ) : null}
-      {consenting ? (
-        <button
-          type="button"
-          className="link-btn"
-          onClick={stopContributing}
-          title={u.stopContributingTitle}
-        >
-          {u.stopContributing}
-        </button>
       ) : null}
       <a className="link-btn" href="/api/account/export">
         {u.exportData}

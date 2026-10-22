@@ -14,7 +14,7 @@ beforeEach(() => {
 
 describe("digest contact-email field (gated behind the Email-updates toggle)", () => {
   it("is hidden while the toggle is off and appears when switched on", () => {
-    render(<AccountControls researchConsent={false} digestOptIn={false} locale="en-US" />);
+    render(<AccountControls digestOptIn={false} locale="en-US" />);
     expect(screen.queryByLabelText("Send digests to")).toBeNull();
     fireEvent.click(screen.getByLabelText("Email updates"));
     expect(screen.getByLabelText("Send digests to")).toBeTruthy();
@@ -23,21 +23,14 @@ describe("digest contact-email field (gated behind the Email-updates toggle)", (
   });
 
   it("shows the account-email fallback notice when one exists", () => {
-    render(
-      <AccountControls
-        researchConsent={false}
-        digestOptIn={true}
-        accountEmail="login@uni.example"
-        locale="en-US"
-      />,
-    );
+    render(<AccountControls digestOptIn={true} accountEmail="login@uni.example" locale="en-US" />);
     expect(
       screen.getByText("Digests will go to your account email (login@uni.example)."),
     ).toBeTruthy();
   });
 
   it("saving an address POSTs it and flips the status to pending", async () => {
-    render(<AccountControls researchConsent={false} digestOptIn={true} locale="en-US" />);
+    render(<AccountControls digestOptIn={true} locale="en-US" />);
     fireEvent.change(screen.getByLabelText("Send digests to"), {
       target: { value: "me@lab.example" },
     });
@@ -67,7 +60,6 @@ describe("digest contact-email field (gated behind the Email-updates toggle)", (
   it("a verified address shows as confirmed", () => {
     render(
       <AccountControls
-        researchConsent={false}
         digestOptIn={true}
         digestContactEmail="me@lab.example"
         digestContactEmailVerified={true}

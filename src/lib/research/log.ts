@@ -9,13 +9,15 @@ import {
   diffNotMineChanges,
 } from "./diff";
 import { isResearchLoggingEnabled } from "./enabled";
+import { RESEARCH_CONSENT_VERSION } from "./consent";
 
 /**
- * Version of the research-consent notice. Bump when the *what/why* of logging
- * materially changes, so re-consent can be required and each user's stored
- * `researchConsentVersion` records exactly what they agreed to (IRB audit trail).
+ * Version of the research consent (2 = study 2026-0310 as approved). Defined in
+ * the client-safe `consent/` module beside the texts it versions, and
+ * re-exported here: each user's stored `researchConsentVersion` records what
+ * they agreed to, and logging needs it to be this one.
  */
-export const RESEARCH_CONSENT_VERSION = 1;
+export { RESEARCH_CONSENT_VERSION };
 
 /**
  * Consent-gated research logging.

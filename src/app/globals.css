@@ -1569,7 +1569,7 @@ input[type="radio"] {
   }
 }
 
-/* ── Research-consent onboarding ─────────────────────────────────────────── */
+/* ── Modal dialogs (account deletion, research panel) ─────────────────────── */
 .consent-overlay {
   position: fixed;
   inset: 0;
@@ -1599,22 +1599,6 @@ input[type="radio"] {
   color: var(--text-secondary);
   line-height: 1.5;
 }
-.consent-banner {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--space-3);
-  padding: var(--space-2) var(--space-4);
-  background: var(--accent-soft);
-  border-bottom: 1px solid var(--border);
-}
-.consent-banner-text {
-  flex: 1 1 18rem;
-  margin: 0;
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-  line-height: 1.45;
-}
 .consent-actions {
   display: flex;
   gap: var(--space-2);
@@ -1623,6 +1607,234 @@ input[type="radio"] {
 .consent-error {
   color: var(--danger-text);
   font-size: var(--text-xs);
+}
+
+/* The research panel (study 2026-0310): opened only by the person, from the
+   account menu or the editor's foot link. Wider than a confirm dialog because
+   it can hold the whole information sheet; it scrolls inside the viewport. */
+.research-panel {
+  width: min(40rem, 100%);
+  max-height: calc(100vh - 2 * var(--space-4));
+  overflow-y: auto;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5) var(--space-6) var(--space-6);
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--text);
+}
+.research-panel:focus {
+  outline: none;
+}
+.research-panel-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.research-panel-head h2 {
+  margin: 0;
+  font-size: var(--text-lg, 1.0625rem);
+  line-height: 1.35;
+}
+.research-panel-close {
+  flex-shrink: 0;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--muted);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.research-panel-close:hover {
+  background: var(--surface-sunken);
+  color: var(--text);
+}
+.research-panel-lang {
+  margin: var(--space-2) 0 var(--space-3);
+}
+.research-panel-lang .muted {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-xs);
+}
+.research-panel-lang-switch {
+  display: inline-flex;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.research-panel-lang-btn {
+  border: none;
+  background: none;
+  padding: 0.2rem 0.65rem;
+  font: inherit;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.research-panel-lang-btn + .research-panel-lang-btn {
+  border-left: 1px solid var(--border);
+}
+.research-panel-lang-btn.is-active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 600;
+}
+.research-panel-summary {
+  margin: 0 0 var(--space-3);
+  padding-left: 1.2rem;
+}
+.research-panel-summary li + li {
+  margin-top: var(--space-1);
+}
+.research-panel-sheet {
+  margin: 0 0 var(--space-4);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+.research-panel-sheet > summary {
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+  color: var(--accent);
+}
+.research-panel-sheet .info-sheet {
+  padding: 0 var(--space-3) var(--space-3);
+  font-size: var(--text-xs);
+}
+.research-panel-check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  font-weight: 600;
+}
+.research-panel-check input {
+  margin-top: 0.2rem;
+  flex-shrink: 0;
+}
+.research-panel-check-optional {
+  font-weight: 400;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.research-panel-contact {
+  margin: var(--space-3) 0 var(--space-4);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.research-panel-contact-person {
+  display: block;
+  overflow-wrap: anywhere;
+}
+.research-panel-notice {
+  margin: 0 0 var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  background: var(--accent-soft);
+}
+.research-panel-status {
+  margin: 0 0 var(--space-1);
+  font-weight: 600;
+}
+.research-panel-doc {
+  white-space: nowrap;
+}
+.research-panel-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: var(--space-3) 0;
+}
+.research-panel-link-list {
+  flex-direction: column;
+  padding-left: 1.2rem;
+}
+.research-panel h3 {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-md, 1rem);
+}
+.research-entry {
+  margin: 0;
+  padding: var(--space-4) var(--space-4) var(--space-6);
+  border-top: 1px solid var(--border);
+}
+.research-entry .link-btn {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+/* The approved information sheet (research panel + /cv/research-sheet). */
+.info-sheet-title {
+  font-size: 1.05em;
+  line-height: 1.4;
+}
+.info-sheet-meta {
+  margin: 0 0 var(--space-1);
+  color: var(--text-secondary);
+}
+.info-sheet-heading {
+  margin: var(--space-4) 0 var(--space-1);
+  font-size: 1em;
+}
+.info-sheet p,
+.info-sheet ul {
+  margin: 0 0 var(--space-2);
+}
+.info-sheet ul {
+  padding-left: 1.2rem;
+}
+.info-sheet-sub {
+  font-weight: 600;
+}
+
+/* /cv/research-sheet: the sheet + the consent record, laid out to print. */
+.research-sheet-page {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4) var(--space-12);
+  line-height: 1.6;
+}
+.research-sheet-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: var(--space-4);
+}
+.research-sheet-page .info-sheet-title {
+  font-size: var(--text-xl);
+}
+.research-sheet-page .info-sheet-heading {
+  font-size: var(--text-md, 1rem);
+}
+.research-sheet-record {
+  overflow-x: auto;
+  margin-top: var(--space-8);
+}
+.research-sheet-record table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+}
+.research-sheet-record th,
+.research-sheet-record td {
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+@media print {
+  .research-sheet-actions {
+    display: none;
+  }
+  .research-sheet-page {
+    max-width: none;
+    padding: 0;
+  }
 }
 
 .cv-workspace {
