@@ -73,13 +73,23 @@ async function main(): Promise<void> {
         // Checkbox ②, from the latest grant of this consent version.
         researchConsentRecords: {
           where: { action: "grant", version: RESEARCH_CONSENT_VERSION },
-          orderBy: { at: "desc" },
+          orderBy: [{ at: "desc" }, { id: "desc" }],
           take: 1,
           select: { secondaryUse: true },
         },
       },
     });
-    const allConsenting = await prisma.user.count({ where: { researchConsent: true } });
+    // Consents left out, counted directly: any version but the current one,
+    // null included (`not` alone would skip nulls, as SQL `<>` does).
+    const otherVersion = await prisma.user.count({
+      where: {
+        researchConsent: true,
+        OR: [
+          { researchConsentVersion: { not: RESEARCH_CONSENT_VERSION } },
+          { researchConsentVersion: null },
+        ],
+      },
+    });
 
     const subjects = exportableSubjects(
       users.map((u): ResearchSubjectInput => ({
@@ -102,12 +112,12 @@ async function main(): Promise<void> {
     const agreedSecondary = subjects.filter((s) => s.secondaryUse === true).length;
     const noGrantRecord = subjects.filter((s) => s.secondaryUse === null).length;
 
-    console.log(`IRB ref:                 ${gate.irbRef}`);
-    console.log(`consent version:         ${RESEARCH_CONSENT_VERSION}`);
-    console.log(`consenting subjects:     ${subjects.length}`);
-    console.log(`  of which agreed to ②:  ${agreedSecondary}`);
-    console.log(`older consent, skipped:  ${allConsenting - subjects.length}`);
-    console.log(`exported rows:           ${rows.length}`);
+    console.log(`IRB ref:                               ${gate.irbRef}`);
+    console.log(`consent version:                       ${RESEARCH_CONSENT_VERSION}`);
+    console.log(`consenting subjects:                   ${subjects.length}`);
+    console.log(`  of which agreed to ②:                ${agreedSecondary}`);
+    console.log(`consent at another version, skipped:   ${otherVersion}`);
+    console.log(`exported rows:                         ${rows.length}`);
     if (noGrantRecord > 0) {
       console.warn(
         `⚠️  ${noGrantRecord} subject(s) have no grant record at version ${RESEARCH_CONSENT_VERSION};`,
