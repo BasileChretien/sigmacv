@@ -94,3 +94,38 @@ describe("the OAI-PMH deleted records in the retention notice", () => {
     expect(privacyStrings("en-US").retention).not.toContain("nothing else");
   });
 });
+
+describe("the research paragraph names study 2026-0310", () => {
+  // The panel's own label in each locale (`entry` in src/lib/i18n/researchPanel.ts,
+  // #570): the notice sends people there, so it must use the same name.
+  const PANEL: Record<string, string> = {
+    "en-US": "Research participation",
+    "zh-CN": "参与研究",
+    "es-ES": "Participación en investigación",
+    "fr-FR": "Participation à la recherche",
+    "de-DE": "Forschungsteilnahme",
+    "ja-JP": "研究への参加",
+    "pt-BR": "Participação em pesquisa",
+    "it-IT": "Partecipazione alla ricerca",
+    "ko-KR": "연구 참여",
+    "ru-RU": "Участие в исследовании",
+  };
+
+  it("names the institution, the approval and the panel in every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const research = privacyStrings(loc).research;
+      expect(research, loc).toContain("2026-0310");
+      expect(research, loc).toMatch(/Nagoya|名古屋/);
+      expect(research, loc).toContain(PANEL[loc]);
+      expect(research, loc).toContain("ORCID iD");
+    }
+  });
+
+  it("never calls the research data anonymous: the approved sheet says it is pseudonymised", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      expect(privacyStrings(loc).research, loc).not.toMatch(
+        /anonym|anónim|anonim|аноним|匿名|익명/i,
+      );
+    }
+  });
+});
