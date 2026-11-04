@@ -121,11 +121,32 @@ describe("the research paragraph names study 2026-0310", () => {
     }
   });
 
+  // Accents are folded first, so "anônimo" (pt-BR) and "anónimo" (es, pt-PT)
+  // match "anonim"; NFC then recomposes the Hangul that NFD splits into jamo.
+  const callsAnonymous = (text: string): boolean =>
+    /anonym|anonim|аноним|匿名|익명/i.test(
+      text.normalize("NFD").replace(/\p{M}/gu, "").normalize("NFC"),
+    );
+
+  it("the anonymity guard catches the word in each script and spelling", () => {
+    for (const word of [
+      "anonymous data",
+      "datos anónimos",
+      "dados anônimos",
+      "dados anónimos",
+      "dati anonimi",
+      "anonymisierte Daten",
+      "анонимные данные",
+      "匿名化",
+      "익명",
+    ]) {
+      expect(callsAnonymous(word), word).toBe(true);
+    }
+  });
+
   it("never calls the research data anonymous: the approved sheet says it is pseudonymised", () => {
     for (const loc of SUPPORTED_LOCALES) {
-      expect(privacyStrings(loc).research, loc).not.toMatch(
-        /anonym|anónim|anonim|аноним|匿名|익명/i,
-      );
+      expect(callsAnonymous(privacyStrings(loc).research), loc).toBe(false);
     }
   });
 });
