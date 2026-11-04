@@ -18,14 +18,38 @@
 # Usage:
 #   ./scripts/deploy.sh                              # self-hosted Postgres (docker-compose.yml)
 #   ./scripts/deploy.sh -f docker-compose.prod.yml   # managed Postgres (Neon)
+#   DEPLOY_SHA=<commit> ./scripts/deploy.sh          # that commit, not the newest
 # Any arguments are passed straight through to `docker compose`.
+#
+# On sigmacv.org this also runs by itself: scripts/auto-deploy.sh (cron, every 15
+# minutes) calls it with DEPLOY_SHA when main moves. Both take the lock below, so
+# a hand-run deploy and an automatic one never build or swap at the same time,
+# and both record the commit they shipped in .deploy-state/deployed.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 compose() { docker compose "$@"; }
 
-echo "[deploy] Pulling latest code…"
-git pull --ff-only
+STATE_DIR="${DEPLOY_STATE_DIR:-.deploy-state}"
+mkdir -p "$STATE_DIR"
+if command -v flock >/dev/null 2>&1; then
+  exec 9>"$STATE_DIR/deploy.lock"
+  if ! flock -w 1800 9; then
+    echo "[deploy] Another deploy has held the lock for 30 minutes — giving up." >&2
+    exit 1
+  fi
+else
+  echo "[deploy] ⚠️  flock not found — not guarding against a deploy running at the same time." >&2
+fi
+
+if [ -n "${DEPLOY_SHA:-}" ]; then
+  echo "[deploy] Moving to ${DEPLOY_SHA}…"
+  git fetch --quiet origin
+  git merge --ff-only "$DEPLOY_SHA"
+else
+  echo "[deploy] Pulling latest code…"
+  git pull --ff-only
+fi
 
 echo "[deploy] Building the new app image (old container keeps serving)…"
 compose "$@" build app
@@ -108,4 +132,5 @@ fi
 echo "[deploy] Pruning dangling images…"
 docker image prune -f >/dev/null 2>&1 || true
 
+git rev-parse HEAD >"$STATE_DIR/deployed"
 echo "[deploy] Done — the site stayed up throughout. ✅"
