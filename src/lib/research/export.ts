@@ -1,4 +1,5 @@
 import { createHmac } from "node:crypto";
+import { RESEARCH_CONSENT_VERSION } from "./consent";
 
 /**
  * IRB-gated researcher export of the consent-gated research dataset
@@ -13,6 +14,9 @@ import { createHmac } from "node:crypto";
  * Safety properties (so this can ship while still DISABLED):
  *   • Hard-gated — `researchExportGate()` is OFF unless an explicit IRB-approval
  *     env triad is set (see below). The shipped default is off.
+ *   • Approved consent only — a subject is exported only under the CURRENT
+ *     `RESEARCH_CONSENT_VERSION` (`exportableSubjects`), the same rule as the
+ *     logging gate in `log.ts`.
  *   • Pseudonymous — subjects are keyed-HMAC pseudonyms, never the user id.
  *   • Minimal — only the pre-registered event types are emitted, and the
  *     payloads are already the data-minimized structured signals produced by
@@ -39,6 +43,14 @@ export interface ResearchSubjectInput {
   researchConsent: boolean;
   researchConsentVersion: number | null;
   /**
+   * Checkbox ② of the approved consent (future related research, subject to
+   * separate ethics approval), as the subject's latest `grant`
+   * ResearchConsentRecord at the current version records it. `null` when no
+   * such record exists, which the consent route's transaction should make
+   * impossible; read it as "not agreed".
+   */
+  secondaryUse: boolean | null;
+  /**
    * Identity fields. Used ONLY to build the separate re-identification key table
    * (対照表, `buildKeyTable`) that the 個人情報管理者 holds — NEVER the de-identified
    * analysis dataset. Optional so the de-identified path can be exercised without
@@ -63,6 +75,8 @@ export interface ResearchExportRow {
   subject: string;
   /** Which version of the consent notice the subject agreed under (audit trail). */
   consentVersion: number | null;
+  /** Checkbox ②: may this subject's data serve future related research? */
+  secondaryUse: boolean | null;
   eventType: string;
   /** ISO-8601 timestamp of the event. */
   at: string;
@@ -81,16 +95,21 @@ export function pseudonymise(userId: string, salt: string): string {
 }
 
 /**
- * Build the de-identified research dataset from raw consenting-user records.
- * Pure + deterministic given `(subjects, salt)`. Drops, as defence in depth:
- *   • any subject without `researchConsent` (the query already filters these),
- *   • any event whose type is not pre-registered.
- * Emits NO direct identifiers and NO raw work identifiers — the subject is a
- * keyed-HMAC pseudonym and every DOI / OpenAlex source id in the payload is
- * HMAC-pseudonymised too (so a distinctive own-work DOI can't re-identify a
- * subject by public lookup). Rows are sorted (subject, then time) so exports
- * are reproducible / diffable.
+ * The subjects whose data an export may carry: those who consented under the
+ * CURRENT `RESEARCH_CONSENT_VERSION` (2 = study 2026-0310 as approved). A
+ * version-1 consent was given to the notice shown before approval, so the data
+ * behind it is not approved study data; a consent withdrawn, or under any
+ * other version, is dropped the same way. Both builders apply this, and the
+ * operator script's query already narrows to it (defence in depth).
  */
+export function exportableSubjects(
+  subjects: readonly ResearchSubjectInput[],
+): ResearchSubjectInput[] {
+  return subjects.filter(
+    (s) => s.researchConsent && s.researchConsentVersion === RESEARCH_CONSENT_VERSION,
+  );
+}
+
 /**
  * Pseudonymise the quasi-identifying WORK identifiers inside an event payload —
  * a publication DOI / OpenAlex source id resolves (via Crossref/OpenAlex) to a
@@ -114,19 +133,31 @@ function deidentifyPayload(payload: unknown, salt: string): unknown {
   return out;
 }
 
+/**
+ * Build the de-identified research dataset from raw consenting-user records.
+ * Pure + deterministic given `(subjects, salt)`. Drops, as defence in depth:
+ *   • any subject without a current consent (`exportableSubjects`; the query
+ *     already filters these),
+ *   • any event whose type is not pre-registered.
+ * Emits NO direct identifiers and NO raw work identifiers — the subject is a
+ * keyed-HMAC pseudonym and every DOI / OpenAlex source id in the payload is
+ * HMAC-pseudonymised too (so a distinctive own-work DOI can't re-identify a
+ * subject by public lookup). Each row carries the subject's checkbox ②.
+ * Rows are sorted (subject, then time) so exports are reproducible / diffable.
+ */
 export function buildResearchExport(
   subjects: readonly ResearchSubjectInput[],
   salt: string,
 ): ResearchExportRow[] {
   const rows: ResearchExportRow[] = [];
-  for (const s of subjects) {
-    if (!s.researchConsent) continue;
+  for (const s of exportableSubjects(subjects)) {
     const subject = pseudonymise(s.userId, salt);
     for (const e of s.events) {
       if (!PRE_REGISTERED.has(e.type)) continue;
       rows.push({
         subject,
         consentVersion: s.researchConsentVersion,
+        secondaryUse: s.secondaryUse,
         eventType: e.type,
         at: e.createdAt.toISOString(),
         payload: deidentifyPayload(e.payload, salt),
@@ -159,12 +190,15 @@ export interface KeyTableRow {
   /** Consent-notice version the subject agreed under, and when (audit trail). */
   consentVersion: number | null;
   consentAt: string | null;
+  /** Checkbox ② of that consent (future related research). */
+  secondaryUse: boolean | null;
 }
 
 /**
  * Build the re-identification key table (対照表) from raw consenting-user records.
- * Pure + deterministic given `(subjects, salt)`; the `subject` column equals the
- * pseudonym in `buildResearchExport`, so the two outputs join on `subject`.
+ * Pure + deterministic given `(subjects, salt)`; it keeps the same subjects as
+ * `buildResearchExport` (`exportableSubjects`), and its `subject` column equals
+ * the pseudonym there, so the two outputs join on `subject`.
  *
  * This is the SEPARATE artifact the personal-information manager keeps; the
  * de-identified analysis dataset (`buildResearchExport`) carries none of these
@@ -176,8 +210,7 @@ export function buildKeyTable(
   salt: string,
 ): KeyTableRow[] {
   const rows: KeyTableRow[] = [];
-  for (const s of subjects) {
-    if (!s.researchConsent) continue;
+  for (const s of exportableSubjects(subjects)) {
     const consentAt = s.identity?.consentAt;
     rows.push({
       subject: pseudonymise(s.userId, salt),
@@ -187,6 +220,7 @@ export function buildKeyTable(
       orcid: s.identity?.orcid ?? null,
       consentVersion: s.researchConsentVersion,
       consentAt: consentAt ? consentAt.toISOString() : null,
+      secondaryUse: s.secondaryUse,
     });
   }
   rows.sort((a, b) => a.subject.localeCompare(b.subject));
