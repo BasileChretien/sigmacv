@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   asLocale,
-  consentStrings,
   DEFAULT_UI_LOCALE,
   isDefaultSectionTitle,
   localeForPathname,
@@ -167,21 +166,5 @@ describe("locale URL slugs", () => {
     expect(NON_DEFAULT_LOCALE_SLUGS).toHaveLength(9);
     expect(NON_DEFAULT_LOCALE_SLUGS).not.toContain("en");
     expect(NON_DEFAULT_LOCALE_SLUGS).toContain("ko");
-  });
-});
-
-describe("consentStrings", () => {
-  it("localizes the consent prompt and falls back to English", () => {
-    expect(consentStrings("en-US").yes).toBe("Yes, contribute");
-    expect(consentStrings("fr-FR").notNow).toBe("Plus tard");
-    expect(consentStrings("ja-JP").dismiss).toBe("閉じる");
-    expect(consentStrings("xx-XX").title).toBe(consentStrings("en-US").title);
-  });
-  it("has every field non-empty in every locale", () => {
-    for (const loc of SUPPORTED_LOCALES) {
-      for (const value of Object.values(consentStrings(loc))) {
-        expect(value.length).toBeGreaterThan(0);
-      }
-    }
   });
 });

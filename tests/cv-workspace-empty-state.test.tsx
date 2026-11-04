@@ -11,7 +11,6 @@ const baseProps = {
   initialCv: null,
   availableStyles: ["apa"],
   userName: "Ada Lovelace",
-  researchConsent: false,
   researchEnabled: false,
   published: false,
   publicSlug: null,

@@ -23,6 +23,7 @@ export const test = base.extend<Fixtures>({
     // design), so a spec that failed mid-toggle would otherwise poison the next.
     await db.previewSuppression.deleteMany();
     await db.researchEvent.deleteMany();
+    await db.researchConsentRecord.deleteMany();
     await db.cv.deleteMany();
     await db.session.deleteMany();
     await db.account.deleteMany();

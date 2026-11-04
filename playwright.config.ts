@@ -28,6 +28,10 @@ export default defineConfig({
     url: BASE_URL,
     reuseExistingServer: !process.env.CI,
     timeout: 180_000,
-    env: { ...process.env } as Record<string, string>,
+    // The research-consent journey needs the study open on THIS test server
+    // (research-consent.spec.ts); the switch stays off in every real deployment
+    // until the maintainer turns it on. Nothing auto-opens with it on, so the
+    // other journeys see only an extra menu item and an editor link.
+    env: { ...process.env, RESEARCH_LOGGING_ENABLED: "true" } as Record<string, string>,
   },
 });

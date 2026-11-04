@@ -23,7 +23,6 @@ const baseProps = {
   publicContact: { email: false, phone: false, location: false },
   onPublicContactChange: vi.fn(),
   onPublishStateChange: vi.fn(),
-  researchConsent: false,
   digestOptIn: false,
   signOutAction: async () => {},
 };
