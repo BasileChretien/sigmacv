@@ -1,0 +1,62 @@
+# Dependabot PRs that merge themselves.
+#
+# On each Dependabot PR this arms GitHub's auto-merge (squash) when the update is
+# a patch or minor bump of an npm or GitHub Actions dependency. GitHub then merges
+# it once the checks branch protection requires have passed, and the server's
+# auto-deploy (scripts/auto-deploy.sh) ships it. Security fixes come grouped into
+# one PR (.github/dependabot.yml), so they merge together.
+#
+# Left for a person: majors, Docker and Compose images (a postgres or clickhouse
+# major is a data migration), and playwright, which must move with the
+# Dockerfile's runtime image. The rule is `autoMergeDecision` in
+# scripts/dependabot-automerge.mjs, tested in tests/dependabot-automerge.test.ts.
+#
+# Needs "Allow auto-merge" on in the repository settings. A PR that falls behind
+# main is brought up to date by dependabot-train.yml.
+name: Dependabot auto-merge
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  arm:
+    name: Arm auto-merge
+    if: github.event.pull_request.user.login == 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # merge
+      pull-requests: write # enable auto-merge
+    steps:
+      - name: Read the update's metadata
+        id: meta
+        uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
+
+      # The base branch's copy of the rule, never the PR's: this job holds a
+      # write token, and the PR is the code under review.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22
+
+      - name: Decide
+        id: decide
+        env:
+          ECOSYSTEM: ${{ steps.meta.outputs.package-ecosystem }}
+          UPDATE_TYPE: ${{ steps.meta.outputs.update-type }}
+          DEPENDENCIES: ${{ steps.meta.outputs.dependency-names }}
+        run: node scripts/dependabot-automerge.mjs decide
+
+      - name: Arm auto-merge (squash)
+        if: steps.decide.outputs.merge == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: gh pr merge --auto --squash "$PR_URL"

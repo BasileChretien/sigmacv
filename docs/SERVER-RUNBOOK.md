@@ -704,8 +704,80 @@ Rebuild recipe (assumes the offsite backup and this repo are reachable):
    WHO agreement is active.
 8. **Verify**: sign in with ORCID, load `/cv`, export a PDF, check `/p/<slug>`
    of a published CV, confirm Plausible ingests, re-enable the backup cron +
-   offsite `rclone` job, and confirm UptimeRobot goes green.
+   offsite `rclone` job and the auto-deploy cron (§10), and confirm UptimeRobot
+   goes green.
 
 **Practice note:** §2's monthly test-restore already rehearses the only step
 with real data-loss risk (6). The rest is deterministic provisioning; don't
 over-engineer beyond this while the service has no SLA.
+
+## 10. Automatic deploys (`scripts/auto-deploy.sh`)
+
+Since 2026-11-04 the server deploys `main` by itself. Before that, a merged fix
+stayed undeployed until someone ran `deploy.sh`: in October 2026 that, and
+Dependabot PRs nobody merged, left production on a Next.js with a known denial
+of service for two weeks. The GitHub half (which Dependabot PRs merge
+themselves) is described in `.github/workflows/dependabot-auto-merge.yml`.
+
+**What it does.** Every 15 minutes, cron runs the script. When `origin/main` is
+ahead of the deployed commit (`.deploy-state/deployed`), it runs
+`DEPLOY_SHA=<that commit> ./scripts/deploy.sh`, so it ships exactly the commit
+it looked at, not whatever landed a second later. `deploy.sh` builds first and
+swaps after, so a failed build leaves the old version serving. Then it fetches
+`$AUTH_URL/api/health` from outside and emails the result: the commits it
+shipped, and whether the site answered. When there is nothing to do it prints
+nothing. A hand-run `deploy.sh` takes the same lock, so the two never overlap,
+and it records what it shipped too.
+
+**It deploys nothing, and emails once, when:**
+
+- the change touches a `postgres` or `clickhouse` image line in a compose file,
+  which can be a data migration (see `.github/dependabot.yml`). Read the change,
+  then run `./scripts/deploy.sh` by hand;
+- `main` is not a fast-forward of the server's checkout, or the checkout has
+  uncommitted changes to tracked files;
+- the deploy of that same commit already failed. It tries again when `main`
+  moves, or after `rm .deploy-state/failed`.
+
+**Email.** The email goes to `DEPLOY_NOTIFY_EMAIL` in `.env`, else
+`OPENALEX_MAILTO`. It is sent through the app container's own mailer
+(`EMAIL_SERVER` / `EMAIL_FROM`), so it fails when the app container is down,
+and the log says so.
+
+**Install** (once, as root on the server, after the deploy that brings the
+script):
+
+```bash
+cd /root/sigmacv && chmod +x scripts/auto-deploy.sh
+( crontab -l; echo '*/15 * * * * /root/sigmacv/scripts/auto-deploy.sh >> /var/log/sigmacv-auto-deploy.log 2>&1' ) | crontab -
+./scripts/auto-deploy.sh && cat .deploy-state/deployed
+```
+
+**Expect:** the last command prints nothing, then the deployed commit, which
+equals `git rev-parse HEAD`. The first run records what is checked out as
+deployed.
+
+**Day to day:**
+
+```bash
+tail -n 50 /var/log/sigmacv-auto-deploy.log   # one line per decision, timestamped (UTC)
+cat .deploy-state/last-deploy.log             # full output of the last deploy
+touch .deploy-state/paused                    # pause (a hand-run deploy.sh still works)
+rm .deploy-state/paused                       # resume
+```
+
+Pause before merging a change that needs a server-side step first (a new `.env`
+value or a data import), do the step, then resume. Otherwise the change is live
+before its step is done.
+
+**Undo a bad deploy.** Revert the pull request on GitHub. The revert lands on
+`main` and deploys like any other change, within 15 minutes. If the site is
+down and that is too slow:
+
+1. `touch .deploy-state/paused`.
+2. `git checkout --detach <previous sha>` (the email names it as the commit the
+   deploy replaced), then `docker compose build app && docker compose up -d`.
+3. Once the revert is on `main`, run `git checkout main` and
+   `rm .deploy-state/paused`. The next run deploys the revert.
+
+**Uninstall:** `crontab -e`, delete the line. Nothing else depends on it.

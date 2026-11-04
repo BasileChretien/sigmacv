@@ -130,6 +130,10 @@ First build pulls the Playwright/Chromium base image (large) — give it a few m
   rebuilds _and then_ recreates the single app container in one step, taking the
   site down for the whole build → every visitor in that window sees a "server
   connection error."
+- **Automatic deploys (optional):** `scripts/auto-deploy.sh`, run from cron
+  every 15 minutes, deploys `main` whenever it moves and emails the result.
+  sigmacv.org runs it; install, pause and rollback are in
+  `docs/SERVER-RUNBOOK.md` §10.
 - **Stop / start:** `docker compose -f docker-compose.prod.yml down` / `… up -d`
 - **Backups:** handled by Neon (managed) **in this variant only**. Nothing on
   the VPS holds state except Caddy's certs (in a named volume). ⚠️ If you run
