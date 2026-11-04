@@ -5,7 +5,10 @@
 # others that do not conflict would wait behind main forever. Once an hour this
 # updates the oldest such PR, then starts the two required workflows on it: a
 # push made with this workflow's token starts no workflow, and a dispatch is the
-# exception. One PR at a time, since each merge puts the rest behind again.
+# exception. One PR at a time, since each merge puts the rest behind again. It
+# also restarts the checks of an armed PR that an earlier update left with none.
+# When GitHub refuses an update, it logs a warning and tries the next PR, so a
+# refusal that will recur every hour does not turn every run red.
 #
 # The logic is `pickNextToUpdate` in scripts/dependabot-automerge.mjs. Started by
 # hand from the Actions tab too.

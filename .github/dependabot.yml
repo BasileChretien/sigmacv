@@ -19,16 +19,28 @@ updates:
       # of them red on the others' advisories (the Audit check), and in October
       # 2026 five of them sat unmerged for two weeks while the live site ran a
       # vulnerable Next.js. A fix that needs a major still comes on its own.
+      #
+      # Both groups leave the playwright pair out. It must move with the
+      # Dockerfile's runtime image tag, so it is never merged automatically, and
+      # inside a group it would hold every other update back with it.
       security:
         applies-to: security-updates
         patterns:
           - "*"
+        exclude-patterns:
+          - "playwright"
+          - "@playwright/test"
         update-types:
           - "minor"
           - "patch"
       # Batch low-risk minor/patch bumps into a single PR to cut review noise;
       # majors still arrive as individual PRs so breaking changes stay visible.
       minor-and-patch:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "playwright"
+          - "@playwright/test"
         update-types:
           - "minor"
           - "patch"

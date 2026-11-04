@@ -84,10 +84,13 @@ describe("pickNextToUpdate", () => {
     ...over,
   });
 
-  it("updates the oldest armed PR that is behind main", () => {
+  const numbers = (next: { prs: Array<{ number: number }> }) => next.prs.map((p) => p.number);
+
+  it("lists the armed PRs behind main oldest first, to try in that order", () => {
     const next = pickNextToUpdate([pr(3), pr(1), pr(2)]);
     expect(next.action).toBe("update");
-    expect(next.pr?.number).toBe(1);
+    expect(numbers(next)).toEqual([1, 2, 3]);
+    expect(next.reason).toBe("#1, #2, #3 behind main, oldest first");
   });
 
   it("waits while an armed PR's required checks run, so it does not update two at once", () => {
@@ -98,6 +101,7 @@ describe("pickNextToUpdate", () => {
     expect(pickNextToUpdate([pr(1), running])).toEqual({
       action: "wait",
       reason: "#2 is running its checks",
+      prs: [],
     });
     const pendingStatus = pr(3, {
       statusCheckRollup: [{ context: REQUIRED_CHECKS[1], state: "PENDING" }],
@@ -114,7 +118,29 @@ describe("pickNextToUpdate", () => {
     expect(pickNextToUpdate([failing, notArmed, clean])).toEqual({
       action: "none",
       reason: "no armed PR is behind main",
+      prs: [],
     });
+  });
+
+  it("restarts the checks of an armed PR left blocked with none on its head", () => {
+    // An earlier update moved the branch, but its checks never started.
+    const stranded = pr(2, { mergeStateStatus: "BLOCKED", statusCheckRollup: [] });
+    const next = pickNextToUpdate([pr(1), stranded]);
+    expect(next).toEqual({
+      action: "dispatch",
+      reason: "#2 carries no required check on its head",
+      prs: [stranded],
+    });
+    // Checks that only miss the non-required ones do not count as stranded.
+    const audited = pr(3, { mergeStateStatus: "BLOCKED", statusCheckRollup: passed });
+    expect(pickNextToUpdate([audited]).action).toBe("none");
+    // Nor does a PR that is not armed.
+    const unarmed = pr(4, {
+      mergeStateStatus: "BLOCKED",
+      statusCheckRollup: [],
+      autoMergeRequest: null,
+    });
+    expect(pickNextToUpdate([unarmed]).action).toBe("none");
   });
 
   it("does not let a non-required check (the Audit) hold a PR back or keep the train waiting", () => {
@@ -125,7 +151,7 @@ describe("pickNextToUpdate", () => {
         { context: "CodeRabbit", state: "PENDING" },
       ],
     });
-    expect(pickNextToUpdate([auditRed]).pr?.number).toBe(1);
+    expect(numbers(pickNextToUpdate([auditRed]))).toEqual([1]);
   });
 
   it("does nothing with no Dependabot PRs open", () => {
@@ -162,12 +188,44 @@ describe("the wiring the automatic path depends on", () => {
     );
   });
 
-  it("the arming job reads the base branch's rule, never the PR's, and arms a squash merge", () => {
+  it("both npm groups leave the playwright pair out, so it cannot hold a group back", () => {
+    const yml = read(".github/dependabot.yml");
+    const npmEntry = yml.slice(
+      yml.indexOf('package-ecosystem: "npm"'),
+      yml.indexOf('package-ecosystem: "github-actions"'),
+    );
+    const groups = npmEntry.split(/^ {6}(?=[a-z-]+:$)/m).slice(1);
+    expect(groups.map((g) => g.split(":")[0])).toEqual(["security", "minor-and-patch"]);
+    for (const group of groups) {
+      expect(group).toMatch(/exclude-patterns:\n {10}- "playwright"\n {10}- "@playwright\/test"/);
+    }
+  });
+
+  describe("dependabot-auto-merge.yml", () => {
     const yml = read(".github/workflows/dependabot-auto-merge.yml");
-    expect(yml).toContain("if: github.event.pull_request.user.login == 'dependabot[bot]'");
-    expect(yml).toContain("ref: ${{ github.event.pull_request.base.sha }}");
-    expect(yml).toContain("node scripts/dependabot-automerge.mjs decide");
-    expect(yml).toContain('gh pr merge --auto --squash "$PR_URL"');
+    const decideJob = yml.slice(yml.indexOf("\n  decide:"), yml.indexOf("\n  arm:"));
+    const armJob = yml.slice(yml.indexOf("\n  arm:"));
+
+    it("decides in a read-only job, from the base branch's rule, only for Dependabot's PRs", () => {
+      expect(decideJob).toContain("if: github.event.pull_request.user.login == 'dependabot[bot]'");
+      expect(decideJob).toContain("ref: ${{ github.event.pull_request.base.sha }}");
+      expect(decideJob).toContain("node scripts/dependabot-automerge.mjs decide");
+      expect(decideJob).not.toContain("permissions:");
+      expect(yml).toMatch(/^permissions:\n {2}contents: read$/m);
+    });
+
+    it("holds the write token in a job that runs no action code, only gh", () => {
+      expect(armJob).toContain("needs: decide");
+      expect(armJob).toContain("contents: write");
+      expect(armJob).not.toMatch(/^\s*(- )?uses:/m);
+    });
+
+    it("arms a squash merge when the rule says so, and disarms otherwise", () => {
+      expect(armJob).toContain("if: needs.decide.outputs.merge == 'true'");
+      expect(armJob).toContain('gh pr merge --auto --squash "$PR_URL"');
+      expect(armJob).toContain("if: needs.decide.outputs.merge != 'true'");
+      expect(armJob).toContain('gh pr merge --disable-auto "$PR_URL"');
+    });
   });
 
   it("the train runs the train command hourly and may start workflows", () => {

@@ -729,15 +729,23 @@ shipped, and whether the site answered. When there is nothing to do it prints
 nothing. A hand-run `deploy.sh` takes the same lock, so the two never overlap,
 and it records what it shipped too.
 
-**It deploys nothing, and emails once, when:**
+**It deploys nothing, and emails once per commit on `main`, when:**
 
-- the change touches a `postgres` or `clickhouse` image line in a compose file,
-  which can be a data migration (see `.github/dependabot.yml`). Read the change,
-  then run `./scripts/deploy.sh` by hand;
-- `main` is not a fast-forward of the server's checkout, or the checkout has
-  uncommitted changes to tracked files;
-- the deploy of that same commit already failed. It tries again when `main`
+- the change touches a `postgres`, `clickhouse` or `plausible` image line in a
+  compose file, with or without a registry prefix, or an image given by a
+  variable. Any of those can be a data migration (see `.github/dependabot.yml`).
+  Read the change, then run `./scripts/deploy.sh` by hand. When the compose files
+  cannot be compared, it holds too;
+- `main` is not a fast-forward of the server's checkout, the checkout has
+  uncommitted changes to tracked files, or `.deploy-state/deployed` names a
+  commit the checkout does not have;
+- the deploy of that same commit already failed, or ran past
+  `AUTO_DEPLOY_TIMEOUT` (3600 s; it is then stopped). It tries again when `main`
   moves, or after `rm .deploy-state/failed`.
+
+Each new commit that lands while the cause persists is held and emailed again.
+A `git fetch` that fails is logged and tried again at the next run, with no
+email: GitHub being unreachable for a while is not worth one.
 
 **Email.** The email goes to `DEPLOY_NOTIFY_EMAIL` in `.env`, else
 `OPENALEX_MAILTO`. It is sent through the app container's own mailer

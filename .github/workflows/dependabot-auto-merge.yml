@@ -4,12 +4,19 @@
 # a patch or minor bump of an npm or GitHub Actions dependency. GitHub then merges
 # it once the checks branch protection requires have passed, and the server's
 # auto-deploy (scripts/auto-deploy.sh) ships it. Security fixes come grouped into
-# one PR (.github/dependabot.yml), so they merge together.
+# one PR (.github/dependabot.yml), so they merge together. A PR the rule refuses
+# is disarmed, so a group Dependabot refreshes into a refused one does not merge.
 #
 # Left for a person: majors, Docker and Compose images (a postgres or clickhouse
 # major is a data migration), and playwright, which must move with the
 # Dockerfile's runtime image. The rule is `autoMergeDecision` in
 # scripts/dependabot-automerge.mjs, tested in tests/dependabot-automerge.test.ts.
+#
+# Two jobs, so that no action code runs with a write token. On `pull_request`
+# the workflow and its pinned actions come from the PR itself: a Dependabot PR
+# that bumps fetch-metadata, checkout or setup-node runs the NEW versions here
+# before anyone has read them. They run in `decide`, which can only read. `arm`
+# holds the write token and runs nothing but the runner's own gh.
 #
 # Needs "Allow auto-merge" on in the repository settings. A PR that falls behind
 # main is brought up to date by dependabot-train.yml.
@@ -22,21 +29,19 @@ permissions:
   contents: read
 
 jobs:
-  arm:
-    name: Arm auto-merge
+  decide:
+    name: Decide on auto-merge
     if: github.event.pull_request.user.login == 'dependabot[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    permissions:
-      contents: write # merge
-      pull-requests: write # enable auto-merge
+    outputs:
+      merge: ${{ steps.decide.outputs.merge }}
     steps:
       - name: Read the update's metadata
         id: meta
         uses: dependabot/fetch-metadata@25dd0e34f4fe68f24cc83900b1fe3fe149efef98 # v3.1.0
 
-      # The base branch's copy of the rule, never the PR's: this job holds a
-      # write token, and the PR is the code under review.
+      # The base branch's copy of the rule, never the PR's.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ github.event.pull_request.base.sha }}
@@ -54,9 +59,31 @@ jobs:
           DEPENDENCIES: ${{ steps.meta.outputs.dependency-names }}
         run: node scripts/dependabot-automerge.mjs decide
 
+  arm:
+    name: Arm or disarm auto-merge
+    needs: decide
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # merge
+      pull-requests: write # enable or disable auto-merge
+    steps:
+      # No `uses:` in this job, ever: see the header.
       - name: Arm auto-merge (squash)
-        if: steps.decide.outputs.merge == 'true'
+        if: needs.decide.outputs.merge == 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --auto --squash "$PR_URL"
+
+      - name: Disarm auto-merge if it was armed
+        if: needs.decide.outputs.merge != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+        run: |
+          if [ "$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')" = "true" ]; then
+            gh pr merge --disable-auto "$PR_URL"
+          else
+            echo "not armed; nothing to do"
+          fi

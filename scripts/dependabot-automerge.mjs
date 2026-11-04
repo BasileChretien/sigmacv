@@ -7,11 +7,18 @@
  *   decide  (.github/workflows/dependabot-auto-merge.yml, on each Dependabot PR)
  *           reads the update's metadata from the environment and writes
  *           `merge=true|false` to $GITHUB_OUTPUT. The workflow then arms
- *           GitHub's auto-merge, which merges once the required checks pass.
+ *           GitHub's auto-merge, which merges once the required checks pass,
+ *           or disarms it.
  *
  *   train   (.github/workflows/dependabot-train.yml, hourly)
  *           brings ONE armed PR that has fallen behind main up to date, then
- *           starts the required checks on it.
+ *           starts the required checks on it; or restarts the checks of an
+ *           armed PR an earlier update left without any.
+ *
+ * What the train cannot fix waits for a person, with a warning in its log: an
+ * update GitHub refuses (the workflow token may not touch workflow files), and
+ * a required check that failed. Once the train has pushed to a branch,
+ * Dependabot no longer rebases it, so a conflict there needs a person too.
  *
  * Why the train exists: main requires branches to be up to date, and auto-merge
  * never updates a branch. Dependabot rebases only on a conflict, so once one PR
@@ -97,25 +104,50 @@ function isFailed(entry) {
   return FAILED.has(entry.conclusion ?? entry.state ?? "");
 }
 
+const byAge = (a, b) => String(a.createdAt).localeCompare(String(b.createdAt));
+
 /**
- * What the train does this hour, from `gh pr list --json` rows of open Dependabot PRs.
- * One PR at a time: while an armed PR's required checks run, it waits, since a
- * merge would put any PR it updated now behind main again.
+ * What the train does this hour, from `gh pr list --json` rows of open Dependabot
+ * PRs. Only PRs with auto-merge armed count, oldest first.
+ *
+ *   wait      an armed PR's required checks are running. One PR at a time, since
+ *             a merge would put any PR updated now behind main again.
+ *   dispatch  an armed PR is blocked and its head carries no required check at
+ *             all: an earlier update moved it but its checks never started.
+ *   update    armed PRs behind main, in the order to try them: GitHub can refuse
+ *             one (the workflow token may not touch workflow files), and the
+ *             train then moves on to the next.
+ *   none      nothing to do.
  *
  * @param {Array<Record<string, any>>} prs
- * @returns {{ action: "none" | "wait" | "update", reason: string,
- *   pr?: { number: number, headRefName: string, headRefOid: string } }}
+ * @returns {{ action: "none" | "wait" | "dispatch" | "update", reason: string,
+ *   prs: Array<{ number: number, headRefName: string, headRefOid: string }> }}
  */
 export function pickNextToUpdate(prs) {
-  const armed = prs.filter((pr) => pr.autoMergeRequest);
+  const armed = prs.filter((pr) => pr.autoMergeRequest).sort(byAge);
   const running = armed.find((pr) => requiredEntries(pr).some(isPending));
-  if (running) return { action: "wait", reason: `#${running.number} is running its checks` };
+  if (running) {
+    return { action: "wait", reason: `#${running.number} is running its checks`, prs: [] };
+  }
+  const unchecked = armed.find(
+    (pr) => pr.mergeStateStatus === "BLOCKED" && requiredEntries(pr).length === 0,
+  );
+  if (unchecked) {
+    return {
+      action: "dispatch",
+      reason: `#${unchecked.number} carries no required check on its head`,
+      prs: [unchecked],
+    };
+  }
   const behind = armed
     .filter((pr) => pr.mergeStateStatus === "BEHIND")
-    .filter((pr) => !requiredEntries(pr).some(isFailed))
-    .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
-  if (behind.length === 0) return { action: "none", reason: "no armed PR is behind main" };
-  return { action: "update", reason: `#${behind[0].number} is behind main`, pr: behind[0] };
+    .filter((pr) => !requiredEntries(pr).some(isFailed));
+  if (behind.length === 0) return { action: "none", reason: "no armed PR is behind main", prs: [] };
+  return {
+    action: "update",
+    reason: `${behind.map((pr) => `#${pr.number}`).join(", ")} behind main, oldest first`,
+    prs: behind,
+  };
 }
 
 function gh(args) {
@@ -159,9 +191,34 @@ async function train() {
   );
   const next = pickNextToUpdate(prs);
   console.log(`${next.action}: ${next.reason}`);
+  if (next.action === "dispatch") {
+    startRequiredWorkflows(repo, next.prs[0].headRefName);
+    return;
+  }
   if (next.action !== "update") return;
+  for (const pr of next.prs) {
+    try {
+      await updateAndStartChecks(repo, pr);
+      return;
+    } catch (error) {
+      // A warning, not a failure: a refusal is permanent for that PR, and a red
+      // run every hour would only bury it. The PR stays open for a person.
+      console.log(
+        `::warning::#${pr.number} was not updated (${error.message}); trying the next one`,
+      );
+    }
+  }
+  console.log("::warning::no behind PR could be updated; they wait for a person");
+}
 
-  const { number, headRefName, headRefOid } = next.pr;
+function startRequiredWorkflows(repo, ref) {
+  for (const workflow of REQUIRED_WORKFLOWS) {
+    gh(["workflow", "run", workflow, "--repo", repo, "--ref", ref]);
+  }
+  console.log(`started ${REQUIRED_WORKFLOWS.join(", ")} on ${ref}`);
+}
+
+async function updateAndStartChecks(repo, { number, headRefName, headRefOid }) {
   gh([
     "api",
     "-X",
@@ -186,16 +243,12 @@ async function train() {
       ".headRefOid",
     ]).trim();
     if (head && head !== headRefOid) {
-      for (const workflow of REQUIRED_WORKFLOWS) {
-        gh(["workflow", "run", workflow, "--repo", repo, "--ref", headRefName]);
-      }
-      console.log(
-        `#${number} updated to ${head.slice(0, 7)}; started ${REQUIRED_WORKFLOWS.join(", ")}`,
-      );
+      console.log(`#${number} updated to ${head.slice(0, 7)}`);
+      startRequiredWorkflows(repo, headRefName);
       return;
     }
   }
-  throw new Error(`#${number}: the branch did not move within two minutes of the update request`);
+  throw new Error("the branch did not move within two minutes of the update request");
 }
 
 /* v8 ignore next 9 -- CLI entry point; the pure functions above are what the tests cover */

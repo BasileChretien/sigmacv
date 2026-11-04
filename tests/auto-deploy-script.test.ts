@@ -96,6 +96,7 @@ function world(): World {
     [
       `echo "$DEPLOY_SHA" >> "${logs}/deploy.calls"`,
       `echo "building..."`,
+      `[ -z "\${STUB_DEPLOY_SLEEP:-}" ] || sleep "$STUB_DEPLOY_SLEEP"`,
       `[ "\${STUB_DEPLOY_EXIT:-0}" = 0 ] || { echo "build exploded"; exit "$STUB_DEPLOY_EXIT"; }`,
       `git merge --ff-only --quiet "$DEPLOY_SHA"`,
     ].join("\n"),
@@ -234,19 +235,29 @@ describe.skipIf(bash === null)("scripts/auto-deploy.sh", { timeout: 120_000 }, (
     expect(w.deploys()).toEqual([]);
   });
 
+  const databases =
+    "services:\n  postgres:\n    image: postgres:16-alpine\n  events:\n    image: clickhouse/clickhouse-server:24.12-alpine\n";
   it.each([
-    ["a postgres", "postgres:17-alpine", "clickhouse/clickhouse-server:24.12-alpine"],
-    ["a clickhouse", "postgres:16-alpine", "clickhouse/clickhouse-server:25.3-alpine"],
-  ])("holds %s image change for a person, and says so once", (_label, postgres, clickhouse) => {
+    ["a postgres", databases.replace("postgres:16-alpine", "postgres:17-alpine")],
+    ["a clickhouse", databases.replace("24.12-alpine", "25.3-alpine")],
+    [
+      "a registry-qualified postgres",
+      databases.replace("postgres:16-alpine", "docker.io/library/postgres:17-alpine"),
+    ],
+    ["a quoted postgres", databases.replace("postgres:16-alpine", '"postgres:17-alpine"')],
+    [
+      "a plausible",
+      `${databases}  plausible:\n    image: ghcr.io/plausible/community-edition:v3.3.0\n`,
+    ],
+    [
+      "a variable-given",
+      databases.replace("postgres:16-alpine", "${PG_IMAGE:-postgres:16-alpine}"),
+    ],
+  ])("holds %s image change for a person, and says so once", (_label, compose) => {
     const w = world();
-    w.push(
-      "docker-compose.yml",
-      "services:\n  postgres:\n    image: postgres:16-alpine\n  events:\n    image: clickhouse/clickhouse-server:24.12-alpine\n",
-      "chore: both databases",
-    );
+    w.push("docker-compose.yml", databases, "chore: both databases");
     git(w.server, "pull", "--quiet", "--ff-only");
     w.run();
-    const compose = `services:\n  postgres:\n    image: ${postgres}\n  events:\n    image: ${clickhouse}\n`;
     const target = w.push("docker-compose.yml", compose, "chore: bump db");
     const r = w.run();
     expect(r.code).toBe(0);
@@ -287,6 +298,46 @@ describe.skipIf(bash === null)("scripts/auto-deploy.sh", { timeout: 120_000 }, (
     w.push("app.txt", "v2\n", "feat: elsewhere");
     expect(w.run().out).toContain("uncommitted changes");
     expect(w.deploys()).toEqual([]);
+  });
+
+  it("holds, rather than comparing against nothing, when the recorded deployed commit is unknown", () => {
+    const w = world();
+    w.run();
+    writeFileSync(
+      join(w.server, ".deploy-state", "deployed"),
+      "0123456789abcdef0123456789abcdef01234567\n",
+    );
+    w.push(
+      "docker-compose.yml",
+      "services:\n  postgres:\n    image: postgres:17-alpine\n",
+      "chore: bump db",
+    );
+    const r = w.run();
+    expect(r.out).toContain("is not in the server's checkout");
+    expect(w.deploys()).toEqual([]);
+  });
+
+  it("stops a deploy that runs past its time limit, and reports it as failed", () => {
+    const w = world();
+    w.run();
+    const before = w.state("deployed");
+    const target = w.push("app.txt", "v2\n", "feat: hangs the build");
+    const r = w.run({ AUTO_DEPLOY_TIMEOUT: "1", STUB_DEPLOY_SLEEP: "30" });
+    expect(r.code).toBe(1);
+    expect(r.out).toContain("it was stopped after running for 1 s");
+    expect(w.state("failed")).toBe(target);
+    expect(w.state("deployed")).toBe(before);
+    expect(w.notifications()).toEqual([`SigmaCV: deploy of ${target.slice(0, 7)} failed`]);
+  });
+
+  it("logs a failed fetch with a timestamp and tries again at the next run", () => {
+    const w = world();
+    w.run();
+    git(w.server, "remote", "set-url", "origin", join(w.logs, "no-such-repository.git"));
+    const r = w.run();
+    expect(r.code).toBe(1);
+    expect(r.out).toMatch(/\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ \[auto-deploy\] git fetch failed/);
+    expect(w.notifications()).toEqual([]);
   });
 
   it("reports a deploy whose site does not answer, and exits non-zero", () => {

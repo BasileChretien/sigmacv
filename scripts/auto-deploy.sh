@@ -12,13 +12,17 @@
 # GitHub. What it ships was tested: main takes only pull requests whose required
 # checks passed on a branch up to date with main (branch protection).
 #
-# It deploys nothing, and emails once, when
-#   - main is not a fast-forward of the server's checkout, or the checkout has
-#     uncommitted changes to tracked files;
-#   - the change touches a postgres or clickhouse image in a compose file: that
-#     can be a data migration (see .github/dependabot.yml), so a person deploys it;
-#   - the deploy of that same commit already failed. It tries again when main
-#     moves, or after `rm .deploy-state/failed`.
+# It deploys nothing, and emails once per commit on main, when
+#   - main is not a fast-forward of the server's checkout, the checkout has
+#     uncommitted changes to tracked files, or the recorded deployed commit is
+#     not in it;
+#   - the change touches a postgres, clickhouse or plausible image in a compose
+#     file (registry prefix or not), or an image given by a variable: those can
+#     be a data migration (see .github/dependabot.yml), so a person deploys them.
+#     When the compose files cannot be compared, it holds too;
+#   - the deploy of that same commit already failed, or ran past
+#     AUTO_DEPLOY_TIMEOUT (an hour). It tries again when main moves, or after
+#     `rm .deploy-state/failed`.
 #
 #   touch .deploy-state/paused   # pause it (a hand-run deploy.sh still works)
 #   rm .deploy-state/paused      # resume
@@ -36,7 +40,12 @@ NOTIFY_CMD="${AUTO_DEPLOY_NOTIFY_CMD:-notify_by_mail}"
 HEALTH_TRIES="${AUTO_DEPLOY_HEALTH_TRIES:-6}"
 HEALTH_WAIT="${AUTO_DEPLOY_HEALTH_WAIT:-10}"
 CURL="${AUTO_DEPLOY_CURL:-curl}"
+DEPLOY_TIMEOUT="${AUTO_DEPLOY_TIMEOUT:-3600}"
 RUNBOOK='docs/SERVER-RUNBOOK.md, "Automatic deploys"'
+# An image line (quotes removed first) that can carry a data migration: one of
+# the three database-owning images, behind any registry path, or one given by a
+# variable, whose value the diff cannot show.
+DB_IMAGE_RE='^[+-][[:space:]]*image:[[:space:]]*(([^[:space:]]*/)?(postgres|clickhouse|plausible)|\$\{)'
 
 log() { printf '%s [auto-deploy] %s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$*"; }
 
@@ -79,7 +88,10 @@ if command -v flock >/dev/null 2>&1; then
   flock -n 8 || exit 0 # the previous run is still deploying
 fi
 
-git fetch --quiet origin main
+if ! git fetch --quiet origin main; then
+  log "git fetch failed; trying again at the next run"
+  exit 1
+fi
 target="$(git rev-parse origin/main)"
 # First run: what is checked out is what runs.
 [ -s "$STATE_DIR/deployed" ] || git rev-parse HEAD >"$STATE_DIR/deployed"
@@ -113,25 +125,46 @@ EOF
   exit 0
 }
 
+git cat-file -e "$deployed^{commit}" 2>/dev/null ||
+  hold "the recorded deployed commit ($was, in $STATE_DIR/deployed) is not in the server's checkout."
 git merge-base --is-ancestor HEAD "$target" ||
   hold "main is not a fast-forward of the server's checkout (a commit made on the server, or main rewritten)."
 [ -z "$(git status --porcelain --untracked-files=no)" ] ||
   hold "the server's checkout has uncommitted changes to tracked files."
-image_diff="$(git diff "$deployed" "$target" -- 'docker-compose*.yml' 2>/dev/null || true)"
-if grep -Eq "^[+-][[:space:]]*image:[[:space:]]*[\"']?(postgres|clickhouse)" <<<"$image_diff"; then
-  hold "it changes a postgres or clickhouse image in a compose file, which can be a data migration. Read the change, then deploy by hand."
+if ! image_diff="$(git diff "$deployed" "$target" -- 'docker-compose*.yml')"; then
+  hold "the compose files of $was and $short could not be compared."
 fi
+if grep -Eq "$DB_IMAGE_RE" <<<"$(tr -d "\"'" <<<"$image_diff")"; then
+  hold "it changes a postgres, clickhouse or plausible image in a compose file (or one given by a variable), which can be a data migration. Read the change, then deploy by hand."
+fi
+
+# deploy.sh under a time limit: a hung build would otherwise hold the lock, and
+# every later run would exit without a word.
+run_deploy() {
+  if command -v timeout >/dev/null 2>&1; then
+    DEPLOY_SHA="$target" DEPLOY_STATE_DIR="$STATE_DIR" timeout --kill-after=60 "$DEPLOY_TIMEOUT" "$DEPLOY_CMD"
+  else
+    log "timeout not found: the deploy runs without a time limit"
+    DEPLOY_SHA="$target" DEPLOY_STATE_DIR="$STATE_DIR" "$DEPLOY_CMD"
+  fi
+}
 
 log "deploying $short (was $was)"
 deploy_log="$STATE_DIR/last-deploy.log"
-if ! DEPLOY_SHA="$target" DEPLOY_STATE_DIR="$STATE_DIR" "$DEPLOY_CMD" >"$deploy_log" 2>&1; then
+deploy_status=0
+run_deploy >"$deploy_log" 2>&1 || deploy_status=$?
+if [ "$deploy_status" -ne 0 ]; then
+  case "$deploy_status" in
+    124 | 137) why="it was stopped after running for ${DEPLOY_TIMEOUT} s" ;;
+    *) why="deploy.sh exited with status $deploy_status" ;;
+  esac
   echo "$target" >"$STATE_DIR/failed"
-  log "deploy of $short FAILED; its output is in $deploy_log"
+  log "deploy of $short FAILED ($why); its output is in $deploy_log"
   notify "SigmaCV: deploy of $short failed" "$(
     cat <<EOF
-The deploy of main ($short) failed. deploy.sh builds before it swaps, so unless
-the failure came after the swap the site still runs $was. It will not retry
-$short; it tries again when main moves.
+The deploy of main ($short) failed: $why. deploy.sh builds before it swaps, so
+unless the failure came after the swap the site still runs $was. It will not
+retry $short; it tries again when main moves.
 
 Last lines of $PWD/$deploy_log:
 $(tail -n 40 "$deploy_log")
