@@ -94,3 +94,101 @@ describe("the OAI-PMH deleted records in the retention notice", () => {
     expect(privacyStrings("en-US").retention).not.toContain("nothing else");
   });
 });
+
+describe("the research paragraph names study 2026-0310", () => {
+  // The panel's own label in each locale (`entry` in src/lib/i18n/researchPanel.ts,
+  // #570): the notice sends people there, so it must use the same name.
+  const PANEL: Record<string, string> = {
+    "en-US": "Research participation",
+    "zh-CN": "参与研究",
+    "es-ES": "Participación en investigación",
+    "fr-FR": "Participation à la recherche",
+    "de-DE": "Forschungsteilnahme",
+    "ja-JP": "研究への参加",
+    "pt-BR": "Participação em pesquisa",
+    "it-IT": "Partecipazione alla ricerca",
+    "ko-KR": "연구 참여",
+    "ru-RU": "Участие в исследовании",
+  };
+
+  it("names the institution, the approval and the panel in every locale", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const research = privacyStrings(loc).research;
+      expect(research, loc).toContain("2026-0310");
+      expect(research, loc).toMatch(/Nagoya|名古屋/);
+      expect(research, loc).toContain(PANEL[loc]);
+      expect(research, loc).toContain("ORCID iD");
+    }
+  });
+
+  // The first sentence's subject is SigmaCV, so a bare pronoun opening the
+  // second ("Lo llevan a cabo…", "Его проводят…") reads as Nagoya running SigmaCV.
+  const STUDY_OPENER: Record<string, string> = {
+    "en-US": "The study is run",
+    "zh-CN": "该研究由",
+    "es-ES": "El estudio lo llevan",
+    "fr-FR": "L'étude est menée",
+    "de-DE": "Die Studie wird",
+    "ja-JP": "この研究は",
+    "pt-BR": "O estudo é conduzido",
+    "it-IT": "Lo studio è condotto",
+    "ko-KR": "이 연구는",
+    "ru-RU": "Исследование проводят",
+  };
+
+  it("opens the sentence on who runs the study with the study, not a pronoun", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const research = privacyStrings(loc).research;
+      const second = research.slice(research.search(/[.。]/) + 1).trimStart();
+      const opener = STUDY_OPENER[loc];
+      expect(second.slice(0, opener?.length), loc).toBe(opener);
+    }
+  });
+
+  it("says who answers for the research data, and that the study team receives it", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const { controller, sharing } = privacyStrings(loc);
+      // The controller paragraph keeps Basile for the service and names the
+      // study's research director for the research data.
+      expect(controller, loc).toContain("Basile Chrétien");
+      expect(controller, loc).toMatch(/Nagoya University|名古屋大学/);
+      expect(controller, loc).toContain("Branko");
+      expect(controller, loc).toContain("Aleksic");
+      // The study team is the last recipient named.
+      const tail = sharing.slice(sharing.indexOf("/i/<ror>/reconciliation"));
+      expect(tail, loc).toMatch(/Nagoya University|名古屋大学/);
+    }
+  });
+
+  // Accents are folded first, so "anônimo" (pt-BR) and "anónimo" (es, pt-PT)
+  // match "anonim"; NFC then recomposes the Hangul that NFD splits into jamo.
+  const callsAnonymous = (text: string): boolean =>
+    /anonym|anonim|аноним|匿名|익명/i.test(
+      text.normalize("NFD").replace(/\p{M}/gu, "").normalize("NFC"),
+    );
+
+  it("the anonymity guard catches the word in each script and spelling", () => {
+    for (const word of [
+      "anonymous data",
+      "datos anónimos",
+      "dados anônimos",
+      "dados anónimos",
+      "dati anonimi",
+      "anonymisierte Daten",
+      "анонимные данные",
+      "匿名化",
+      "익명",
+    ]) {
+      expect(callsAnonymous(word), word).toBe(true);
+    }
+  });
+
+  it("never calls the research data anonymous: the approved sheet says it is pseudonymised", () => {
+    for (const loc of SUPPORTED_LOCALES) {
+      const { research, controller, sharing } = privacyStrings(loc);
+      for (const [key, text] of Object.entries({ research, controller, sharing })) {
+        expect(callsAnonymous(text), `${loc} ${key}`).toBe(false);
+      }
+    }
+  });
+});
