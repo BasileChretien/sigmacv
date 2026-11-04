@@ -47,11 +47,11 @@
   },
   "overrides": {
     "postcss": "^8.5.10",
-    "nodemailer": "^10.0.15",
+    "nodemailer": "^10.1.7",
     "@hono/node-server": "^1.19.14",
     "mysql2": "^3.24.3",
     "deepmerge-ts": "^8.0.2",
-    "fast-uri": "^3.1.8"
+    "fast-uri": "^3.1.9"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.3",
@@ -63,14 +63,14 @@
     "fast-xml-parser": "^5.11.2",
     "jszip": "^3.10.2",
     "motion": "^13.4.0",
-    "next": "^16.3.8",
+    "next": "^16.4.3",
     "next-auth": "^5.0.0-beta.32",
-    "nodemailer": "^10.0.15",
+    "nodemailer": "^10.1.7",
     "playwright": "1.63.0",
     "qrcode-generator": "^2.0.4",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "1.63.0",
