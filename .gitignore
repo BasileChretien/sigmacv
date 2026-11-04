@@ -88,3 +88,6 @@ yarn-error.log*
 # machine-specific absolute paths, never shared
 /.claude/
 /.codex/
+
+# Server-side deploy state (scripts/deploy.sh, scripts/auto-deploy.sh)
+.deploy-state/

@@ -14,7 +14,13 @@ on:
   push:
     branches: [main]
   pull_request:
+  # Also started by dependabot-train.yml on a Dependabot branch it brought up to date.
   workflow_dispatch:
+
+# Read-only, stated rather than inherited: a dispatched run executes the code of
+# the branch it was started on, Dependabot's included.
+permissions:
+  contents: read
 
 # Cancel superseded runs on the same ref to save minutes.
 concurrency:

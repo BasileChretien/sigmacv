@@ -1,6 +1,11 @@
 # Automated dependency monitoring (OpenSSF Scorecard "Dependency-Update-Tool" +
 # Best Practices dependency-monitoring criterion). Dependabot opens PRs for
 # security and version updates; CI (typecheck + ~800 tests + build) gates them.
+#
+# Patch and minor npm and GitHub Actions PRs merge themselves once the required
+# checks pass (.github/workflows/dependabot-auto-merge.yml), and the server
+# deploys main by itself (scripts/auto-deploy.sh). Everything else here waits for
+# a person: majors, Docker and Compose images, and the playwright pair.
 version: 2
 updates:
   # npm runtime + dev dependencies.
@@ -10,9 +15,32 @@ updates:
       interval: "weekly"
     open-pull-requests-limit: 10
     groups:
+      # Every patch/minor SECURITY fix in one PR. One PR per package left each
+      # of them red on the others' advisories (the Audit check), and in October
+      # 2026 five of them sat unmerged for two weeks while the live site ran a
+      # vulnerable Next.js. A fix that needs a major still comes on its own.
+      #
+      # Both groups leave the playwright pair out. It must move with the
+      # Dockerfile's runtime image tag, so it is never merged automatically, and
+      # inside a group it would hold every other update back with it.
+      security:
+        applies-to: security-updates
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "playwright"
+          - "@playwright/test"
+        update-types:
+          - "minor"
+          - "patch"
       # Batch low-risk minor/patch bumps into a single PR to cut review noise;
       # majors still arrive as individual PRs so breaking changes stay visible.
       minor-and-patch:
+        patterns:
+          - "*"
+        exclude-patterns:
+          - "playwright"
+          - "@playwright/test"
         update-types:
           - "minor"
           - "patch"
@@ -66,17 +94,19 @@ updates:
 
       # The builder's Node MAJOR is not a free-floating dependency either: it is
       # pinned to whatever the Playwright runtime image ships (v1.62.1-noble ->
-      # Node v24.18.1, verified 2026-09-02; v1.63.0-noble still declares
-      # `ARG NODE_VERSION=24`, read from the image config blob on MCR
-      # 2026-09-16). Letting Docker Hub's cadence drive it
-      # reintroduces the build-on-one-major / run-on-another bug the comment above
-      # the builder FROM records fixing — which is exactly what #371 (node 24 -> 26)
-      # proposed, and CI could not have caught it because no workflow builds the
-      # Dockerfile. Move this major deliberately, together with the runtime image,
-      # when Playwright ships a base image on a newer Node.
+      # Node v24.18.1, verified 2026-09-02; v1.63.0-noble and v1.64.0-noble
+      # declare `ARG NODE_VERSION=24`; v1.64.1-noble, rebuilt 2026-11-01,
+      # declares 26 — read from the image config blobs on MCR 2026-11-04, and
+      # the builder moved to node:26 with it). Letting Docker Hub's cadence drive
+      # it reintroduces the build-on-one-major / run-on-another bug the comment
+      # above the builder FROM records fixing — which is exactly what #371
+      # (node 24 -> 26) proposed while the runtime was still on 24, and CI could
+      # not have caught it because no workflow builds the Dockerfile. Move this
+      # major deliberately, together with the runtime image, when Playwright
+      # ships a base image on a newer Node.
       #
       # Scoped to majors: minor/patch bumps inside the line still arrive, so
-      # security fixes within 24.x are NOT blocked by this.
+      # security fixes within 26.x are NOT blocked by this.
       - dependency-name: "node"
         update-types: ["version-update:semver-major"]
 
