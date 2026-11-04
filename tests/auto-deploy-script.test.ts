@@ -12,7 +12,7 @@ import { tmpdir } from "node:os";
 import { delimiter, dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
-import { bash, runScript, stubCalls, stubCommand } from "./helpers/bashScript";
+import { bash, bashFinds, runScript, stubCalls, stubCommand } from "./helpers/bashScript";
 
 /**
  * `scripts/auto-deploy.sh` ships main to production with no person watching, so
@@ -237,22 +237,17 @@ describe.skipIf(bash === null)("scripts/auto-deploy.sh", { timeout: 120_000 }, (
 
   const databases =
     "services:\n  postgres:\n    image: postgres:16-alpine\n  events:\n    image: clickhouse/clickhouse-server:24.12-alpine\n";
+  // The first two change a line in place. The rest only ADD a service, so the
+  // one image line in the diff is the form under test: the plain pattern the
+  // guard started with matches none of them.
+  const added = (image: string) => `${databases}  extra:\n    image: ${image}\n`;
   it.each([
     ["a postgres", databases.replace("postgres:16-alpine", "postgres:17-alpine")],
     ["a clickhouse", databases.replace("24.12-alpine", "25.3-alpine")],
-    [
-      "a registry-qualified postgres",
-      databases.replace("postgres:16-alpine", "docker.io/library/postgres:17-alpine"),
-    ],
-    ["a quoted postgres", databases.replace("postgres:16-alpine", '"postgres:17-alpine"')],
-    [
-      "a plausible",
-      `${databases}  plausible:\n    image: ghcr.io/plausible/community-edition:v3.3.0\n`,
-    ],
-    [
-      "a variable-given",
-      databases.replace("postgres:16-alpine", "${PG_IMAGE:-postgres:16-alpine}"),
-    ],
+    ["a registry-qualified postgres", added("docker.io/library/postgres:17-alpine")],
+    ["a quoted, registry-qualified postgres", added('"docker.io/library/postgres:17-alpine"')],
+    ["a plausible", added("ghcr.io/plausible/community-edition:v3.3.0")],
+    ["a variable-given", added("${PG_IMAGE:-postgres:16-alpine}")],
   ])("holds %s image change for a person, and says so once", (_label, compose) => {
     const w = world();
     w.push("docker-compose.yml", databases, "chore: both databases");
@@ -317,17 +312,33 @@ describe.skipIf(bash === null)("scripts/auto-deploy.sh", { timeout: 120_000 }, (
     expect(w.deploys()).toEqual([]);
   });
 
-  it("stops a deploy that runs past its time limit, and reports it as failed", () => {
-    const w = world();
-    w.run();
-    const before = w.state("deployed");
-    const target = w.push("app.txt", "v2\n", "feat: hangs the build");
-    const r = w.run({ AUTO_DEPLOY_TIMEOUT: "1", STUB_DEPLOY_SLEEP: "30" });
-    expect(r.code).toBe(1);
-    expect(r.out).toContain("it was stopped after running for 1 s");
-    expect(w.state("failed")).toBe(target);
-    expect(w.state("deployed")).toBe(before);
-    expect(w.notifications()).toEqual([`SigmaCV: deploy of ${target.slice(0, 7)} failed`]);
+  // `timeout` is GNU coreutils: on Linux and in Git Bash, not on a bare macOS.
+  it.skipIf(!bashFinds("timeout"))(
+    "stops a deploy that runs past its time limit, and reports it as failed",
+    () => {
+      const w = world();
+      w.run();
+      const before = w.state("deployed");
+      const target = w.push("app.txt", "v2\n", "feat: hangs the build");
+      const r = w.run({ AUTO_DEPLOY_TIMEOUT: "1", STUB_DEPLOY_SLEEP: "30" });
+      expect(r.code).toBe(1);
+      expect(r.out).toContain("it was stopped after running for 1 s");
+      expect(w.state("failed")).toBe(target);
+      expect(w.state("deployed")).toBe(before);
+      expect(w.notifications()).toEqual([`SigmaCV: deploy of ${target.slice(0, 7)} failed`]);
+    },
+  );
+
+  it("does not blame the time limit for a deploy that exits 124 or 137 by itself", () => {
+    for (const status of ["124", "137"]) {
+      const w = world();
+      w.run();
+      w.push("app.txt", `v${status}\n`, "feat: dies quickly");
+      const r = w.run({ AUTO_DEPLOY_TIMEOUT: "999", STUB_DEPLOY_EXIT: status });
+      expect(r.code, status).toBe(1);
+      expect(r.out, status).toContain(`deploy.sh exited with status ${status}`);
+      expect(r.out, status).not.toContain("stopped after");
+    }
   });
 
   it("logs a failed fetch with a timestamp and tries again at the next run", () => {

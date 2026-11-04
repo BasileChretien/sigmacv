@@ -140,24 +140,28 @@ fi
 
 # deploy.sh under a time limit: a hung build would otherwise hold the lock, and
 # every later run would exit without a word.
-run_deploy() {
-  if command -v timeout >/dev/null 2>&1; then
-    DEPLOY_SHA="$target" DEPLOY_STATE_DIR="$STATE_DIR" timeout --kill-after=60 "$DEPLOY_TIMEOUT" "$DEPLOY_CMD"
-  else
-    log "timeout not found: the deploy runs without a time limit"
-    DEPLOY_SHA="$target" DEPLOY_STATE_DIR="$STATE_DIR" "$DEPLOY_CMD"
-  fi
-}
+limit=()
+if command -v timeout >/dev/null 2>&1; then
+  limit=(timeout --kill-after=60 "$DEPLOY_TIMEOUT")
+else
+  log "timeout not found: the deploy runs without a time limit"
+fi
 
 log "deploying $short (was $was)"
 deploy_log="$STATE_DIR/last-deploy.log"
 deploy_status=0
-run_deploy >"$deploy_log" 2>&1 || deploy_status=$?
+started=$SECONDS
+DEPLOY_SHA="$target" DEPLOY_STATE_DIR="$STATE_DIR" "${limit[@]}" "$DEPLOY_CMD" >"$deploy_log" 2>&1 ||
+  deploy_status=$?
 if [ "$deploy_status" -ne 0 ]; then
-  case "$deploy_status" in
-    124 | 137) why="it was stopped after running for ${DEPLOY_TIMEOUT} s" ;;
-    *) why="deploy.sh exited with status $deploy_status" ;;
-  esac
+  # timeout answers 124 (137 when it had to kill), but so can deploy.sh itself:
+  # it was the limit only if one was set and the deploy ran that long.
+  if [ "${#limit[@]}" -gt 0 ] && { [ "$deploy_status" -eq 124 ] || [ "$deploy_status" -eq 137 ]; } &&
+    [ $((SECONDS - started)) -ge "$DEPLOY_TIMEOUT" ]; then
+    why="it was stopped after running for ${DEPLOY_TIMEOUT} s"
+  else
+    why="deploy.sh exited with status $deploy_status"
+  fi
   echo "$target" >"$STATE_DIR/failed"
   log "deploy of $short FAILED ($why); its output is in $deploy_log"
   notify "SigmaCV: deploy of $short failed" "$(

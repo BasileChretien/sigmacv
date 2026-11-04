@@ -62,6 +62,10 @@ jobs:
   arm:
     name: Arm or disarm auto-merge
     needs: decide
+    # Also when `decide` failed: its output is then empty, so the PR is disarmed
+    # rather than left armed by an earlier run. Not when it was skipped (a PR
+    # that is not Dependabot's).
+    if: always() && needs.decide.result != 'skipped'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     permissions:
@@ -76,14 +80,18 @@ jobs:
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: gh pr merge --auto --squash "$PR_URL"
 
-      - name: Disarm auto-merge if it was armed
+      # Only an arming this workflow made. A person who armed a PR the rule
+      # refuses (the playwright PR once the Dockerfile tag is added, a reviewed
+      # major) keeps it through Dependabot's later pushes.
+      - name: Disarm auto-merge if this workflow armed it
         if: needs.decide.outputs.merge != 'true'
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PR_URL: ${{ github.event.pull_request.html_url }}
         run: |
-          if [ "$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest != null')" = "true" ]; then
-            gh pr merge --disable-auto "$PR_URL"
-          else
-            echo "not armed; nothing to do"
-          fi
+          armed_by="$(gh pr view "$PR_URL" --json autoMergeRequest --jq '.autoMergeRequest.enabledBy.login // ""')"
+          case "$armed_by" in
+            github-actions | "github-actions[bot]") gh pr merge --disable-auto "$PR_URL" ;;
+            "") echo "not armed; nothing to do" ;;
+            *) echo "armed by $armed_by; left as it is" ;;
+          esac

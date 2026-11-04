@@ -1,6 +1,8 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { delimiter, join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { bash, runScript } from "./helpers/bashScript";
 import {
   REQUIRED_CHECKS,
   REQUIRED_WORKFLOWS,
@@ -225,6 +227,75 @@ describe("the wiring the automatic path depends on", () => {
       expect(armJob).toContain('gh pr merge --auto --squash "$PR_URL"');
       expect(armJob).toContain("if: needs.decide.outputs.merge != 'true'");
       expect(armJob).toContain('gh pr merge --disable-auto "$PR_URL"');
+    });
+
+    it("still runs when decide failed, so an earlier arming is removed, but not for other PRs", () => {
+      expect(armJob).toContain("if: always() && needs.decide.result != 'skipped'");
+    });
+
+    describe.skipIf(bash === null)("the disarm step's script", () => {
+      // The step's `run: |` block, as the runner would execute it.
+      const lines = armJob.split("\n");
+      const start = lines.findIndex((l) =>
+        l.includes("Disarm auto-merge if this workflow armed it"),
+      );
+      const runAt = lines.findIndex((l, i) => i > start && l.trim() === "run: |");
+      const body: string[] = [];
+      for (const line of lines.slice(runAt + 1)) {
+        if (!line.startsWith(" ".repeat(10))) break;
+        body.push(line.slice(10));
+      }
+
+      const disarm = (login: string) => {
+        const dir = mkdtempSync(join(tmpdir(), "sigmacv-disarm-"));
+        try {
+          writeFileSync(join(dir, "step.sh"), `${body.join("\n")}\n`);
+          writeFileSync(
+            join(dir, "gh"),
+            [
+              "#!/bin/sh",
+              'if [ "$1 $2" = "pr view" ]; then printf "%s\\n" "$STUB_LOGIN"; exit 0; fi',
+              `echo "$*" >> "${dir.replace(/\\/g, "/")}/gh.calls"`,
+            ].join("\n"),
+            { mode: 0o755 },
+          );
+          const pathKey =
+            Object.keys(process.env).find((k) => k.toUpperCase() === "PATH") ?? "PATH";
+          const r = runScript(join(dir, "step.sh"), {
+            [pathKey]: `${dir}${delimiter}${process.env[pathKey] ?? ""}`,
+            STUB_LOGIN: login,
+            PR_URL: "https://github.com/o/r/pull/1",
+          });
+          const calls = existsSync(join(dir, "gh.calls"))
+            ? readFileSync(join(dir, "gh.calls"), "utf8").trim()
+            : "";
+          return { ...r, calls };
+        } finally {
+          rmSync(dir, { recursive: true, force: true });
+        }
+      };
+
+      it("found the script in the workflow", () => {
+        expect(body.join("\n")).toContain("enabledBy.login");
+      });
+
+      it.each(["github-actions", "github-actions[bot]"])(
+        "disarms an arming made by %s",
+        (login) => {
+          const r = disarm(login);
+          expect(r.code).toBe(0);
+          expect(r.calls).toBe("pr merge --disable-auto https://github.com/o/r/pull/1");
+        },
+      );
+
+      it("leaves a person's arming alone, and does nothing when not armed", () => {
+        const byPerson = disarm("BasileChretien");
+        expect(byPerson.calls).toBe("");
+        expect(byPerson.out).toContain("armed by BasileChretien; left as it is");
+        const none = disarm("");
+        expect(none.calls).toBe("");
+        expect(none.out).toContain("not armed; nothing to do");
+      });
     });
   });
 
