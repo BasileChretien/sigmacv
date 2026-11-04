@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { RESEARCH_CONSENT_VERSION } from "@/lib/research/consent";
 import {
   MIN_SALT_LENGTH,
   PRE_REGISTERED_EVENT_TYPES,
   buildKeyTable,
   buildResearchExport,
+  exportableSubjects,
   pseudonymise,
   researchExportGate,
   toJsonl,
@@ -11,14 +13,22 @@ import {
 } from "@/lib/research/export";
 
 const SALT = "x".repeat(MIN_SALT_LENGTH); // a valid-length test salt
+const V = RESEARCH_CONSENT_VERSION;
 
 function subject(
   userId: string,
   events: ResearchSubjectInput["events"],
   consent = true,
-  version: number | null = 1,
+  version: number | null = V,
+  secondaryUse: boolean | null = false,
 ): ResearchSubjectInput {
-  return { userId, researchConsent: consent, researchConsentVersion: version, events };
+  return {
+    userId,
+    researchConsent: consent,
+    researchConsentVersion: version,
+    secondaryUse,
+    events,
+  };
 }
 
 describe("pseudonymise", () => {
@@ -58,7 +68,7 @@ describe("buildResearchExport", () => {
     const serialized = JSON.stringify(rows);
     expect(serialized).not.toContain("user_a"); // pseudonymised
     expect(rows[0]!.subject).toBe(pseudonymise("user_a", SALT));
-    expect(rows[0]!.consentVersion).toBe(1);
+    expect(rows[0]!.consentVersion).toBe(V);
     expect(rows.map((r) => r.eventType)).toEqual(["curation_correction", "composition_snapshot"]);
   });
 
@@ -167,7 +177,8 @@ describe("buildKeyTable (対照表 — the personal-information manager's key)",
       {
         userId: "user_a",
         researchConsent: true,
-        researchConsentVersion: 2,
+        researchConsentVersion: V,
+        secondaryUse: true,
         identity: {
           name: "Ada L",
           email: "ada@example.org",
@@ -187,29 +198,43 @@ describe("buildKeyTable (対照表 — the personal-information manager's key)",
       name: "Ada L",
       email: "ada@example.org",
       orcid: "0000-0002-7483-2489",
-      consentVersion: 2,
+      consentVersion: V,
       consentAt: "2026-01-01T09:00:00.000Z",
+      secondaryUse: true,
     });
   });
 
   it("drops non-consenting subjects (defence in depth)", () => {
     const subjects: ResearchSubjectInput[] = [
-      { userId: "user_a", researchConsent: false, researchConsentVersion: 1, events },
+      {
+        userId: "user_a",
+        researchConsent: false,
+        researchConsentVersion: V,
+        secondaryUse: null,
+        events,
+      },
     ];
     expect(buildKeyTable(subjects, SALT)).toEqual([]);
   });
 
-  it("tolerates missing identity fields (nulls), never throwing", () => {
+  it("tolerates missing identity fields and a missing grant record (nulls), never throwing", () => {
     const subjects: ResearchSubjectInput[] = [
-      { userId: "user_a", researchConsent: true, researchConsentVersion: null, events },
+      {
+        userId: "user_a",
+        researchConsent: true,
+        researchConsentVersion: V,
+        secondaryUse: null,
+        events,
+      },
     ];
     const key = buildKeyTable(subjects, SALT);
     expect(key[0]!).toMatchObject({
       name: null,
       email: null,
       orcid: null,
-      consentVersion: null,
+      consentVersion: V,
       consentAt: null,
+      secondaryUse: null,
     });
   });
 
@@ -217,7 +242,8 @@ describe("buildKeyTable (対照表 — the personal-information manager's key)",
     const mk = (id: string): ResearchSubjectInput => ({
       userId: id,
       researchConsent: true,
-      researchConsentVersion: 1,
+      researchConsentVersion: V,
+      secondaryUse: false,
       identity: { name: id },
       events,
     });
@@ -225,6 +251,92 @@ describe("buildKeyTable (対照表 — the personal-information manager's key)",
     const subjects0 = key.map((r) => r.subject);
     expect(subjects0).toEqual([...subjects0].sort((a, b) => a.localeCompare(b)));
     expect(buildKeyTable([], SALT)).toEqual([]);
+  });
+});
+
+describe("approved consent only: the current RESEARCH_CONSENT_VERSION, with checkbox ②", () => {
+  const at = (iso: string) => new Date(iso);
+  const events = [
+    { type: "curation_correction", payload: {}, createdAt: at("2026-01-01T00:00:00Z") },
+  ];
+
+  it.each([
+    ["the notice shown before approval (version 1)", 1],
+    ["a version newer than this code knows", V + 1],
+    ["no version", null],
+  ])("drops a subject who consented under %s, from both outputs", (_label, version) => {
+    const subjects = [subject("user_old", events, true, version, true)];
+    expect(exportableSubjects(subjects)).toEqual([]);
+    expect(buildResearchExport(subjects, SALT)).toEqual([]);
+    expect(buildKeyTable(subjects, SALT)).toEqual([]);
+  });
+
+  it("keeps only the current-version subjects of a mixed cohort, the same ones in both outputs", () => {
+    const subjects = [
+      subject("user_v1", events, true, 1),
+      subject("user_now", events, true, V),
+      subject("user_withdrawn", events, false, null),
+    ];
+    expect(exportableSubjects(subjects).map((s) => s.userId)).toEqual(["user_now"]);
+    const only = pseudonymise("user_now", SALT);
+    expect(buildResearchExport(subjects, SALT).map((r) => r.subject)).toEqual([only]);
+    expect(buildKeyTable(subjects, SALT).map((r) => r.subject)).toEqual([only]);
+  });
+
+  it("carries checkbox ② on every row of a subject and in the key table, null when unknown", () => {
+    const twoEvents = [
+      ...events,
+      { type: "composition_snapshot", payload: {}, createdAt: at("2026-01-02T00:00:00Z") },
+    ];
+    const subjects = [
+      subject("user_yes", twoEvents, true, V, true),
+      subject("user_no", events, true, V, false),
+      subject("user_unknown", events, true, V, null),
+    ];
+    const rows = buildResearchExport(subjects, SALT);
+    const rowsOf = (id: string) =>
+      rows.filter((r) => r.subject === pseudonymise(id, SALT)).map((r) => r.secondaryUse);
+    expect(rowsOf("user_yes")).toEqual([true, true]);
+    expect(rowsOf("user_no")).toEqual([false]);
+    expect(rowsOf("user_unknown")).toEqual([null]);
+
+    const key = new Map(buildKeyTable(subjects, SALT).map((r) => [r.subject, r.secondaryUse]));
+    expect(key.get(pseudonymise("user_yes", SALT))).toBe(true);
+    expect(key.get(pseudonymise("user_no", SALT))).toBe(false);
+    expect(key.get(pseudonymise("user_unknown", SALT))).toBeNull();
+  });
+
+  it("adds only consent fields to the de-identified rows, never the identity", () => {
+    const subjects: ResearchSubjectInput[] = [
+      {
+        ...subject("user_a", events, true, V, true),
+        identity: {
+          name: "Ada Lovelace",
+          email: "ada@example.org",
+          orcid: "0000-0002-7483-2489",
+          consentAt: at("2026-01-01T09:00:00Z"),
+        },
+      },
+    ];
+    const rows = buildResearchExport(subjects, SALT);
+    expect(Object.keys(rows[0]!).sort()).toEqual([
+      "at",
+      "consentVersion",
+      "eventType",
+      "payload",
+      "secondaryUse",
+      "subject",
+    ]);
+    const serialized = JSON.stringify(rows);
+    for (const identifying of [
+      "Ada Lovelace",
+      "ada@example.org",
+      "0000-0002-7483-2489",
+      "user_a",
+      "2026-01-01T09:00:00",
+    ]) {
+      expect(serialized).not.toContain(identifying);
+    }
   });
 });
 

@@ -1,0 +1,52 @@
+# Brings an armed Dependabot PR that has fallen behind main up to date.
+#
+# main requires branches to be up to date, and auto-merge never updates a branch.
+# Dependabot rebases only on a conflict, so after one of its PRs merges, the
+# others that do not conflict would wait behind main forever. Once an hour this
+# updates the oldest such PR, then starts the two required workflows on it: a
+# push made with this workflow's token starts no workflow, and a dispatch is the
+# exception. One PR at a time, since each merge puts the rest behind again. It
+# also restarts the checks of an armed PR that an earlier update left with none.
+# When GitHub refuses an update, it logs a warning and tries the next PR, so a
+# refusal that will recur every hour does not turn every run red.
+#
+# The logic is `pickNextToUpdate` in scripts/dependabot-automerge.mjs. Started by
+# hand from the Actions tab too.
+name: Dependabot train
+
+on:
+  schedule:
+    - cron: "41 * * * *" # hourly
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dependabot-train
+  cancel-in-progress: false
+
+jobs:
+  next:
+    name: Update the next behind PR
+    if: github.repository == 'BasileChretien/sigmacv'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write # update the PR branch
+      pull-requests: write # update the PR branch
+      actions: write # start ci.yml and e2e.yml on it
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: Update the oldest armed PR that is behind main
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: node scripts/dependabot-automerge.mjs train

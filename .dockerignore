@@ -13,3 +13,4 @@ playwright-report
 Dockerfile
 docker-compose.yml
 .dockerignore
+.deploy-state

@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import CvWorkspace from "@/components/CvWorkspace";
 import { COACHMARK_DISMISS_KEY } from "@/components/DisambiguationCoachmark";
 import { CanonicalCvSchema, type CanonicalCv } from "@/lib/canonical/schema";
 import { NO_INSTITUTION_PAGE } from "@/lib/cv/institutionConsent";
 import type { SyncReport } from "@/lib/cv/syncReport";
-import { consentStrings } from "@/lib/i18n";
+import { researchPanelStrings } from "@/lib/i18n/researchPanel";
 import { snapshotStrings } from "@/lib/i18n/snapshots";
 
 afterEach(cleanup);
@@ -59,7 +59,6 @@ const baseProps = {
   initialSyncReport: CHANGED_REPORT,
   availableStyles: ["apa"],
   userName: "Basile Chrétien",
-  researchConsent: false,
   researchEnabled: false,
   published: false,
   publicSlug: null,
@@ -119,13 +118,19 @@ describe("CvWorkspace — the institution ask is last, and never stacks", () => 
     await waitFor(() => expect(askCard()).not.toBeNull());
   });
 
-  it("never stacks on the research-consent prompt: it waits until that is answered", async () => {
+  it("never opens the research panel by itself, and waits while the person has it open", async () => {
     window.localStorage.setItem(COACHMARK_DISMISS_KEY, "1");
-    render(<CvWorkspace {...listable} researchEnabled researchConsent={false} />);
-    await waitFor(() => expect(screen.getByRole("dialog")).toBeTruthy());
+    render(<CvWorkspace {...listable} researchEnabled />);
+    // The study is open, yet nothing about it shows up on its own: the ask is free.
+    await waitFor(() => expect(askCard()).not.toBeNull());
+    expect(screen.queryByRole("dialog")).toBeNull();
+    // The person opens the panel from the editor's link: the ask steps back…
+    const rp = researchPanelStrings("en-US");
+    fireEvent.click(screen.getByRole("button", { name: rp.entry }));
+    const dialog = await screen.findByRole("dialog");
     expect(askCard()).toBeNull();
-    // "Not now" on the consent prompt: the institution ask is then free to show.
-    fireEvent.click(screen.getByRole("button", { name: consentStrings("en-US").notNow }));
+    // …and comes back once the panel is closed.
+    fireEvent.click(within(dialog).getByRole("button", { name: rp.close }));
     await waitFor(() => expect(askCard()).not.toBeNull());
   });
 
