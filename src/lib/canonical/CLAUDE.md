@@ -7,5 +7,6 @@ The **single source of truth**. A `CanonicalCv` (curated data + display choices)
 - **`curate.ts`** — the curation operations. **Pure and immutable**: every op returns a new object, never mutates. This is where reorder / show-hide / rename / "not mine" live.
 - **`assertions.ts`** — keeps the "not mine" research signal (`notMine` + reason) separate from display hiding. `isHidden(item)` is the single predicate renderers use.
 - **`enrich.ts`** — folds in ROR (affiliations) and Crossref data.
+- **`cvModels.ts`** — the catalog of one-click funder / job / industry CV layouts, applied reversibly. The narrative modules (R4RI, Royal Society) are ordinary prose sections, not a separate subsystem. Maintainer note: `docs/CV-MODELS.md`.
 
 Invariant: **"not mine" sets `included:false`, it does not delete** — the correction is preserved for the disambiguation study.

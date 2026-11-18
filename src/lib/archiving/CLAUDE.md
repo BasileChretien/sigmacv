@@ -22,3 +22,12 @@ The worklist prints three separate facts under a closed work, each with its own 
 - **Every fact is dated and sourced**: the policy source's own "updated" date (OA.Works or Open Policy Finder, named) plus SigmaCV's retrieval date; each statutory entry's `lastVerified` (or the pending wording).
 - **Store only what the row prints.** The OA.Works boundary drops copyright-owner names, contributor e-mails and scores; a work that stops being a candidate loses its record. The repository pass stores names and links, never the work counts that ordered them.
 - **Analytics carry the route's kind only.** A click on a deposit link sends the cookieless `Deposit route` event with `{ kind }` (`funder` / `own` / `national` / `zenodo` / `shareyourpaper`) — never the DOI, the destination or anything about the person (`tests/worklist-deposit-panel.test.tsx`).
+
+## Jisc's terms for Open Policy Finder
+
+Agreed with Jisc in case CS-00957483 (2026-09-17); the data is CC BY-NC-ND 4.0. **Keep them true:**
+
+- Short factual lines, shown privately to each researcher in their own editor, credited to Open Policy Finder with a link to the journal's record and the date retrieved.
+- Never on a public page, in an export, or redistributed. The owner's own downloads (every export format, RO-Crate, account export) drop the records (`src/lib/cv/licensedPolicies.ts`).
+- Lookups by ISSN only, for the owner's own closed articles, during their own sync, a journal asked at most once a week (its answer, kept on the owner's records with `meta.selfArchivingOpfAt`, is reused within the week).
+- The key (`OPEN_POLICY_FINDER_API_KEY`) is sent only as the `x-api-key` header to `api.openpolicyfinder.jisc.ac.uk`: never print it, never put it in a URL. If Jisc withdraws it, UNSET the variable (a refused key keeps the records on screen, as a failed call does): without a key each Open Policy Finder record goes at its work's next due sync.

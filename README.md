@@ -325,7 +325,8 @@ on startup and renders PDFs in-process. The full runbook is in
 **[`DEPLOY.md`](DEPLOY.md)**, and the production go-live checklist — secrets, a
 production ORCID app, rate limiting, and the security hardening that **must** be
 configured before exposing it publicly — is in
-[`SECURITY.md`](SECURITY.md) and [`CLAUDE.md`](CLAUDE.md).
+[`SECURITY.md`](SECURITY.md) and
+[`docs/GO-LIVE-CHECKLIST.md`](docs/GO-LIVE-CHECKLIST.md).
 
 > **A note on `CLAUDE.md`:** that file (and the `CLAUDE.md` files in subfolders)
 > are guidance for AI coding assistants and contributors — internal engineering
