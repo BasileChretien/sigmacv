@@ -1,5 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { __resetEnvForTests, getEnv, getRateLimitEnv } from "@/lib/env";
+import {
+  RATE_LIMIT_DEFAULTS,
+  __resetEnvForTests,
+  getCallerRateLimit,
+  getEnv,
+  getRateLimit,
+} from "@/lib/env";
 
 /**
  * The anonymous rate limits an event can raise for a day without a code change
@@ -40,63 +46,70 @@ function setEnv(values: Record<string, string | undefined>): void {
   __resetEnvForTests();
 }
 
+function allLimits(): Record<LimitName, number> {
+  return Object.fromEntries(NAMES.map((n) => [n, getRateLimit(n)])) as Record<LimitName, number>;
+}
+
 beforeEach(() => setEnv({}));
 afterEach(() => {
   process.env = { ...ORIGINAL };
   __resetEnvForTests();
 });
 
-describe("getRateLimitEnv defaults", () => {
+describe("getRateLimit defaults", () => {
   it("returns today's limits when no override is set", () => {
-    expect(getRateLimitEnv()).toEqual(TODAY);
+    expect(allLimits()).toEqual(TODAY);
+  });
+
+  it("exports today's limits as the defaults", () => {
+    expect(RATE_LIMIT_DEFAULTS).toEqual(TODAY);
   });
 
   it("does not need the app's required variables (only its own)", () => {
     // No DATABASE_URL, AUTH_SECRET, ORCID_*: getEnv() would throw here.
     expect(() => getEnv()).toThrow(/environment/i);
-    expect(getRateLimitEnv().PREVIEW_MAX_PER_IP).toBe(30);
+    expect(getRateLimit("PREVIEW_MAX_PER_IP")).toBe(30);
   });
 
   it("treats a blank value as unset (a compose `${VAR:-}` passthrough)", () => {
     setEnv(Object.fromEntries(NAMES.map((n) => [n, ""])));
-    expect(getRateLimitEnv()).toEqual(TODAY);
+    expect(allLimits()).toEqual(TODAY);
   });
 });
 
-describe("getRateLimitEnv overrides", () => {
+describe("getRateLimit overrides", () => {
   it("reads every override as a whole number", () => {
     const raised = Object.fromEntries(NAMES.map((n) => [n, String(TODAY[n] * 10)]));
     setEnv(raised);
-    const limits = getRateLimitEnv();
-    for (const n of NAMES) expect(limits[n]).toBe(TODAY[n] * 10);
+    for (const n of NAMES) expect(getRateLimit(n)).toBe(TODAY[n] * 10);
   });
 
   it("keeps today's value for the limits that are not overridden", () => {
     setEnv({ PREVIEW_MAX_PER_IP: "1000" });
-    expect(getRateLimitEnv()).toEqual({ ...TODAY, PREVIEW_MAX_PER_IP: 1000 });
+    expect(allLimits()).toEqual({ ...TODAY, PREVIEW_MAX_PER_IP: 1000 });
   });
 
   it("accepts a lower limit too, down to 1", () => {
     setEnv({ SEARCH_MAX_PER_IP: "1" });
-    expect(getRateLimitEnv().SEARCH_MAX_PER_IP).toBe(1);
+    expect(getRateLimit("SEARCH_MAX_PER_IP")).toBe(1);
   });
 
   it.each(NAMES)("accepts %s at exactly 100 times today's value", (name) => {
     setEnv({ [name]: String(TODAY[name] * 100) });
-    expect(getRateLimitEnv()[name]).toBe(TODAY[name] * 100);
+    expect(getRateLimit(name)).toBe(TODAY[name] * 100);
   });
 
   it("is read once, then cached until the env is reset", () => {
     setEnv({ PREVIEW_MAX_GLOBAL: "2000" });
-    expect(getRateLimitEnv().PREVIEW_MAX_GLOBAL).toBe(2000);
+    expect(getRateLimit("PREVIEW_MAX_GLOBAL")).toBe(2000);
     process.env.PREVIEW_MAX_GLOBAL = "3000";
-    expect(getRateLimitEnv().PREVIEW_MAX_GLOBAL).toBe(2000);
+    expect(getRateLimit("PREVIEW_MAX_GLOBAL")).toBe(2000);
     __resetEnvForTests();
-    expect(getRateLimitEnv().PREVIEW_MAX_GLOBAL).toBe(3000);
+    expect(getRateLimit("PREVIEW_MAX_GLOBAL")).toBe(3000);
   });
 });
 
-describe("getRateLimitEnv invalid values", () => {
+describe("getRateLimit invalid values", () => {
   it.each([
     ["zero", "0"],
     ["negative", "-5"],
@@ -108,37 +121,56 @@ describe("getRateLimitEnv invalid values", () => {
     ["a unit", "40/h"],
   ])("refuses %s and names the variable", (_label, value) => {
     setEnv({ PREVIEW_MAX_PER_IP: value });
-    expect(() => getRateLimitEnv()).toThrow(/PREVIEW_MAX_PER_IP/);
+    expect(() => getRateLimit("PREVIEW_MAX_PER_IP")).toThrow(/PREVIEW_MAX_PER_IP/);
   });
 
   it.each(NAMES)("refuses %s above 100 times today's value", (name) => {
     setEnv({ [name]: String(TODAY[name] * 100 + 1) });
-    expect(() => getRateLimitEnv()).toThrow(new RegExp(name));
+    expect(() => getRateLimit(name)).toThrow(new RegExp(name));
   });
 
-  it("lists every bad variable at once, and says how to go back", () => {
-    setEnv({ SEARCH_MAX_PER_IP: "0", PREVIEW_RENDER_MAX_GLOBAL: "x" });
-    let message = "";
-    try {
-      getRateLimitEnv();
-    } catch (e) {
-      message = (e as Error).message;
-    }
-    expect(message).toMatch(/SEARCH_MAX_PER_IP/);
-    expect(message).toMatch(/PREVIEW_RENDER_MAX_GLOBAL/);
-    expect(message).toMatch(/unset/i);
+  it("says how to go back, with the default the variable returns to", () => {
+    setEnv({ SEARCH_MAX_PER_IP: "0" });
+    expect(() => getRateLimit("SEARCH_MAX_PER_IP")).toThrow(/unset.*\b20\b/i);
+  });
+
+  it.each(NAMES)("a bad %s fails only that variable: the seven others keep working", (bad) => {
+    setEnv({ [bad]: "300/min" });
+    expect(() => getRateLimit(bad)).toThrow(new RegExp(bad));
+    for (const n of NAMES.filter((x) => x !== bad)) expect(getRateLimit(n)).toBe(TODAY[n]);
   });
 
   it("keeps a bad limit away from getEnv(), so sign-in and the editor keep working", () => {
     setEnv({ ...REQUIRED_APP_ENV, PREVIEW_MAX_PER_IP: "lots" });
     expect(() => getEnv()).not.toThrow();
-    expect(() => getRateLimitEnv()).toThrow(/PREVIEW_MAX_PER_IP/);
+    expect(() => getRateLimit("PREVIEW_MAX_PER_IP")).toThrow(/PREVIEW_MAX_PER_IP/);
   });
 
   it("does not cache a failed parse", () => {
     setEnv({ PREVIEW_MAX_PER_IP: "lots" });
-    expect(() => getRateLimitEnv()).toThrow();
+    expect(() => getRateLimit("PREVIEW_MAX_PER_IP")).toThrow();
     process.env.PREVIEW_MAX_PER_IP = "50";
-    expect(getRateLimitEnv().PREVIEW_MAX_PER_IP).toBe(50);
+    expect(getRateLimit("PREVIEW_MAX_PER_IP")).toBe(50);
+  });
+});
+
+describe("getCallerRateLimit (the per-caller preview buckets)", () => {
+  it("gives an anonymous caller the event's override", () => {
+    setEnv({ PREVIEW_THUMBNAILS_MAX_PER_IP: "900" });
+    expect(getCallerRateLimit("PREVIEW_THUMBNAILS_MAX_PER_IP", false)).toBe(900);
+  });
+
+  it("keeps today's limit for a signed-in account, whatever the override", () => {
+    setEnv({ PREVIEW_THUMBNAILS_MAX_PER_IP: "3000", PREVIEW_RENDER_MAX_PER_IP: "24000" });
+    expect(getCallerRateLimit("PREVIEW_THUMBNAILS_MAX_PER_IP", true)).toBe(30);
+    expect(getCallerRateLimit("PREVIEW_RENDER_MAX_PER_IP", true)).toBe(240);
+  });
+
+  it("never reads the override for a signed-in account, so a bad value cannot reach it", () => {
+    setEnv({ PREVIEW_THUMBNAILS_MAX_PER_IP: "lots" });
+    expect(getCallerRateLimit("PREVIEW_THUMBNAILS_MAX_PER_IP", true)).toBe(30);
+    expect(() => getCallerRateLimit("PREVIEW_THUMBNAILS_MAX_PER_IP", false)).toThrow(
+      /PREVIEW_THUMBNAILS_MAX_PER_IP/,
+    );
   });
 });

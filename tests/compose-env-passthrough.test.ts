@@ -15,7 +15,7 @@ const REQUIRED_PASSTHROUGH = [
   "EPO_OPS_SECRET",
   "OPEN_POLICY_FINDER_API_KEY",
   "RESYNC_SECRET",
-  // The no-login rate limits an event raises for a day (`getRateLimitEnv`).
+  // The no-login rate limits an event raises for a day (`getRateLimit`).
   "PREVIEW_MAX_PER_IP",
   "PREVIEW_MAX_GLOBAL",
   "PREVIEW_RENDER_MAX_PER_IP",

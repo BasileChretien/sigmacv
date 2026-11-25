@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { getRateLimitEnv } from "@/lib/env";
+import { getRateLimit } from "@/lib/env";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { clientIpFromHeaders } from "@/lib/security/clientIp";
 
@@ -12,7 +12,8 @@ import { clientIpFromHeaders } from "@/lib/security/clientIp";
  * By default 20 per IP a minute, and 300 a minute and 3,000 an hour site-wide;
  * an event whose audience shares one IP raises them for the day with
  * `SEARCH_MAX_PER_IP`, `SEARCH_MAX_GLOBAL_PER_MINUTE` and
- * `SEARCH_MAX_GLOBAL_PER_HOUR` (`getRateLimitEnv` in `src/lib/env.ts`).
+ * `SEARCH_MAX_GLOBAL_PER_HOUR` (`getRateLimit` in `src/lib/env.ts`). All three are
+ * read before any bucket is spent, so a refused value spends nothing.
  */
 const SEARCH_IP_WINDOW_MS = 60_000;
 const SEARCH_GLOBAL_MINUTE_WINDOW_MS = 60_000;
@@ -22,21 +23,19 @@ export type SearchRateOutcome = { ok: true } | { ok: false; retryAfterSec: numbe
 
 /** Apply the per-IP, per-minute global and per-hour global search limits. */
 export async function enforceSearchRateLimit(): Promise<SearchRateOutcome> {
-  const limits = getRateLimitEnv();
+  const perIp = getRateLimit("SEARCH_MAX_PER_IP");
+  const perMinute = getRateLimit("SEARCH_MAX_GLOBAL_PER_MINUTE");
+  const perHour = getRateLimit("SEARCH_MAX_GLOBAL_PER_HOUR");
   const ip = clientIpFromHeaders(await headers());
-  const rl = await enforceRateLimit(`search:${ip}`, limits.SEARCH_MAX_PER_IP, SEARCH_IP_WINDOW_MS);
+  const rl = await enforceRateLimit(`search:${ip}`, perIp, SEARCH_IP_WINDOW_MS);
   if (!rl.ok) return { ok: false, retryAfterSec: rl.retryAfterSec };
   const gm = await enforceRateLimit(
     "search:global:minute",
-    limits.SEARCH_MAX_GLOBAL_PER_MINUTE,
+    perMinute,
     SEARCH_GLOBAL_MINUTE_WINDOW_MS,
   );
   if (!gm.ok) return { ok: false, retryAfterSec: gm.retryAfterSec };
-  const gh = await enforceRateLimit(
-    "search:global:hour",
-    limits.SEARCH_MAX_GLOBAL_PER_HOUR,
-    SEARCH_GLOBAL_HOUR_WINDOW_MS,
-  );
+  const gh = await enforceRateLimit("search:global:hour", perHour, SEARCH_GLOBAL_HOUR_WINDOW_MS);
   if (!gh.ok) return { ok: false, retryAfterSec: gh.retryAfterSec };
   return { ok: true };
 }
