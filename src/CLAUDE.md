@@ -1,6 +1,6 @@
 # src
 
-Next.js 15 App Router application code. See the repository-root `CLAUDE.md` for the load-bearing architecture and commands; this file covers what's specific to `src/`.
+Next.js 16 App Router application code. See the repository-root `CLAUDE.md` for the load-bearing architecture and commands; this file covers what's specific to `src/`.
 
 ## Layout
 

@@ -1,6 +1,6 @@
 # app
 
-Next.js 15 App Router: routes, server actions, and API handlers.
+Next.js 16 App Router: routes, server actions, and API handlers.
 
 ## Routes
 

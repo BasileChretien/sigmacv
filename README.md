@@ -243,7 +243,7 @@ repository lives at
 
 |                        |                                                                                           |
 | ---------------------- | ----------------------------------------------------------------------------------------- |
-| **Framework**          | Next.js 15 (App Router) + TypeScript                                                      |
+| **Framework**          | Next.js 16 (App Router) + TypeScript                                                      |
 | **Database**           | PostgreSQL + Prisma                                                                       |
 | **Auth**               | Auth.js v5 — ORCID iD (Google + email magic-link optional, off by default)                |
 | **Citations**          | `citeproc-js` — the Citation Style Language (CSL) engine that also powers Zotero/Mendeley |
