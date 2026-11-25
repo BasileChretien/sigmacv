@@ -2,6 +2,8 @@
 
 The self-archiving programme: help the owner put a legal copy of each closed paper in the right open repository. **Editor-only, end to end** — nothing here reaches the public page, an export, the OAI-PMH feed, a frozen version or the anonymous preview (`tests/funders-not-public.test.ts` checks it at the source).
 
+**Open Policy Finder data is under contract.** The terms agreed with Jisc (case CS-00957483, 2026-09-17) bind every change here and in anything that reads `meta.selfArchiving`. They are written out under "Jisc Open Policy Finder" in [`docs/DATA-SOURCES.md`](../../../docs/DATA-SOURCES.md); keep them true.
+
 ## Why one folder
 
 The worklist prints three separate facts under a closed work, each with its own source and date: the **publisher's** policy (Jisc Open Policy Finder by ISSN, else OA.Works by DOI — the line names which), the **statute** of the country printed on the paper, and the **funder's** policy (`funders/oaPolicies.ts`, joined to the owner's own grants). They must never merge into one verdict. This folder holds the first two and the deposit routes, so the programme reads in one place while `funders/` stays about funders:

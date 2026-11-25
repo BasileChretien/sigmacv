@@ -243,7 +243,7 @@ repository lives at
 
 |                        |                                                                                           |
 | ---------------------- | ----------------------------------------------------------------------------------------- |
-| **Framework**          | Next.js 15 (App Router) + TypeScript                                                      |
+| **Framework**          | Next.js 16 (App Router) + TypeScript                                                      |
 | **Database**           | PostgreSQL + Prisma                                                                       |
 | **Auth**               | Auth.js v5 — ORCID iD (Google + email magic-link optional, off by default)                |
 | **Citations**          | `citeproc-js` — the Citation Style Language (CSL) engine that also powers Zotero/Mendeley |
@@ -325,7 +325,7 @@ on startup and renders PDFs in-process. The full runbook is in
 **[`DEPLOY.md`](DEPLOY.md)**, and the production go-live checklist — secrets, a
 production ORCID app, rate limiting, and the security hardening that **must** be
 configured before exposing it publicly — is in
-[`SECURITY.md`](SECURITY.md) and [`CLAUDE.md`](CLAUDE.md).
+[`SECURITY.md`](SECURITY.md) and [`docs/GO-LIVE-CHECKLIST.md`](docs/GO-LIVE-CHECKLIST.md).
 
 > **A note on `CLAUDE.md`:** that file (and the `CLAUDE.md` files in subfolders)
 > are guidance for AI coding assistants and contributors — internal engineering
