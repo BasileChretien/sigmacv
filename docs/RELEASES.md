@@ -68,3 +68,11 @@ git push origin vX.Y.Z
 ```
 
 Publishing the GitHub release for that tag triggers the signing workflow above.
+
+## Zenodo DOI write-back (maintainer)
+
+Zenodo deposits each published GitHub release (config in `.zenodo.json`) and mints a
+versioned DOI under the concept DOI `10.5281/zenodo.20594123`. For each release, bump
+`version` / `date-released` in `CITATION.cff`, `codemeta.json` and `.zenodo.json` to match
+the tag, then write the new versioned DOI back into `CITATION.cff`, `.zenodo.json` and the
+README "Citing" section.
