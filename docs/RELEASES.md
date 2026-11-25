@@ -74,5 +74,7 @@ Publishing the GitHub release for that tag triggers the signing workflow above.
 Zenodo deposits each published GitHub release (config in `.zenodo.json`) and mints a
 versioned DOI under the concept DOI `10.5281/zenodo.20594123`. For each release, bump
 `version` / `date-released` in `CITATION.cff`, `codemeta.json` and `.zenodo.json` to match
-the tag, then write the new versioned DOI back into `CITATION.cff`, `.zenodo.json` and the
-README "Citing" section.
+the tag, then write the new versioned DOI back into `CITATION.cff`, `.zenodo.json`, the
+README "Citing" section and the citation in `public/llms-full.txt`
+(`tests/release-metadata.test.ts` checks that the README and `llms-full.txt` name the newest
+release that has a DOI).

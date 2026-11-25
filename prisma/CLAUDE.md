@@ -14,5 +14,5 @@ Database schema + migrations (PostgreSQL). The Prisma **client** is generated in
 
 The dev DB (Neon) is **push-managed**: `npm run db:push` (or the automatic `predev` → `scripts/ensure-db.mjs`, which fingerprints the schema and pushes only on change). Use `dotenv -e .env` (the npm scripts do) — a bare `npx prisma …` falls back to a placeholder URL and fails `P1001`. `npm run db:migrate` is the migration-history path for a fresh DB / Docker. Migration files under `migrations/` are kept consistent with `schema.prisma` by tests — regenerate them when you change the schema.
 
-- An unsynced dev DB surfaces as an opaque Auth.js _"server configuration"_ error on the first authenticated request: run `npm run db:sync` before suspecting the auth code.
+- An unsynced dev DB surfaces as an opaque Auth.js _"server configuration"_ error on the first authenticated request: run `npm run db:push` before suspecting the auth code (`db:sync` skips the push while the schema's fingerprint matches `.prisma-pushed`, so it cannot repair a database that drifted on its own).
 - `src/generated/prisma/` is gitignored and `postinstall` runs `prisma generate`, so a fresh clone or a newly added worktree must `npm install` before `npm run typecheck` can resolve the `@/generated/prisma/*` imports.
