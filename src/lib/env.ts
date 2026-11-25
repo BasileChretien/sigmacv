@@ -97,26 +97,100 @@ const EnvSchema = z
 
 export type Env = z.infer<typeof EnvSchema>;
 
+/**
+ * The no-login rate limits, which an event can raise for a day without a code
+ * change: a workshop room behind one university NAT is one IP to the limiter.
+ * Each value is a whole number of requests per window; the window is fixed in
+ * the route. Unset (or blank) means today's limit, the `.default()` below.
+ *
+ * A value above 100 times today's is refused: that no longer raises a limit, it
+ * switches it off (a stray extra digit or two). The global ceilings protect the
+ * upstream polite pools and the server's CPU, so raise them as little as the
+ * event needs, and unset everything afterwards.
+ *
+ * Parsed apart from `EnvSchema` on purpose: a typo in an event-day value fails
+ * only the routes it limits (they answer 500 and the log names the variable),
+ * never sign-in, the editor or the public pages that `getEnv()` serves.
+ */
+const LIMIT_CEILING_FACTOR = 100;
+
+function requestLimit(today: number) {
+  return z
+    .string()
+    .regex(/^\d+$/, "must be a whole number of requests, with no spaces or separators")
+    .transform(Number)
+    .pipe(
+      z
+        .number()
+        .int()
+        .min(1)
+        .max(today * LIMIT_CEILING_FACTOR),
+    )
+    .default(today);
+}
+
+const RateLimitEnvSchema = z.object({
+  // /api/preview/build: one ORCID preview (~20 upstream sources), per hour.
+  PREVIEW_MAX_PER_IP: requestLimit(30),
+  PREVIEW_MAX_GLOBAL: requestLimit(600),
+  // /api/preview/render: the no-login editor re-rendering as the visitor
+  // curates or restyles, per hour.
+  PREVIEW_RENDER_MAX_PER_IP: requestLimit(240),
+  PREVIEW_RENDER_MAX_GLOBAL: requestLimit(6_000),
+  // /api/cv/preview/gallery and /api/cv/preview/styles: the style pickers'
+  // thumbnails, each its own bucket, per hour (per account when signed in).
+  PREVIEW_THUMBNAILS_MAX_PER_IP: requestLimit(30),
+  // /search: the name lookup, one OpenAlex call per distinct query.
+  SEARCH_MAX_PER_IP: requestLimit(20), // per minute
+  SEARCH_MAX_GLOBAL_PER_MINUTE: requestLimit(300),
+  SEARCH_MAX_GLOBAL_PER_HOUR: requestLimit(3_000),
+});
+
+export type RateLimitEnv = z.infer<typeof RateLimitEnvSchema>;
+
 let cached: Env | null = null;
+let cachedLimits: RateLimitEnv | null = null;
 
 /** Test hook: forget the parsed env so a test can change process.env and re-parse. */
 export function __resetEnvForTests(): void {
   cached = null;
+  cachedLimits = null;
 }
 
-export function getEnv(): Env {
-  if (cached) return cached;
-  // Treat empty-string env values as unset (e.g. `RESYNC_SECRET=""` in .env),
-  // so optional vars left blank don't fail validation.
+/** `process.env` with empty strings as unset (e.g. `RESYNC_SECRET=""` in .env,
+ *  or a compose `${VAR:-}` passthrough), so optional vars left blank don't fail
+ *  validation. */
+function envSource(): Record<string, string | undefined> {
   const source: Record<string, string | undefined> = {};
   for (const [k, v] of Object.entries(process.env)) {
     source[k] = v === "" ? undefined : v;
   }
-  const parsed = EnvSchema.safeParse(source);
+  return source;
+}
+
+function formatIssues(error: z.ZodError): string {
+  return error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`).join("\n");
+}
+
+/** The no-login rate limits (see `RateLimitEnvSchema`), parsed once. */
+export function getRateLimitEnv(): RateLimitEnv {
+  if (cachedLimits) return cachedLimits;
+  const parsed = RateLimitEnvSchema.safeParse(envSource());
   if (!parsed.success) {
-    const issues = parsed.error.issues
-      .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
-      .join("\n");
+    throw new Error(
+      `Invalid rate-limit configuration:\n${formatIssues(parsed.error)}\n` +
+        `Unset a variable to restore its default (see .env.production.example).`,
+    );
+  }
+  cachedLimits = parsed.data;
+  return cachedLimits;
+}
+
+export function getEnv(): Env {
+  if (cached) return cached;
+  const parsed = EnvSchema.safeParse(envSource());
+  if (!parsed.success) {
+    const issues = formatIssues(parsed.error);
     throw new Error(
       `Invalid or missing environment configuration:\n${issues}\n` +
         `See .env.example for the required variables.`,

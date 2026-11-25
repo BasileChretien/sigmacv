@@ -59,6 +59,8 @@ docker compose exec app sh -c '
 **Expect:** `AUTH_URL=https://sigmacv.org`, `ORCID_ENVIRONMENT=production`,
 `RATE_LIMIT_PERSIST=true`, `AUTH_SECRET: OK`, `OPENALEX_MAILTO: set`.
 
+**An event whose audience shares one IP** (a workshop room): the evening before, add the eight no-login limit lines (`PREVIEW_MAX_…`, `PREVIEW_RENDER_MAX_…`, `PREVIEW_THUMBNAILS_MAX_PER_IP`, `SEARCH_MAX_…`) from `.env.production.example` to `.env` with the event's values, run `docker compose up -d app` (it recreates only the app container: a few seconds of 502s), check them with `docker compose exec app sh -c 'env | grep -E "^(PREVIEW|SEARCH)_[A-Z_]*MAX[A-Z_]*=."'`, and open one preview and one name search (an error instead of a result means a refused value, named in `docker compose logs app`). The next day, delete those lines from `.env` and run `docker compose up -d app` again: the grep then prints nothing and today's limits are back.
+
 If you ever ran the analytics profile before 2026-06-11: `plausible_db` used to
 default its password to `postgres` when `PLAUSIBLE_DB_PASSWORD` was unset. The
 compose default is now empty (fails closed), but **an already-initialized volume

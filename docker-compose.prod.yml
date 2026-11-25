@@ -67,6 +67,16 @@ services:
       # Both optional; without the key /object says objections are unavailable.
       PREVIEW_SUPPRESSION_KEY: ${PREVIEW_SUPPRESSION_KEY:-}
       PREVIEW_SUPPRESSED_ORCID_HMACS: ${PREVIEW_SUPPRESSED_ORCID_HMACS:-}
+      # No-login rate limits, raised for one day for an event whose audience
+      # shares one IP (a workshop room). Blank = today's limits. Unset them after.
+      PREVIEW_MAX_PER_IP: ${PREVIEW_MAX_PER_IP:-}
+      PREVIEW_MAX_GLOBAL: ${PREVIEW_MAX_GLOBAL:-}
+      PREVIEW_RENDER_MAX_PER_IP: ${PREVIEW_RENDER_MAX_PER_IP:-}
+      PREVIEW_RENDER_MAX_GLOBAL: ${PREVIEW_RENDER_MAX_GLOBAL:-}
+      PREVIEW_THUMBNAILS_MAX_PER_IP: ${PREVIEW_THUMBNAILS_MAX_PER_IP:-}
+      SEARCH_MAX_PER_IP: ${SEARCH_MAX_PER_IP:-}
+      SEARCH_MAX_GLOBAL_PER_MINUTE: ${SEARCH_MAX_GLOBAL_PER_MINUTE:-}
+      SEARCH_MAX_GLOBAL_PER_HOUR: ${SEARCH_MAX_GLOBAL_PER_HOUR:-}
       NODE_ENV: "production"
     expose:
       - "3000"
