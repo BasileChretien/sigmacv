@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
+import { getRateLimitEnv } from "@/lib/env";
 import { logger } from "@/lib/log";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
@@ -11,7 +12,8 @@ export const dynamic = "force-dynamic";
 
 // One request renders the sample in EVERY template (~5x a single preview), so a
 // tighter cap (the gallery fetches once per editor session) + a body ceiling.
-const GALLERY_MAX = 30;
+// 30 an hour by default; an event whose audience shares one IP raises it for
+// the day (PREVIEW_THUMBNAILS_MAX_PER_IP, `getRateLimitEnv`).
 const GALLERY_WINDOW_MS = 60 * 60 * 1000; // 1 hour
 const MAX_BODY_BYTES = 8_000_000;
 
@@ -25,7 +27,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
   }
 
-  const rl = await enforceRateLimit(`preview-gallery:${gate.key}`, GALLERY_MAX, GALLERY_WINDOW_MS);
+  const rl = await enforceRateLimit(
+    `preview-gallery:${gate.key}`,
+    getRateLimitEnv().PREVIEW_THUMBNAILS_MAX_PER_IP,
+    GALLERY_WINDOW_MS,
+  );
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many preview requests. Please wait a moment." },
