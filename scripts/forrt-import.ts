@@ -3,7 +3,7 @@
  * export into Postgres (the `ForrtReplication` reference table).
  *
  * There is NO committed seed: the maintainer must download the dataset and run
- * this once (then periodically, on a refresh — see CLAUDE.md). FReD is CC-BY
+ * this once (then periodically, on a refresh — see docs/GO-LIVE-CHECKLIST.md). FReD is CC-BY
  * (https://osf.io/, hosted by the Framework for Open and Reproducible Research
  * Training), so redistribution IS permitted with attribution — unlike WHO ICTRP —
  * but nothing is bundled yet.
@@ -52,7 +52,7 @@
  *
  * Idempotent: replaces the table wholesale (delete-all + batched insert), like
  * `scripts/ictrp-import.ts`. Re-run whenever a refreshed FReD export is
- * downloaded — see the CLAUDE.md go-live checklist for cadence + attribution.
+ * downloaded — see docs/GO-LIVE-CHECKLIST.md for cadence + attribution.
  *
  * CSV parsing is line-based (RFC 4180 quoting within a single line: quoted
  * fields, escaped `""`, commas inside quotes) — NOTE: this does NOT handle a

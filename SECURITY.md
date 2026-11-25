@@ -233,6 +233,7 @@ Set these before exposing the app publicly (see `.env.production.example`):
 - `AUTH_URL` — the canonical HTTPS origin (anchors OAuth callbacks + the CSRF
   origin check).
 - `RATE_LIMIT_PERSIST=true` — durable, cross-instance rate limiting.
+- `PREVIEW_MAX_…`, `PREVIEW_RENDER_MAX_…`, `PREVIEW_THUMBNAILS_MAX_PER_IP`, `SEARCH_MAX_…` — the no-login limits, **unset** except for one event day whose audience shares an IP; set them the evening before and delete them the next day (`docs/SERVER-RUNBOOK.md` §1). Values above 100× the default are refused, each variable on its own: a refused value fails only the routes it limits. The re-render and thumbnail values apply to callers who are not signed in; a signed-in account's own buckets keep the default.
 - Keep Postgres **unpublished** to the internet (the compose files `expose` only).
 - Caddy sets `X-Forwarded-For` to the real peer and `request_body max_size`; keep
   `/api/internal/*` blocked at the edge, and keep the method allow-list (anything

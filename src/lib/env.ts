@@ -97,26 +97,118 @@ const EnvSchema = z
 
 export type Env = z.infer<typeof EnvSchema>;
 
+/**
+ * The no-login rate limits, which an event can raise for a day without a code
+ * change: a workshop room behind one university NAT is one IP to the limiter.
+ * Each value is a whole number of requests per window; the window is fixed in
+ * the route. Unset (or blank) means today's limit, `RATE_LIMIT_DEFAULTS` below.
+ *
+ * A value above 100 times today's is refused: that no longer raises a limit, it
+ * switches it off (a stray extra digit or two). The global ceilings protect the
+ * upstream polite pools and the server's CPU, so raise them as little as the
+ * event needs, and unset everything afterwards.
+ *
+ * Parsed apart from `EnvSchema`, and each variable on its own, on purpose: a
+ * typo in an event-day value fails only the routes that read that variable
+ * (they answer 500 and the log names it), never sign-in, the editor, the public
+ * pages that `getEnv()` serves, or the routes of the seven other variables.
+ */
+export const RATE_LIMIT_DEFAULTS = {
+  // /api/preview/build: one ORCID preview (~20 upstream sources), per hour.
+  PREVIEW_MAX_PER_IP: 30,
+  PREVIEW_MAX_GLOBAL: 600,
+  // /api/preview/render: the no-login editor re-rendering as the visitor
+  // curates or restyles, per hour (per caller: see `getCallerRateLimit`).
+  PREVIEW_RENDER_MAX_PER_IP: 240,
+  PREVIEW_RENDER_MAX_GLOBAL: 6_000,
+  // /api/cv/preview/gallery and /api/cv/preview/styles: the style pickers'
+  // thumbnails, each its own bucket, per hour (per caller: see `getCallerRateLimit`).
+  PREVIEW_THUMBNAILS_MAX_PER_IP: 30,
+  // /search: the name lookup, one OpenAlex call per distinct query.
+  SEARCH_MAX_PER_IP: 20, // per minute
+  SEARCH_MAX_GLOBAL_PER_MINUTE: 300,
+  SEARCH_MAX_GLOBAL_PER_HOUR: 3_000,
+} as const;
+
+export type RateLimitName = keyof typeof RATE_LIMIT_DEFAULTS;
+
+const LIMIT_CEILING_FACTOR = 100;
+
+function requestLimit(today: number) {
+  return z
+    .string()
+    .regex(/^\d+$/, "must be a whole number of requests, with no spaces or separators")
+    .transform(Number)
+    .pipe(
+      z
+        .number()
+        .int()
+        .min(1)
+        .max(today * LIMIT_CEILING_FACTOR),
+    )
+    .default(today);
+}
+
 let cached: Env | null = null;
+const cachedLimits = new Map<RateLimitName, number>();
 
 /** Test hook: forget the parsed env so a test can change process.env and re-parse. */
 export function __resetEnvForTests(): void {
   cached = null;
+  cachedLimits.clear();
 }
 
-export function getEnv(): Env {
-  if (cached) return cached;
-  // Treat empty-string env values as unset (e.g. `RESYNC_SECRET=""` in .env),
-  // so optional vars left blank don't fail validation.
+/** `process.env` with empty strings as unset (e.g. `RESYNC_SECRET=""` in .env,
+ *  or a compose `${VAR:-}` passthrough), so optional vars left blank don't fail
+ *  validation. */
+function envSource(): Record<string, string | undefined> {
   const source: Record<string, string | undefined> = {};
   for (const [k, v] of Object.entries(process.env)) {
     source[k] = v === "" ? undefined : v;
   }
-  const parsed = EnvSchema.safeParse(source);
+  return source;
+}
+
+function formatIssues(error: z.ZodError): string {
+  return error.issues.map((i) => `  - ${i.path.join(".")}: ${i.message}`).join("\n");
+}
+
+/** One no-login rate limit (see `RATE_LIMIT_DEFAULTS`), parsed on first use and
+ *  then cached. Throws, naming only this variable, when its value is refused. */
+export function getRateLimit(name: RateLimitName): number {
+  const hit = cachedLimits.get(name);
+  if (hit !== undefined) return hit;
+  const today = RATE_LIMIT_DEFAULTS[name];
+  const raw = process.env[name];
+  // Blank is unset, as in `envSource()` (a compose `${VAR:-}` passthrough).
+  const parsed = requestLimit(today).safeParse(raw === "" ? undefined : raw);
   if (!parsed.success) {
-    const issues = parsed.error.issues
-      .map((i) => `  - ${i.path.join(".")}: ${i.message}`)
-      .join("\n");
+    const reasons = parsed.error.issues.map((i) => i.message).join("; ");
+    throw new Error(
+      `Invalid rate limit ${name}: ${reasons}.\n` +
+        `Unset it to restore its default of ${today} (see .env.production.example).`,
+    );
+  }
+  cachedLimits.set(name, parsed.data);
+  return parsed.data;
+}
+
+/**
+ * The ceiling of a per-caller preview bucket (the editor's re-renders, the style
+ * thumbnails). The event-day override is for visitors who are not signed in, whom
+ * a shared room IP lumps into one bucket. A signed-in account is a bucket of its
+ * own, so it keeps today's limit and never reads the override: a refused value
+ * cannot reach the signed-in editor's style pickers.
+ */
+export function getCallerRateLimit(name: RateLimitName, signedIn: boolean): number {
+  return signedIn ? RATE_LIMIT_DEFAULTS[name] : getRateLimit(name);
+}
+
+export function getEnv(): Env {
+  if (cached) return cached;
+  const parsed = EnvSchema.safeParse(envSource());
+  if (!parsed.success) {
+    const issues = formatIssues(parsed.error);
     throw new Error(
       `Invalid or missing environment configuration:\n${issues}\n` +
         `See .env.example for the required variables.`,

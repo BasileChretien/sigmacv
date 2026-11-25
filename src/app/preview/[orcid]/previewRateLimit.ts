@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import { getRateLimit } from "@/lib/env";
 import { enforceRateLimit } from "@/lib/rateLimitStore";
 import { clientIpFromHeaders } from "@/lib/security/clientIp";
 
@@ -9,25 +10,26 @@ import { clientIpFromHeaders } from "@/lib/security/clientIp";
  * per minute). A second GLOBAL ceiling bounds a distributed flood that rotates
  * source IPs. The per-ORCID cache + single-flight (orcidPreviewCache) blunt
  * repeat/concurrent hits on top of this.
+ *
+ * The ceilings are 30 per IP and 600 site-wide by default; an event whose
+ * audience shares one IP raises them for the day with `PREVIEW_MAX_PER_IP` and
+ * `PREVIEW_MAX_GLOBAL` (`getRateLimit` in `src/lib/env.ts`). Both are read before
+ * either bucket is spent, so a refused value spends nothing.
  */
-const PREVIEW_MAX = 30;
 const PREVIEW_WINDOW_MS = 60 * 60_000; // 1 hour
-const PREVIEW_GLOBAL_MAX = 600;
 const PREVIEW_GLOBAL_WINDOW_MS = 60 * 60_000;
 
 export type PreviewRateOutcome = { ok: true } | { ok: false; retryAfterSec: number };
 
 /** Apply the per-IP then global preview limit for the current request. */
 export async function enforcePreviewRateLimit(): Promise<PreviewRateOutcome> {
+  const perIp = getRateLimit("PREVIEW_MAX_PER_IP");
+  const global = getRateLimit("PREVIEW_MAX_GLOBAL");
   const h = await headers();
   const ip = clientIpFromHeaders(h);
-  const rl = await enforceRateLimit(`preview:${ip}`, PREVIEW_MAX, PREVIEW_WINDOW_MS);
+  const rl = await enforceRateLimit(`preview:${ip}`, perIp, PREVIEW_WINDOW_MS);
   if (!rl.ok) return { ok: false, retryAfterSec: rl.retryAfterSec };
-  const grl = await enforceRateLimit(
-    "preview:global",
-    PREVIEW_GLOBAL_MAX,
-    PREVIEW_GLOBAL_WINDOW_MS,
-  );
+  const grl = await enforceRateLimit("preview:global", global, PREVIEW_GLOBAL_WINDOW_MS);
   if (!grl.ok) return { ok: false, retryAfterSec: grl.retryAfterSec };
   return { ok: true };
 }

@@ -15,6 +15,15 @@ const REQUIRED_PASSTHROUGH = [
   "EPO_OPS_SECRET",
   "OPEN_POLICY_FINDER_API_KEY",
   "RESYNC_SECRET",
+  // The no-login rate limits an event raises for a day (`getRateLimit`).
+  "PREVIEW_MAX_PER_IP",
+  "PREVIEW_MAX_GLOBAL",
+  "PREVIEW_RENDER_MAX_PER_IP",
+  "PREVIEW_RENDER_MAX_GLOBAL",
+  "PREVIEW_THUMBNAILS_MAX_PER_IP",
+  "SEARCH_MAX_PER_IP",
+  "SEARCH_MAX_GLOBAL_PER_MINUTE",
+  "SEARCH_MAX_GLOBAL_PER_HOUR",
 ];
 
 /** `      NAME: ${NAME}` or `      NAME: ${NAME:-default}` on its own line. */

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { CanonicalCvSchema } from "@/lib/canonical/schema";
 import { MAX_TOTAL_CV_ITEMS, cvItemCount } from "@/lib/cv/sync";
+import { getCallerRateLimit, getRateLimit } from "@/lib/env";
 import { projectCvForPreview } from "@/lib/cv/publicProjection";
 import { logger } from "@/lib/log";
 import { readJsonBodyWithLimit } from "@/lib/readBody";
@@ -17,9 +18,10 @@ export const dynamic = "force-dynamic";
 // session and no DB — it only renders a client-supplied document, so there's
 // nothing to leak; it's same-origin-only and rate-limited per IP (a citeproc
 // render is CPU-heavy), with a second global ceiling and the same item cap.
-const RENDER_MAX = 240;
+// 240 per IP and 6,000 site-wide by default; an event whose audience shares one
+// IP raises them for the day (PREVIEW_RENDER_MAX_*, `getRateLimit`). A signed-in
+// caller's own bucket keeps 240 (`getCallerRateLimit`); the global one is shared.
 const RENDER_WINDOW_MS = 60 * 60 * 1000; // 1 hour
-const RENDER_GLOBAL_MAX = 6_000;
 const RENDER_GLOBAL_WINDOW_MS = 60 * 60 * 1000;
 const MAX_BODY_BYTES = 8_000_000;
 
@@ -33,18 +35,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Cross-origin request rejected" }, { status: 403 });
   }
 
-  const rl = await enforceRateLimit(`preview-render:${gate.key}`, RENDER_MAX, RENDER_WINDOW_MS);
+  const perCaller = getCallerRateLimit("PREVIEW_RENDER_MAX_PER_IP", gate.signedIn);
+  const global = getRateLimit("PREVIEW_RENDER_MAX_GLOBAL");
+  const rl = await enforceRateLimit(`preview-render:${gate.key}`, perCaller, RENDER_WINDOW_MS);
   if (!rl.ok) {
     return NextResponse.json(
       { error: "Too many preview updates. Please wait a moment." },
       { status: 429, headers: { "Retry-After": String(rl.retryAfterSec) } },
     );
   }
-  const grl = await enforceRateLimit(
-    "preview-render:global",
-    RENDER_GLOBAL_MAX,
-    RENDER_GLOBAL_WINDOW_MS,
-  );
+  const grl = await enforceRateLimit("preview-render:global", global, RENDER_GLOBAL_WINDOW_MS);
   if (!grl.ok) {
     return NextResponse.json(
       { error: "The preview is busy. Please try again shortly." },
