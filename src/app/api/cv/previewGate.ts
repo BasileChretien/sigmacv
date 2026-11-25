@@ -18,13 +18,17 @@ import { clientIp } from "@/lib/security/clientIp";
  * account-gated.
  *
  * Returns the rate-limit identity key (`u:<id>` or `ip:<addr>`) to fold into the
- * route's own bucket prefix, or a 403 when the origin check fails.
+ * route's own bucket prefix, and whether the caller is signed in (an account's
+ * bucket keeps today's limit on an event day: `getCallerRateLimit`), or a 403
+ * when the origin check fails.
  */
 export async function previewCaller(
   req: Request,
-): Promise<{ ok: true; key: string } | { ok: false; status: 403 }> {
+): Promise<{ ok: true; key: string; signedIn: boolean } | { ok: false; status: 403 }> {
   if (!isSameOrigin(req)) return { ok: false, status: 403 };
   const session = await auth();
-  const key = session?.user?.id ? `u:${session.user.id}` : `ip:${clientIp(req)}`;
-  return { ok: true, key };
+  const userId = session?.user?.id;
+  return userId
+    ? { ok: true, key: `u:${userId}`, signedIn: true }
+    : { ok: true, key: `ip:${clientIp(req)}`, signedIn: false };
 }

@@ -10,17 +10,20 @@ Object.assign(process.env, {
   OPENALEX_MAILTO: "ci@example.org",
 });
 
+type Gate = { ok: true; key: string; signedIn: boolean };
+const ANONYMOUS: Gate = { ok: true, key: "ip:203.0.113.9", signedIn: false };
+const SIGNED_IN: Gate = { ok: true, key: "u:1", signedIn: true };
+
 const mocks = vi.hoisted(() => ({
   rateLimit: vi.fn(async (): Promise<{ ok: boolean; retryAfterSec?: number }> => ({ ok: true })),
+  previewCaller: vi.fn(),
 }));
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "x-forwarded-for": "203.0.113.9" }),
 }));
 vi.mock("@/lib/rateLimitStore", () => ({ enforceRateLimit: mocks.rateLimit }));
 vi.mock("@/lib/db", () => ({ prisma: {} }));
-vi.mock("@/app/api/cv/previewGate", () => ({
-  previewCaller: vi.fn(async () => ({ ok: true, key: "ip:203.0.113.9" })),
-}));
+vi.mock("@/app/api/cv/previewGate", () => ({ previewCaller: mocks.previewCaller }));
 
 import { __resetEnvForTests } from "@/lib/env";
 import { enforcePreviewRateLimit } from "@/app/preview/[orcid]/previewRateLimit";
@@ -31,8 +34,9 @@ import { POST as stylesPost } from "@/app/api/cv/preview/styles/route";
 
 /**
  * Every bucket a no-login visitor spends during a workshop's hands-on part reads
- * its ceiling from `getRateLimitEnv()`, never a constant: the ORCID or name
+ * its ceiling from the env (`getRateLimit`), never a constant: the ORCID or name
  * search, the preview build, the editor's re-renders and the style thumbnails.
+ * A signed-in account's own re-render and thumbnail buckets keep today's limit.
  * The windows themselves never change.
  */
 const HOUR = 60 * 60_000;
@@ -61,6 +65,8 @@ function badBody(path: string): Request {
 beforeEach(() => {
   mocks.rateLimit.mockClear();
   mocks.rateLimit.mockResolvedValue({ ok: true });
+  mocks.previewCaller.mockReset();
+  mocks.previewCaller.mockResolvedValue(ANONYMOUS);
   for (const k of Object.keys(OVERRIDES)) delete process.env[k];
   __resetEnvForTests();
 });
@@ -143,6 +149,63 @@ describe("with the event overrides set", () => {
       ["preview-gallery:ip:203.0.113.9", 900, HOUR],
       ["preview-styles:ip:203.0.113.9", 900, HOUR],
     ]);
+  });
+});
+
+describe("a signed-in account keeps today's limit on its own buckets", () => {
+  beforeEach(() => {
+    Object.assign(process.env, OVERRIDES);
+    __resetEnvForTests();
+    mocks.previewCaller.mockResolvedValue(SIGNED_IN);
+  });
+
+  it("both thumbnail pickers: 30 an hour for the account, override or not", async () => {
+    await galleryPost(badBody("/api/cv/preview/gallery"));
+    await stylesPost(badBody("/api/cv/preview/styles"));
+    expect(calls()).toEqual([
+      ["preview-gallery:u:1", 30, HOUR],
+      ["preview-styles:u:1", 30, HOUR],
+    ]);
+  });
+
+  it("preview re-render: 240 for the account, while the shared global ceiling is the event's", async () => {
+    await renderPost(badBody("/api/preview/render"));
+    expect(calls()).toEqual([
+      ["preview-render:u:1", 240, HOUR],
+      ["preview-render:global", 20000, HOUR],
+    ]);
+  });
+
+  it("a bad thumbnails value never reaches the signed-in editor's pickers", async () => {
+    process.env.PREVIEW_THUMBNAILS_MAX_PER_IP = "lots";
+    __resetEnvForTests();
+    expect((await galleryPost(badBody("/api/cv/preview/gallery"))).status).toBe(400);
+    expect((await stylesPost(badBody("/api/cv/preview/styles"))).status).toBe(400);
+  });
+});
+
+describe("a bad value fails only the routes that read it", () => {
+  it("a bad SEARCH_MAX_PER_IP fails the name search, and nothing else", async () => {
+    process.env.SEARCH_MAX_PER_IP = "300/min";
+    __resetEnvForTests();
+    await expect(enforceSearchRateLimit()).rejects.toThrow(/SEARCH_MAX_PER_IP/);
+    expect(await enforcePreviewRateLimit()).toEqual({ ok: true });
+    expect((await renderPost(badBody("/api/preview/render"))).status).toBe(400);
+    expect((await galleryPost(badBody("/api/cv/preview/gallery"))).status).toBe(400);
+    expect((await stylesPost(badBody("/api/cv/preview/styles"))).status).toBe(400);
+  });
+
+  it("a bad global ceiling fails before any bucket is spent", async () => {
+    process.env.PREVIEW_MAX_GLOBAL = "lots";
+    process.env.PREVIEW_RENDER_MAX_GLOBAL = "lots";
+    process.env.SEARCH_MAX_GLOBAL_PER_HOUR = "lots";
+    __resetEnvForTests();
+    await expect(enforcePreviewRateLimit()).rejects.toThrow(/PREVIEW_MAX_GLOBAL/);
+    await expect(renderPost(badBody("/api/preview/render"))).rejects.toThrow(
+      /PREVIEW_RENDER_MAX_GLOBAL/,
+    );
+    await expect(enforceSearchRateLimit()).rejects.toThrow(/SEARCH_MAX_GLOBAL_PER_HOUR/);
+    expect(calls()).toEqual([]);
   });
 });
 
